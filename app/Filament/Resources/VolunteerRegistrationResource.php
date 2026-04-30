@@ -108,6 +108,7 @@ class VolunteerRegistrationResource extends Resource
                         'success' => RegistrationStatus::Approved->value,
                         'danger'  => RegistrationStatus::Rejected->value,
                         'gray'    => RegistrationStatus::Cancelled->value,
+                        'info'    => RegistrationStatus::Completed->value,
                     ])
                     ->sortable(),
 
@@ -122,11 +123,23 @@ class VolunteerRegistrationResource extends Resource
                     ->toggleable(),
 
                 TextColumn::make('approved_hours')
-                    ->label('الساعات المعتمدة')
+                    ->label('تقدم الساعات')
                     ->getStateUsing(fn (VolunteerRegistration $record): string =>
                         number_format($record->getApprovedHours(), 1) . ' / ' .
                         number_format((float) $record->opportunity?->hours_expected, 1) . ' ساعة'
-                    )
+                    ),
+
+                TextColumn::make('has_certificate')
+                    ->label('شهادة التطوع')
+                    ->badge()
+                    ->getStateUsing(function (VolunteerRegistration $record): string {
+                        return Certificate::query()
+                            ->where('user_id', $record->user_id)
+                            ->where('certificateable_type', VolunteerOpportunity::class)
+                            ->where('certificateable_id', $record->opportunity_id)
+                            ->exists() ? 'صدرت ✓' : '—';
+                    })
+                    ->color(fn (string $state): string => str_contains($state, 'صدرت') ? 'success' : 'gray')
                     ->toggleable(),
 
                 TextColumn::make('created_at')
@@ -149,10 +162,13 @@ class VolunteerRegistrationResource extends Resource
                 ViewAction::make(),
 
                 Action::make('approve')
-                    ->label('موافقة')
+                    ->label('قبول الطلب')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
+                    ->modalHeading('تأكيد قبول التسجيل')
+                    ->modalDescription('هل تريد قبول طلب التطوع في هذه الفرصة؟')
+                    ->modalSubmitActionLabel('نعم، قبول')
                     ->visible(fn (VolunteerRegistration $record): bool => $record->status === RegistrationStatus::Pending)
                     ->action(function (VolunteerRegistration $record): void {
                         try {
@@ -164,13 +180,16 @@ class VolunteerRegistrationResource extends Resource
                     }),
 
                 Action::make('reject')
-                    ->label('رفض')
+                    ->label('رفض الطلب')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
+                    ->modalHeading('رفض طلب التطوع')
+                    ->modalSubmitActionLabel('نعم، رفض')
                     ->form([
                         Textarea::make('rejected_reason')
                             ->label('سبب الرفض (اختياري)')
+                            ->placeholder('اكتب سبب الرفض لإشعار المستفيد...')
                             ->rows(3),
                     ])
                     ->visible(fn (VolunteerRegistration $record): bool => $record->status === RegistrationStatus::Pending)
@@ -189,6 +208,9 @@ class VolunteerRegistrationResource extends Resource
                     ->color('success')
                     ->visible(fn (VolunteerRegistration $record): bool => $record->isCompleted())
                     ->requiresConfirmation()
+                    ->modalHeading('إصدار شهادة تطوع')
+                    ->modalDescription('سيتم إصدار شهادة PDF للمتطوع. تأكد أن جميع الساعات المطلوبة معتمدة قبل المتابعة.')
+                    ->modalSubmitActionLabel('نعم، إصدار')
                     ->action(function (VolunteerRegistration $record): void {
                         $record->loadMissing(['user', 'opportunity']);
                         $existing = Certificate::query()

@@ -10,7 +10,7 @@ RegistrationStatus::Completed->value => 'bg-blue-100 text-blue-700',
 ];
 
 $statusLabels = [
-RegistrationStatus::Pending->value => 'قيد الانتظار',
+RegistrationStatus::Pending->value => 'قيد المراجعة',
 RegistrationStatus::Approved->value => 'مقبول',
 RegistrationStatus::Rejected->value => 'مرفوض',
 RegistrationStatus::Cancelled->value => 'ملغي',
@@ -30,12 +30,13 @@ RegistrationStatus::Completed->value => 'مكتمل',
 @else
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
     <table class="w-full text-sm">
-        <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+        <thead class="bg-gray-50 text-gray-500 text-xs">
             <tr>
                 <th class="px-5 py-3 text-right font-medium">البرنامج</th>
                 <th class="px-5 py-3 text-center font-medium">الحالة</th>
                 <th class="px-5 py-3 text-center font-medium">نسبة الحضور</th>
                 <th class="px-5 py-3 text-center font-medium">الدرجة</th>
+                <th class="px-5 py-3 text-center font-medium">أهلية الشهادة</th>
                 <th class="px-5 py-3 text-center font-medium">الشهادة</th>
             </tr>
         </thead>
@@ -60,6 +61,25 @@ RegistrationStatus::Completed->value => 'مكتمل',
                 </td>
                 <td class="px-5 py-4 text-center text-gray-600">
                     {{ $reg->score !== null ? number_format((float) $reg->score, 1) : '—' }}
+                </td>
+                <td class="px-5 py-4 text-center">
+                    @php
+                    $showElig = in_array($reg->status->value, [
+                        \App\Enums\RegistrationStatus::Approved->value,
+                        \App\Enums\RegistrationStatus::Completed->value,
+                    ]);
+                    $attOk = $reg->attendance_percentage !== null && (float)$reg->attendance_percentage >= 80;
+                    $scoreOk = $reg->score === null || (float)$reg->score >= 60;
+                    @endphp
+                    @if ($showElig && $reg->attendance_percentage !== null)
+                        @if ($attOk && $scoreOk)
+                        <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">مؤهل ✓</span>
+                        @else
+                        <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">غير مؤهل</span>
+                        @endif
+                    @else
+                    <span class="text-xs text-gray-400">—</span>
+                    @endif
                 </td>
                 <td class="px-5 py-4 text-center">
                     @if ($reg->certificate)

@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\AttendanceStatus;
 use App\Enums\RegistrationStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProgramRegistration extends Model
 {
@@ -102,5 +104,35 @@ class ProgramRegistration extends Model
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function attendanceRecords(): HasMany
+    {
+        return $this->hasMany(ProgramAttendance::class, 'program_registration_id');
+    }
+
+    // ─── Attendance helpers ───────────────────────────────────────────────────
+
+    /**
+     * Calculate attendance percentage live from daily records.
+     *
+     * Returns null when no records exist — caller should fall back to the
+     * stored attendance_percentage field.
+     *
+     * Note: excused absences count as absent for percentage purposes.
+     */
+    public function calculateAttendancePercentage(): ?float
+    {
+        $total = $this->attendanceRecords()->count();
+
+        if ($total === 0) {
+            return null;
+        }
+
+        $present = $this->attendanceRecords()
+            ->where('status', AttendanceStatus::Present->value)
+            ->count();
+
+        return round($present / $total * 100, 2);
     }
 }

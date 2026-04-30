@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\ProgramStatus;
 use App\Filament\Resources\TrainingProgramResource\Pages;
+use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationsRelationManager;
 use App\Models\TrainingProgram;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -11,6 +12,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -62,6 +64,15 @@ class TrainingProgramResource extends Resource
                     ->required()
                     ->default(ProgramStatus::Draft->value),
 
+                Select::make('learning_path_id')
+                    ->relationship('learningPath', 'title')
+                    ->searchable()
+                    ->preload()
+                    ->nullable()
+                    ->label('المسار التعليمي')
+                    ->placeholder('(مستقل — لا ينتمي لمسار)')
+                    ->helperText('اختياري: ربط هذا البرنامج بمسار تعليمي'),
+
                 Textarea::make('description')
                     ->label('الوصف')
                     ->rows(4)
@@ -82,6 +93,21 @@ class TrainingProgramResource extends Resource
                         ->label('نهاية البرنامج')
                         ->afterOrEqual('start_date'),
                 ]),
+
+                CheckboxList::make('weekdays')
+                    ->label('أيام الدراسة الأسبوعية')
+                    ->options([
+                        '0' => 'الأحد',
+                        '1' => 'الاثنين',
+                        '2' => 'الثلاثاء',
+                        '3' => 'الأربعاء',
+                        '4' => 'الخميس',
+                        '5' => 'الجمعة',
+                        '6' => 'السبت',
+                    ])
+                    ->columns(4)
+                    ->columnSpanFull()
+                    ->helperText('تُستخدم لتوليد الجلسات التدريبية تلقائياً بين تاريخ البداية والنهاية'),
 
                 Grid::make(2)->schema([
                     DatePicker::make('registration_start')
@@ -167,6 +193,13 @@ class TrainingProgramResource extends Resource
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            ProgramRegistrationsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

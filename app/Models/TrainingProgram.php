@@ -21,12 +21,14 @@ class TrainingProgram extends Model
         'capacity',
         'start_date',
         'end_date',
+        'weekdays',
         'registration_start',
         'registration_end',
         'status',
         'published_at',
         'created_by',
         'updated_by',
+        'learning_path_id',
     ];
 
     protected function casts(): array
@@ -39,6 +41,7 @@ class TrainingProgram extends Model
             'registration_start' => 'date',
             'registration_end'   => 'date',
             'capacity'           => 'integer',
+            'weekdays'           => 'array',
         ];
     }
 
@@ -132,5 +135,10 @@ class TrainingProgram extends Model
     public function certificates(): MorphMany
     {
         return $this->morphMany(Certificate::class, 'certificateable');
+    }
+
+    public function learningPath(): BelongsTo
+    {
+        return $this->belongsTo(LearningPath::class);
     }
 }

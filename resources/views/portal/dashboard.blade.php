@@ -10,7 +10,7 @@ RegistrationStatus::Completed->value => 'bg-blue-100 text-blue-700',
 ];
 
 $statusLabels = [
-RegistrationStatus::Pending->value => 'قيد الانتظار',
+RegistrationStatus::Pending->value => 'قيد المراجعة',
 RegistrationStatus::Approved->value => 'مقبول',
 RegistrationStatus::Rejected->value => 'مرفوض',
 RegistrationStatus::Cancelled->value => 'ملغي',
@@ -21,6 +21,7 @@ RegistrationStatus::Completed->value => 'مكتمل',
 @extends('layouts.portal')
 @section('title', 'لوحة التحكم')
 @section('content')
+<p class="text-gray-500 text-sm mb-1">مرحبا، {{ \Illuminate\Support\Str::before(auth()->user()->name, ' ') }} 👋</p>
 <h1 class="text-2xl font-bold text-gray-900 mb-6">لوحة التحكم</h1>
 
 {{-- Stats cards --}}
@@ -46,7 +47,10 @@ RegistrationStatus::Completed->value => 'مكتمل',
 
     {{-- Latest certificates --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-        <h2 class="text-base font-semibold text-gray-700 mb-4">آخر الشهادات</h2>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-semibold text-gray-700">آخر الشهادات</h2>
+            <a href="{{ route('portal.certificates') }}" class="text-xs text-indigo-600 hover:underline">عرض الكل ←</a>
+        </div>
         @forelse ($certificates as $cert)
         <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
             <div>
@@ -70,7 +74,10 @@ RegistrationStatus::Completed->value => 'مكتمل',
 
     {{-- Recent path registrations --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-        <h2 class="text-base font-semibold text-gray-700 mb-4">آخر تسجيلات المسارات</h2>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-semibold text-gray-700">آخر تسجيلات المسارات</h2>
+            <a href="{{ route('portal.paths') }}" class="text-xs text-indigo-600 hover:underline">عرض الكل ←</a>
+        </div>
         @forelse ($recentPathRegs as $reg)
         @php $sv = $reg->status->value; @endphp
         <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
@@ -86,7 +93,10 @@ RegistrationStatus::Completed->value => 'مكتمل',
 
     {{-- Recent program registrations --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 lg:col-span-2">
-        <h2 class="text-base font-semibold text-gray-700 mb-4">آخر تسجيلات البرامج</h2>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-semibold text-gray-700">آخر تسجيلات البرامج</h2>
+            <a href="{{ route('portal.programs') }}" class="text-xs text-indigo-600 hover:underline">عرض الكل ←</a>
+        </div>
         @forelse ($recentProgramRegs as $reg)
         @php $sv = $reg->status->value; @endphp
         <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">

@@ -98,12 +98,20 @@ class CertificateResource extends Resource
                     ->toggleable(),
 
                 TextColumn::make('certificateable_type')
-                    ->label('المصدر')
-                    ->formatStateUsing(fn (?string $state): string => $state
-                        ? class_basename($state)
-                        : '-'
-                    )
-                    ->toggleable(),
+                    ->label('نوع الشهادة')
+                    ->formatStateUsing(fn (?string $state): string => match (class_basename((string) $state)) {
+                        'TrainingProgram'      => 'برنامج تدريبي',
+                        'LearningPath'         => 'مسار تعليمي',
+                        'VolunteerOpportunity' => 'فرصة تطوعية',
+                        default                => $state ? class_basename($state) : '—',
+                    })
+                    ->badge()
+                    ->color(fn (?string $state): string => match (class_basename((string) $state)) {
+                        'TrainingProgram'      => 'success',
+                        'LearningPath'         => 'info',
+                        'VolunteerOpportunity' => 'warning',
+                        default                => 'gray',
+                    }),
 
                 TextColumn::make('issued_at')
                     ->label('تاريخ الإصدار')
@@ -129,10 +137,17 @@ class CertificateResource extends Resource
                     ->searchable(),
             ])
             ->actions([
-                ViewAction::make(),
+                ViewAction::make()->label('عرض'),
+
+                Action::make('verify')
+                    ->label('رابط التحقق')
+                    ->icon('heroicon-o-link')
+                    ->color('gray')
+                    ->url(fn (Certificate $record): string => route('certificates.verify', $record->verification_code))
+                    ->openUrlInNewTab(),
 
                 Action::make('download')
-                    ->label('تحميل')
+                    ->label('تحميل PDF')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('info')
                     ->visible(fn (Certificate $record): bool => $record->file_path !== null)

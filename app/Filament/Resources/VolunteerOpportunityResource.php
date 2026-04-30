@@ -161,7 +161,7 @@ class VolunteerOpportunityResource extends Resource
             ->defaultSort('created_at', 'desc');
     }
 
-    public static function getRelationManagers(): array
+    public static function getRelations(): array
     {
         return [
             RegistrationsRelationManager::class,

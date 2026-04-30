@@ -118,6 +118,11 @@ class LearningPath extends Model
         return $this->morphMany(Certificate::class, 'certificateable');
     }
 
+    public function programs(): HasMany
+    {
+        return $this->hasMany(TrainingProgram::class);
+    }
+
     /**
      * Return a keyed collection of a user's course progress rows for this path.
      * Keyed by path_course_id for O(1) look-up.

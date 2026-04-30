@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 use App\Enums\PathStatus;
 use App\Filament\Resources\LearningPathResource\Pages;
 use App\Filament\Resources\LearningPathResource\RelationManagers\CoursesRelationManager;
+use App\Filament\Resources\LearningPathResource\RelationManagers\PathRegistrationsRelationManager;
+use App\Filament\Resources\LearningPathResource\RelationManagers\TrainingProgramsRelationManager;
 use App\Models\LearningPath;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -156,10 +158,12 @@ class LearningPathResource extends Resource
             ->defaultSort('created_at', 'desc');
     }
 
-    public static function getRelationManagers(): array
+    public static function getRelations(): array
     {
         return [
             CoursesRelationManager::class,
+            TrainingProgramsRelationManager::class,
+            PathRegistrationsRelationManager::class,
         ];
     }
 

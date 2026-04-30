@@ -10,7 +10,7 @@ RegistrationStatus::Completed->value => 'bg-blue-100 text-blue-700',
 ];
 
 $statusLabels = [
-RegistrationStatus::Pending->value => 'قيد الانتظار',
+RegistrationStatus::Pending->value => 'قيد المراجعة',
 RegistrationStatus::Approved->value => 'مقبول',
 RegistrationStatus::Rejected->value => 'مرفوض',
 RegistrationStatus::Cancelled->value => 'ملغي',
@@ -30,13 +30,13 @@ RegistrationStatus::Completed->value => 'مكتمل',
 @else
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
     <table class="w-full text-sm">
-        <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+        <thead class="bg-gray-50 text-gray-500 text-xs">
             <tr>
                 <th class="px-5 py-3 text-right font-medium">الفرصة</th>
                 <th class="px-5 py-3 text-center font-medium">الحالة</th>
-                <th class="px-5 py-3 text-center font-medium">ساعات معتمدة</th>
-                <th class="px-5 py-3 text-center font-medium">الساعات المطلوبة</th>
-                <th class="px-5 py-3 text-center font-medium">الإتمام</th>
+                <th class="px-5 py-3 text-center font-medium">الساعات</th>
+                <th class="px-5 py-3 text-center font-medium">التقدم</th>
+                <th class="px-5 py-3 text-center font-medium">شهادة التطوع</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
@@ -57,10 +57,7 @@ RegistrationStatus::Completed->value => 'مكتمل',
                     </span>
                 </td>
                 <td class="px-5 py-4 text-center text-gray-600">
-                    {{ number_format($approvedHours, 1) }}
-                </td>
-                <td class="px-5 py-4 text-center text-gray-600">
-                    {{ $required > 0 ? number_format($required, 1) : '—' }}
+                    {{ number_format($approvedHours, 1) }} / {{ $required > 0 ? number_format($required, 1) : '—' }} ساعة
                 </td>
                 <td class="px-5 py-4 text-center">
                     @if ($required > 0)
@@ -70,6 +67,15 @@ RegistrationStatus::Completed->value => 'مكتمل',
                         </div>
                         <span class="text-xs text-gray-500">{{ number_format($pct, 0) }}%</span>
                     </div>
+                    @else
+                    <span class="text-xs text-gray-400">—</span>
+                    @endif
+                </td>
+                <td class="px-5 py-4 text-center">
+                    @if ($sv === \App\Enums\RegistrationStatus::Completed->value)
+                    <a href="{{ route('portal.certificates') }}" class="text-xs text-indigo-600 hover:underline font-medium">
+                        عرض الشهادة ←
+                    </a>
                     @else
                     <span class="text-xs text-gray-400">—</span>
                     @endif

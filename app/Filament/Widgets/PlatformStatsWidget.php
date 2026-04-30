@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Models\Certificate;
 use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
+use App\Models\VolunteerRegistration;
 use App\Models\User;
 use App\Enums\RegistrationStatus;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
@@ -16,9 +17,10 @@ class PlatformStatsWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        $pendingPaths     = PathRegistration::where('status', RegistrationStatus::Pending)->count();
-        $pendingPrograms  = ProgramRegistration::where('status', RegistrationStatus::Pending)->count();
-        $totalPending     = $pendingPaths + $pendingPrograms;
+        $pendingPaths        = PathRegistration::where('status', RegistrationStatus::Pending)->count();
+        $pendingPrograms     = ProgramRegistration::where('status', RegistrationStatus::Pending)->count();
+        $pendingVolunteers   = VolunteerRegistration::where('status', RegistrationStatus::Pending)->count();
+        $totalPending        = $pendingPaths + $pendingPrograms + $pendingVolunteers;
 
         $certificatesThisMonth = Certificate::whereYear('issued_at', now()->year)
             ->whereMonth('issued_at', now()->month)
@@ -31,7 +33,7 @@ class PlatformStatsWidget extends BaseWidget
                 ->icon('heroicon-o-users'),
 
             Stat::make('طلبات معلّقة', $totalPending)
-                ->description("مسارات: {$pendingPaths} | برامج: {$pendingPrograms}")
+                ->description("مسارات: {$pendingPaths} | برامج: {$pendingPrograms} | تطوع: {$pendingVolunteers}")
                 ->color($totalPending > 0 ? 'warning' : 'success')
                 ->icon('heroicon-o-clock'),
 

@@ -10,7 +10,7 @@ RegistrationStatus::Completed->value => 'bg-blue-100 text-blue-700',
 ];
 
 $statusLabels = [
-RegistrationStatus::Pending->value => 'قيد الانتظار',
+RegistrationStatus::Pending->value => 'قيد المراجعة',
 RegistrationStatus::Approved->value => 'مقبول',
 RegistrationStatus::Rejected->value => 'مرفوض',
 RegistrationStatus::Cancelled->value => 'ملغي',

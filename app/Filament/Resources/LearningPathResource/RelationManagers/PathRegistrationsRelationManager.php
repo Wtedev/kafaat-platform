@@ -1,92 +1,67 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Resources\LearningPathResource\RelationManagers;
 
 use App\Enums\RegistrationStatus;
 use App\Exceptions\PathCapacityExceededException;
-use App\Filament\Resources\PathRegistrationResource\Pages;
+use App\Models\Certificate;
+use App\Models\LearningPath;
 use App\Models\PathRegistration;
+use App\Services\CertificateService;
 use App\Services\PathRegistrationService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
-use Filament\Resources\Resource;
-use Filament\Schemas\Components\Section;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
-class PathRegistrationResource extends Resource
+class PathRegistrationsRelationManager extends RelationManager
 {
-    protected static ?string $model = PathRegistration::class;
+    protected static string $relationship = 'registrations';
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static ?string $title = 'المسجلون في المسار';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'التدريب';
-
-    protected static ?int $navigationSort = 2;
-
-    protected static ?string $navigationLabel = 'تسجيلات المسارات';
-
-    protected static ?string $modelLabel = 'تسجيل مسار';
-
-    protected static ?string $pluralModelLabel = 'تسجيلات المسارات';
-
-    public static function form(Schema $schema): Schema
+    public function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make()->columns(2)->schema([
-                Select::make('learning_path_id')
-                    ->relationship('learningPath', 'title')
-                    ->searchable()
-                    ->preload()
-                    ->required()
-                    ->label('المسار التعليمي'),
+            Select::make('user_id')
+                ->relationship('user', 'name')
+                ->searchable()
+                ->preload()
+                ->required()
+                ->label('المستفيد'),
 
-                Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->required()
-                    ->label('المستخدم'),
+            Select::make('status')
+                ->label('الحالة')
+                ->options(RegistrationStatus::class)
+                ->required(),
 
-                Select::make('status')
-                    ->label('الحالة')
-                    ->options(RegistrationStatus::class)
-                    ->required(),
-
-                Textarea::make('rejected_reason')
-                    ->rows(3)
-                    ->columnSpanFull()
-                    ->label('سبب الرفض'),
-            ]),
+            Textarea::make('rejected_reason')
+                ->rows(3)
+                ->label('سبب الرفض'),
         ]);
     }
 
-    public static function table(Table $table): Table
+    public function table(Table $table): Table
     {
         return $table
             ->columns([
                 TextColumn::make('user.name')
                     ->searchable()
                     ->sortable()
-                    ->label('المستخدم'),
+                    ->label('المستفيد'),
 
                 TextColumn::make('user.email')
                     ->searchable()
-                    ->toggleable()
-                    ->label('البريد الإلكتروني'),
-
-                TextColumn::make('learningPath.title')
-                    ->searchable()
-                    ->sortable()
-                    ->label('المسار التعليمي'),
+                    ->label('البريد الإلكتروني')
+                    ->toggleable(),
 
                 BadgeColumn::make('status')
                     ->label('الحالة')
@@ -96,15 +71,10 @@ class PathRegistrationResource extends Resource
                         'danger'  => RegistrationStatus::Rejected->value,
                         'gray'    => RegistrationStatus::Cancelled->value,
                         'info'    => RegistrationStatus::Completed->value,
-                    ])
-                    ->sortable(),
-
-                TextColumn::make('approvedBy.name')
-                    ->label('اعتمد بواسطة')
-                    ->toggleable(),
+                    ]),
 
                 TextColumn::make('approved_at')
-                    ->label('تاريخ الموافقة')
+                    ->label('تاريخ القبول')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(),
@@ -112,11 +82,22 @@ class PathRegistrationResource extends Resource
                 TextColumn::make('completed_at')
                     ->label('تاريخ الإكمال')
                     ->dateTime()
-                    ->sortable()
                     ->toggleable(),
 
+                TextColumn::make('has_certificate')
+                    ->label('الشهادة')
+                    ->badge()
+                    ->getStateUsing(function (PathRegistration $record): string {
+                        return Certificate::query()
+                            ->where('user_id', $record->user_id)
+                            ->where('certificateable_type', LearningPath::class)
+                            ->where('certificateable_id', $record->learning_path_id)
+                            ->exists() ? 'صدرت ✓' : '—';
+                    })
+                    ->color(fn (string $state): string => str_contains($state, 'صدرت') ? 'success' : 'gray'),
+
                 TextColumn::make('created_at')
-                    ->label('تاريخ الإنشاء')
+                    ->label('تاريخ التسجيل')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -125,36 +106,23 @@ class PathRegistrationResource extends Resource
                 SelectFilter::make('status')
                     ->label('الحالة')
                     ->options(RegistrationStatus::class),
-
-                SelectFilter::make('learning_path_id')
-                    ->relationship('learningPath', 'title')
-                    ->label('المسار التعليمي')
-                    ->searchable(),
             ])
             ->actions([
-                ViewAction::make(),
-
                 Action::make('approve')
                     ->label('قبول الطلب')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->modalHeading('تأكيد القبول')
+                    ->modalHeading('تأكيد قبول الطلب')
                     ->modalDescription('هل تريد قبول طلب التسجيل في هذا المسار؟')
                     ->modalSubmitActionLabel('نعم، قبول')
                     ->visible(fn (PathRegistration $record): bool => $record->status === RegistrationStatus::Pending)
                     ->action(function (PathRegistration $record): void {
                         try {
                             app(PathRegistrationService::class)->approve($record, auth()->user());
-                            Notification::make()
-                                ->title('تمت الموافقة على التسجيل')
-                                ->success()
-                                ->send();
+                            Notification::make()->title('تمت الموافقة على التسجيل')->success()->send();
                         } catch (PathCapacityExceededException) {
-                            Notification::make()
-                                ->title('المسار بلغ طاقته القصوى')
-                                ->danger()
-                                ->send();
+                            Notification::make()->title('المسار بلغ طاقته القصوى')->danger()->send();
                         }
                     }),
 
@@ -173,14 +141,8 @@ class PathRegistrationResource extends Resource
                     ])
                     ->visible(fn (PathRegistration $record): bool => $record->status === RegistrationStatus::Pending)
                     ->action(function (PathRegistration $record, array $data): void {
-                        app(PathRegistrationService::class)->reject(
-                            $record,
-                            $data['rejected_reason'] ?? null
-                        );
-                        Notification::make()
-                            ->title('تم رفض التسجيل')
-                            ->warning()
-                            ->send();
+                        app(PathRegistrationService::class)->reject($record, $data['rejected_reason'] ?? null);
+                        Notification::make()->title('تم رفض التسجيل')->warning()->send();
                     }),
 
                 Action::make('complete')
@@ -194,10 +156,36 @@ class PathRegistrationResource extends Resource
                     ->visible(fn (PathRegistration $record): bool => $record->status === RegistrationStatus::Approved)
                     ->action(function (PathRegistration $record): void {
                         app(PathRegistrationService::class)->complete($record);
-                        Notification::make()
-                            ->title('تم تحديد التسجيل كمكتمل')
-                            ->success()
-                            ->send();
+                        Notification::make()->title('تم تسجيل إكمال المسار')->success()->send();
+                    }),
+
+                Action::make('issueCertificate')
+                    ->label('إصدار شهادة')
+                    ->icon('heroicon-o-academic-cap')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('إصدار شهادة إتمام المسار')
+                    ->modalDescription('سيتم إصدار شهادة PDF للمستفيد.')
+                    ->modalSubmitActionLabel('نعم، إصدار')
+                    ->visible(fn (PathRegistration $record): bool => $record->isCompleted())
+                    ->action(function (PathRegistration $record): void {
+                        $record->loadMissing(['user', 'learningPath']);
+                        $existing = Certificate::query()
+                            ->where('user_id', $record->user_id)
+                            ->where('certificateable_type', LearningPath::class)
+                            ->where('certificateable_id', $record->learning_path_id)
+                            ->first();
+                        if ($existing !== null) {
+                            Notification::make()
+                                ->title('الشهادة موجودة مسبقاً')
+                                ->body('رقم الشهادة: ' . $existing->certificate_number)
+                                ->warning()
+                                ->send();
+
+                            return;
+                        }
+                        app(CertificateService::class)->issue($record->user, $record->learningPath);
+                        Notification::make()->title('تم إصدار الشهادة بنجاح')->success()->send();
                     }),
             ])
             ->bulkActions([
@@ -206,13 +194,5 @@ class PathRegistrationResource extends Resource
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
-    }
-
-    public static function getPages(): array
-    {
-        return [
-            'index' => Pages\ListPathRegistrations::route('/'),
-            'view'  => Pages\ViewPathRegistration::route('/{record}'),
-        ];
     }
 }

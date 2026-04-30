@@ -144,10 +144,16 @@ class ProgramRegistrationService
             throw new RegistrationNotApprovedException();
         }
 
+        // Prefer the percentage calculated from daily attendance records.
+        // Only fall back to the passed parameter (or stored value) when no
+        // daily records exist yet.
+        $calculatedPct = $registration->calculateAttendancePercentage();
+        $finalPct      = $calculatedPct ?? $attendancePercentage ?? $registration->attendance_percentage;
+
         $registration->update([
             'status'                => RegistrationStatus::Completed,
             'score'                 => $score,
-            'attendance_percentage' => $attendancePercentage ?? $registration->attendance_percentage,
+            'attendance_percentage' => $finalPct,
         ]);
 
         $registration->refresh();
