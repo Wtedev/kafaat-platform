@@ -22,10 +22,10 @@
 @if($certificate)
 @php
 $certTypeLabel = match(class_basename($certificate->certificateable_type ?? '')) {
-    'TrainingProgram'      => 'البرنامج التدريبي',
-    'LearningPath'         => 'المسار التعليمي',
-    'VolunteerOpportunity' => 'الفرصة التطوعية',
-    default                => 'الموضوع',
+'TrainingProgram' => 'البرنامج التدريبي',
+'LearningPath' => 'المسار التعليمي',
+'VolunteerOpportunity' => 'الفرصة التطوعية',
+default => 'الموضوع',
 };
 @endphp
 <div class="divide-y divide-gray-100 rounded-xl border border-gray-200 overflow-hidden text-sm">

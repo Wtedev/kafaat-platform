@@ -14,16 +14,16 @@
     @foreach ($certificates as $cert)
     @php
     $typeLabel = match(class_basename($cert->certificateable_type ?? '')) {
-        'TrainingProgram'      => 'برنامج تدريبي',
-        'LearningPath'         => 'مسار تعليمي',
-        'VolunteerOpportunity' => 'فرصة تطوعية',
-        default                => null,
+    'TrainingProgram' => 'برنامج تدريبي',
+    'LearningPath' => 'مسار تعليمي',
+    'VolunteerOpportunity' => 'فرصة تطوعية',
+    default => null,
     };
     $typeColor = match(class_basename($cert->certificateable_type ?? '')) {
-        'TrainingProgram'      => 'bg-emerald-100 text-emerald-700',
-        'LearningPath'         => 'bg-blue-100 text-blue-700',
-        'VolunteerOpportunity' => 'bg-amber-100 text-amber-700',
-        default                => 'bg-gray-100 text-gray-600',
+    'TrainingProgram' => 'bg-emerald-100 text-emerald-700',
+    'LearningPath' => 'bg-blue-100 text-blue-700',
+    'VolunteerOpportunity' => 'bg-amber-100 text-amber-700',
+    default => 'bg-gray-100 text-gray-600',
     };
     @endphp
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3">
@@ -62,8 +62,7 @@
         </span>
         @endif
 
-        <a href="{{ route('certificates.verify', $cert->verification_code) }}" target="_blank"
-           class="text-center text-xs text-gray-400 hover:text-indigo-500 transition">
+        <a href="{{ route('certificates.verify', $cert->verification_code) }}" target="_blank" class="text-center text-xs text-gray-400 hover:text-indigo-500 transition">
             رابط التحقق ↗
         </a>
     </div>

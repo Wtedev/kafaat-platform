@@ -65,18 +65,18 @@ RegistrationStatus::Completed->value => 'مكتمل',
                 <td class="px-5 py-4 text-center">
                     @php
                     $showElig = in_array($reg->status->value, [
-                        \App\Enums\RegistrationStatus::Approved->value,
-                        \App\Enums\RegistrationStatus::Completed->value,
+                    \App\Enums\RegistrationStatus::Approved->value,
+                    \App\Enums\RegistrationStatus::Completed->value,
                     ]);
                     $attOk = $reg->attendance_percentage !== null && (float)$reg->attendance_percentage >= 80;
                     $scoreOk = $reg->score === null || (float)$reg->score >= 60;
                     @endphp
                     @if ($showElig && $reg->attendance_percentage !== null)
-                        @if ($attOk && $scoreOk)
-                        <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">مؤهل ✓</span>
-                        @else
-                        <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">غير مؤهل</span>
-                        @endif
+                    @if ($attOk && $scoreOk)
+                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">مؤهل ✓</span>
+                    @else
+                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">غير مؤهل</span>
+                    @endif
                     @else
                     <span class="text-xs text-gray-400">—</span>
                     @endif
