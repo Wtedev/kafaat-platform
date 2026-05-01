@@ -97,11 +97,14 @@ Route::get('/fix-production-access-SECRET123', function () {
     ]);
     Artisan::call('permission:cache-reset');
 
-    $user = User::where('email', 'lamaalmushyqih@gmail.com')->first();
+    $user = User::where('email', 'ايميلك هنا')->firstOrFail();
 
-    if ($user) {
-        $user->assignRole('admin');
-    }
+    $user->forceFill([
+        'role_type' => 'admin',
+        'is_active' => true,
+    ])->save();
 
-    return 'DONE';
+    $user->syncRoles(['admin']);
+
+    return 'DONE: user is now admin and active';
 });
