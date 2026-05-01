@@ -3,6 +3,8 @@
 namespace App\Filament\Pages;
 
 use App\Enums\NotificationTargetType;
+use App\Enums\RegistrationStatus;
+use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerTeam;
 use App\Policies\SendInAppNotificationPolicy;
@@ -131,6 +133,14 @@ class SendInAppNotification extends Page
                         ->preload()
                         ->visible(fn (Get $get): bool => $get('target_kind') === 'team')
                         ->required(fn (Get $get): bool => $get('target_kind') === 'team'),
+
+                    Select::make('target_program_id')
+                        ->label('البرنامج التدريبي')
+                        ->options(fn (): array => $policy->eligibleTrainingProgramsQuery(auth()->user())->pluck('title', 'id')->all())
+                        ->searchable()
+                        ->preload()
+                        ->visible(fn (Get $get): bool => $get('target_kind') === 'program')
+                        ->required(fn (Get $get): bool => $get('target_kind') === 'program'),
                 ])
                 ->columns(1),
         ]);
@@ -149,9 +159,9 @@ class SendInAppNotification extends Page
             throw ValidationException::withMessages(['' => 'يجب تسجيل الدخول.']);
         }
 
-        abort_unless($sender->can('send_notifications'), 403);
-
         $policy = app(SendInAppNotificationPolicy::class);
+
+        abort_unless($policy->accessPage($sender), 403);
 
         if (! $policy->canUseTargetKind($sender, (string) $data['target_kind'])) {
             throw ValidationException::withMessages([
@@ -185,6 +195,7 @@ class SendInAppNotification extends Page
                     }
                     $audience = match ($roleKey) {
                         'staff' => NotificationTargetType::Staff,
+                        'all_beneficiaries' => NotificationTargetType::AllPortalUsers,
                         'trainees' => NotificationTargetType::Trainees,
                         'volunteers' => NotificationTargetType::Volunteers,
                         default => throw ValidationException::withMessages([
@@ -207,6 +218,29 @@ class SendInAppNotification extends Page
                         ]);
                     }
                     $inbox->manualGeneral($sender, $title, $body, $ids, NotificationTargetType::VolunteerTeamMembers);
+                })(),
+                'program' => (function () use ($data, $sender, $policy, $inbox, $title, $body): void {
+                    $program = TrainingProgram::query()->findOrFail((int) $data['target_program_id']);
+                    if (! $policy->canTargetProgram($sender, $program)) {
+                        throw ValidationException::withMessages([
+                            'data.target_program_id' => 'لا يمكنك إرسال تنبيه لمستفيدي هذا البرنامج.',
+                        ]);
+                    }
+                    $ids = $program->registrations()
+                        ->whereIn('status', [
+                            RegistrationStatus::Pending->value,
+                            RegistrationStatus::Approved->value,
+                        ])
+                        ->pluck('user_id')
+                        ->unique()
+                        ->values()
+                        ->all();
+                    if ($ids === []) {
+                        throw ValidationException::withMessages([
+                            'data.target_program_id' => 'لا يوجد مسجّلون (قيد المراجعة أو مقبولون) في هذا البرنامج.',
+                        ]);
+                    }
+                    $inbox->manualGeneral($sender, $title, $body, $ids, NotificationTargetType::ProgramRegistrants);
                 })(),
                 default => throw ValidationException::withMessages([
                     'data.target_kind' => 'نوع استهداف غير معروف.',
@@ -233,6 +267,7 @@ class SendInAppNotification extends Page
             'target_user_id' => null,
             'target_role' => null,
             'target_team_id' => null,
+            'target_program_id' => null,
         ]);
     }
 

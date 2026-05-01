@@ -38,6 +38,7 @@ $linkRows = old('link_items', array_map(fn ($l) => ['label' => $l['label'], 'url
 if (! is_array($linkRows)) { $linkRows = []; }
 if (count($linkRows) === 0) { $linkRows[] = ['label' => '', 'url' => '', 'type' => '']; }
 $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
+$emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70 px-4 py-4 text-sm text-gray-500';
 @endphp
 
 {{-- نبذة --}}
@@ -60,7 +61,7 @@ $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
     @if (filled($p?->bio))
     <p class="mb-3 whitespace-pre-wrap text-right text-sm text-gray-700">{{ $p->bio }}</p>
     @else
-    <p class="mb-3 text-sm text-gray-400">{{ $cvLocale === 'en' ? 'Add a short professional summary.' : 'أضف نبذة مهنية موجزة.' }}</p>
+    <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No professional summary yet. Add a short bio via Edit.' : 'لا توجد نبذة مهنية بعد. أضف نبذة موجزة من «'.$tEdit.'».' }}</p>
     @endif
     @else
     <p class="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
@@ -118,7 +119,6 @@ $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
             </x-portal.cv-edit-dropdown>
         </div>
     </div>
-    <p class="mb-4 text-xs text-gray-600">{{ $cvLocale === 'en' ? 'List skills with level and category so your strengths read clearly in exports.' : 'سجّل مهاراتك مع المستوى والتصنيف ليظهر ملفك أوضح وأدق عند التصدير.' }}</p>
     @if ($p?->cvSectionVisible('skills'))
     @if (count($p?->cvSkillsStructured() ?? []) > 0)
     <div class="mb-4 flex flex-wrap gap-2">
@@ -130,7 +130,7 @@ $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
         @endforeach
     </div>
     @else
-    <p class="mb-4 text-sm text-gray-400">{{ $cvLocale === 'en' ? 'No skills added yet.' : 'لم تُضف مهارات بعد.' }}</p>
+    <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No skills yet. Add skills, levels, and categories via Edit.' : 'لم تُسجَّل مهارات بعد. استخدم «'.$tEdit.'» لإضافة المهارات والمستوى والتصنيف.' }}</p>
     @endif
     @else
     <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
@@ -205,7 +205,6 @@ $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
             </x-portal.cv-edit-dropdown>
         </div>
     </div>
-    <p class="mb-4 text-xs text-gray-600">{{ $cvLocale === 'en' ? 'Choose each language from the list and set proficiency. Use Other only when needed.' : 'اختر اللغة من القائمة وحدد مستوى الإتقان. استخدم «أخرى» عند الحاجة فقط.' }}</p>
     @if ($p?->cvSectionVisible('languages'))
     @if (count($p?->cvLanguagesStructured() ?? []) > 0)
     <ul class="mb-4 space-y-2 text-right">
@@ -217,7 +216,7 @@ $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
         @endforeach
     </ul>
     @else
-    <p class="mb-4 text-sm text-gray-400">{{ $cvLocale === 'en' ? 'No languages added yet.' : 'لم تُضف لغات بعد.' }}</p>
+    <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No languages yet. Add languages and proficiency via Edit.' : 'لم تُضف لغات بعد. أضف اللغات ومستوى الإتقان من «'.$tEdit.'».' }}</p>
     @endif
     @else
     <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
@@ -266,7 +265,6 @@ $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
             </x-portal.cv-edit-dropdown>
         </div>
     </div>
-    <p class="mb-4 text-xs text-gray-600">{{ $cvLocale === 'en' ? 'Add tools you use regularly (e.g. Excel, design apps, collaboration tools).' : 'سجّل الأدوات التي تستخدمها فعلياً في عملك أو دراستك (مثل Excel أو برامج التصميم).' }}</p>
     @if ($p?->cvSectionVisible('office_tools'))
     @if (count($p?->cvOfficeToolsStructured() ?? []) > 0)
     <div class="mb-4 flex flex-wrap gap-2">
@@ -275,7 +273,7 @@ $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
         @endforeach
     </div>
     @else
-    <p class="mb-4 text-sm text-gray-400">{{ $cvLocale === 'en' ? 'No tools added yet.' : 'لم تُضف أدوات بعد.' }}</p>
+    <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No tools yet. List software you use via Edit.' : 'لا توجد أدوات مضافة بعد. سجّل الأدوات التي تستخدمها من «'.$tEdit.'».' }}</p>
     @endif
     @else
     <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
@@ -334,7 +332,6 @@ $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
             </x-portal.cv-edit-dropdown>
         </div>
     </div>
-    <p class="mb-3 text-xs text-gray-600">{{ $cvLocale === 'en' ? 'Structured education reads clearly on your CV and in exports.' : 'بيانات التعليم المنظمة تظهر أوضح في ملفك وعند التصدير.' }}</p>
     @if ($p?->cvSectionVisible('education'))
     @if (count($p?->cvEducationStructured() ?? []) > 0)
     <div class="mb-4 space-y-3 border-r-2 border-[#253B5B] pr-4">
@@ -349,7 +346,7 @@ $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
         @endforeach
     </div>
     @else
-    <p class="mb-4 text-sm text-gray-400">أضف أول مؤهل تعليمي.</p>
+    <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No education entries yet. Add your qualifications via Edit.' : 'لا توجد بيانات تعليمية بعد. أضف مؤهلاتك من «'.$tEdit.'».' }}</p>
     @endif
     @else
     <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
@@ -426,7 +423,6 @@ $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
             </x-portal.cv-edit-dropdown>
         </div>
     </div>
-    <p class="mb-3 text-xs text-gray-600">{{ $cvLocale === 'en' ? 'Completed volunteering from the platform appears in this timeline in exports, alongside roles you add here.' : 'يظهر التطوع المكتمل على المنصة ضمن هذا العرض كما في ملف PDF، مع الخبرات التي تضيفها.' }}</p>
     @if ($p?->cvSectionVisible('experience'))
     @if (count($mergedTimeline) > 0)
     <div class="mb-4 space-y-4 border-r-2 border-emerald-600/40 pr-4">
@@ -446,7 +442,7 @@ $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
         @endforeach
     </div>
     @else
-    <p class="mb-4 text-sm text-gray-400">{{ $cvLocale === 'en' ? 'Add roles or complete volunteering on the platform to build this section.' : 'أضف خبراتك أو أكمل تطوعاً على المنصة ليظهر المحتوى هنا.' }}</p>
+    <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No roles or volunteering to show yet. Add experience via Edit or complete volunteering on the platform.' : 'لا توجد خبرات أو تطوع يظهر هنا بعد. أضف خبراتك من «'.$tEdit.'» أو أكمل تطوعاً على المنصة.' }}</p>
     @endif
     @else
     <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
@@ -496,7 +492,6 @@ $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
             </x-portal.cv-edit-dropdown>
         </div>
     </div>
-    <p class="mb-3 text-xs text-gray-600">{{ $cvLocale === 'en' ? 'Completed platform programs with a certificate file are included in exports automatically, alongside courses you add here.' : 'شهادات البرامج المكتملة على المنصة (مع ملف مرفق) تُضاف تلقائياً للتصدير مع الدورات التي تسجّلها هنا.' }}</p>
     @if ($p?->cvSectionVisible('external_courses'))
     @if (count($mergedCoursesView) > 0)
     <div class="mb-4 grid gap-3 sm:grid-cols-1">
@@ -513,7 +508,7 @@ $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
         @endforeach
     </div>
     @else
-    <p class="mb-4 text-sm text-gray-400">{{ $cvLocale === 'en' ? 'Add external training here; platform certificates appear when you complete programs with an uploaded file.' : 'أضف دوراتاً خارجية هنا؛ تظهر شهادات المنصة عند إكمال البرامج مع رفع ملف الشهادة.' }}</p>
+    <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No courses yet. Add external training via Edit; platform certificates appear when you complete programs.' : 'لا توجد دورات أو شهادات بعد. أضف دوراتك من «'.$tEdit.'»؛ وتظهر شهادات برامج المنصة عند إكمالها.' }}</p>
     @endif
     @else
     <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
@@ -564,7 +559,6 @@ $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
             </x-portal.cv-edit-dropdown>
         </div>
     </div>
-    <p class="mb-3 text-xs text-gray-600">{{ $cvLocale === 'en' ? 'Portfolio, LinkedIn, or project links give reviewers quick context.' : 'روابط مثل المعرض أو لينكدإن أو مشاريعك تمنح المراجع صورة أوضح عن عملك.' }}</p>
     @if ($p?->cvSectionVisible('links'))
     @if (count($p?->cvLinksList() ?? []) > 0)
     <ul class="mb-4 space-y-2 text-right">
@@ -576,7 +570,7 @@ $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
         @endforeach
     </ul>
     @else
-    <p class="mb-4 text-sm text-gray-400">{{ $cvLocale === 'en' ? 'No links added yet.' : 'لم تضف روابط بعد.' }}</p>
+    <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No links yet. Add portfolio, LinkedIn, or other links via Edit.' : 'لا توجد روابط بعد. أضف روابط مثل لينكدإن أو معرض أعمالك من «'.$tEdit.'».' }}</p>
     @endif
     @else
     <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
@@ -596,11 +590,10 @@ $tEdit = $cvLocale === 'en' ? 'Edit' : 'تعديل';
         </form>
         </x-portal.cv-edit-dropdown>
     </div>
-    <p class="mb-3 text-xs text-gray-600">{{ $cvLocale === 'en' ? 'Optional: attach a PDF or Word file if you maintain a separate CV document.' : 'اختياري: أرفق ملف PDF أو Word إذا كنت تحتفظ بنسخة مستقلة من سيرتك.' }}</p>
     @if ($p?->cv_path)
     <p class="mb-3 text-sm"><a href="{{ asset('storage/'.$p->cv_path) }}" target="_blank" class="font-semibold text-[#253B5B] hover:underline">{{ $cvLocale === 'en' ? 'Download current file' : 'تحميل الملف الحالي' }}</a></p>
     @else
-    <p class="mb-3 text-sm text-gray-400">{{ $cvLocale === 'en' ? 'No file uploaded yet.' : 'لم يُرفع ملف بعد.' }}</p>
+    <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No CV file uploaded yet. Upload a PDF or Word file via Edit.' : 'لم يُرفع ملف سيرة ذاتية بعد. يمكنك رفع PDF أو Word من «'.$tEdit.'».' }}</p>
     @endif
 </section>
 

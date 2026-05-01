@@ -13,6 +13,10 @@ class ViewProfile extends ViewRecord
 
     protected function getHeaderActions(): array
     {
-        return [EditAction::make(), DeleteAction::make()];
+        return [
+            EditAction::make(),
+            DeleteAction::make()
+                ->visible(fn (): bool => auth()->user()?->can('delete', $this->getRecord()) ?? false),
+        ];
     }
 }

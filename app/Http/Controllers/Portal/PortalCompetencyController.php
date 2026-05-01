@@ -59,8 +59,8 @@ class PortalCompetencyController extends Controller
         if ($request->has('job_title')) {
             $payload['job_title'] = self::trimOrNull($validated['job_title'] ?? null);
         }
-        if (! empty($validated['cv_language'])) {
-            $payload['cv_language'] = $validated['cv_language'];
+        if ($request->has('cv_language')) {
+            $payload['cv_language'] = $validated['cv_language'] ?? 'ar';
         }
 
         if ($payload === []) {

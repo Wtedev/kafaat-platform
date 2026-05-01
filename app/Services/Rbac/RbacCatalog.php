@@ -29,6 +29,7 @@ final class RbacCatalog
             'send_notifications',
             'manage_roles',
             'assign_beneficiary_roles',
+            'edit_profile_badges',
         ];
     }
 
@@ -107,6 +108,7 @@ final class RbacCatalog
             'manage_programs' => 'إدارة البرامج',
             'manage_roles' => 'إدارة أدوار المستخدمين',
             'assign_beneficiary_roles' => 'تعيين أدوار المستفيدين',
+            'edit_profile_badges' => 'تعديل شارات المستفيد',
             'approve_registrations' => 'اعتماد التسجيلات',
             'issue_certificates' => 'إصدار الشهادات',
             'manage_volunteers' => 'إدارة المتطوعين',
@@ -210,7 +212,7 @@ final class RbacCatalog
                     'view_news', 'manage_programs', 'approve_registrations', 'issue_certificates',
                     'view_notifications', 'send_notifications',
                 ], true))),
-            ['assign_beneficiary_roles'],
+            ['assign_beneficiary_roles', 'edit_profile_badges'],
         )));
 
         $volunteering = array_values(array_unique(array_merge(
@@ -223,7 +225,7 @@ final class RbacCatalog
                     'manage_volunteers', 'approve_registrations',
                     'view_notifications', 'send_notifications',
                 ], true))),
-            ['assign_beneficiary_roles'],
+            ['assign_beneficiary_roles', 'edit_profile_badges'],
         )));
 
         $media = [

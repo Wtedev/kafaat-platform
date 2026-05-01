@@ -10,6 +10,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -17,10 +18,12 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Validation\Rule;
 
 class ProfileResource extends Resource
 {
@@ -44,13 +47,33 @@ class ProfileResource extends Resource
 
     protected static function requiredNavigationPermissions(): array
     {
-        return ['roles.view'];
+        return [];
+    }
+
+    public static function canViewAny(): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null && ($user->can('roles.view') || $user->can('edit_profile_badges'));
+    }
+
+    public static function canCreate(): bool
+    {
+        return (bool) auth()->user()?->can('roles.view');
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canViewAny();
     }
 
     public static function form(Schema $schema): Schema
     {
+        $invalidMessage = 'القيمة المحددة غير صحيحة.';
+
         return $schema->components([
             Section::make('بيانات الملف الشخصي')
+                ->visible(fn (): bool => (bool) auth()->user()?->can('roles.view'))
                 ->columns(2)
                 ->schema([
                     Select::make('user_id')
@@ -97,19 +120,77 @@ class ProfileResource extends Resource
                         ->required()
                         ->native(false),
 
-                    TextInput::make('iconic_skill')
-                        ->label('المهارة الأيقونية')
-                        ->helperText('تظهر في واجهة المستفيد عند إضافتها فقط')
-                        ->maxLength(120)
-                        ->nullable()
-                        ->columnSpanFull(),
-
                     Textarea::make('bio')
                         ->label('السيرة الذاتية')
                         ->rows(4)
                         ->maxLength(1000)
                         ->columnSpanFull()
                         ->nullable(),
+                ]),
+
+            Section::make('شارات المستفيد')
+                ->description('شارات العرض في بوابة المستفيد (لا تغيّر أدوار Spatie).')
+                ->visible(fn (): bool => (bool) auth()->user()?->can('edit_profile_badges'))
+                ->schema([
+                    CheckboxList::make('membership_badges')
+                        ->label('نوع المستفيد')
+                        ->options([
+                            'trainee' => 'متدرب',
+                            'volunteer' => 'متطوع',
+                        ])
+                        ->default([])
+                        ->columns(2)
+                        ->helperText('ستظهر شارة مستفيد بشكل افتراضي، ويمكن إضافة متدرب أو متطوع أو كلاهما.')
+                        ->rules(['nullable', 'array'])
+                        ->nestedRecursiveRules([
+                            Rule::in(['trainee', 'volunteer']),
+                        ])
+                        ->validationMessages([
+                            'membership_badges.*.in' => 'القيمة المحددة غير صحيحة.',
+                        ]),
+
+                    TextInput::make('iconic_skill')
+                        ->label('المهارة الأيقونية')
+                        ->placeholder('مثال: قائد مبادر، صانع أثر، متميز في التواصل')
+                        ->helperText('اترك الحقل فارغًا لعرض: لا يوجد مهارة أيقونية')
+                        ->maxLength(120)
+                        ->nullable()
+                        ->live(onBlur: true)
+                        ->afterStateUpdated(function (mixed $state, callable $set, Get $get): void {
+                            $t = trim((string) $state);
+                            if ($t === '') {
+                                $set('iconic_skill_style', null);
+
+                                return;
+                            }
+                            if (! filled((string) ($get('iconic_skill_style') ?? ''))) {
+                                $set('iconic_skill_style', 'amber');
+                            }
+                        })
+                        ->columnSpanFull(),
+
+                    Select::make('iconic_skill_style')
+                        ->label('لون شارة المهارة')
+                        ->options([
+                            'amber' => 'ذهبي',
+                            'emerald' => 'أخضر',
+                            'sky' => 'أزرق',
+                            'rose' => 'وردي',
+                            'violet' => 'بنفسجي',
+                            'brand' => 'لون الهوية',
+                        ])
+                        ->default('amber')
+                        ->native(false)
+                        ->nullable()
+                        ->live()
+                        ->visible(fn (Get $get): bool => filled(trim((string) ($get('iconic_skill') ?? ''))))
+                        ->rules([
+                            'nullable',
+                            Rule::in(Profile::allowedIconicSkillStyles()),
+                        ])
+                        ->validationMessages([
+                            'iconic_skill_style.in' => $invalidMessage,
+                        ]),
                 ]),
         ]);
     }
@@ -126,6 +207,11 @@ class ProfileResource extends Resource
                 TextColumn::make('user.email')
                     ->label('البريد الإلكتروني')
                     ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('display_membership_badges')
+                    ->label('شارات نوع المستفيد')
+                    ->getStateUsing(fn (Profile $record): string => implode(' + ', $record->displayMembershipBadges()))
                     ->toggleable(),
 
                 TextColumn::make('gender')
@@ -158,12 +244,12 @@ class ProfileResource extends Resource
                     })
                     ->badge()
                     ->sortable()
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('iconic_skill')
                     ->label('المهارة الأيقونية')
+                    ->formatStateUsing(fn (?string $state): string => filled($state) ? (string) $state : 'لا يوجد مهارة أيقونية')
                     ->limit(40)
-                    ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('birth_date')
@@ -199,7 +285,8 @@ class ProfileResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->visible(fn (): bool => (bool) auth()->user()?->can('roles.view')),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

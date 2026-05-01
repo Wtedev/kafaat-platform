@@ -3,8 +3,11 @@
 namespace App\Providers;
 
 use App\Models\InboxNotification;
+use App\Models\Profile;
 use App\Models\User;
 use App\Policies\InboxNotificationPolicy;
+use App\Policies\ProfilePolicy;
+use App\Policies\SendInAppNotificationPolicy;
 use App\Policies\UserPolicy;
 use App\Services\Inbox\InboxNotificationService;
 use App\Services\Rbac\RbacService;
@@ -28,10 +31,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(Profile::class, ProfilePolicy::class);
         Gate::policy(InboxNotification::class, InboxNotificationPolicy::class);
 
         Gate::define('accessSendInAppNotificationPage', function (?User $user): bool {
-            return $user !== null && $user->can('send_notifications');
+            if ($user === null || ! $user->is_active) {
+                return false;
+            }
+
+            return app(SendInAppNotificationPolicy::class)->accessPage($user);
         });
 
         View::composer('layouts.portal', function ($view): void {

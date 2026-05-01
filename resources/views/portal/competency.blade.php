@@ -20,8 +20,8 @@
     </div>
     @endif
 
+    @include('portal.competency.partials.cv-language-bar')
     @include('portal.competency.partials.hero')
-    @include('portal.competency.partials.toolbar')
     @include('portal.competency.partials.sections-builder')
 
     @php $cvL = $cvLabels ?? []; $platVis = $profile?->cvSectionVisible('platform') ?? true; @endphp
@@ -37,7 +37,7 @@
         <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'Hidden from your exported CV. Toggle the eye to include it again.' : 'هذا القسم مخفي في ملف السيرة والتصدير. استخدم أيقونة العين لإظهاره.' }}</p>
         @endunless
         @if ($platVis)
-        <p class="mb-4 text-xs text-gray-500">{{ $cvLocale === 'en' ? 'Volunteering and program certificates with files are merged into your CV experience and courses sections in the PDF export.' : 'التطوع المكتمل يُدمج ضمن «الخبرات» في التصدير، وشهادات البرامج ذات الملف تظهر ضمن «الدورات والشهادات».' }}</p>
+        @php $platEmpty = 'rounded-lg border border-dashed border-gray-200 bg-slate-50/70 px-4 py-4 text-sm text-gray-500'; @endphp
         <div class="grid gap-4 sm:grid-cols-2">
             <div class="rounded-xl border border-gray-50 bg-[#F8FAFC] p-4">
                 <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ $cvL['learning_paths'] ?? 'المسارات' }}</p>
@@ -45,13 +45,18 @@
                     @forelse ($completedPaths as $reg)
                     <li>{{ $reg->learningPath?->title ?? '—' }}</li>
                     @empty
-                    <li class="text-gray-400">—</li>
+                    <li class="list-none ps-0">
+                        <p class="{{ $platEmpty }} mb-0 {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No completed learning paths yet.' : 'لا مسارات تعليمية مكتملة بعد.' }}</p>
+                    </li>
                     @endforelse
                 </ul>
             </div>
             <div class="rounded-xl border border-gray-50 bg-[#F8FAFC] p-4">
                 <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ $cvL['volunteer_hours'] ?? 'ساعات التطوع' }}</p>
                 <p class="mt-2 text-2xl font-bold tabular-nums" style="color:#253B5B">{{ number_format($approvedVolunteerHours, 1) }}</p>
+                @if ($approvedVolunteerHours <= 0)
+                <p class="mt-2 text-sm text-gray-500">{{ $cvLocale === 'en' ? 'No approved volunteer hours yet.' : 'لا ساعات تطوع معتمدة بعد.' }}</p>
+                @endif
             </div>
         </div>
         @if ($platformCertificates->isNotEmpty())
@@ -67,6 +72,11 @@
                 </li>
                 @endforeach
             </ul>
+        </div>
+        @else
+        <div class="mt-4 border-t border-gray-100 pt-4">
+            <p class="mb-2 text-xs font-bold text-slate-600">{{ $cvLocale === 'en' ? 'Certificates (download)' : 'الشهادات (تحميل)' }}</p>
+            <p class="{{ $platEmpty }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No platform certificates with a file to download yet.' : 'لا شهادات من المنصة مع ملف للتحميل بعد.' }}</p>
         </div>
         @endif
         @endif
@@ -94,8 +104,8 @@
         </blockquote>
         @empty
         <x-portal.empty-state
-            title="لا توجد توصيات مضافة حتى الآن"
-            description="يُمكن إضافة التوصيات لاحقاً من قبل الإدارة عند توفرها."
+            :title="$cvLocale === 'en' ? 'No recommendations yet' : 'لا توجد توصيات مضافة حتى الآن'"
+            :description="$cvLocale === 'en' ? 'Recommendations may be added by the team when available.' : 'يُمكن إضافة التوصيات لاحقاً من قبل الإدارة عند توفرها.'"
         />
         @endforelse
         @endif

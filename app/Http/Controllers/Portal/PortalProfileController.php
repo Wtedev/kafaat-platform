@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rules\Password;
 
 class PortalProfileController extends Controller
 {
@@ -24,9 +23,8 @@ class PortalProfileController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:30'],
             'city' => ['nullable', 'string', 'max:100'],
+            'job_title' => ['nullable', 'string', 'max:160'],
             'avatar' => ['nullable', 'image', 'max:2048'],
-            'current_password' => ['required_with:password', 'current_password'],
-            'password' => ['nullable', 'confirmed', Password::defaults()],
         ]);
 
         $user->update([
@@ -34,14 +32,10 @@ class PortalProfileController extends Controller
             'phone' => $validated['phone'],
         ]);
 
-        if (! empty($validated['password'])) {
-            $user->update([
-                'password' => $validated['password'],
-            ]);
-        }
-
+        $jobTitle = trim((string) ($validated['job_title'] ?? ''));
         $profileData = [
             'city' => $validated['city'],
+            'job_title' => $jobTitle !== '' ? $jobTitle : null,
         ];
 
         if ($request->hasFile('avatar')) {

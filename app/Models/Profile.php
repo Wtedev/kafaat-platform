@@ -27,6 +27,8 @@ class Profile extends Model
         'bio',
         'avatar',
         'iconic_skill',
+        'iconic_skill_style',
+        'membership_badges',
         'competency_levels',
         'cv_sections',
         'cv_sections_visibility',
@@ -41,7 +43,149 @@ class Profile extends Model
             'competency_levels' => 'array',
             'cv_sections' => 'array',
             'cv_sections_visibility' => 'array',
+            'membership_badges' => 'array',
             'membership_type' => MembershipType::class,
+        ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (Profile $profile): void {
+            if (is_array($profile->membership_badges)) {
+                $profile->membership_badges = array_values(array_unique(array_intersect(
+                    ['trainee', 'volunteer'],
+                    $profile->membership_badges,
+                )));
+                if ($profile->membership_badges === []) {
+                    $profile->membership_badges = null;
+                }
+            } else {
+                $profile->membership_badges = null;
+            }
+
+            if (trim((string) ($profile->iconic_skill ?? '')) === '') {
+                $profile->iconic_skill = null;
+                $profile->iconic_skill_style = null;
+            } else {
+                $style = (string) ($profile->iconic_skill_style ?? '');
+                if ($style === '' || ! in_array($style, self::allowedIconicSkillStyles(), true)) {
+                    $profile->iconic_skill_style = 'amber';
+                }
+            }
+        });
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function allowedIconicSkillStyles(): array
+    {
+        return ['amber', 'emerald', 'sky', 'rose', 'violet', 'brand'];
+    }
+
+    /**
+     * شارات نوع المستفيد للعرض: دائماً «مستفيد» ثم «متدرب» و/أو «متطوع» حسب membership_badges أو الرجوع إلى membership_type.
+     *
+     * @return list<string>
+     */
+    public function displayMembershipBadges(): array
+    {
+        $labels = ['مستفيد'];
+        [$hasTrainee, $hasVolunteer] = $this->membershipBadgeFlags();
+
+        if ($hasTrainee) {
+            $labels[] = 'متدرب';
+        }
+        if ($hasVolunteer) {
+            $labels[] = 'متطوع';
+        }
+
+        return $labels;
+    }
+
+    public function iconicSkillLabel(): string
+    {
+        $skill = trim((string) ($this->iconic_skill ?? ''));
+
+        return $skill !== '' ? $skill : 'لا يوجد مهارة أيقونية';
+    }
+
+    /**
+     * أنماط Tailwind آمنة لشارة المهارة الأيقونية (بدون CSS من المستخدم).
+     */
+    public function iconicSkillClasses(): string
+    {
+        $skill = trim((string) ($this->iconic_skill ?? ''));
+        if ($skill === '') {
+            return 'bg-gray-50 text-gray-700 ring-1 ring-gray-200';
+        }
+
+        $style = $this->resolvedIconicSkillStyle();
+
+        return match ($style) {
+            'amber' => 'bg-amber-50 text-amber-900 ring-1 ring-amber-200',
+            'emerald' => 'bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200',
+            'sky' => 'bg-sky-50 text-sky-900 ring-1 ring-sky-200',
+            'rose' => 'bg-rose-50 text-rose-900 ring-1 ring-rose-200',
+            'violet' => 'bg-violet-50 text-violet-900 ring-1 ring-violet-200',
+            'brand' => 'bg-[#EAF2FA] text-[#253B5B] ring-1 ring-[#c5ddef]',
+            default => 'bg-amber-50 text-amber-900 ring-1 ring-amber-200',
+        };
+    }
+
+    /**
+     * @param  string  $badge  تسمية عربية: مستفيد | متدرب | متطوع
+     */
+    public function membershipBadgeClasses(string $badge): string
+    {
+        return match ($badge) {
+            'مستفيد' => 'bg-slate-100 text-slate-800 ring-1 ring-slate-200',
+            'متدرب' => 'bg-[#EAF2FA] text-[#253B5B] ring-1 ring-[#c5ddef]',
+            'متطوع' => 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200',
+            default => 'bg-gray-100 text-gray-800 ring-1 ring-gray-200',
+        };
+    }
+
+    public function resolvedIconicSkillStyle(): string
+    {
+        $s = (string) ($this->iconic_skill_style ?? '');
+        if (! in_array($s, self::allowedIconicSkillStyles(), true)) {
+            return 'amber';
+        }
+
+        return $s;
+    }
+
+    /**
+     * @return array{0: bool, 1: bool} hasTrainee, hasVolunteer
+     */
+    private function membershipBadgeFlags(): array
+    {
+        $raw = $this->membership_badges;
+        $explicitKeys = [];
+        if (is_array($raw)) {
+            foreach ($raw as $v) {
+                if ($v === 'trainee' || $v === 'volunteer') {
+                    $explicitKeys[] = $v;
+                }
+            }
+        }
+
+        if ($explicitKeys !== []) {
+            return [
+                in_array('trainee', $explicitKeys, true),
+                in_array('volunteer', $explicitKeys, true),
+            ];
+        }
+
+        $mt = $this->membership_type;
+        if (! $mt instanceof MembershipType) {
+            $mt = MembershipType::tryFrom((string) $mt) ?? MembershipType::Beneficiary;
+        }
+
+        return [
+            $mt === MembershipType::Trainee,
+            $mt === MembershipType::Volunteer,
         ];
     }
 
