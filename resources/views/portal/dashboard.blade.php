@@ -80,7 +80,7 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
         description="لا تتوفر حالياً فرص في لوحة التحكم. يمكنك تصفّح صفحة الفرص على الموقع العام أو إكمال ملفك ليصلك إشعار لاحقاً."
     >
         <a href="{{ route('public.volunteering.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#253B5B">استكشف الفرص التطوعية</a>
-        <a href="{{ route('portal.profile') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">أكمل ملفك الشخصي</a>
+        <a href="{{ route('portal.competency') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">طوّر صفحة الكفاءة</a>
     </x-portal.empty-state>
     @else
     <div class="-mx-1 flex gap-3 overflow-x-auto overflow-y-visible pb-2 pt-1 [scrollbar-width:thin]">

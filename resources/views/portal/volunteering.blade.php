@@ -29,7 +29,7 @@ RegistrationStatus::Completed->value => 'مكتمل',
     description="لم تسجّل في أي فرصة تطوعية بعد. استعرض الفرص المنشورة واختر ما يناسبك."
 >
     <a href="{{ route('public.volunteering.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#253B5B">استكشف الفرص التطوعية</a>
-    <a href="{{ route('portal.profile') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">أكمل ملفك الشخصي</a>
+    <a href="{{ route('portal.competency') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">طوّر صفحة الكفاءة</a>
 </x-portal.empty-state>
 @else
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">

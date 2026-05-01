@@ -88,7 +88,7 @@
             $isVol = $rn === 'portal.volunteering';
             $isCert = $rn === 'portal.certificates';
             $isProfile = str_starts_with($rn, 'portal.profile');
-            $isCompetency = $rn === 'portal.competency';
+            $isCompetency = str_starts_with($rn, 'portal.competency');
             $navActive = 'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors shadow-sm';
             $navIdle = 'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-white hover:text-[#253B5B]';
         @endphp

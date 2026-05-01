@@ -54,10 +54,26 @@ final class CompetencyProfilePresenter
         $competencyCards = $profile?->presentCompetencyCards() ?? [];
         $recommendations = $user->profileRecommendations;
 
+        $cvLocale = $profile?->cvUiLocale() ?? 'ar';
+        $labels = CvUiTranslator::sectionLabels($cvLocale);
+        $userExperience = $profile?->cvExperienceStructured() ?? [];
+        $mergedExperience = CompetencyCvPdfData::mergedExperience(
+            $user,
+            $userExperience,
+            $completedVolunteering,
+            $cvLocale,
+        );
+        $mergedCourses = CompetencyCvPdfData::mergedCourses(
+            $profile?->cvExternalCoursesStructured() ?? [],
+            $platformCertificates,
+            $cvLocale,
+        );
+
         return [
             'user' => $user,
             'profile' => $profile,
             'membership' => $membership,
+            'pdfJobTitle' => $profile?->pdfHeadlineForExport($membership, $cvLocale),
             'completedPaths' => $completedPaths,
             'completedPrograms' => $completedPrograms,
             'completedVolunteering' => $completedVolunteering,
@@ -65,6 +81,10 @@ final class CompetencyProfilePresenter
             'approvedVolunteerHours' => $approvedVolunteerHours,
             'competencyCards' => $competencyCards,
             'recommendations' => $recommendations,
+            'cvLocale' => $cvLocale,
+            'cvLabels' => $labels,
+            'mergedExperience' => $mergedExperience,
+            'mergedCourses' => $mergedCourses,
         ];
     }
 

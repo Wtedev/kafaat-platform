@@ -86,7 +86,8 @@ Route::middleware(['auth', 'beneficiary'])
         Route::get('/profile', [PortalProfileController::class, 'show'])->name('profile');
         Route::patch('/profile', [PortalProfileController::class, 'update'])->name('profile.update');
 
-        Route::get('/competency', PortalCompetencyController::class)->name('competency');
+        Route::get('/competency', [PortalCompetencyController::class, 'show'])->name('competency');
+        Route::patch('/competency', [PortalCompetencyController::class, 'update'])->name('competency.update');
         Route::get('/competency/export-pdf', PortalCompetencyExportController::class)->name('competency.export-pdf');
 
         // Learning path courses

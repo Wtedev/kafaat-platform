@@ -9,7 +9,7 @@
     description="تُصدر الشهادات تلقائياً عند إكمال برنامج أو مسار أو متطلبات تطوع حسب سياسة المنصة. أكمل تعلّمك أو حدّث ملفك ليتماشى مع المتطلبات."
 >
     <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#253B5B">استكشف البرامج</a>
-    <a href="{{ route('portal.profile') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">أكمل ملفك الشخصي</a>
+    <a href="{{ route('portal.competency') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">طوّر صفحة الكفاءة</a>
 </x-portal.empty-state>
 @else
 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
