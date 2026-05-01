@@ -897,21 +897,50 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 9. PARTNERS SECTION                                                 --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section class="py-20 bg-white">
+    <section class="py-20 bg-white" dir="rtl">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <div class="text-center mb-12">
-                <p class="text-sm font-semibold uppercase tracking-widest mb-2" style="color:#3CB878">يثقون بنا</p>
-                <h2 class="text-2xl font-bold" style="color:#111827">شركاؤنا</h2>
+                <h2 class="text-2xl sm:text-3xl font-bold" style="color:#111827">شركاؤنا</h2>
+                <p class="mt-3 text-sm max-w-xl mx-auto" style="color:#6B7280">مؤسسات وشركات نفتخر بشراكتها معنا في بناء القدرات.</p>
             </div>
 
-            <div class="flex flex-wrap justify-center items-center gap-5">
-                @foreach(range(1,6) as $i)
-                <div class="w-36 h-20 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-center text-sm font-medium bg-white hover:shadow-md hover:border-[#c5ddef] transition-all duration-200 cursor-pointer" style="color:#6B7280">
-                    شريك {{ $i }}
+            @if ($partners->isEmpty())
+            <div class="max-w-2xl mx-auto text-center rounded-3xl border border-dashed border-gray-200 bg-[#F7FAFC] py-14 px-6 text-sm" style="color:#6B7280">
+                سيتم عرض شعارات الشركاء هنا عند إضافتهم من لوحة التحكم.
+            </div>
+            @else
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
+                @foreach ($partners as $partner)
+                @php
+                $logoUrl = $partner->logo ? asset('storage/'.$partner->logo) : null;
+                $hasLink = filled($partner->website_url);
+                $cardClass = 'group flex w-full max-w-[180px] flex-col items-center justify-center rounded-2xl border border-gray-100 bg-white px-4 py-6 shadow-sm transition-all duration-200 hover:border-[#c5ddef] hover:shadow-md min-h-[100px] sm:min-h-[120px]';
+                @endphp
+                <div class="flex justify-center">
+                    @if ($hasLink)
+                    <a href="{{ $partner->website_url }}" target="_blank" rel="noopener noreferrer" class="{{ $cardClass }} cursor-pointer">
+                        @if ($logoUrl)
+                        <img src="{{ $logoUrl }}" alt="{{ $partner->name }}" class="max-h-14 sm:max-h-16 w-auto max-w-full object-contain opacity-90 transition-opacity group-hover:opacity-100" loading="lazy" />
+                        <span class="mt-3 line-clamp-2 text-center text-[11px] sm:text-xs font-medium" style="color:#6B7280">{{ $partner->name }}</span>
+                        @else
+                        <span class="text-center text-xs sm:text-sm font-semibold leading-snug px-1" style="color:#253B5B">{{ $partner->name }}</span>
+                        @endif
+                    </a>
+                    @else
+                    <div class="{{ $cardClass }}">
+                        @if ($logoUrl)
+                        <img src="{{ $logoUrl }}" alt="{{ $partner->name }}" class="max-h-14 sm:max-h-16 w-auto max-w-full object-contain opacity-90" loading="lazy" />
+                        <span class="mt-3 line-clamp-2 text-center text-[11px] sm:text-xs font-medium" style="color:#6B7280">{{ $partner->name }}</span>
+                        @else
+                        <span class="text-center text-xs sm:text-sm font-semibold leading-snug px-1" style="color:#253B5B">{{ $partner->name }}</span>
+                        @endif
+                    </div>
+                    @endif
                 </div>
                 @endforeach
             </div>
+            @endif
 
         </div>
     </section>

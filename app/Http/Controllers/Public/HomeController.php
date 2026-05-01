@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\LearningPath;
 use App\Models\News;
+use App\Models\Partner;
 use App\Models\TrainingProgram;
 use App\Models\VolunteerOpportunity;
 use Illuminate\Http\Request;
@@ -33,6 +34,11 @@ class HomeController extends Controller
             ->take(3)
             ->get();
 
-        return view('public.home', compact('paths', 'programs', 'opportunities', 'news'));
+        $partners = Partner::active()
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        return view('public.home', compact('paths', 'programs', 'opportunities', 'news', 'partners'));
     }
 }
