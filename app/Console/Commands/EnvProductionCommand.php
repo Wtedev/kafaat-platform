@@ -16,6 +16,7 @@ class EnvProductionCommand extends Command
 
         if (! file_exists($source)) {
             $this->error('.env.production not found. Please create it first.');
+
             return self::FAILURE;
         }
 
@@ -28,6 +29,7 @@ class EnvProductionCommand extends Command
 
         if (! $this->confirm('Continue switching to production?', false)) {
             $this->info('Cancelled — environment unchanged.');
+
             return self::SUCCESS;
         }
 

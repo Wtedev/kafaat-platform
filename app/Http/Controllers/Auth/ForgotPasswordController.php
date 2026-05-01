@@ -21,7 +21,7 @@ class ForgotPasswordController extends Controller
             'email' => ['required', 'email'],
         ], [
             'email.required' => 'البريد الإلكتروني مطلوب.',
-            'email.email'    => 'صيغة البريد الإلكتروني غير صحيحة.',
+            'email.email' => 'صيغة البريد الإلكتروني غير صحيحة.',
         ]);
 
         $status = Password::sendResetLink(

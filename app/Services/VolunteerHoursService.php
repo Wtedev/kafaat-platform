@@ -13,7 +13,7 @@ class VolunteerHoursService
 {
     public function __construct(
         private readonly VolunteerRegistrationService $registrationService,
-        private readonly CertificateService           $certificateService,
+        private readonly CertificateService $certificateService,
     ) {}
 
     /**
@@ -26,10 +26,10 @@ class VolunteerHoursService
         User $admin,
     ): VolunteerHour {
         return VolunteerHour::create([
-            'user_id'        => $user->id,
+            'user_id' => $user->id,
             'opportunity_id' => $opportunity?->id,
-            'hours'          => $hours,
-            'status'         => VolunteerHoursStatus::Pending,
+            'hours' => $hours,
+            'status' => VolunteerHoursStatus::Pending,
         ]);
     }
 
@@ -44,7 +44,7 @@ class VolunteerHoursService
         }
 
         $record->update([
-            'status'      => VolunteerHoursStatus::Approved,
+            'status' => VolunteerHoursStatus::Approved,
             'approved_by' => $admin->id,
             'approved_at' => now(),
         ]);
@@ -93,8 +93,8 @@ class VolunteerHoursService
             return;
         }
 
-        $opportunity    = $registration->opportunity;
-        $hoursExpected  = (float) $opportunity->hours_expected;
+        $opportunity = $registration->opportunity;
+        $hoursExpected = (float) $opportunity->hours_expected;
 
         if ($hoursExpected <= 0) {
             return;

@@ -92,7 +92,7 @@ class TrainingProgramsRelationManager extends RelationManager
                 BadgeColumn::make('status')
                     ->label('الحالة')
                     ->colors([
-                        'gray'    => ProgramStatus::Draft->value,
+                        'gray' => ProgramStatus::Draft->value,
                         'success' => ProgramStatus::Published->value,
                         'warning' => ProgramStatus::Archived->value,
                     ]),

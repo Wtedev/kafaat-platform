@@ -11,8 +11,8 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -106,7 +106,7 @@ class VolunteerHourResource extends Resource
                     ->colors([
                         'warning' => VolunteerHoursStatus::Pending->value,
                         'success' => VolunteerHoursStatus::Approved->value,
-                        'danger'  => VolunteerHoursStatus::Rejected->value,
+                        'danger' => VolunteerHoursStatus::Rejected->value,
                     ])
                     ->sortable(),
 
@@ -186,7 +186,7 @@ class VolunteerHourResource extends Resource
     {
         return [
             'index' => Pages\ListVolunteerHours::route('/'),
-            'view'  => Pages\ViewVolunteerHour::route('/{record}'),
+            'view' => Pages\ViewVolunteerHour::route('/{record}'),
         ];
     }
 }

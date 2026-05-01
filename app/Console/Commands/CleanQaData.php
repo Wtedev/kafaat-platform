@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\RegistrationStatus;
 use App\Models\Certificate;
 use App\Models\ProgramRegistration;
 use App\Models\VolunteerHour;
@@ -35,7 +36,7 @@ class CleanQaData extends Command
         // 3. Volunteer registrations that were created during QA (completed ones driven by QA hours)
         $qaVolRegs = VolunteerRegistration::whereIn(
             'status',
-            [\App\Enums\RegistrationStatus::Completed]
+            [RegistrationStatus::Completed]
         )->get();
 
         // 4. Program registrations created during QA (completed or non-seeded ones)
@@ -76,6 +77,7 @@ class CleanQaData extends Command
 
         if ($total === 0) {
             $this->info('No QA data found. Nothing to delete.');
+
             return self::SUCCESS;
         }
 
@@ -85,6 +87,7 @@ class CleanQaData extends Command
 
         if (! $this->option('force') && ! $this->confirm('Proceed with deletion?', false)) {
             $this->info('Aborted. No data was deleted.');
+
             return self::SUCCESS;
         }
 

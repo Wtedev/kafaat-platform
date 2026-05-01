@@ -24,10 +24,10 @@ class UserCourseProgress extends Model
     protected function casts(): array
     {
         return [
-            'status'              => ProgressStatus::class,
+            'status' => ProgressStatus::class,
             'progress_percentage' => 'decimal:2',
-            'score'               => 'decimal:2',
-            'completed_at'        => 'datetime',
+            'score' => 'decimal:2',
+            'completed_at' => 'datetime',
         ];
     }
 

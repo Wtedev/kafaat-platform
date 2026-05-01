@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\BeneficiaryPortal;
+use App\Http\Middleware\EnsureAdminOrStaff;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -26,8 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $middleware->alias([
-            'beneficiary'    => \App\Http\Middleware\BeneficiaryPortal::class,
-            'admin-or-staff' => \App\Http\Middleware\EnsureAdminOrStaff::class,
+            'beneficiary' => BeneficiaryPortal::class,
+            'admin-or-staff' => EnsureAdminOrStaff::class,
         ]);
 
         // Redirect authenticated users away from guest-only pages
@@ -37,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($user && $user->isAdminOrStaff()) {
                 return '/admin';
             }
+
             return route('portal.dashboard');
         });
     })

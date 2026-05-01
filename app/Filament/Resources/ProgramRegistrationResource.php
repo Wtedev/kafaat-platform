@@ -110,7 +110,7 @@ class ProgramRegistrationResource extends Resource
                 BadgeColumn::make('trainingProgram.status')
                     ->label('حالة البرنامج')
                     ->colors([
-                        'gray'    => ProgramStatus::Draft->value,
+                        'gray' => ProgramStatus::Draft->value,
                         'success' => ProgramStatus::Published->value,
                         'warning' => ProgramStatus::Archived->value,
                     ])
@@ -121,9 +121,9 @@ class ProgramRegistrationResource extends Resource
                     ->colors([
                         'warning' => RegistrationStatus::Pending->value,
                         'success' => RegistrationStatus::Approved->value,
-                        'danger'  => RegistrationStatus::Rejected->value,
-                        'gray'    => RegistrationStatus::Cancelled->value,
-                        'info'    => RegistrationStatus::Completed->value,
+                        'danger' => RegistrationStatus::Rejected->value,
+                        'gray' => RegistrationStatus::Cancelled->value,
+                        'info' => RegistrationStatus::Completed->value,
                     ])
                     ->sortable(),
 
@@ -166,16 +166,16 @@ class ProgramRegistrationResource extends Resource
                         if ($record->attendance_percentage === null) {
                             return 'بانتظار البيانات';
                         }
-                        $attOk   = (float) $record->attendance_percentage >= 80;
+                        $attOk = (float) $record->attendance_percentage >= 80;
                         $scoreOk = $record->score === null || (float) $record->score >= 60;
 
                         return ($attOk && $scoreOk) ? 'مؤهل ✓' : 'غير مؤهل بعد';
                     })
                     ->color(fn (string $state): string => match ($state) {
-                        'مؤهل ✓'            => 'success',
-                        'غير مؤهل بعد'   => 'danger',
+                        'مؤهل ✓' => 'success',
+                        'غير مؤهل بعد' => 'danger',
                         'بانتظار البيانات' => 'warning',
-                        default              => 'gray',
+                        default => 'gray',
                     })
                     ->toggleable(),
 
@@ -264,7 +264,7 @@ class ProgramRegistrationResource extends Resource
                     ->visible(fn (ProgramRegistration $record): bool => $record->isApproved())
                     ->fillForm(fn (ProgramRegistration $record): array => [
                         'attendance_percentage' => $record->attendance_percentage,
-                        'score'                 => $record->score,
+                        'score' => $record->score,
                     ])
                     ->form([
                         TextInput::make('attendance_percentage')
@@ -283,7 +283,7 @@ class ProgramRegistrationResource extends Resource
                     ->action(function (ProgramRegistration $record, array $data): void {
                         $record->update([
                             'attendance_percentage' => (float) $data['attendance_percentage'],
-                            'score'                 => ($data['score'] !== null && $data['score'] !== '')
+                            'score' => ($data['score'] !== null && $data['score'] !== '')
                                 ? (float) $data['score']
                                 : $record->score,
                         ]);
@@ -301,7 +301,7 @@ class ProgramRegistrationResource extends Resource
                     ->fillForm(fn (ProgramRegistration $record): array => [
                         // Pre-fill with calculated value from daily records if available
                         'attendance_percentage' => $record->calculateAttendancePercentage() ?? $record->attendance_percentage,
-                        'score'                 => $record->score,
+                        'score' => $record->score,
                     ])
                     ->form([
                         TextInput::make('attendance_percentage')
@@ -322,9 +322,9 @@ class ProgramRegistrationResource extends Resource
                     ->action(function (ProgramRegistration $record, array $data): void {
                         try {
                             app(ProgramRegistrationService::class)->markCompleted(
-                                registration:         $record,
-                                admin:                auth()->user(),
-                                score:                ($data['score'] !== null && $data['score'] !== '')
+                                registration: $record,
+                                admin: auth()->user(),
+                                score: ($data['score'] !== null && $data['score'] !== '')
                                     ? (float) $data['score']
                                     : null,
                                 attendancePercentage: (float) $data['attendance_percentage'],
@@ -369,6 +369,7 @@ class ProgramRegistrationResource extends Resource
                                 ->body('يجب أن يكون الحضور ≥ 80٪ والدرجة ≥ 60')
                                 ->danger()
                                 ->send();
+
                             return;
                         }
                         $record->loadMissing(['user', 'trainingProgram']);
@@ -398,7 +399,7 @@ class ProgramRegistrationResource extends Resource
     {
         return [
             'index' => Pages\ListProgramRegistrations::route('/'),
-            'view'  => Pages\ViewProgramRegistration::route('/{record}'),
+            'view' => Pages\ViewProgramRegistration::route('/{record}'),
         ];
     }
 }

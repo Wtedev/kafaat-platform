@@ -2,46 +2,40 @@
 
 namespace App\Http\Controllers\Portal;
 
+use App\Enums\RegistrationStatus;
 use App\Http\Controllers\Controller;
-use App\Enums\VolunteerHoursStatus;
+use App\Services\Portal\PortalDashboardComposer;
 use Illuminate\Http\Request;
 
 class PortalDashboardController extends Controller
 {
     public function __invoke(Request $request)
     {
-        $user = $request->user();
+        $user = $request->user()->load('profile');
 
-        $pathCount = $user->learningPathRegistrations()->count();
-        $programCount = $user->programRegistrations()->count();
-        $volunteerCount = $user->volunteerRegistrations()->count();
+        $programsRegistered = $user->programRegistrations()->count()
+            + $user->learningPathRegistrations()->count();
+        $programsCompleted = $user->programRegistrations()
+            ->where('status', RegistrationStatus::Completed)
+            ->count()
+            + $user->learningPathRegistrations()
+                ->where('status', RegistrationStatus::Completed)
+                ->count();
         $approvedHours = $user->totalApprovedVolunteerHours();
+        $certificatesCount = $user->certificates()->count();
 
-        $certificates = $user->certificates()
-            ->latest('issued_at')
-            ->take(5)
-            ->get();
-
-        $recentPathRegs = $user->learningPathRegistrations()
-            ->with('learningPath')
-            ->latest()
-            ->take(5)
-            ->get();
-
-        $recentProgramRegs = $user->programRegistrations()
-            ->with('trainingProgram')
-            ->latest()
-            ->take(5)
-            ->get();
+        $composed = PortalDashboardComposer::compose($user);
+        $activities = $composed['activities'];
+        $volunteerRows = $composed['volunteerRows'];
 
         return view('portal.dashboard', compact(
-            'pathCount',
-            'programCount',
-            'volunteerCount',
+            'user',
+            'programsRegistered',
+            'programsCompleted',
             'approvedHours',
-            'certificates',
-            'recentPathRegs',
-            'recentProgramRegs',
+            'certificatesCount',
+            'activities',
+            'volunteerRows',
         ));
     }
 }

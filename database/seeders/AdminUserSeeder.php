@@ -12,9 +12,9 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         // ── Read credentials from environment ─────────────────────────────────
-        $email    = env('ADMIN_EMAIL');
+        $email = env('ADMIN_EMAIL');
         $password = env('ADMIN_PASSWORD');
-        $name     = env('ADMIN_NAME', 'System Admin');
+        $name = env('ADMIN_NAME', 'System Admin');
 
         if (empty($email) || empty($password)) {
             $this->command->warn('');
@@ -22,12 +22,14 @@ class AdminUserSeeder extends Seeder
             $this->command->warn('  Set both variables in your .env (local) or Railway environment');
             $this->command->warn('  variables (production) and re-run the seeder.');
             $this->command->warn('');
+
             return;
         }
 
         // ── Validate email format ─────────────────────────────────────────────
         if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->command->error("  AdminUserSeeder: ADMIN_EMAIL \"{$email}\" is not a valid email address.");
+
             return;
         }
 
@@ -39,6 +41,7 @@ class AdminUserSeeder extends Seeder
             foreach ($errors as $error) {
                 $this->command->error("    - {$error}");
             }
+
             return;
         }
 
@@ -46,8 +49,8 @@ class AdminUserSeeder extends Seeder
         $user = User::updateOrCreate(
             ['email' => $email],
             [
-                'name'      => $name,
-                'password'  => Hash::make($password),
+                'name' => $name,
+                'password' => Hash::make($password),
                 'role_type' => 'admin',
                 'is_active' => true,
             ]

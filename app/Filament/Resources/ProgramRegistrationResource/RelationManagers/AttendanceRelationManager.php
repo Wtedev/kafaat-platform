@@ -54,7 +54,7 @@ class AttendanceRelationManager extends RelationManager
     {
         /** @var ProgramRegistration $registration */
         $registration = $this->getOwnerRecord();
-        $summary      = app(ProgramAttendanceService::class)->getSummary($registration);
+        $summary = app(ProgramAttendanceService::class)->getSummary($registration);
 
         return $table
             ->description(
@@ -89,7 +89,7 @@ class AttendanceRelationManager extends RelationManager
                     ->label('الحالة')
                     ->colors([
                         'success' => AttendanceStatus::Present->value,
-                        'danger'  => AttendanceStatus::Absent->value,
+                        'danger' => AttendanceStatus::Absent->value,
                         'warning' => AttendanceStatus::Excused->value,
                     ]),
 
@@ -112,12 +112,12 @@ class AttendanceRelationManager extends RelationManager
                     ->modalHeading('توليد الجلسات التدريبية')
                     ->modalDescription(
                         'سيتم إنشاء سجل حضور (غائب) لكل يوم دراسة متوقع بناءً على الجدول الأسبوعي للبرنامج. '
-                        . 'السجلات الموجودة لن تُحذف أو تُعدَّل.'
+                        .'السجلات الموجودة لن تُحذف أو تُعدَّل.'
                     )
                     ->modalSubmitActionLabel('نعم، توليد')
                     ->action(function (RelationManager $livewire): void {
                         /** @var ProgramRegistration $reg */
-                        $reg   = $livewire->getOwnerRecord();
+                        $reg = $livewire->getOwnerRecord();
                         $count = app(ProgramAttendanceService::class)->generateSessions($reg);
 
                         if ($count === 0) {

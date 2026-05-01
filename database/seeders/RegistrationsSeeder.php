@@ -18,13 +18,14 @@ class RegistrationsSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin       = User::where('email', 'admin@example.com')->first();
+        $admin = User::where('email', 'admin@example.com')->first();
         $beneficiary = User::where('email', 'beneficiary@example.com')->first();
-        $sara        = User::where('email', 'sara@example.com')->first();
-        $khalid      = User::where('email', 'khalid@example.com')->first();
+        $sara = User::where('email', 'sara@example.com')->first();
+        $khalid = User::where('email', 'khalid@example.com')->first();
 
-        if (!$admin || !$beneficiary || !$sara || !$khalid) {
+        if (! $admin || ! $beneficiary || ! $sara || ! $khalid) {
             $this->command->warn('RegistrationsSeeder: required users not found — skipping.');
+
             return;
         }
 
@@ -52,7 +53,7 @@ class RegistrationsSeeder extends Seeder
             PathRegistration::firstOrCreate(
                 ['learning_path_id' => $path1->id, 'user_id' => $sara->id],
                 [
-                    'status'      => RegistrationStatus::Approved,
+                    'status' => RegistrationStatus::Approved,
                     'approved_by' => $admin->id,
                     'approved_at' => now()->subDays(3),
                 ]
@@ -66,7 +67,7 @@ class RegistrationsSeeder extends Seeder
             PathRegistration::firstOrCreate(
                 ['learning_path_id' => $path2->id, 'user_id' => $khalid->id],
                 [
-                    'status'      => RegistrationStatus::Approved,
+                    'status' => RegistrationStatus::Approved,
                     'approved_by' => $admin->id,
                     'approved_at' => now()->subDays(5),
                 ]
@@ -94,7 +95,7 @@ class RegistrationsSeeder extends Seeder
 
     private function seedProgramRegistrations(User $admin, User $beneficiary, User $sara, User $khalid): void
     {
-        if (!TrainingProgram::exists()) {
+        if (! TrainingProgram::exists()) {
             return;
         }
 
@@ -110,7 +111,7 @@ class RegistrationsSeeder extends Seeder
         ProgramRegistration::firstOrCreate(
             ['training_program_id' => $prog1->id, 'user_id' => $sara->id],
             [
-                'status'      => RegistrationStatus::Approved,
+                'status' => RegistrationStatus::Approved,
                 'approved_by' => $admin->id,
                 'approved_at' => now()->subDays(2),
             ]
@@ -129,11 +130,11 @@ class RegistrationsSeeder extends Seeder
             ProgramRegistration::firstOrCreate(
                 ['training_program_id' => $prog2->id, 'user_id' => $beneficiary->id],
                 [
-                    'status'                => RegistrationStatus::Approved,
-                    'approved_by'           => $admin->id,
-                    'approved_at'           => now()->subDays(7),
+                    'status' => RegistrationStatus::Approved,
+                    'approved_by' => $admin->id,
+                    'approved_at' => now()->subDays(7),
                     'attendance_percentage' => 85.00,
-                    'score'                 => 78.50,
+                    'score' => 78.50,
                 ]
             );
         }
@@ -152,7 +153,7 @@ class RegistrationsSeeder extends Seeder
 
     private function seedVolunteerRegistrationsAndHours(User $admin, User $beneficiary, User $sara, User $khalid): void
     {
-        if (!VolunteerOpportunity::exists()) {
+        if (! VolunteerOpportunity::exists()) {
             return;
         }
 
@@ -162,7 +163,7 @@ class RegistrationsSeeder extends Seeder
         $reg1 = VolunteerRegistration::firstOrCreate(
             ['opportunity_id' => $opp1->id, 'user_id' => $beneficiary->id],
             [
-                'status'      => RegistrationStatus::Approved,
+                'status' => RegistrationStatus::Approved,
                 'approved_by' => $admin->id,
                 'approved_at' => now()->subDays(4),
             ]
@@ -172,8 +173,8 @@ class RegistrationsSeeder extends Seeder
         VolunteerHour::firstOrCreate(
             ['user_id' => $beneficiary->id, 'opportunity_id' => $opp1->id, 'notes' => 'جلسة التدريب الأولى'],
             [
-                'hours'       => 8.00,
-                'status'      => VolunteerHoursStatus::Approved,
+                'hours' => 8.00,
+                'status' => VolunteerHoursStatus::Approved,
                 'approved_by' => $admin->id,
                 'approved_at' => now()->subDays(3),
             ]
@@ -181,8 +182,8 @@ class RegistrationsSeeder extends Seeder
         VolunteerHour::firstOrCreate(
             ['user_id' => $beneficiary->id, 'opportunity_id' => $opp1->id, 'notes' => 'جلسة التدريب الثانية'],
             [
-                'hours'       => 7.00,
-                'status'      => VolunteerHoursStatus::Approved,
+                'hours' => 7.00,
+                'status' => VolunteerHoursStatus::Approved,
                 'approved_by' => $admin->id,
                 'approved_at' => now()->subDays(1),
             ]
@@ -191,7 +192,7 @@ class RegistrationsSeeder extends Seeder
         VolunteerHour::firstOrCreate(
             ['user_id' => $beneficiary->id, 'opportunity_id' => $opp1->id, 'notes' => 'جلسة إضافية قيد المراجعة'],
             [
-                'hours'  => 10.00,
+                'hours' => 10.00,
                 'status' => VolunteerHoursStatus::Pending,
             ]
         );
@@ -209,7 +210,7 @@ class RegistrationsSeeder extends Seeder
             VolunteerRegistration::firstOrCreate(
                 ['opportunity_id' => $opp2->id, 'user_id' => $khalid->id],
                 [
-                    'status'      => RegistrationStatus::Approved,
+                    'status' => RegistrationStatus::Approved,
                     'approved_by' => $admin->id,
                     'approved_at' => now()->subDays(2),
                 ]
@@ -218,7 +219,7 @@ class RegistrationsSeeder extends Seeder
             VolunteerHour::firstOrCreate(
                 ['user_id' => $khalid->id, 'opportunity_id' => $opp2->id, 'notes' => 'أول يوم تطوعي'],
                 [
-                    'hours'  => 5.00,
+                    'hours' => 5.00,
                     'status' => VolunteerHoursStatus::Pending,
                 ]
             );

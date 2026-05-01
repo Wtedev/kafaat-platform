@@ -26,12 +26,12 @@ class ProgramRegistrationRejected extends Notification implements ShouldQueue
         $program = $this->registration->trainingProgram;
 
         $message = (new MailMessage)
-            ->subject('Registration Update — ' . $program->title)
-            ->greeting('Hello, ' . $notifiable->name . '!')
-            ->line('We regret to inform you that your registration for **' . $program->title . '** could not be approved at this time.');
+            ->subject('Registration Update — '.$program->title)
+            ->greeting('Hello, '.$notifiable->name.'!')
+            ->line('We regret to inform you that your registration for **'.$program->title.'** could not be approved at this time.');
 
         if ($this->registration->rejected_reason) {
-            $message->line('**Reason:** ' . $this->registration->rejected_reason);
+            $message->line('**Reason:** '.$this->registration->rejected_reason);
         }
 
         return $message

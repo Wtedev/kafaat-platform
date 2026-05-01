@@ -15,7 +15,7 @@ use App\Notifications\ProgramRegistrationRejected;
 class ProgramRegistrationService
 {
     public function __construct(
-        private readonly EmailLogService    $emailLogService,
+        private readonly EmailLogService $emailLogService,
         private readonly CertificateService $certificateService,
     ) {}
 
@@ -28,7 +28,7 @@ class ProgramRegistrationService
     public function register(TrainingProgram $program, User $user): ProgramRegistration
     {
         if (! $program->isRegistrationOpen()) {
-            throw new RegistrationWindowClosedException();
+            throw new RegistrationWindowClosedException;
         }
 
         // We do not check capacity at registration time — capacity is enforced on approval.
@@ -38,7 +38,7 @@ class ProgramRegistrationService
         return ProgramRegistration::firstOrCreate(
             [
                 'training_program_id' => $program->id,
-                'user_id'             => $user->id,
+                'user_id' => $user->id,
             ],
             [
                 'status' => RegistrationStatus::Pending,
@@ -65,12 +65,12 @@ class ProgramRegistrationService
                 ->count();
 
             if ($approvedCount >= $program->capacity) {
-                throw new ProgramCapacityExceededException();
+                throw new ProgramCapacityExceededException;
             }
         }
 
         $registration->update([
-            'status'      => RegistrationStatus::Approved,
+            'status' => RegistrationStatus::Approved,
             'approved_by' => $approvedBy->id,
             'approved_at' => now(),
         ]);
@@ -78,11 +78,11 @@ class ProgramRegistrationService
         $registration->loadMissing('user');
 
         $this->emailLogService->send(
-            recipient:    $registration->user,
+            recipient: $registration->user,
             notification: new ProgramRegistrationApproved($registration),
-            templateKey:  'program_registration.approved',
-            subject:      'Your Registration Has Been Approved — ' . $program->title,
-            sentBy:       $approvedBy,
+            templateKey: 'program_registration.approved',
+            subject: 'Your Registration Has Been Approved — '.$program->title,
+            sentBy: $approvedBy,
         );
 
         return $registration->fresh();
@@ -94,17 +94,17 @@ class ProgramRegistrationService
     public function reject(ProgramRegistration $registration, ?string $reason = null): ProgramRegistration
     {
         $registration->update([
-            'status'          => RegistrationStatus::Rejected,
+            'status' => RegistrationStatus::Rejected,
             'rejected_reason' => $reason,
         ]);
 
         $registration->loadMissing(['user', 'trainingProgram']);
 
         $this->emailLogService->send(
-            recipient:    $registration->user,
+            recipient: $registration->user,
             notification: new ProgramRegistrationRejected($registration),
-            templateKey:  'program_registration.rejected',
-            subject:      'Registration Update — ' . $registration->trainingProgram->title,
+            templateKey: 'program_registration.rejected',
+            subject: 'Registration Update — '.$registration->trainingProgram->title,
         );
 
         return $registration->fresh();
@@ -136,23 +136,23 @@ class ProgramRegistrationService
      */
     public function markCompleted(
         ProgramRegistration $registration,
-        User                $admin,
-        ?float              $score = null,
-        ?float              $attendancePercentage = null,
+        User $admin,
+        ?float $score = null,
+        ?float $attendancePercentage = null,
     ): ProgramRegistration {
         if (! $registration->isApproved()) {
-            throw new RegistrationNotApprovedException();
+            throw new RegistrationNotApprovedException;
         }
 
         // Prefer the percentage calculated from daily attendance records.
         // Only fall back to the passed parameter (or stored value) when no
         // daily records exist yet.
         $calculatedPct = $registration->calculateAttendancePercentage();
-        $finalPct      = $calculatedPct ?? $attendancePercentage ?? $registration->attendance_percentage;
+        $finalPct = $calculatedPct ?? $attendancePercentage ?? $registration->attendance_percentage;
 
         $registration->update([
-            'status'                => RegistrationStatus::Completed,
-            'score'                 => $score,
+            'status' => RegistrationStatus::Completed,
+            'score' => $score,
             'attendance_percentage' => $finalPct,
         ]);
 

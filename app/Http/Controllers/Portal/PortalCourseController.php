@@ -27,7 +27,7 @@ class PortalCourseController extends Controller
      */
     public function index(Request $request, LearningPath $learningPath)
     {
-        $user         = $request->user();
+        $user = $request->user();
         $registration = $this->getApprovedRegistration($user->id, $learningPath);
 
         if ($registration === null) {
@@ -35,11 +35,11 @@ class PortalCourseController extends Controller
                 ->with('error', 'لا يمكنك الوصول للدورات إلا بعد قبولك في المسار.');
         }
 
-        $courses      = $learningPath->courses()->accessible()->orderBy('sort_order')->get();
-        $progressMap  = $learningPath->getUserProgress($user);
+        $courses = $learningPath->courses()->accessible()->orderBy('sort_order')->get();
+        $progressMap = $learningPath->getUserProgress($user);
         $pathProgress = $this->progressService->calculatePathProgress($user, $learningPath);
-        $total        = $this->progressService->getTotalRequiredCoursesCount($learningPath);
-        $completed    = $this->progressService->getCompletedCoursesCount($user, $learningPath);
+        $total = $this->progressService->getTotalRequiredCoursesCount($learningPath);
+        $completed = $this->progressService->getCompletedCoursesCount($user, $learningPath);
 
         return view('portal.courses', compact(
             'learningPath', 'courses', 'progressMap',
@@ -58,7 +58,7 @@ class PortalCourseController extends Controller
         // Only published courses are accessible
         abort_if($pathCourse->status->value !== 'published', 404);
 
-        $user         = $request->user();
+        $user = $request->user();
         $registration = $this->getApprovedRegistration($user->id, $learningPath);
 
         if ($registration === null) {
@@ -69,12 +69,12 @@ class PortalCourseController extends Controller
         // Ensure progress row exists (lazy creation in NotStarted state)
         $progress = UserCourseProgress::firstOrCreate(
             [
-                'user_id'        => $user->id,
+                'user_id' => $user->id,
                 'path_course_id' => $pathCourse->id,
             ],
             [
                 'progress_percentage' => 0.0,
-                'status'              => ProgressStatus::NotStarted,
+                'status' => ProgressStatus::NotStarted,
             ]
         );
 
@@ -91,7 +91,7 @@ class PortalCourseController extends Controller
      */
     public function start(Request $request, PathCourse $pathCourse): RedirectResponse
     {
-        $user         = $request->user();
+        $user = $request->user();
         $learningPath = $pathCourse->learningPath;
 
         $this->requireApprovedRegistration($user->id, $learningPath);
@@ -108,7 +108,7 @@ class PortalCourseController extends Controller
      */
     public function progress(UpdateCourseProgressRequest $request, PathCourse $pathCourse): RedirectResponse
     {
-        $user         = $request->user();
+        $user = $request->user();
         $learningPath = $pathCourse->learningPath;
 
         $this->requireApprovedRegistration($user->id, $learningPath);
@@ -130,7 +130,7 @@ class PortalCourseController extends Controller
      */
     public function complete(Request $request, PathCourse $pathCourse): RedirectResponse
     {
-        $user         = $request->user();
+        $user = $request->user();
         $learningPath = $pathCourse->learningPath;
 
         $this->requireApprovedRegistration($user->id, $learningPath);

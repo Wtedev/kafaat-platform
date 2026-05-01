@@ -26,9 +26,9 @@ class PathRegistrationApproved extends Notification implements ShouldQueue
         $path = $this->registration->learningPath;
 
         return (new MailMessage)
-            ->subject('Your Registration Has Been Approved — ' . $path->title)
-            ->greeting('Hello, ' . $notifiable->name . '!')
-            ->line('Great news! Your registration for the learning path **' . $path->title . '** has been approved.')
+            ->subject('Your Registration Has Been Approved — '.$path->title)
+            ->greeting('Hello, '.$notifiable->name.'!')
+            ->line('Great news! Your registration for the learning path **'.$path->title.'** has been approved.')
             ->line('You can now access the path and begin your courses.')
             ->action('View Your Path', url('/'))
             ->line('If you have any questions, please contact our support team.')

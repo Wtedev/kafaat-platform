@@ -22,7 +22,7 @@ class VolunteerRegistration extends Model
     protected function casts(): array
     {
         return [
-            'status'      => RegistrationStatus::class,
+            'status' => RegistrationStatus::class,
             'approved_at' => 'datetime',
         ];
     }

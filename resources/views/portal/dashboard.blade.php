@@ -1,114 +1,113 @@
+@extends('layouts.portal')
+@section('title', 'الرئيسية')
+
+@section('content')
 @php
-use App\Enums\RegistrationStatus;
-
-$statusColors = [
-RegistrationStatus::Pending->value => 'bg-yellow-100 text-yellow-700',
-RegistrationStatus::Approved->value => 'bg-green-100 text-green-700',
-RegistrationStatus::Rejected->value => 'bg-red-100 text-red-700',
-RegistrationStatus::Cancelled->value => 'bg-gray-100 text-gray-600',
-RegistrationStatus::Completed->value => 'bg-blue-100 text-blue-700',
-];
-
-$statusLabels = [
-RegistrationStatus::Pending->value => 'قيد المراجعة',
-RegistrationStatus::Approved->value => 'مقبول',
-RegistrationStatus::Rejected->value => 'مرفوض',
-RegistrationStatus::Cancelled->value => 'ملغي',
-RegistrationStatus::Completed->value => 'مكتمل',
-];
+$firstName = \Illuminate\Support\Str::before($user->name, ' ');
+$hasActivities = $activities->isNotEmpty();
+$hasVolunteering = $volunteerRows->isNotEmpty();
 @endphp
 
-@extends('layouts.portal')
-@section('title', 'لوحة التحكم')
-@section('content')
-<p class="text-gray-500 text-sm mb-1">مرحبا، {{ \Illuminate\Support\Str::before(auth()->user()->name, ' ') }} 👋</p>
-<h1 class="text-2xl font-bold text-gray-900 mb-6">لوحة التحكم</h1>
+<section class="mb-8 text-right">
+    <p class="text-sm font-medium text-gray-500">مرحباً، <span class="text-gray-800">{{ $firstName }}</span></p>
+    <h1 class="mt-1 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">لوحة التحكم</h1>
+    <p class="mt-2 max-w-2xl text-sm leading-relaxed text-gray-600">ملخص نشاطك التعليمي والتطوعي — بيانات مباشرة من حسابك.</p>
+</section>
 
-{{-- Stats cards --}}
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-    @php
-    $stats = [
-    ['label' => 'المسارات التعليمية', 'value' => $pathCount, 'color' => 'indigo'],
-    ['label' => 'البرامج التدريبية', 'value' => $programCount, 'color' => 'emerald'],
-    ['label' => 'الفرص التطوعية', 'value' => $volunteerCount, 'color' => 'amber'],
-    ['label' => 'ساعات تطوع معتمدة', 'value' => number_format($approvedHours, 1), 'color' => 'sky'],
-    ];
-    @endphp
-
-    @foreach ($stats as $stat)
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-        <p class="text-sm text-gray-500">{{ $stat['label'] }}</p>
-        <p class="text-3xl font-bold text-{{ $stat['color'] }}-600 mt-1">{{ $stat['value'] }}</p>
-    </div>
-    @endforeach
-</div>
-
-<div class="grid lg:grid-cols-2 gap-6">
-
-    {{-- Latest certificates --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-base font-semibold text-gray-700">آخر الشهادات</h2>
-            <a href="{{ route('portal.certificates') }}" class="text-xs text-indigo-600 hover:underline">عرض الكل ←</a>
+<section aria-labelledby="stats-heading" class="mb-8">
+    <h2 id="stats-heading" class="sr-only">إحصائيات</h2>
+    <div class="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+        <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <p class="text-xs font-medium text-gray-500">مسارات وبرامج مسجّلة</p>
+            <p class="mt-2 text-2xl font-bold tabular-nums sm:text-3xl" style="color:#253B5B">{{ $programsRegistered }}</p>
         </div>
-        @forelse ($certificates as $cert)
-        <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-            <div>
-                <p class="text-sm font-medium text-gray-800">
-                    {{ optional($cert->certificateable)->title ?? '—' }}
-                </p>
-                <p class="text-xs text-gray-400">{{ $cert->issued_at?->format('Y/m/d') }}</p>
+        <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <p class="text-xs font-medium text-gray-500">مكتملة</p>
+            <p class="mt-2 text-2xl font-bold tabular-nums text-emerald-600 sm:text-3xl">{{ $programsCompleted }}</p>
+        </div>
+        <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <p class="text-xs font-medium text-gray-500">ساعات تطوع معتمدة</p>
+            <p class="mt-2 text-2xl font-bold tabular-nums text-sky-600 sm:text-3xl">{{ number_format($approvedHours, 1) }}</p>
+        </div>
+        <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <p class="text-xs font-medium text-gray-500">الشهادات</p>
+            <p class="mt-2 text-2xl font-bold tabular-nums text-violet-600 sm:text-3xl">{{ $certificatesCount }}</p>
+        </div>
+    </div>
+</section>
+
+<section class="mb-8" aria-labelledby="programs-heading">
+    <div class="mb-3 flex flex-wrap items-end justify-between gap-3">
+        <div class="text-right">
+            <h2 id="programs-heading" class="text-base font-bold text-gray-900 sm:text-lg">البرامج واللقاءات</h2>
+            <p class="mt-0.5 text-xs text-gray-500 sm:text-sm">حالة التسجيل والتقدّم لكل عنصر</p>
+        </div>
+        <div class="flex shrink-0 gap-2">
+            <a href="{{ route('portal.paths') }}" class="rounded-lg px-2.5 py-1 text-xs font-semibold text-gray-600 ring-1 ring-gray-200 transition hover:bg-gray-50">المسارات</a>
+            <a href="{{ route('portal.programs') }}" class="rounded-lg px-2.5 py-1 text-xs font-semibold text-gray-600 ring-1 ring-gray-200 transition hover:bg-gray-50">البرامج</a>
+        </div>
+    </div>
+
+    @if (! $hasActivities)
+    <x-portal.empty-state
+        title="لا توجد برامج أو لقاءات لعرضها"
+        description="لم يظهر عندك أي تسجيل أو فرصة مقترحة بعد. استكشف البرامج والمسارات من الموقع العام والتسجيل من هناك."
+    >
+        <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#253B5B">استكشف البرامج</a>
+        <a href="{{ route('public.paths.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">استكشف المسارات</a>
+    </x-portal.empty-state>
+    @else
+    <div class="-mx-1 flex gap-4 overflow-x-auto overflow-y-visible pb-2 pt-1 [scrollbar-width:thin]">
+        @foreach ($activities as $activity)
+        @include('portal.partials.dashboard-activity-card', ['activity' => $activity])
+        @endforeach
+    </div>
+    @endif
+</section>
+
+<section class="mb-4" aria-labelledby="vol-heading">
+    <div class="mb-3 flex flex-wrap items-end justify-between gap-3">
+        <div class="text-right">
+            <h2 id="vol-heading" class="text-base font-bold text-gray-900 sm:text-lg">الفرص التطوعية</h2>
+            <p class="mt-0.5 text-xs text-gray-500 sm:text-sm">فرص منشورة وحالتك في كل منها</p>
+        </div>
+        <a href="{{ route('portal.volunteering') }}" class="shrink-0 text-xs font-semibold underline-offset-2 hover:underline" style="color:#253B5B">عرض الكل</a>
+    </div>
+
+    @if (! $hasVolunteering)
+    <x-portal.empty-state
+        title="لا توجد فرص تطوعية منشورة"
+        description="لا تتوفر حالياً فرص في لوحة التحكم. يمكنك تصفّح صفحة الفرص على الموقع العام أو إكمال ملفك ليصلك إشعار لاحقاً."
+    >
+        <a href="{{ route('public.volunteering.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#253B5B">استكشف الفرص التطوعية</a>
+        <a href="{{ route('portal.profile') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">أكمل ملفك الشخصي</a>
+    </x-portal.empty-state>
+    @else
+    <div class="-mx-1 flex gap-3 overflow-x-auto overflow-y-visible pb-2 pt-1 [scrollbar-width:thin]">
+        @foreach ($volunteerRows as $row)
+        <article class="flex min-w-[17.5rem] max-w-[17.5rem] flex-none snap-start flex-col rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:min-w-[19rem] sm:max-w-[19rem]">
+            <h3 class="text-right text-sm font-bold leading-snug text-gray-900">{{ $row['title'] }}</h3>
+            <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+                @if ($row['hours'] !== null)
+                <span class="rounded-lg bg-gray-50 px-2 py-1 font-medium text-gray-600">{{ number_format((float) $row['hours'], 0) }} ساعة</span>
+                @else
+                <span class="text-gray-400">—</span>
+                @endif
+                @php
+                $vt = [
+                    'emerald' => 'bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200/80',
+                    'indigo' => 'bg-indigo-50 text-indigo-900 ring-1 ring-indigo-200/80',
+                    'slate' => 'bg-slate-100 text-slate-800 ring-1 ring-slate-200/80',
+                ];
+                @endphp
+                <span class="rounded-lg px-2 py-1 font-semibold {{ $vt[$row['state_tone']] ?? $vt['slate'] }}">{{ $row['state_label'] }}</span>
             </div>
-            <span class="text-xs font-mono text-gray-400">{{ $cert->certificate_number }}</span>
-        </div>
-        @empty
-        <p class="text-sm text-gray-400">لا توجد شهادات بعد.</p>
-        @endforelse
-
-        @if ($certificates->isNotEmpty())
-        <a href="{{ route('portal.certificates') }}" class="mt-3 inline-block text-xs text-indigo-600 hover:underline">
-            عرض الكل
-        </a>
-        @endif
+            <div class="mt-4 flex justify-end">
+                <a href="{{ $row['cta_url'] }}" class="text-sm font-semibold hover:underline" style="color:#253B5B">{{ $row['cta_label'] }}</a>
+            </div>
+        </article>
+        @endforeach
     </div>
-
-    {{-- Recent path registrations --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-base font-semibold text-gray-700">آخر تسجيلات المسارات</h2>
-            <a href="{{ route('portal.paths') }}" class="text-xs text-indigo-600 hover:underline">عرض الكل ←</a>
-        </div>
-        @forelse ($recentPathRegs as $reg)
-        @php $sv = $reg->status->value; @endphp
-        <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-            <p class="text-sm text-gray-800">{{ optional($reg->learningPath)->title ?? '—' }}</p>
-            <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$sv] ?? 'bg-gray-100 text-gray-600' }}">
-                {{ $statusLabels[$sv] ?? $sv }}
-            </span>
-        </div>
-        @empty
-        <p class="text-sm text-gray-400">لا يوجد تسجيلات بعد.</p>
-        @endforelse
-    </div>
-
-    {{-- Recent program registrations --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 lg:col-span-2">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-base font-semibold text-gray-700">آخر تسجيلات البرامج</h2>
-            <a href="{{ route('portal.programs') }}" class="text-xs text-indigo-600 hover:underline">عرض الكل ←</a>
-        </div>
-        @forelse ($recentProgramRegs as $reg)
-        @php $sv = $reg->status->value; @endphp
-        <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-            <p class="text-sm text-gray-800">{{ optional($reg->trainingProgram)->title ?? '—' }}</p>
-            <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$sv] ?? 'bg-gray-100 text-gray-600' }}">
-                {{ $statusLabels[$sv] ?? $sv }}
-            </span>
-        </div>
-        @empty
-        <p class="text-sm text-gray-400">لا يوجد تسجيلات بعد.</p>
-        @endforelse
-    </div>
-
-</div>
+    @endif
+</section>
 @endsection

@@ -26,12 +26,12 @@ class PathRegistrationRejected extends Notification implements ShouldQueue
         $path = $this->registration->learningPath;
 
         $message = (new MailMessage)
-            ->subject('Registration Update — ' . $path->title)
-            ->greeting('Hello, ' . $notifiable->name . '!')
-            ->line('We regret to inform you that your registration for **' . $path->title . '** could not be approved at this time.');
+            ->subject('Registration Update — '.$path->title)
+            ->greeting('Hello, '.$notifiable->name.'!')
+            ->line('We regret to inform you that your registration for **'.$path->title.'** could not be approved at this time.');
 
         if ($this->registration->rejected_reason) {
-            $message->line('**Reason:** ' . $this->registration->rejected_reason);
+            $message->line('**Reason:** '.$this->registration->rejected_reason);
         }
 
         return $message

@@ -24,23 +24,23 @@ class ResetPasswordController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'token'                 => ['required'],
-            'email'                 => ['required', 'email'],
-            'password'              => ['required', 'min:8', 'confirmed'],
+            'token' => ['required'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'min:8', 'confirmed'],
         ], [
-            'token.required'              => 'رمز إعادة التعيين مطلوب.',
-            'email.required'              => 'البريد الإلكتروني مطلوب.',
-            'email.email'                 => 'صيغة البريد الإلكتروني غير صحيحة.',
-            'password.required'           => 'كلمة المرور مطلوبة.',
-            'password.min'                => 'كلمة المرور يجب أن تكون 8 أحرف على الأقل.',
-            'password.confirmed'          => 'تأكيد كلمة المرور غير متطابق.',
+            'token.required' => 'رمز إعادة التعيين مطلوب.',
+            'email.required' => 'البريد الإلكتروني مطلوب.',
+            'email.email' => 'صيغة البريد الإلكتروني غير صحيحة.',
+            'password.required' => 'كلمة المرور مطلوبة.',
+            'password.min' => 'كلمة المرور يجب أن تكون 8 أحرف على الأقل.',
+            'password.confirmed' => 'تأكيد كلمة المرور غير متطابق.',
         ]);
 
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, string $password) {
                 $user->forceFill([
-                    'password'       => Hash::make($password),
+                    'password' => Hash::make($password),
                     'remember_token' => Str::random(60),
                 ])->save();
 

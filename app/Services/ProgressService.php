@@ -10,6 +10,7 @@ use App\Models\PathCourse;
 use App\Models\PathRegistration;
 use App\Models\User;
 use App\Models\UserCourseProgress;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ProgressService
@@ -28,12 +29,12 @@ class ProgressService
     {
         $progress = UserCourseProgress::firstOrCreate(
             [
-                'user_id'        => $user->id,
+                'user_id' => $user->id,
                 'path_course_id' => $course->id,
             ],
             [
                 'progress_percentage' => 0.0,
-                'status'              => ProgressStatus::InProgress,
+                'status' => ProgressStatus::InProgress,
             ]
         );
 
@@ -52,13 +53,13 @@ class ProgressService
     {
         $progress = UserCourseProgress::updateOrCreate(
             [
-                'user_id'        => $user->id,
+                'user_id' => $user->id,
                 'path_course_id' => $course->id,
             ],
             [
                 'progress_percentage' => 100.00,
-                'status'              => ProgressStatus::Completed,
-                'completed_at'        => now(),
+                'status' => ProgressStatus::Completed,
+                'completed_at' => now(),
             ]
         );
 
@@ -73,22 +74,22 @@ class ProgressService
      * After updating, checks if the parent learning path is now fully completed.
      */
     public function updateCourseProgress(
-        User       $user,
+        User $user,
         PathCourse $course,
-        float      $percentage,
-        ?float     $score = null,
+        float $percentage,
+        ?float $score = null,
     ): UserCourseProgress {
         $percentage = max(0.0, min(100.0, $percentage));
 
         $status = match (true) {
             $percentage >= 100.0 => ProgressStatus::Completed,
-            $percentage > 0.0    => ProgressStatus::InProgress,
-            default              => ProgressStatus::NotStarted,
+            $percentage > 0.0 => ProgressStatus::InProgress,
+            default => ProgressStatus::NotStarted,
         };
 
         $attributes = [
             'progress_percentage' => $percentage,
-            'status'              => $status,
+            'status' => $status,
         ];
 
         if ($score !== null) {
@@ -108,7 +109,7 @@ class ProgressService
 
         $progress = UserCourseProgress::updateOrCreate(
             [
-                'user_id'        => $user->id,
+                'user_id' => $user->id,
                 'path_course_id' => $course->id,
             ],
             $attributes
@@ -219,7 +220,7 @@ class ProgressService
         DB::transaction(function () use ($registration, $user, $path) {
             if ($registration->status !== RegistrationStatus::Completed) {
                 $registration->update([
-                    'status'       => RegistrationStatus::Completed,
+                    'status' => RegistrationStatus::Completed,
                     'completed_at' => now(),
                 ]);
             }
@@ -231,9 +232,9 @@ class ProgressService
     // ─── Private Helpers ──────────────────────────────────────────────────────
 
     /**
-     * @return \Illuminate\Support\Collection<int>
+     * @return Collection<int>
      */
-    private function getRequiredPublishedCourseIds(LearningPath $path): \Illuminate\Support\Collection
+    private function getRequiredPublishedCourseIds(LearningPath $path): Collection
     {
         return $path->courses()
             ->where('status', CourseStatus::Published->value)

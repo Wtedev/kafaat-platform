@@ -25,10 +25,10 @@ class ProgramRegistration extends Model
     protected function casts(): array
     {
         return [
-            'status'                => RegistrationStatus::class,
-            'approved_at'           => 'datetime',
+            'status' => RegistrationStatus::class,
+            'approved_at' => 'datetime',
             'attendance_percentage' => 'decimal:2',
-            'score'                 => 'decimal:2',
+            'score' => 'decimal:2',
         ];
     }
 

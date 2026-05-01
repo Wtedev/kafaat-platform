@@ -29,7 +29,7 @@ class VolunteerRegistrationService
     public function register(User $user, VolunteerOpportunity $opportunity): VolunteerRegistration
     {
         if ($opportunity->status !== OpportunityStatus::Published) {
-            throw new OpportunityNotPublishedException();
+            throw new OpportunityNotPublishedException;
         }
 
         $exists = VolunteerRegistration::where('opportunity_id', $opportunity->id)
@@ -41,17 +41,17 @@ class VolunteerRegistrationService
             ->exists();
 
         if ($exists) {
-            throw new DuplicateRegistrationException();
+            throw new DuplicateRegistrationException;
         }
 
         if (! $opportunity->hasCapacity()) {
-            throw new OpportunityCapacityExceededException();
+            throw new OpportunityCapacityExceededException;
         }
 
         return VolunteerRegistration::create([
             'opportunity_id' => $opportunity->id,
-            'user_id'        => $user->id,
-            'status'         => RegistrationStatus::Pending,
+            'user_id' => $user->id,
+            'status' => RegistrationStatus::Pending,
         ]);
     }
 
@@ -74,12 +74,12 @@ class VolunteerRegistrationService
                 ->count();
 
             if ($approvedCount >= $opportunity->capacity) {
-                throw new OpportunityCapacityExceededException();
+                throw new OpportunityCapacityExceededException;
             }
         }
 
         $registration->update([
-            'status'      => RegistrationStatus::Approved,
+            'status' => RegistrationStatus::Approved,
             'approved_by' => $approvedBy->id,
             'approved_at' => now(),
         ]);
@@ -87,11 +87,11 @@ class VolunteerRegistrationService
         $registration->loadMissing('user');
 
         $this->emailLogService->send(
-            recipient:    $registration->user,
+            recipient: $registration->user,
             notification: new VolunteerRegistrationApproved($registration),
-            templateKey:  'volunteer_registration.approved',
-            subject:      'Your Volunteer Registration Has Been Approved — ' . $opportunity->title,
-            sentBy:       $approvedBy,
+            templateKey: 'volunteer_registration.approved',
+            subject: 'Your Volunteer Registration Has Been Approved — '.$opportunity->title,
+            sentBy: $approvedBy,
         );
 
         return $registration->fresh();
@@ -103,18 +103,18 @@ class VolunteerRegistrationService
     public function reject(VolunteerRegistration $registration, User $rejectedBy, ?string $reason = null): VolunteerRegistration
     {
         $registration->update([
-            'status'          => RegistrationStatus::Rejected,
+            'status' => RegistrationStatus::Rejected,
             'rejected_reason' => $reason,
         ]);
 
         $registration->loadMissing(['user', 'opportunity']);
 
         $this->emailLogService->send(
-            recipient:    $registration->user,
+            recipient: $registration->user,
             notification: new VolunteerRegistrationRejected($registration),
-            templateKey:  'volunteer_registration.rejected',
-            subject:      'Volunteer Registration Update — ' . $registration->opportunity->title,
-            sentBy:       $rejectedBy,
+            templateKey: 'volunteer_registration.rejected',
+            subject: 'Volunteer Registration Update — '.$registration->opportunity->title,
+            sentBy: $rejectedBy,
         );
 
         return $registration->fresh();

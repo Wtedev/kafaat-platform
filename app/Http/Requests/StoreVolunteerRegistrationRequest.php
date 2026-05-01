@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\VolunteerRegistration;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -9,7 +10,7 @@ class StoreVolunteerRegistrationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', \App\Models\VolunteerRegistration::class);
+        return $this->user()->can('create', VolunteerRegistration::class);
     }
 
     public function rules(): array

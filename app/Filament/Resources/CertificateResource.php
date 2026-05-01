@@ -4,10 +4,10 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CertificateResource\Pages;
 use App\Models\Certificate;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ViewAction;
-use Filament\Actions\Action;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -100,17 +100,17 @@ class CertificateResource extends Resource
                 TextColumn::make('certificateable_type')
                     ->label('نوع الشهادة')
                     ->formatStateUsing(fn (?string $state): string => match (class_basename((string) $state)) {
-                        'TrainingProgram'      => 'برنامج تدريبي',
-                        'LearningPath'         => 'مسار تعليمي',
+                        'TrainingProgram' => 'برنامج تدريبي',
+                        'LearningPath' => 'مسار تعليمي',
                         'VolunteerOpportunity' => 'فرصة تطوعية',
-                        default                => $state ? class_basename($state) : '—',
+                        default => $state ? class_basename($state) : '—',
                     })
                     ->badge()
                     ->color(fn (?string $state): string => match (class_basename((string) $state)) {
-                        'TrainingProgram'      => 'success',
-                        'LearningPath'         => 'info',
+                        'TrainingProgram' => 'success',
+                        'LearningPath' => 'info',
                         'VolunteerOpportunity' => 'warning',
-                        default                => 'gray',
+                        default => 'gray',
                     }),
 
                 TextColumn::make('issued_at')
@@ -166,7 +166,7 @@ class CertificateResource extends Resource
     {
         return [
             'index' => Pages\ListCertificates::route('/'),
-            'view'  => Pages\ViewCertificate::route('/{record}'),
+            'view' => Pages\ViewCertificate::route('/{record}'),
         ];
     }
 }

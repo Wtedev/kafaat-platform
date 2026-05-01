@@ -95,7 +95,7 @@ class VolunteerRegistrationResource extends Resource
                 BadgeColumn::make('opportunity.status')
                     ->label('حالة الفرصة')
                     ->colors([
-                        'gray'    => OpportunityStatus::Draft->value,
+                        'gray' => OpportunityStatus::Draft->value,
                         'success' => OpportunityStatus::Published->value,
                         'warning' => OpportunityStatus::Archived->value,
                     ])
@@ -106,9 +106,9 @@ class VolunteerRegistrationResource extends Resource
                     ->colors([
                         'warning' => RegistrationStatus::Pending->value,
                         'success' => RegistrationStatus::Approved->value,
-                        'danger'  => RegistrationStatus::Rejected->value,
-                        'gray'    => RegistrationStatus::Cancelled->value,
-                        'info'    => RegistrationStatus::Completed->value,
+                        'danger' => RegistrationStatus::Rejected->value,
+                        'gray' => RegistrationStatus::Cancelled->value,
+                        'info' => RegistrationStatus::Completed->value,
                     ])
                     ->sortable(),
 
@@ -124,9 +124,8 @@ class VolunteerRegistrationResource extends Resource
 
                 TextColumn::make('approved_hours')
                     ->label('تقدم الساعات')
-                    ->getStateUsing(fn (VolunteerRegistration $record): string =>
-                        number_format($record->getApprovedHours(), 1) . ' / ' .
-                        number_format((float) $record->opportunity?->hours_expected, 1) . ' ساعة'
+                    ->getStateUsing(fn (VolunteerRegistration $record): string => number_format($record->getApprovedHours(), 1).' / '.
+                        number_format((float) $record->opportunity?->hours_expected, 1).' ساعة'
                     ),
 
                 TextColumn::make('has_certificate')
@@ -221,9 +220,10 @@ class VolunteerRegistrationResource extends Resource
                         if ($existing !== null) {
                             Notification::make()
                                 ->title('الشهادة موجودة مسبقاً')
-                                ->body('رقم الشهادة: ' . $existing->certificate_number)
+                                ->body('رقم الشهادة: '.$existing->certificate_number)
                                 ->warning()
                                 ->send();
+
                             return;
                         }
                         app(CertificateService::class)->issue($record->user, $record->opportunity);
@@ -245,7 +245,7 @@ class VolunteerRegistrationResource extends Resource
     {
         return [
             'index' => Pages\ListVolunteerRegistrations::route('/'),
-            'view'  => Pages\ViewVolunteerRegistration::route('/{record}'),
+            'view' => Pages\ViewVolunteerRegistration::route('/{record}'),
         ];
     }
 }

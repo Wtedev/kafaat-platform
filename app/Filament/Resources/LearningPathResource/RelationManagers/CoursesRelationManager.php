@@ -97,7 +97,7 @@ class CoursesRelationManager extends RelationManager
                     ->colors([
                         'warning' => CourseStatus::Draft->value,
                         'success' => CourseStatus::Published->value,
-                        'gray'    => CourseStatus::Hidden->value,
+                        'gray' => CourseStatus::Hidden->value,
                     ]),
 
                 IconColumn::make('is_required')

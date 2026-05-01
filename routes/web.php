@@ -1,38 +1,40 @@
 <?php
 
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Portal\PortalCertificateController;
+use App\Http\Controllers\Portal\PortalCompetencyController;
+use App\Http\Controllers\Portal\PortalCompetencyExportController;
+use App\Http\Controllers\Portal\PortalCourseController;
+use App\Http\Controllers\Portal\PortalDashboardController;
+use App\Http\Controllers\Portal\PortalPathController;
+use App\Http\Controllers\Portal\PortalProfileController;
+use App\Http\Controllers\Portal\PortalProgramController;
+use App\Http\Controllers\Portal\PortalVolunteerController;
 use App\Http\Controllers\Public\CertificateVerificationController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\PublicLearningPathController;
-use App\Http\Controllers\Public\PublicTrainingProgramController;
 use App\Http\Controllers\Public\PublicNewsController;
+use App\Http\Controllers\Public\PublicTrainingProgramController;
 use App\Http\Controllers\Public\PublicVolunteerOpportunityController;
-use App\Http\Controllers\Portal\PortalDashboardController;
-use App\Http\Controllers\Portal\PortalPathController;
-use App\Http\Controllers\Portal\PortalProgramController;
-use App\Http\Controllers\Portal\PortalVolunteerController;
-use App\Http\Controllers\Portal\PortalCertificateController;
-use App\Http\Controllers\Portal\PortalProfileController;
-use App\Http\Controllers\Portal\PortalCourseController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Authentication ───────────────────────────────────────────────────────────
 
 Route::middleware('guest')->group(function () {
-    Route::get('/login',    [LoginController::class, 'show'])->name('login');
-    Route::post('/login',   [LoginController::class, 'store']);
+    Route::get('/login', [LoginController::class, 'show'])->name('login');
+    Route::post('/login', [LoginController::class, 'store']);
     Route::get('/register', [RegisterController::class, 'show'])->name('register');
     Route::post('/register', [RegisterController::class, 'store']);
 
     // Password Reset
-    Route::get('/forgot-password',        [ForgotPasswordController::class, 'show'])->name('password.request');
-    Route::post('/forgot-password',       [ForgotPasswordController::class, 'store'])->name('password.email');
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'show'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])->name('password.email');
     Route::get('/reset-password/{token}', [ResetPasswordController::class, 'show'])->name('password.reset');
-    Route::post('/reset-password',        [ResetPasswordController::class, 'store'])->name('password.store');
+    Route::post('/reset-password', [ResetPasswordController::class, 'store'])->name('password.store');
 });
 
 Route::post('/logout', LogoutController::class)->middleware('auth')->name('logout');
@@ -46,25 +48,25 @@ Route::view('/impact', 'public.impact')->name('impact.index');
 Route::get('/certificates/verify/{code}', CertificateVerificationController::class)->name('certificates.verify');
 
 Route::prefix('paths')->name('public.paths.')->group(function () {
-    Route::get('/',                              [PublicLearningPathController::class, 'index'])->name('index');
-    Route::get('/{learningPath:slug}',           [PublicLearningPathController::class, 'show'])->name('show');
+    Route::get('/', [PublicLearningPathController::class, 'index'])->name('index');
+    Route::get('/{learningPath:slug}', [PublicLearningPathController::class, 'show'])->name('show');
     Route::post('/{learningPath:slug}/register', [PublicLearningPathController::class, 'register'])->middleware('auth')->name('register');
 });
 
 Route::prefix('programs')->name('public.programs.')->group(function () {
-    Route::get('/',                               [PublicTrainingProgramController::class, 'index'])->name('index');
-    Route::get('/{trainingProgram:slug}',         [PublicTrainingProgramController::class, 'show'])->name('show');
+    Route::get('/', [PublicTrainingProgramController::class, 'index'])->name('index');
+    Route::get('/{trainingProgram:slug}', [PublicTrainingProgramController::class, 'show'])->name('show');
     Route::post('/{trainingProgram:slug}/register', [PublicTrainingProgramController::class, 'register'])->middleware('auth')->name('register');
 });
 
 Route::prefix('volunteering')->name('public.volunteering.')->group(function () {
-    Route::get('/',                                    [PublicVolunteerOpportunityController::class, 'index'])->name('index');
-    Route::get('/{volunteerOpportunity:slug}',         [PublicVolunteerOpportunityController::class, 'show'])->name('show');
+    Route::get('/', [PublicVolunteerOpportunityController::class, 'index'])->name('index');
+    Route::get('/{volunteerOpportunity:slug}', [PublicVolunteerOpportunityController::class, 'show'])->name('show');
     Route::post('/{volunteerOpportunity:slug}/register', [PublicVolunteerOpportunityController::class, 'register'])->middleware('auth')->name('register');
 });
 
 Route::prefix('news')->name('public.news.')->group(function () {
-    Route::get('/',            [PublicNewsController::class, 'index'])->name('index');
+    Route::get('/', [PublicNewsController::class, 'index'])->name('index');
     Route::get('/{news:slug}', [PublicNewsController::class, 'show'])->name('show');
 });
 
@@ -75,19 +77,22 @@ Route::middleware(['auth', 'beneficiary'])
     ->name('portal.')
     ->group(function () {
 
-        Route::get('/',             PortalDashboardController::class)->name('dashboard');
-        Route::get('/paths',        PortalPathController::class)->name('paths');
-        Route::get('/programs',     PortalProgramController::class)->name('programs');
+        Route::get('/', PortalDashboardController::class)->name('dashboard');
+        Route::get('/paths', PortalPathController::class)->name('paths');
+        Route::get('/programs', PortalProgramController::class)->name('programs');
         Route::get('/volunteering', PortalVolunteerController::class)->name('volunteering');
         Route::get('/certificates', PortalCertificateController::class)->name('certificates');
 
-        Route::get('/profile',   [PortalProfileController::class, 'show'])->name('profile');
+        Route::get('/profile', [PortalProfileController::class, 'show'])->name('profile');
         Route::patch('/profile', [PortalProfileController::class, 'update'])->name('profile.update');
 
+        Route::get('/competency', PortalCompetencyController::class)->name('competency');
+        Route::get('/competency/export-pdf', PortalCompetencyExportController::class)->name('competency.export-pdf');
+
         // Learning path courses
-        Route::get('/paths/{learningPath}/courses',              [PortalCourseController::class, 'index'])->name('paths.courses');
+        Route::get('/paths/{learningPath}/courses', [PortalCourseController::class, 'index'])->name('paths.courses');
         Route::get('/paths/{learningPath}/courses/{pathCourse}', [PortalCourseController::class, 'show'])->name('paths.courses.show');
-        Route::post('/courses/{pathCourse}/start',               [PortalCourseController::class, 'start'])->name('courses.start');
-        Route::post('/courses/{pathCourse}/progress',            [PortalCourseController::class, 'progress'])->name('courses.progress');
-        Route::post('/courses/{pathCourse}/complete',            [PortalCourseController::class, 'complete'])->name('courses.complete');
+        Route::post('/courses/{pathCourse}/start', [PortalCourseController::class, 'start'])->name('courses.start');
+        Route::post('/courses/{pathCourse}/progress', [PortalCourseController::class, 'progress'])->name('courses.progress');
+        Route::post('/courses/{pathCourse}/complete', [PortalCourseController::class, 'complete'])->name('courses.complete');
     });

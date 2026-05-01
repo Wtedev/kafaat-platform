@@ -2,12 +2,12 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\RegistrationStatus;
 use App\Models\Certificate;
 use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
-use App\Models\VolunteerRegistration;
 use App\Models\User;
-use App\Enums\RegistrationStatus;
+use App\Models\VolunteerRegistration;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -17,10 +17,10 @@ class PlatformStatsWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        $pendingPaths        = PathRegistration::where('status', RegistrationStatus::Pending)->count();
-        $pendingPrograms     = ProgramRegistration::where('status', RegistrationStatus::Pending)->count();
-        $pendingVolunteers   = VolunteerRegistration::where('status', RegistrationStatus::Pending)->count();
-        $totalPending        = $pendingPaths + $pendingPrograms + $pendingVolunteers;
+        $pendingPaths = PathRegistration::where('status', RegistrationStatus::Pending)->count();
+        $pendingPrograms = ProgramRegistration::where('status', RegistrationStatus::Pending)->count();
+        $pendingVolunteers = VolunteerRegistration::where('status', RegistrationStatus::Pending)->count();
+        $totalPending = $pendingPaths + $pendingPrograms + $pendingVolunteers;
 
         $certificatesThisMonth = Certificate::whereYear('issued_at', now()->year)
             ->whereMonth('issued_at', now()->month)

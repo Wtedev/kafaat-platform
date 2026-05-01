@@ -26,12 +26,12 @@ class ProgramRegistrationApproved extends Notification implements ShouldQueue
         $program = $this->registration->trainingProgram;
 
         $message = (new MailMessage)
-            ->subject('Your Registration Has Been Approved — ' . $program->title)
-            ->greeting('Hello, ' . $notifiable->name . '!')
-            ->line('Your registration for the training program **' . $program->title . '** has been approved.');
+            ->subject('Your Registration Has Been Approved — '.$program->title)
+            ->greeting('Hello, '.$notifiable->name.'!')
+            ->line('Your registration for the training program **'.$program->title.'** has been approved.');
 
         if ($program->start_date) {
-            $message->line('**Start Date:** ' . $program->start_date->format('F j, Y'));
+            $message->line('**Start Date:** '.$program->start_date->format('F j, Y'));
         }
 
         return $message

@@ -26,11 +26,11 @@ class PathCourse extends Model
     protected function casts(): array
     {
         return [
-            'status'           => CourseStatus::class,
-            'published_at'     => 'datetime',
-            'sort_order'       => 'integer',
+            'status' => CourseStatus::class,
+            'published_at' => 'datetime',
+            'sort_order' => 'integer',
             'duration_minutes' => 'integer',
-            'is_required'      => 'boolean',
+            'is_required' => 'boolean',
         ];
     }
 

@@ -19,14 +19,18 @@ RegistrationStatus::Completed->value => 'مكتمل',
 @endphp
 
 @extends('layouts.portal')
-@section('title', 'برامجي التدريبية')
+@section('title', 'البرامج واللقاءات')
 @section('content')
-<h1 class="text-2xl font-bold text-gray-900 mb-6">برامجي التدريبية</h1>
+<h1 class="mb-6 text-2xl font-bold text-gray-900">البرامج واللقاءات</h1>
 
 @if ($registrations->isEmpty())
-<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center text-gray-400">
-    لم تسجّل في أي برنامج تدريبي بعد.
-</div>
+<x-portal.empty-state
+    title="لا توجد برامج مسجّلة"
+    description="لم تسجّل في أي برنامج تدريبي بعد. تصفّح البرامج المنشورة وسجّل عند توفر مقعد."
+>
+    <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#253B5B">استكشف البرامج</a>
+    <a href="{{ route('portal.paths') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">مساراتي</a>
+</x-portal.empty-state>
 @else
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
     <table class="w-full text-sm">

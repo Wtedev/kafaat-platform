@@ -26,16 +26,16 @@ class VolunteerRegistrationApproved extends Notification implements ShouldQueue
         $opportunity = $this->registration->opportunity;
 
         $message = (new MailMessage)
-            ->subject('Your Volunteer Registration Has Been Approved — ' . $opportunity->title)
-            ->greeting('Hello, ' . $notifiable->name . '!')
-            ->line('We are pleased to confirm your registration for the volunteer opportunity **' . $opportunity->title . '** has been approved.');
+            ->subject('Your Volunteer Registration Has Been Approved — '.$opportunity->title)
+            ->greeting('Hello, '.$notifiable->name.'!')
+            ->line('We are pleased to confirm your registration for the volunteer opportunity **'.$opportunity->title.'** has been approved.');
 
         if ($opportunity->start_date) {
-            $message->line('**Start Date:** ' . $opportunity->start_date->format('F j, Y'));
+            $message->line('**Start Date:** '.$opportunity->start_date->format('F j, Y'));
         }
 
         if ($opportunity->hours_expected) {
-            $message->line('**Expected Volunteer Hours:** ' . $opportunity->hours_expected . ' hours');
+            $message->line('**Expected Volunteer Hours:** '.$opportunity->hours_expected.' hours');
         }
 
         return $message

@@ -54,6 +54,7 @@ class PublicLearningPathController extends Controller
 
         try {
             $this->registrationService->register($request->user(), $learningPath);
+
             return back()->with('success', 'تم تسجيلك بنجاح! سيتم مراجعة طلبك قريباً.');
         } catch (DuplicateRegistrationException) {
             return back()->with('error', 'لديك تسجيل نشط بالفعل في هذا المسار.');

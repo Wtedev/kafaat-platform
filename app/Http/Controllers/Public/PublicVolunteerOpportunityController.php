@@ -52,6 +52,7 @@ class PublicVolunteerOpportunityController extends Controller
 
         try {
             $this->registrationService->register($request->user(), $volunteerOpportunity);
+
             return back()->with('success', 'تم تسجيلك بنجاح! سيتم مراجعة طلبك قريباً.');
         } catch (DuplicateRegistrationException) {
             return back()->with('error', 'لديك تسجيل نشط بالفعل في هذه الفرصة التطوعية.');

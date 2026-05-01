@@ -32,12 +32,12 @@ class CertificateService
         }
 
         $certificate = Certificate::create([
-            'user_id'               => $user->id,
-            'certificateable_type'  => $certificateable->getMorphClass(),
-            'certificateable_id'    => $certificateable->getKey(),
-            'certificate_number'    => $this->generateCertificateNumber(),
-            'verification_code'     => $this->generateVerificationCode(),
-            'issued_at'             => now(),
+            'user_id' => $user->id,
+            'certificateable_type' => $certificateable->getMorphClass(),
+            'certificateable_id' => $certificateable->getKey(),
+            'certificate_number' => $this->generateCertificateNumber(),
+            'verification_code' => $this->generateVerificationCode(),
+            'issued_at' => now(),
         ]);
 
         // Generate PDF and attach path
@@ -54,7 +54,7 @@ class CertificateService
     private function generateCertificateNumber(): string
     {
         do {
-            $number = 'CERT-' . now()->format('Ymd') . '-' . strtoupper(Str::random(8));
+            $number = 'CERT-'.now()->format('Ymd').'-'.strtoupper(Str::random(8));
         } while (Certificate::where('certificate_number', $number)->exists());
 
         return $number;

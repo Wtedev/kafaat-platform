@@ -7,7 +7,6 @@ use App\Filament\Resources\TrainingProgramResource\Pages;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationsRelationManager;
 use App\Models\TrainingProgram;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -133,7 +132,7 @@ class TrainingProgramResource extends Resource
                 BadgeColumn::make('status')
                     ->label('الحالة')
                     ->colors([
-                        'gray'    => ProgramStatus::Draft->value,
+                        'gray' => ProgramStatus::Draft->value,
                         'success' => ProgramStatus::Published->value,
                         'warning' => ProgramStatus::Archived->value,
                     ])
@@ -205,10 +204,10 @@ class TrainingProgramResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListTrainingPrograms::route('/'),
+            'index' => Pages\ListTrainingPrograms::route('/'),
             'create' => Pages\CreateTrainingProgram::route('/create'),
-            'view'   => Pages\ViewTrainingProgram::route('/{record}'),
-            'edit'   => Pages\EditTrainingProgram::route('/{record}/edit'),
+            'view' => Pages\ViewTrainingProgram::route('/{record}'),
+            'edit' => Pages\EditTrainingProgram::route('/{record}/edit'),
         ];
     }
 }

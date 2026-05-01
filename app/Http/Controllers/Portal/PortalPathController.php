@@ -24,13 +24,13 @@ class PortalPathController extends Controller
         foreach ($registrations as $registration) {
             $path = $registration->learningPath;
             if ($path) {
-                $registration->progress_percentage  = $this->progressService->calculatePathProgress($user, $path);
-                $registration->total_courses        = $this->progressService->getTotalRequiredCoursesCount($path);
-                $registration->completed_courses    = $this->progressService->getCompletedCoursesCount($user, $path);
+                $registration->progress_percentage = $this->progressService->calculatePathProgress($user, $path);
+                $registration->total_courses = $this->progressService->getTotalRequiredCoursesCount($path);
+                $registration->completed_courses = $this->progressService->getCompletedCoursesCount($user, $path);
             } else {
                 $registration->progress_percentage = 0.0;
-                $registration->total_courses       = 0;
-                $registration->completed_courses   = 0;
+                $registration->total_courses = 0;
+                $registration->completed_courses = 0;
             }
         }
 

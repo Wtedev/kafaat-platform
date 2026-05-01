@@ -24,8 +24,8 @@ class CertificatePdfService
         ])->setPaper('a4', 'landscape');
 
         $directory = 'public/certificates';
-        $filename  = $certificate->certificate_number . '.pdf';
-        $storagePath = $directory . '/' . $filename;
+        $filename = $certificate->certificate_number.'.pdf';
+        $storagePath = $directory.'/'.$filename;
 
         Storage::put($storagePath, $pdf->output());
 

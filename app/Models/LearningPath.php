@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class LearningPath extends Model
@@ -27,9 +28,9 @@ class LearningPath extends Model
     protected function casts(): array
     {
         return [
-            'status'       => PathStatus::class,
+            'status' => PathStatus::class,
             'published_at' => 'datetime',
-            'capacity'     => 'integer',
+            'capacity' => 'integer',
         ];
     }
 
@@ -127,13 +128,13 @@ class LearningPath extends Model
      * Return a keyed collection of a user's course progress rows for this path.
      * Keyed by path_course_id for O(1) look-up.
      *
-     * @return \Illuminate\Support\Collection<int, \App\Models\UserCourseProgress>
+     * @return Collection<int, UserCourseProgress>
      */
-    public function getUserProgress(User $user): \Illuminate\Support\Collection
+    public function getUserProgress(User $user): Collection
     {
         $courseIds = $this->courses()->pluck('id');
 
-        return \App\Models\UserCourseProgress::where('user_id', $user->id)
+        return UserCourseProgress::where('user_id', $user->id)
             ->whereIn('path_course_id', $courseIds)
             ->get()
             ->keyBy('path_course_id');

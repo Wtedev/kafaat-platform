@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\OpportunityStatus;
 use App\Enums\RegistrationStatus;
+use App\Enums\VolunteerHoursStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,11 +31,11 @@ class VolunteerOpportunity extends Model
     protected function casts(): array
     {
         return [
-            'status'         => OpportunityStatus::class,
-            'published_at'   => 'datetime',
-            'start_date'     => 'date',
-            'end_date'       => 'date',
-            'capacity'       => 'integer',
+            'status' => OpportunityStatus::class,
+            'published_at' => 'datetime',
+            'start_date' => 'date',
+            'end_date' => 'date',
+            'capacity' => 'integer',
             'hours_expected' => 'decimal:2',
         ];
     }
@@ -89,7 +90,7 @@ class VolunteerOpportunity extends Model
     public function totalApprovedHours(): float
     {
         return (float) $this->volunteerHours()
-            ->where('status', \App\Enums\VolunteerHoursStatus::Approved->value)
+            ->where('status', VolunteerHoursStatus::Approved->value)
             ->sum('hours');
     }
 

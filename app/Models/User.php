@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\VolunteerHoursStatus;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
@@ -16,7 +17,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, HasRoles, Notifiable;
 
     protected $fillable = [
         'name',
@@ -37,9 +38,9 @@ class User extends Authenticatable implements FilamentUser
     {
         return [
             'email_verified_at' => 'datetime',
-            'last_login_at'     => 'datetime',
-            'password'          => 'hashed',
-            'is_active'         => 'boolean',
+            'last_login_at' => 'datetime',
+            'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -76,13 +77,18 @@ class User extends Authenticatable implements FilamentUser
     public function totalApprovedVolunteerHours(): float
     {
         return (float) $this->volunteerHours()
-            ->where('status', \App\Enums\VolunteerHoursStatus::Approved->value)
+            ->where('status', VolunteerHoursStatus::Approved->value)
             ->sum('hours');
     }
 
     public function certificates(): HasMany
     {
         return $this->hasMany(Certificate::class);
+    }
+
+    public function profileRecommendations(): HasMany
+    {
+        return $this->hasMany(ProfileRecommendation::class)->orderBy('sort_order');
     }
 
     // ─── Role helpers ─────────────────────────────────────────────────────────

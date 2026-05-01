@@ -8,7 +8,6 @@ use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\Registr
 use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\VolunteerHoursRelationManager;
 use App\Models\VolunteerOpportunity;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -105,7 +104,7 @@ class VolunteerOpportunityResource extends Resource
                 BadgeColumn::make('status')
                     ->label('الحالة')
                     ->colors([
-                        'gray'    => OpportunityStatus::Draft->value,
+                        'gray' => OpportunityStatus::Draft->value,
                         'success' => OpportunityStatus::Published->value,
                         'warning' => OpportunityStatus::Archived->value,
                     ])
@@ -172,10 +171,10 @@ class VolunteerOpportunityResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListVolunteerOpportunities::route('/'),
+            'index' => Pages\ListVolunteerOpportunities::route('/'),
             'create' => Pages\CreateVolunteerOpportunity::route('/create'),
-            'view'   => Pages\ViewVolunteerOpportunity::route('/{record}'),
-            'edit'   => Pages\EditVolunteerOpportunity::route('/{record}/edit'),
+            'view' => Pages\ViewVolunteerOpportunity::route('/{record}'),
+            'edit' => Pages\EditVolunteerOpportunity::route('/{record}/edit'),
         ];
     }
 }

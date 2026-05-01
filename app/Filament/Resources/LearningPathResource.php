@@ -9,8 +9,6 @@ use App\Filament\Resources\LearningPathResource\RelationManagers\PathRegistratio
 use App\Filament\Resources\LearningPathResource\RelationManagers\TrainingProgramsRelationManager;
 use App\Models\LearningPath;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -108,7 +106,7 @@ class LearningPathResource extends Resource
                     ->colors([
                         'warning' => PathStatus::Draft->value,
                         'success' => PathStatus::Published->value,
-                        'danger'  => PathStatus::Archived->value,
+                        'danger' => PathStatus::Archived->value,
                     ])
                     ->sortable(),
 
@@ -170,10 +168,10 @@ class LearningPathResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListLearningPaths::route('/'),
+            'index' => Pages\ListLearningPaths::route('/'),
             'create' => Pages\CreateLearningPath::route('/create'),
-            'view'   => Pages\ViewLearningPath::route('/{record}'),
-            'edit'   => Pages\EditLearningPath::route('/{record}/edit'),
+            'view' => Pages\ViewLearningPath::route('/{record}'),
+            'edit' => Pages\EditLearningPath::route('/{record}/edit'),
         ];
     }
 }

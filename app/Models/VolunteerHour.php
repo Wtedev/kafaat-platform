@@ -22,9 +22,9 @@ class VolunteerHour extends Model
     protected function casts(): array
     {
         return [
-            'status'      => VolunteerHoursStatus::class,
+            'status' => VolunteerHoursStatus::class,
             'approved_at' => 'datetime',
-            'hours'       => 'decimal:2',
+            'hours' => 'decimal:2',
         ];
     }
 

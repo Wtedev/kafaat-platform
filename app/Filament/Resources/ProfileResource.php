@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\MembershipType;
 use App\Filament\Resources\ProfileResource\Pages;
 use App\Models\Profile;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -56,7 +56,7 @@ class ProfileResource extends Resource
                     Select::make('gender')
                         ->label('الجنس')
                         ->options([
-                            'male'   => 'ذكر',
+                            'male' => 'ذكر',
                             'female' => 'أنثى',
                         ])
                         ->nullable(),
@@ -77,6 +77,24 @@ class ProfileResource extends Resource
                         ->directory('avatars')
                         ->visibility('public')
                         ->nullable(),
+
+                    Select::make('membership_type')
+                        ->label('نوع العضوية')
+                        ->options([
+                            MembershipType::Beneficiary->value => 'مستفيد',
+                            MembershipType::Trainee->value => 'متدرب',
+                            MembershipType::Volunteer->value => 'متطوع',
+                        ])
+                        ->default(MembershipType::Beneficiary->value)
+                        ->required()
+                        ->native(false),
+
+                    TextInput::make('iconic_skill')
+                        ->label('المهارة الأيقونية')
+                        ->helperText('تظهر في واجهة المستفيد عند إضافتها فقط')
+                        ->maxLength(120)
+                        ->nullable()
+                        ->columnSpanFull(),
 
                     Textarea::make('bio')
                         ->label('السيرة الذاتية')
@@ -105,9 +123,9 @@ class ProfileResource extends Resource
                 TextColumn::make('gender')
                     ->label('الجنس')
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'male'   => 'ذكر',
+                        'male' => 'ذكر',
                         'female' => 'أنثى',
-                        default  => '-',
+                        default => '-',
                     })
                     ->sortable()
                     ->toggleable(),
@@ -117,6 +135,28 @@ class ProfileResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
+
+                TextColumn::make('membership_type')
+                    ->label('نوع العضوية')
+                    ->formatStateUsing(function (mixed $state): string {
+                        if ($state instanceof MembershipType) {
+                            return $state->label();
+                        }
+                        if (is_string($state) && $state !== '') {
+                            return MembershipType::tryFrom($state)?->label() ?? 'مستفيد';
+                        }
+
+                        return 'مستفيد';
+                    })
+                    ->badge()
+                    ->sortable()
+                    ->toggleable(),
+
+                TextColumn::make('iconic_skill')
+                    ->label('المهارة الأيقونية')
+                    ->limit(40)
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('birth_date')
                     ->label('تاريخ الميلاد')
@@ -134,8 +174,15 @@ class ProfileResource extends Resource
                 SelectFilter::make('gender')
                     ->label('الجنس')
                     ->options([
-                        'male'   => 'ذكر',
+                        'male' => 'ذكر',
                         'female' => 'أنثى',
+                    ]),
+                SelectFilter::make('membership_type')
+                    ->label('نوع العضوية')
+                    ->options([
+                        MembershipType::Beneficiary->value => 'مستفيد',
+                        MembershipType::Trainee->value => 'متدرب',
+                        MembershipType::Volunteer->value => 'متطوع',
                     ]),
             ])
             ->actions([
@@ -153,10 +200,10 @@ class ProfileResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListProfiles::route('/'),
+            'index' => Pages\ListProfiles::route('/'),
             'create' => Pages\CreateProfile::route('/create'),
-            'view'   => Pages\ViewProfile::route('/{record}'),
-            'edit'   => Pages\EditProfile::route('/{record}/edit'),
+            'view' => Pages\ViewProfile::route('/{record}'),
+            'edit' => Pages\EditProfile::route('/{record}/edit'),
         ];
     }
 }

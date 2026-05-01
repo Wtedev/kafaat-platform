@@ -22,7 +22,7 @@ class ProgramAttendance extends Model
     {
         return [
             'training_date' => 'date',
-            'status'        => AttendanceStatus::class,
+            'status' => AttendanceStatus::class,
         ];
     }
 
@@ -56,7 +56,7 @@ class ProgramAttendance extends Model
                 ->where('id', $regId)
                 ->update([
                     'attendance_percentage' => $percentage,
-                    'updated_at'            => now(),
+                    'updated_at' => now(),
                 ]);
         };
 

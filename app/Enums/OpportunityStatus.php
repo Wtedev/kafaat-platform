@@ -4,16 +4,16 @@ namespace App\Enums;
 
 enum OpportunityStatus: string
 {
-    case Draft     = 'draft';
+    case Draft = 'draft';
     case Published = 'published';
-    case Archived  = 'archived';
+    case Archived = 'archived';
 
     public function label(): string
     {
         return match ($this) {
-            self::Draft     => 'مسودة',
+            self::Draft => 'مسودة',
             self::Published => 'منشور',
-            self::Archived  => 'مؤرشف',
+            self::Archived => 'مؤرشف',
         };
     }
 }

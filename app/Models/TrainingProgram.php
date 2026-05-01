@@ -35,14 +35,14 @@ class TrainingProgram extends Model
     protected function casts(): array
     {
         return [
-            'status'             => ProgramStatus::class,
-            'published_at'       => 'datetime',
-            'start_date'         => 'date',
-            'end_date'           => 'date',
+            'status' => ProgramStatus::class,
+            'published_at' => 'datetime',
+            'start_date' => 'date',
+            'end_date' => 'date',
             'registration_start' => 'date',
-            'registration_end'   => 'date',
-            'capacity'           => 'integer',
-            'weekdays'           => 'array',
+            'registration_end' => 'date',
+            'capacity' => 'integer',
+            'weekdays' => 'array',
         ];
     }
 
@@ -78,10 +78,10 @@ class TrainingProgram extends Model
 
         $query->where(function (Builder $q) use ($today) {
             $q->whereNull('registration_start')
-              ->orWhere('registration_start', '<=', $today);
+                ->orWhere('registration_start', '<=', $today);
         })->where(function (Builder $q) use ($today) {
             $q->whereNull('registration_end')
-              ->orWhere('registration_end', '>=', $today);
+                ->orWhere('registration_end', '>=', $today);
         });
     }
 

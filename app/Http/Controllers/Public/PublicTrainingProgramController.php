@@ -51,6 +51,7 @@ class PublicTrainingProgramController extends Controller
 
         try {
             $this->registrationService->register($trainingProgram, $request->user());
+
             return back()->with('success', 'تم تسجيلك بنجاح! سيتم مراجعة طلبك قريباً.');
         } catch (RegistrationWindowClosedException) {
             return back()->with('error', 'باب التسجيل في هذا البرنامج مغلق حالياً.');

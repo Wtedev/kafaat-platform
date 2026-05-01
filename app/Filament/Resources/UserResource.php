@@ -5,8 +5,6 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -77,8 +75,8 @@ class UserResource extends Resource
                         Select::make('role_type')
                             ->label('نوع الدور')
                             ->options([
-                                'admin'       => 'مسؤول',
-                                'staff'       => 'موظف',
+                                'admin' => 'مسؤول',
+                                'staff' => 'موظف',
                                 'beneficiary' => 'مستفيد',
                             ])
                             ->required(),
@@ -120,13 +118,13 @@ class UserResource extends Resource
                 BadgeColumn::make('role_type')
                     ->label('الدور')
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'admin'       => 'مسؤول',
-                        'staff'       => 'موظف',
+                        'admin' => 'مسؤول',
+                        'staff' => 'موظف',
                         'beneficiary' => 'مستفيد',
-                        default       => $state,
+                        default => $state,
                     })
                     ->colors([
-                        'danger'  => 'admin',
+                        'danger' => 'admin',
                         'warning' => 'staff',
                         'success' => 'beneficiary',
                     ])
@@ -153,8 +151,8 @@ class UserResource extends Resource
                 SelectFilter::make('role_type')
                     ->label('الدور')
                     ->options([
-                        'admin'       => 'مسؤول',
-                        'staff'       => 'موظف',
+                        'admin' => 'مسؤول',
+                        'staff' => 'موظف',
                         'beneficiary' => 'مستفيد',
                     ]),
 
@@ -176,10 +174,10 @@ class UserResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListUsers::route('/'),
+            'index' => Pages\ListUsers::route('/'),
             'create' => Pages\CreateUser::route('/create'),
-            'view'   => Pages\ViewUser::route('/{record}'),
-            'edit'   => Pages\EditUser::route('/{record}/edit'),
+            'view' => Pages\ViewUser::route('/{record}'),
+            'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }
 }

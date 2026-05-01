@@ -93,9 +93,9 @@ class PathRegistrationResource extends Resource
                     ->colors([
                         'warning' => RegistrationStatus::Pending->value,
                         'success' => RegistrationStatus::Approved->value,
-                        'danger'  => RegistrationStatus::Rejected->value,
-                        'gray'    => RegistrationStatus::Cancelled->value,
-                        'info'    => RegistrationStatus::Completed->value,
+                        'danger' => RegistrationStatus::Rejected->value,
+                        'gray' => RegistrationStatus::Cancelled->value,
+                        'info' => RegistrationStatus::Completed->value,
                     ])
                     ->sortable(),
 
@@ -212,7 +212,7 @@ class PathRegistrationResource extends Resource
     {
         return [
             'index' => Pages\ListPathRegistrations::route('/'),
-            'view'  => Pages\ViewPathRegistration::route('/{record}'),
+            'view' => Pages\ViewPathRegistration::route('/{record}'),
         ];
     }
 }

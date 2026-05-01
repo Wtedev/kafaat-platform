@@ -17,10 +17,10 @@ class StorePathCourseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title'       => ['required', 'string', 'max:255'],
+            'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'sort_order'  => ['nullable', 'integer', 'min:1'],
-            'status'      => ['nullable', Rule::enum(CourseStatus::class)],
+            'sort_order' => ['nullable', 'integer', 'min:1'],
+            'status' => ['nullable', Rule::enum(CourseStatus::class)],
         ];
     }
 }

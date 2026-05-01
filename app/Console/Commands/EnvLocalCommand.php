@@ -16,6 +16,7 @@ class EnvLocalCommand extends Command
 
         if (! file_exists($source)) {
             $this->error('.env.local not found. Please create it first.');
+
             return self::FAILURE;
         }
 
@@ -25,7 +26,7 @@ class EnvLocalCommand extends Command
 
         $content = preg_replace(
             '/^DB_DATABASE=.*$/m',
-            'DB_DATABASE=' . $sqlitePath,
+            'DB_DATABASE='.$sqlitePath,
             $content
         );
 
@@ -43,7 +44,7 @@ class EnvLocalCommand extends Command
         $this->newLine();
         $this->info('✅  Environment switched to [local].');
         $this->line('   Driver : SQLite');
-        $this->line('   File   : ' . $sqlitePath);
+        $this->line('   File   : '.$sqlitePath);
         $this->newLine();
         $this->line('  Run migrations : php artisan migrate');
         $this->line('  Seed roles     : php artisan db:seed --class=RolesAndPermissionsSeeder');

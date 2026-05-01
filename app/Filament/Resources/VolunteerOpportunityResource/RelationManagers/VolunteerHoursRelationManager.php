@@ -11,8 +11,8 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
@@ -62,7 +62,7 @@ class VolunteerHoursRelationManager extends RelationManager
                     ->colors([
                         'warning' => VolunteerHoursStatus::Pending->value,
                         'success' => VolunteerHoursStatus::Approved->value,
-                        'danger'  => VolunteerHoursStatus::Rejected->value,
+                        'danger' => VolunteerHoursStatus::Rejected->value,
                     ]),
 
                 TextColumn::make('approvedBy.name')

@@ -25,8 +25,8 @@ class DatabaseSeeder extends Seeder
             $user = User::firstOrCreate(
                 ['email' => $data['email']],
                 [
-                    'name'      => $data['name'],
-                    'password'  => Hash::make('password'),
+                    'name' => $data['name'],
+                    'password' => Hash::make('password'),
                     'role_type' => 'admin',
                     'is_active' => true,
                 ]
@@ -43,8 +43,8 @@ class DatabaseSeeder extends Seeder
             $user = User::firstOrCreate(
                 ['email' => $data['email']],
                 [
-                    'name'      => $data['name'],
-                    'password'  => Hash::make('password'),
+                    'name' => $data['name'],
+                    'password' => Hash::make('password'),
                     'role_type' => 'staff',
                     'is_active' => true,
                 ]
@@ -65,8 +65,8 @@ class DatabaseSeeder extends Seeder
             $user = User::firstOrCreate(
                 ['email' => $data['email']],
                 [
-                    'name'      => $data['name'],
-                    'password'  => Hash::make('password'),
+                    'name' => $data['name'],
+                    'password' => Hash::make('password'),
                     'role_type' => 'beneficiary',
                     'is_active' => true,
                 ]
@@ -88,4 +88,3 @@ class DatabaseSeeder extends Seeder
         ]);
     }
 }
-

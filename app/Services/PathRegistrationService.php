@@ -32,7 +32,7 @@ class PathRegistrationService
     {
         // 1. Path must be published
         if ($path->status !== PathStatus::Published) {
-            throw new PathNotPublishedException();
+            throw new PathNotPublishedException;
         }
 
         // 2. Prevent duplicate active registrations (ignore rejected/cancelled)
@@ -45,18 +45,18 @@ class PathRegistrationService
             ->exists();
 
         if ($exists) {
-            throw new DuplicateRegistrationException();
+            throw new DuplicateRegistrationException;
         }
 
         // 3. Capacity check — only count approved registrations
         if ($path->capacity !== null && $this->getApprovedCount($path) >= $path->capacity) {
-            throw new PathCapacityExceededException();
+            throw new PathCapacityExceededException;
         }
 
         return PathRegistration::create([
             'learning_path_id' => $path->id,
-            'user_id'          => $user->id,
-            'status'           => RegistrationStatus::Pending,
+            'user_id' => $user->id,
+            'status' => RegistrationStatus::Pending,
         ]);
     }
 
@@ -75,12 +75,12 @@ class PathRegistrationService
 
         if ($path->capacity !== null) {
             if ($this->getApprovedCount($path) >= $path->capacity) {
-                throw new PathCapacityExceededException();
+                throw new PathCapacityExceededException;
             }
         }
 
         $registration->update([
-            'status'      => RegistrationStatus::Approved,
+            'status' => RegistrationStatus::Approved,
             'approved_by' => $approvedBy->id,
             'approved_at' => now(),
         ]);
@@ -88,11 +88,11 @@ class PathRegistrationService
         $registration->loadMissing('user');
 
         $this->emailLogService->send(
-            recipient:   $registration->user,
+            recipient: $registration->user,
             notification: new PathRegistrationApproved($registration),
             templateKey: 'path_registration.approved',
-            subject:     'Your Registration Has Been Approved — ' . $path->title,
-            sentBy:      $approvedBy,
+            subject: 'Your Registration Has Been Approved — '.$path->title,
+            sentBy: $approvedBy,
         );
 
         return $registration->fresh();
@@ -104,17 +104,17 @@ class PathRegistrationService
     public function reject(PathRegistration $registration, ?string $reason = null): PathRegistration
     {
         $registration->update([
-            'status'          => RegistrationStatus::Rejected,
+            'status' => RegistrationStatus::Rejected,
             'rejected_reason' => $reason,
         ]);
 
         $registration->loadMissing(['user', 'learningPath']);
 
         $this->emailLogService->send(
-            recipient:    $registration->user,
+            recipient: $registration->user,
             notification: new PathRegistrationRejected($registration),
-            templateKey:  'path_registration.rejected',
-            subject:      'Registration Update — ' . $registration->learningPath->title,
+            templateKey: 'path_registration.rejected',
+            subject: 'Registration Update — '.$registration->learningPath->title,
         );
 
         return $registration->fresh();
@@ -139,7 +139,7 @@ class PathRegistrationService
     public function complete(PathRegistration $registration): PathRegistration
     {
         $registration->update([
-            'status'       => RegistrationStatus::Completed,
+            'status' => RegistrationStatus::Completed,
             'completed_at' => $registration->completed_at ?? now(),
         ]);
 

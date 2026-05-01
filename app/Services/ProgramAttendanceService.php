@@ -32,9 +32,9 @@ class ProgramAttendanceService
      *
      * Existing records are NOT overwritten (idempotent).
      *
-     * @return int  Number of NEW rows inserted (0 means nothing was created,
-     *              either because weekdays/dates are not configured or all
-     *              sessions already existed).
+     * @return int Number of NEW rows inserted (0 means nothing was created,
+     *             either because weekdays/dates are not configured or all
+     *             sessions already existed).
      */
     public function generateSessions(ProgramRegistration $registration): int
     {
@@ -54,7 +54,7 @@ class ProgramAttendanceService
         $weekdays = array_map('intval', $program->weekdays);
 
         $current = $program->start_date->copy();
-        $end     = $program->end_date->copy();
+        $end = $program->end_date->copy();
         $created = 0;
 
         while ($current->lte($end)) {
@@ -62,7 +62,7 @@ class ProgramAttendanceService
                 $record = ProgramAttendance::firstOrCreate(
                     [
                         'program_registration_id' => $registration->id,
-                        'training_date'           => $current->toDateString(),
+                        'training_date' => $current->toDateString(),
                     ],
                     [
                         'status' => AttendanceStatus::Absent,
@@ -83,7 +83,7 @@ class ProgramAttendanceService
     /**
      * Generate sessions for ALL approved and completed registrations of a program.
      *
-     * @return int  Total new rows inserted across all registrations.
+     * @return int Total new rows inserted across all registrations.
      */
     public function generateSessionsForAllRegistrations(TrainingProgram $program): int
     {
@@ -133,9 +133,9 @@ class ProgramAttendanceService
             ->groupBy('status');
 
         return [
-            'total'   => $records->sum(fn ($g) => $g->count()),
+            'total' => $records->sum(fn ($g) => $g->count()),
             'present' => $records->get(AttendanceStatus::Present->value)?->count() ?? 0,
-            'absent'  => $records->get(AttendanceStatus::Absent->value)?->count() ?? 0,
+            'absent' => $records->get(AttendanceStatus::Absent->value)?->count() ?? 0,
             'excused' => $records->get(AttendanceStatus::Excused->value)?->count() ?? 0,
         ];
     }

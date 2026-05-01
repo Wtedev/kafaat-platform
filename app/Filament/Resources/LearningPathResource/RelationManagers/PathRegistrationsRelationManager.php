@@ -68,9 +68,9 @@ class PathRegistrationsRelationManager extends RelationManager
                     ->colors([
                         'warning' => RegistrationStatus::Pending->value,
                         'success' => RegistrationStatus::Approved->value,
-                        'danger'  => RegistrationStatus::Rejected->value,
-                        'gray'    => RegistrationStatus::Cancelled->value,
-                        'info'    => RegistrationStatus::Completed->value,
+                        'danger' => RegistrationStatus::Rejected->value,
+                        'gray' => RegistrationStatus::Cancelled->value,
+                        'info' => RegistrationStatus::Completed->value,
                     ]),
 
                 TextColumn::make('approved_at')
@@ -178,7 +178,7 @@ class PathRegistrationsRelationManager extends RelationManager
                         if ($existing !== null) {
                             Notification::make()
                                 ->title('الشهادة موجودة مسبقاً')
-                                ->body('رقم الشهادة: ' . $existing->certificate_number)
+                                ->body('رقم الشهادة: '.$existing->certificate_number)
                                 ->warning()
                                 ->send();
 

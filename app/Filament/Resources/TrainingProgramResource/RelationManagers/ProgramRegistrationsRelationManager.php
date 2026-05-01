@@ -85,9 +85,9 @@ class ProgramRegistrationsRelationManager extends RelationManager
                     ->colors([
                         'warning' => RegistrationStatus::Pending->value,
                         'success' => RegistrationStatus::Approved->value,
-                        'danger'  => RegistrationStatus::Rejected->value,
-                        'gray'    => RegistrationStatus::Cancelled->value,
-                        'info'    => RegistrationStatus::Completed->value,
+                        'danger' => RegistrationStatus::Rejected->value,
+                        'gray' => RegistrationStatus::Cancelled->value,
+                        'info' => RegistrationStatus::Completed->value,
                     ])
                     ->sortable(),
 
@@ -114,16 +114,16 @@ class ProgramRegistrationsRelationManager extends RelationManager
                         if ($record->attendance_percentage === null) {
                             return 'بانتظار البيانات';
                         }
-                        $attOk   = (float) $record->attendance_percentage >= 80;
+                        $attOk = (float) $record->attendance_percentage >= 80;
                         $scoreOk = $record->score === null || (float) $record->score >= 60;
 
                         return ($attOk && $scoreOk) ? 'مؤهل ✓' : 'غير مؤهل بعد';
                     })
                     ->color(fn (string $state): string => match ($state) {
-                        'مؤهل ✓'              => 'success',
-                        'غير مؤهل بعد'       => 'danger',
-                        'بانتظار البيانات'    => 'warning',
-                        default               => 'gray',
+                        'مؤهل ✓' => 'success',
+                        'غير مؤهل بعد' => 'danger',
+                        'بانتظار البيانات' => 'warning',
+                        default => 'gray',
                     }),
 
                 TextColumn::make('has_certificate')
@@ -164,14 +164,14 @@ class ProgramRegistrationsRelationManager extends RelationManager
                     ->modalHeading('توليد الجلسات التدريبية لجميع المسجلين')
                     ->modalDescription(
                         'سيتم إنشاء سجلات حضور لكل المسجلين المقبولين والمكتملين. '
-                        . 'يتطلب تحديد أيام الدراسة وتاريخَي بداية ونهاية البرنامج. '
-                        . 'السجلات الموجودة لن تُعدَّل.'
+                        .'يتطلب تحديد أيام الدراسة وتاريخَي بداية ونهاية البرنامج. '
+                        .'السجلات الموجودة لن تُعدَّل.'
                     )
                     ->modalSubmitActionLabel('نعم، توليد')
                     ->action(function (RelationManager $livewire): void {
                         /** @var TrainingProgram $program */
                         $program = $livewire->getOwnerRecord();
-                        $count   = app(ProgramAttendanceService::class)
+                        $count = app(ProgramAttendanceService::class)
                             ->generateSessionsForAllRegistrations($program);
 
                         if ($count === 0) {
@@ -233,7 +233,7 @@ class ProgramRegistrationsRelationManager extends RelationManager
                     ->visible(fn (ProgramRegistration $record): bool => $record->isApproved())
                     ->fillForm(fn (ProgramRegistration $record): array => [
                         'attendance_percentage' => $record->calculateAttendancePercentage() ?? $record->attendance_percentage,
-                        'score'                 => $record->score,
+                        'score' => $record->score,
                     ])
                     ->form([
                         TextInput::make('attendance_percentage')
@@ -255,7 +255,7 @@ class ProgramRegistrationsRelationManager extends RelationManager
                     ->action(function (ProgramRegistration $record, array $data): void {
                         $record->update([
                             'attendance_percentage' => (float) $data['attendance_percentage'],
-                            'score'                 => ($data['score'] !== null && $data['score'] !== '')
+                            'score' => ($data['score'] !== null && $data['score'] !== '')
                                 ? (float) $data['score']
                                 : $record->score,
                         ]);
@@ -269,7 +269,7 @@ class ProgramRegistrationsRelationManager extends RelationManager
                     ->visible(fn (ProgramRegistration $record): bool => $record->isApproved())
                     ->fillForm(fn (ProgramRegistration $record): array => [
                         'attendance_percentage' => $record->calculateAttendancePercentage() ?? $record->attendance_percentage,
-                        'score'                 => $record->score,
+                        'score' => $record->score,
                     ])
                     ->form([
                         TextInput::make('attendance_percentage')
@@ -291,9 +291,9 @@ class ProgramRegistrationsRelationManager extends RelationManager
                     ->action(function (ProgramRegistration $record, array $data): void {
                         try {
                             app(ProgramRegistrationService::class)->markCompleted(
-                                registration:         $record,
-                                admin:                auth()->user(),
-                                score:                ($data['score'] !== null && $data['score'] !== '')
+                                registration: $record,
+                                admin: auth()->user(),
+                                score: ($data['score'] !== null && $data['score'] !== '')
                                     ? (float) $data['score']
                                     : null,
                                 attendancePercentage: (float) $data['attendance_percentage'],
@@ -349,7 +349,7 @@ class ProgramRegistrationsRelationManager extends RelationManager
                         if ($existing !== null) {
                             Notification::make()
                                 ->title('الشهادة موجودة مسبقاً')
-                                ->body('رقم الشهادة: ' . $existing->certificate_number)
+                                ->body('رقم الشهادة: '.$existing->certificate_number)
                                 ->warning()
                                 ->send();
 

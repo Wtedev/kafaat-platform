@@ -22,8 +22,8 @@ class PathRegistration extends Model
     protected function casts(): array
     {
         return [
-            'status'       => RegistrationStatus::class,
-            'approved_at'  => 'datetime',
+            'status' => RegistrationStatus::class,
+            'approved_at' => 'datetime',
             'completed_at' => 'datetime',
         ];
     }

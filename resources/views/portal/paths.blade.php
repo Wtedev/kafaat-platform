@@ -19,9 +19,9 @@ RegistrationStatus::Completed->value => 'مكتمل',
 @endphp
 
 @extends('layouts.portal')
-@section('title', 'مساراتي التعليمية')
+@section('title', 'مساراتي')
 @section('content')
-<h1 class="text-2xl font-bold text-gray-900 mb-6">مساراتي التعليمية</h1>
+<h1 class="mb-6 text-2xl font-bold text-gray-900">مساراتي</h1>
 
 @if (session('error'))
 <div class="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
@@ -30,9 +30,13 @@ RegistrationStatus::Completed->value => 'مكتمل',
 @endif
 
 @if ($registrations->isEmpty())
-<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center text-gray-400">
-    لم تسجّل في أي مسار تعليمي بعد.
-</div>
+<x-portal.empty-state
+    title="لا توجد مسارات مسجّلة"
+    description="لم تسجّل في أي مسار بعد. يمكنك استكشاف المسارات المتاحة أو البرامج التدريبية والانضمام من الموقع العام."
+>
+    <a href="{{ route('public.paths.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#253B5B">استكشف المسارات</a>
+    <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">استكشف البرامج</a>
+</x-portal.empty-state>
 @else
 <div class="space-y-4">
     @foreach ($registrations as $reg)
