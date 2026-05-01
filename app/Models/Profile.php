@@ -113,23 +113,46 @@ class Profile extends Model
     /**
      * أنماط Tailwind آمنة لشارة المهارة الأيقونية (بدون CSS من المستخدم).
      */
-    public function iconicSkillClasses(): string
+    /**
+     * تدرج خفيف لسطح شارة المهارة الأيقونية (يُدمج مع iconicSkillClasses).
+     */
+    public function iconicSkillGradientClasses(): string
     {
         $skill = trim((string) ($this->iconic_skill ?? ''));
         if ($skill === '') {
-            return 'bg-gray-50 text-gray-700 ring-1 ring-gray-200';
+            return 'from-slate-50 via-white to-slate-100/90';
         }
 
         $style = $this->resolvedIconicSkillStyle();
 
         return match ($style) {
-            'amber' => 'bg-amber-50 text-amber-900 ring-1 ring-amber-200',
-            'emerald' => 'bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200',
-            'sky' => 'bg-sky-50 text-sky-900 ring-1 ring-sky-200',
-            'rose' => 'bg-rose-50 text-rose-900 ring-1 ring-rose-200',
-            'violet' => 'bg-violet-50 text-violet-900 ring-1 ring-violet-200',
-            'brand' => 'bg-[#EAF2FA] text-[#253B5B] ring-1 ring-[#c5ddef]',
-            default => 'bg-amber-50 text-amber-900 ring-1 ring-amber-200',
+            'amber' => 'from-amber-50/95 via-amber-50/35 to-orange-50/70',
+            'emerald' => 'from-emerald-50/95 via-emerald-50/30 to-teal-50/65',
+            'sky' => 'from-sky-50/95 via-sky-50/35 to-cyan-50/60',
+            'rose' => 'from-rose-50/95 via-rose-50/35 to-pink-50/60',
+            'violet' => 'from-violet-50/95 via-violet-50/35 to-fuchsia-50/55',
+            'brand' => 'from-[#f0f6fc] via-white to-[#e8f0f9]',
+            default => 'from-amber-50/95 via-amber-50/35 to-orange-50/70',
+        };
+    }
+
+    public function iconicSkillClasses(): string
+    {
+        $skill = trim((string) ($this->iconic_skill ?? ''));
+        if ($skill === '') {
+            return 'text-gray-700 ring-1 ring-gray-200/80';
+        }
+
+        $style = $this->resolvedIconicSkillStyle();
+
+        return match ($style) {
+            'amber' => 'text-amber-900 ring-1 ring-amber-200/70',
+            'emerald' => 'text-emerald-900 ring-1 ring-emerald-200/70',
+            'sky' => 'text-sky-900 ring-1 ring-sky-200/70',
+            'rose' => 'text-rose-900 ring-1 ring-rose-200/70',
+            'violet' => 'text-violet-900 ring-1 ring-violet-200/70',
+            'brand' => 'text-[#253B5B] ring-1 ring-[#c5ddef]/90',
+            default => 'text-amber-900 ring-1 ring-amber-200/70',
         };
     }
 

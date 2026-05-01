@@ -120,6 +120,9 @@
 </head>
 <body class="bg-[#F7FAFC] text-[#111827] antialiased">
 
+    @php
+        $homeOfferingsHref = request()->routeIs('home') ? '#offerings' : route('home') . '#offerings';
+    @endphp
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 1. NAVBAR                                                           --}}
@@ -166,7 +169,7 @@
                             بوابتي
                         </a>
                         @endauth
-                        <a href="{{ route('public.paths.index') }}" class="px-7 py-3.5 rounded-2xl text-base font-semibold border-2 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#EAF2FA]" style="color:#253B5B; border-color:#c5ddef">
+                        <a href="{{ $homeOfferingsHref }}" class="px-7 py-3.5 rounded-2xl text-base font-semibold border-2 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#EAF2FA]" style="color:#253B5B; border-color:#c5ddef">
                             استكشف المنصة
                         </a>
                     </div>
@@ -266,7 +269,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 3. INTRO / VALUE SECTION                                            --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section class="py-20 bg-white">
+    <section id="offerings" class="py-20 bg-white scroll-mt-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- Heading --}}
@@ -384,12 +387,16 @@
                         كل خطوة تخطوها على منصتنا تُوثَّق وتتحول إلى سجل مهني احترافي يعززك أمام أصحاب العمل والمؤسسات الشريكة.
                     </p>
                     <div class="flex flex-wrap gap-4">
-                        <a href="{{ route('public.paths.index') }}" class="px-7 py-3 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
+                        <a href="{{ $homeOfferingsHref }}" class="px-7 py-3 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
                             اعرف أكثر
                         </a>
                         @guest
                         <a href="{{ route('register') }}" class="px-7 py-3 rounded-2xl text-sm font-semibold border-2 transition-all duration-200 hover:bg-[#EAF2FA] hover:-translate-y-0.5" style="color:#253B5B; border-color:#c5ddef">
                             انضم مجاناً
+                        </a>
+                        @else
+                        <a href="{{ route('portal.dashboard') }}" class="px-7 py-3 rounded-2xl text-sm font-semibold border-2 transition-all duration-200 hover:bg-[#EAF2FA] hover:-translate-y-0.5" style="color:#253B5B; border-color:#c5ddef">
+                            بوابتي
                         </a>
                         @endguest
                     </div>
@@ -551,7 +558,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 7. NEWS & EVENTS SECTION                                            --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section id="news" class="py-20 bg-white">
+    <section id="news" class="scroll-mt-24 py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <div class="flex items-end justify-between mb-10">
@@ -617,7 +624,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 7.5. IMPACT YEAR — عام الأثر (Strategic Premium Section)           --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section id="impact-year">
+    <section id="impact-year" class="scroll-mt-24">
 
         {{-- ─── Hero Block ────────────────────────────────────────────────── --}}
         <div class="relative overflow-hidden" style="background: linear-gradient(135deg, #0D1F2D 0%, #0a3550 40%, #063d30 100%)">
@@ -680,7 +687,7 @@
 
                 {{-- CTA --}}
                 <div class="reveal-fade" style="transition-delay:0.32s">
-                    <a href="{{ route('public.programs.index') }}" class="inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-white
+                    <a href="{{ route('impact.index') }}" class="inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-white
                               text-base shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl" style="background: linear-gradient(135deg, #1EB890 0%, #0ea5e9 100%)">
                         استكشف أثر كفاءات
                         <svg class="w-5 h-5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -880,12 +887,12 @@
                         </p>
                     </div>
 
-                    {{-- Download block (left in RTL) --}}
+                    {{-- Download block (left in RTL) — يوجّه لصفحة عام الأثر إلى حين توفر ملف التقرير --}}
                     <div class="flex-shrink-0">
-                        <div class="w-40 h-40 rounded-3xl flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-white/20 transition-colors" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2)">
-                            <span class="text-4xl">📄</span>
+                        <a href="{{ route('impact.index') }}" class="w-40 h-40 rounded-3xl flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-white/20 transition-colors text-white no-underline" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2)" aria-label="صفحة عام الأثر — التقرير السنوي قيد الإعداد">
+                            <span class="text-4xl" aria-hidden="true">📄</span>
                             <span class="text-white text-sm font-semibold">تحميل التقرير</span>
-                        </div>
+                        </a>
                     </div>
 
                 </div>
@@ -949,7 +956,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 10. FAQ SECTION                                                     --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section id="faq" class="py-20" style="background:#F3F7FB">
+    <section id="faq" class="scroll-mt-24 py-20" style="background:#F3F7FB">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <div class="text-center mb-12">

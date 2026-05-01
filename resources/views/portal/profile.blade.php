@@ -7,7 +7,7 @@ $p = $user->profile;
 
 @section('content')
 <h1 class="mb-2 text-2xl font-bold text-gray-900">ملفي الشخصي</h1>
-<p class="mb-8 text-sm text-gray-600">حدّث صورتك وبياناتك والمسمى المهني. لغة عناوين ملف التصدير تُضبط من صفحة «الكفاءة».</p>
+<p class="mb-8 text-sm text-gray-600">حدّث صورتك وبياناتك والمسمى المهني.</p>
 
 <div class="max-w-3xl space-y-8">
     <div class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
@@ -68,7 +68,6 @@ $p = $user->profile;
                     <label class="mb-1 block text-sm font-medium text-gray-700">المسمى المهني</label>
                     <input type="text" name="job_title" value="{{ old('job_title', $p?->job_title) }}" maxlength="160" placeholder="مثال: محلل بيانات، منسّق برامج" class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#253B5B]/40 @error('job_title') border-red-400 @enderror" />
                     @error('job_title') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                    <p class="mt-1 text-xs text-gray-500">حقل اختياري يصف دورك أو تخصصك ضمن ملفك؛ إن عبأته يظهر في عرض الكفاءة وفي ملف PDF عند التصدير.</p>
                 </div>
             </div>
 

@@ -35,7 +35,7 @@ $faqHref = request()->routeIs('home') ? '#faq' : route('home') . '#faq';
             <div class="hidden lg:flex items-center gap-3 flex-shrink-0">
                 @auth
                 @if(auth()->user()->hasRole(['admin', 'staff']))
-                <a href="/admin" class="px-5 py-2 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200" style="background:#253B5B">لوحة الإدارة</a>
+                <a href="{{ url('/admin') }}" class="px-5 py-2 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200" style="background:#253B5B">لوحة الإدارة</a>
                 @else
                 <a href="{{ route('portal.dashboard') }}" class="px-5 py-2 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200" style="background:#253B5B">بوابتي</a>
                 @endif
@@ -69,7 +69,7 @@ $faqHref = request()->routeIs('home') ? '#faq' : route('home') . '#faq';
 
             @auth
             @if(auth()->user()->hasRole(['admin', 'staff']))
-            <a href="/admin" class="mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-white text-center" style="background:#253B5B">لوحة الإدارة</a>
+            <a href="{{ url('/admin') }}" class="mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-white text-center" style="background:#253B5B">لوحة الإدارة</a>
             @else
             <a href="{{ route('portal.dashboard') }}" class="mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-white text-center" style="background:#253B5B">بوابتي</a>
             @endif
