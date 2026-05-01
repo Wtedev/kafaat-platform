@@ -444,27 +444,23 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     @php
                     $programGradients = [
-                        'linear-gradient(135deg,#1EB890 0%,#0ea5e9 100%)',
-                        'linear-gradient(135deg,#253B5B 0%,#3B82F6 100%)',
-                        'linear-gradient(135deg,#8B5CF6 0%,#3B82F6 100%)',
-                        'linear-gradient(135deg,#F59E0B 0%,#EF4444 100%)',
-                        'linear-gradient(135deg,#1EB890 0%,#8B5CF6 100%)',
-                        'linear-gradient(135deg,#253B5B 0%,#1EB890 100%)',
+                    'linear-gradient(135deg,#1EB890 0%,#0ea5e9 100%)',
+                    'linear-gradient(135deg,#253B5B 0%,#3B82F6 100%)',
+                    'linear-gradient(135deg,#8B5CF6 0%,#3B82F6 100%)',
+                    'linear-gradient(135deg,#F59E0B 0%,#EF4444 100%)',
+                    'linear-gradient(135deg,#1EB890 0%,#8B5CF6 100%)',
+                    'linear-gradient(135deg,#253B5B 0%,#1EB890 100%)',
                     ];
                     @endphp
                     @forelse ($programs as $index => $program)
-                    <a href="{{ route('public.programs.show', $program->slug) }}"
-                       class="group bg-white rounded-3xl border border-gray-50 shadow-sm hover:shadow-lg
+                    <a href="{{ route('public.programs.show', $program->slug) }}" class="group bg-white rounded-3xl border border-gray-50 shadow-sm hover:shadow-lg
                               transition-all duration-300 hover:-translate-y-1 block text-right overflow-hidden">
 
                         {{-- Image or gradient header --}}
                         @if ($program->image)
-                        <img src="{{ asset('storage/' . $program->image) }}"
-                             alt="{{ $program->title }}"
-                             class="w-full h-28 object-cover">
+                        <img src="{{ asset('storage/' . $program->image) }}" alt="{{ $program->title }}" class="w-full h-28 object-cover">
                         @else
-                        <div class="h-28 w-full flex items-end p-4"
-                             style="background:{{ $programGradients[$index % 6] }}">
+                        <div class="h-28 w-full flex items-end p-4" style="background:{{ $programGradients[$index % 6] }}">
                             <span class="text-white text-lg font-black leading-tight opacity-90">{{ $program->title }}</span>
                         </div>
                         @endif
