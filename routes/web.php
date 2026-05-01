@@ -84,27 +84,3 @@ Route::middleware(['auth', 'beneficiary'])
         Route::post('/courses/{pathCourse}/progress',            [PortalCourseController::class, 'progress'])->name('courses.progress');
         Route::post('/courses/{pathCourse}/complete',            [PortalCourseController::class, 'complete'])->name('courses.complete');
     });
-
-
-use Illuminate\Support\Facades\Artisan;
-use App\Models\User;
-
-Route::get('/fix-production-access-SECRET123', function () {
-    Artisan::call('migrate', ['--force' => true]);
-    Artisan::call('db:seed', [
-        '--class' => 'RolesAndPermissionsSeeder',
-        '--force' => true,
-    ]);
-    Artisan::call('permission:cache-reset');
-
-    $user = User::where('email', 'ايميلك هنا')->firstOrFail();
-
-    $user->forceFill([
-        'role_type' => 'admin',
-        'is_active' => true,
-    ])->save();
-
-    $user->syncRoles(['admin']);
-
-    return 'DONE: user is now admin and active';
-});

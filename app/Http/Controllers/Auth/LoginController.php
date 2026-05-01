@@ -45,11 +45,16 @@ class LoginController extends Controller
         // Update last login timestamp
         $user->updateQuietly(['last_login_at' => now()]);
 
-        // Role-based redirect
+        // Clear any url.intended that Filament may have stored pointing to /admin.
+        // Using redirect()->intended() here would allow a poisoned session (from a
+        // prior unauthenticated visit to /admin) to redirect a beneficiary → 403.
+        $request->session()->forget('url.intended');
+
+        // Explicit role-based redirect — never follows url.intended
         if ($user->isAdminOrStaff()) {
-            return redirect()->intended('/admin');
+            return redirect('/admin');
         }
 
-        return redirect()->intended(route('portal.dashboard'));
+        return redirect()->route('portal.dashboard');
     }
 }
