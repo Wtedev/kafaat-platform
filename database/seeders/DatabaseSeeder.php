@@ -11,7 +11,11 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Roles must exist before any user seeder assigns them
         $this->call(RolesAndPermissionsSeeder::class);
+
+        // Production admin from env vars — safe to call in all environments
+        $this->call(AdminUserSeeder::class);
 
         // ─── Admin users ──────────────────────────────────────────────────────
         foreach ([
