@@ -9,6 +9,7 @@ use App\Http\Controllers\Public\CertificateVerificationController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\PublicLearningPathController;
 use App\Http\Controllers\Public\PublicTrainingProgramController;
+use App\Http\Controllers\Public\PublicNewsController;
 use App\Http\Controllers\Public\PublicVolunteerOpportunityController;
 use App\Http\Controllers\Portal\PortalDashboardController;
 use App\Http\Controllers\Portal\PortalPathController;
@@ -60,6 +61,11 @@ Route::prefix('volunteering')->name('public.volunteering.')->group(function () {
     Route::get('/',                                    [PublicVolunteerOpportunityController::class, 'index'])->name('index');
     Route::get('/{volunteerOpportunity:slug}',         [PublicVolunteerOpportunityController::class, 'show'])->name('show');
     Route::post('/{volunteerOpportunity:slug}/register', [PublicVolunteerOpportunityController::class, 'register'])->middleware('auth')->name('register');
+});
+
+Route::prefix('news')->name('public.news.')->group(function () {
+    Route::get('/',            [PublicNewsController::class, 'index'])->name('index');
+    Route::get('/{news:slug}', [PublicNewsController::class, 'show'])->name('show');
 });
 
 // ─── Beneficiary Portal ───────────────────────────────────────────────────────

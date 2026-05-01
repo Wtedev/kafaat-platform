@@ -521,7 +521,7 @@
                             <span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-xl text-green-700 bg-green-100">
                                 <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>متاحة
                             </span>
-                            <span class="text-xs font-medium px-3 py-1.5 rounded-xl bg-green-50 text-green-700">🤝 تطوع</span>
+                            <span class="text-xs font-medium px-3 py-1.5 rounded-xl bg-green-50 text-green-700">تطوع</span>
                         </div>
                         <h3 class="font-bold text-base mb-2 clamp-2 group-hover:text-[#253B5B] transition-colors" style="color:#111827">{{ $opp->title }}</h3>
                         <p class="text-sm clamp-2 mb-4" style="color:#6B7280">{{ $opp->description }}</p>
@@ -537,24 +537,9 @@
                         </div>
                     </a>
                     @empty
-                    @foreach([
-                    ['t' => 'مساعد إداري للمؤتمر السنوي', 'd' => 'ساعد في تنظيم وإدارة فعاليات المؤتمر السنوي للجمعية.', 'h' => '١٥'],
-                    ['t' => 'مدرّب أساسيات الحاسوب', 'd' => 'ساهم في تدريب الفئات المحتاجة على أساسيات استخدام الحاسوب والإنترنت.', 'h' => '٢٠'],
-                    ['t' => 'مشرف معسكر شبابي', 'd' => 'اشرف على تنظيم معسكر التطوير الشخصي للطلاب الجامعيين.', 'h' => '٣٠'],
-                    ] as $s)
-                    <div class="bg-white rounded-3xl border border-gray-50 shadow-sm p-6 text-right">
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-xl text-green-700 bg-green-100"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>متاحة</span>
-                            <span class="text-xs font-medium px-3 py-1.5 rounded-xl bg-green-50 text-green-700">🤝 تطوع</span>
-                        </div>
-                        <h3 class="font-bold text-base mb-2" style="color:#111827">{{ $s['t'] }}</h3>
-                        <p class="text-sm clamp-2 mb-4" style="color:#6B7280">{{ $s['d'] }}</p>
-                        <div class="flex items-center justify-between text-xs border-t border-gray-50 pt-4" style="color:#6B7280">
-                            <span class="flex items-center gap-1">⏱ {{ $s['h'] }} ساعة</span>
-                            <span class="font-semibold" style="color:#3CB878">تقدّم الآن ←</span>
-                        </div>
+                    <div class="col-span-3 bg-white rounded-3xl border border-dashed border-gray-200 p-10 text-center" style="color:#6B7280">
+                        لا توجد فرص تطوعية منشورة حالياً.
                     </div>
-                    @endforeach
                     @endforelse
                 </div>
             </div>
@@ -570,7 +555,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <div class="flex items-end justify-between mb-10">
-                <a href="#" class="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline" style="color:#253B5B">
+                <a href="{{ route('public.news.index') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline" style="color:#253B5B">
                     عرض كل الأخبار
                     <svg class="w-4 h-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
@@ -581,44 +566,55 @@
                 </div>
             </div>
 
+            @php
+            $newsBgs = [
+                'linear-gradient(135deg, #EAF2FA, #DCE8F5)',
+                'linear-gradient(135deg, #ECFDF5, #D1FAE5)',
+                'linear-gradient(135deg, #FFF7ED, #FED7AA)',
+            ];
+            @endphp
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                <article class="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-                    <div class="h-48 flex items-center justify-center text-5xl" style="background: linear-gradient(135deg, #EAF2FA, #DCE8F5)">🚀</div>
+                @forelse ($news as $i => $item)
+                <a href="{{ route('public.news.show', $item->slug) }}"
+                   class="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden block">
+                    @if ($item->image)
+                    <div class="h-48 overflow-hidden">
+                        <img src="{{ $item->image }}" alt="{{ $item->title }}"
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    @else
+                    <div class="h-48 flex items-center justify-center"
+                         style="background: {{ $newsBgs[$i % 3] }}">
+                        <svg class="w-12 h-12 opacity-25" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:#253B5B">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                                  d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+                    </div>
+                    @endif
                     <div class="p-6 text-right">
                         <div class="flex items-center justify-between mb-3">
-                            <span class="text-xs text-[#6B7280]">١ مايو ٢٠٢٦</span>
-                            <span class="text-xs font-medium px-3 py-1 rounded-xl" style="background:#EAF2FA; color:#253B5B">إطلاق</span>
+                            @if ($item->published_at)
+                            <span class="text-xs" style="color:#6B7280">{{ $item->published_at->format('Y/m/d') }}</span>
+                            @else
+                            <span></span>
+                            @endif
+                            @if ($item->category)
+                            <span class="text-xs font-medium px-3 py-1 rounded-xl"
+                                  style="background:#EAF2FA; color:#253B5B">{{ $item->category }}</span>
+                            @endif
                         </div>
-                        <h3 class="font-bold text-base mb-2 group-hover:text-[#253B5B] transition-colors" style="color:#111827">إطلاق مسار التقنية والبرمجة الجديد</h3>
-                        <p class="text-sm clamp-3" style="color:#6B7280">أطلقت منصة كفاءات مساراً تدريبياً جديداً متكاملاً في مجال البرمجة وتطوير التطبيقات يناسب المبتدئين والمتوسطين.</p>
+                        <h3 class="font-bold text-base mb-2 line-clamp-2 group-hover:text-[#253B5B] transition-colors"
+                            style="color:#111827">{{ $item->title }}</h3>
+                        @if ($item->excerpt)
+                        <p class="text-sm line-clamp-3" style="color:#6B7280">{{ $item->excerpt }}</p>
+                        @endif
                     </div>
-                </article>
-
-                <article class="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-                    <div class="h-48 flex items-center justify-center text-5xl" style="background: linear-gradient(135deg, #ECFDF5, #D1FAE5)">🎤</div>
-                    <div class="p-6 text-right">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-xs text-[#6B7280]">٢٨ أبريل ٢٠٢٦</span>
-                            <span class="text-xs font-medium px-3 py-1 rounded-xl bg-green-100 text-green-700">ورشة عمل</span>
-                        </div>
-                        <h3 class="font-bold text-base mb-2 group-hover:text-[#253B5B] transition-colors" style="color:#111827">ورشة عمل: مهارات الاتصال الفعّال</h3>
-                        <p class="text-sm clamp-3" style="color:#6B7280">ورشة عمل مكثفة تُعقد عبر الإنترنت تُعنى بتطوير مهارات التواصل اللفظي والكتابي في بيئات العمل المهنية.</p>
-                    </div>
-                </article>
-
-                <article class="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-                    <div class="h-48 flex items-center justify-center text-5xl" style="background: linear-gradient(135deg, #FFF7ED, #FED7AA)">🤲</div>
-                    <div class="p-6 text-right">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-xs text-[#6B7280]">٢٠ أبريل ٢٠٢٦</span>
-                            <span class="text-xs font-medium px-3 py-1 rounded-xl bg-amber-100 text-amber-700">شراكة</span>
-                        </div>
-                        <h3 class="font-bold text-base mb-2 group-hover:text-[#253B5B] transition-colors" style="color:#111827">شراكة مع جمعية التنمية المجتمعية</h3>
-                        <p class="text-sm clamp-3" style="color:#6B7280">توقيع اتفاقية شراكة استراتيجية تهدف إلى توسيع فرص التطوع وتعزيز التدريب المجتمعي في المناطق المختلفة.</p>
-                    </div>
-                </article>
-
+                </a>
+                @empty
+                <div class="col-span-3 bg-white rounded-3xl border border-dashed border-gray-200 p-10 text-center" style="color:#6B7280">
+                    لا توجد أخبار منشورة حالياً.
+                </div>
+                @endforelse
             </div>
         </div>
     </section>

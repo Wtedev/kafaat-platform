@@ -82,6 +82,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             TrainingProgramSeeder::class,
             SampleDataSeeder::class,
+            VolunteerOpportunitySeeder::class,
+            NewsSeeder::class,
             RegistrationsSeeder::class,
         ]);
     }
