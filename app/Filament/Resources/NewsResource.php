@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\NewsResource\Pages;
 use App\Models\News;
 use Filament\Actions\BulkActionGroup;
@@ -24,6 +25,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class NewsResource extends Resource
 {
+    use RegistersNavigationByPermission;
+
     protected static ?string $model = News::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-newspaper';
@@ -37,6 +40,11 @@ class NewsResource extends Resource
     protected static ?string $modelLabel = 'خبر';
 
     protected static ?string $pluralModelLabel = 'الأخبار';
+
+    protected static function requiredNavigationPermissions(): array
+    {
+        return ['view_news'];
+    }
 
     /**
      * @return array<string, string>

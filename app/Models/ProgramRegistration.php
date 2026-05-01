@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\AttendanceStatus;
 use App\Enums\RegistrationStatus;
+use App\Support\FilamentAssignmentVisibility;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -52,6 +53,11 @@ class ProgramRegistration extends Model
     public function scopeCompleted(Builder $query): void
     {
         $query->where('status', RegistrationStatus::Completed);
+    }
+
+    public function scopeForFilamentAssignmentAccess(Builder $query, ?User $viewer): void
+    {
+        FilamentAssignmentVisibility::constrainProgramRegistrations($query, $viewer);
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────

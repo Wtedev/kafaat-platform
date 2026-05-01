@@ -16,6 +16,8 @@ class TrainingProgramSeeder extends Seeder
         $admin = User::where('email', 'admin@example.com')->first()
             ?? User::where('email', 'admin@kafaat.test')->first();
 
+        $trainingManager = User::role('training_manager')->first();
+
         $programs = [
             [
                 'title' => 'سند',
@@ -94,8 +96,13 @@ class TrainingProgramSeeder extends Seeder
                     'status' => ProgramStatus::Published,
                     'published_at' => now(),
                     'created_by' => $admin?->id,
+                    'assigned_to' => $trainingManager?->id,
                 ]
             );
+        }
+
+        if ($trainingManager) {
+            TrainingProgram::query()->whereNull('assigned_to')->update(['assigned_to' => $trainingManager->id]);
         }
     }
 }

@@ -12,7 +12,8 @@ class CertificatePolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('certificates.view');
+        return $user->hasPermissionTo('certificates.view')
+            && $user->hasPermissionTo('roles.view');
     }
 
     public function view(User $user, Certificate $certificate): bool

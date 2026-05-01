@@ -6,6 +6,8 @@ use App\Enums\RegistrationStatus;
 use App\Models\LearningPath;
 use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
+use App\Models\TeamMember;
+use App\Models\TeamNotification;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
@@ -14,7 +16,13 @@ use Illuminate\Support\Collection;
 final class PortalDashboardComposer
 {
     /**
-     * @return array{activities: Collection<int, array<string, mixed>>, volunteerRows: Collection<int, array<string, mixed>>}
+     * @return array{
+     *     activities: Collection<int, array<string, mixed>>,
+     *     volunteerRows: Collection<int, array<string, mixed>>,
+     *     showVolunteerTeamDashboard: bool,
+     *     volunteerTeamMemberRows: Collection<int, array<string, mixed>>,
+     *     volunteerTeamNotifications: Collection<int, array<string, mixed>>,
+     * }
      */
     public static function compose(User $user): array
     {
@@ -30,10 +38,83 @@ final class PortalDashboardComposer
             ->get()
             ->map(fn (VolunteerOpportunity $opp): array => self::volunteerRow($opp));
 
+        $teamDash = self::composeVolunteerTeamDashboard($user);
+
         return [
             'activities' => $activities,
             'volunteerRows' => $volunteerRows,
+            'showVolunteerTeamDashboard' => $teamDash['show'],
+            'volunteerTeamMemberRows' => $teamDash['memberRows'],
+            'volunteerTeamNotifications' => $teamDash['notificationRows'],
         ];
+    }
+
+    /**
+     * @return array{show: bool, memberRows: Collection<int, array<string, mixed>>, notificationRows: Collection<int, array<string, mixed>>}
+     */
+    private static function composeVolunteerTeamDashboard(User $user): array
+    {
+        if (! self::shouldShowVolunteerTeamDashboard($user)) {
+            return [
+                'show' => false,
+                'memberRows' => collect(),
+                'notificationRows' => collect(),
+            ];
+        }
+
+        $teamIds = $user->volunteerTeams()
+            ->where('volunteer_teams.is_active', true)
+            ->pluck('volunteer_teams.id');
+
+        if ($teamIds->isEmpty()) {
+            return [
+                'show' => true,
+                'memberRows' => collect(),
+                'notificationRows' => collect(),
+            ];
+        }
+
+        $memberRows = TeamMember::query()
+            ->whereIn('volunteer_team_id', $teamIds)
+            ->with(['user', 'volunteerTeam'])
+            ->get()
+            ->unique('user_id')
+            ->values()
+            ->map(fn (TeamMember $m): array => [
+                'name' => $m->user?->name ?? '—',
+                'email' => $m->user?->email,
+                'team_name' => $m->volunteerTeam?->name ?? '—',
+            ]);
+
+        $notificationRows = TeamNotification::query()
+            ->whereIn('volunteer_team_id', $teamIds)
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->with('volunteerTeam')
+            ->latest('published_at')
+            ->limit(15)
+            ->get()
+            ->map(fn (TeamNotification $n): array => [
+                'title' => $n->title,
+                'body' => $n->body,
+                'team_name' => $n->volunteerTeam?->name ?? '—',
+                'published_at' => $n->published_at,
+            ]);
+
+        return [
+            'show' => true,
+            'memberRows' => $memberRows,
+            'notificationRows' => $notificationRows,
+        ];
+    }
+
+    private static function shouldShowVolunteerTeamDashboard(User $user): bool
+    {
+        if ($user->volunteerTeams()->exists()) {
+            return true;
+        }
+
+        return $user->hasRole('volunteer') || $user->role_type === 'volunteer';
     }
 
     private static function composeActivities(User $user): Collection

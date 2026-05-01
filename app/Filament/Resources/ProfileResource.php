@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\MembershipType;
+use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\ProfileResource\Pages;
 use App\Models\Profile;
 use Filament\Actions\BulkActionGroup;
@@ -23,6 +24,8 @@ use Filament\Tables\Table;
 
 class ProfileResource extends Resource
 {
+    use RegistersNavigationByPermission;
+
     protected static ?string $model = Profile::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-identification';
@@ -38,6 +41,11 @@ class ProfileResource extends Resource
     protected static ?string $pluralModelLabel = 'الملفات الشخصية';
 
     protected static ?string $recordTitleAttribute = 'user.name';
+
+    protected static function requiredNavigationPermissions(): array
+    {
+        return ['roles.view'];
+    }
 
     public static function form(Schema $schema): Schema
     {

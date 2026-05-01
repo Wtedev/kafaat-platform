@@ -46,7 +46,7 @@ class PublicVolunteerOpportunityController extends Controller
             return redirect()->route('login');
         }
 
-        if ($request->user()->role_type !== 'beneficiary') {
+        if (! $request->user()->isPortalUser()) {
             abort(403);
         }
 

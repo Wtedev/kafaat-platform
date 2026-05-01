@@ -106,7 +106,7 @@ class VolunteerHoursService
             $this->registrationService->markCompleted($registration, $admin);
             // Issue volunteer certificate (idempotent — no duplicate if already issued)
             $registration->loadMissing(['user', 'opportunity']);
-            $this->certificateService->issue($registration->user, $registration->opportunity);
+            $this->certificateService->issue($registration->user, $registration->opportunity, $admin);
         }
     }
 }

@@ -12,11 +12,13 @@ use App\Models\PathRegistration;
 use App\Models\User;
 use App\Notifications\PathRegistrationApproved;
 use App\Notifications\PathRegistrationRejected;
+use App\Services\Inbox\InboxNotificationService;
 
 class PathRegistrationService
 {
     public function __construct(
         private readonly EmailLogService $emailLogService,
+        private readonly InboxNotificationService $inboxNotifications,
     ) {}
 
     // ─── Public API ───────────────────────────────────────────────────────────
@@ -95,6 +97,8 @@ class PathRegistrationService
             sentBy: $approvedBy,
         );
 
+        $this->inboxNotifications->registrationApprovedPath($registration->user, $path, $approvedBy);
+
         return $registration->fresh();
     }
 
@@ -115,6 +119,14 @@ class PathRegistrationService
             notification: new PathRegistrationRejected($registration),
             templateKey: 'path_registration.rejected',
             subject: 'Registration Update — '.$registration->learningPath->title,
+        );
+
+        $rejector = auth()->user();
+        $this->inboxNotifications->registrationRejectedPath(
+            $registration->user,
+            $registration->learningPath,
+            $reason,
+            $rejector instanceof User ? $rejector : null,
         );
 
         return $registration->fresh();

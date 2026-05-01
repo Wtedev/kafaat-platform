@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Enums\RegistrationStatus;
 use App\Models\ProgramRegistration;
 use App\Models\User;
+use App\Support\FilamentAssignmentVisibility;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class ProgramRegistrationPolicy
@@ -18,43 +19,73 @@ class ProgramRegistrationPolicy
 
     public function view(User $user, ProgramRegistration $registration): bool
     {
-        // The registrant can always see their own registration
         if ($user->id === $registration->user_id) {
             return true;
         }
 
-        return $user->hasPermissionTo('registrations.view');
+        if (! $user->hasPermissionTo('registrations.view')) {
+            return false;
+        }
+
+        if ($user->hasRole('volunteering_manager')) {
+            return false;
+        }
+
+        if (FilamentAssignmentVisibility::bypasses($user)) {
+            return true;
+        }
+
+        if ($user->hasRole('training_manager')) {
+            $registration->loadMissing('trainingProgram');
+
+            return FilamentAssignmentVisibility::userManagesTrainingProgram($user, $registration->trainingProgram);
+        }
+
+        return true;
     }
 
     public function create(User $user): bool
     {
-        // Any authenticated user may request registration
         return true;
     }
 
     public function approve(User $user, ProgramRegistration $registration): bool
     {
-        return $registration->status === RegistrationStatus::Pending
-            && $user->hasPermissionTo('registrations.approve');
+        if ($registration->status !== RegistrationStatus::Pending || ! $user->hasPermissionTo('registrations.approve')) {
+            return false;
+        }
+
+        $registration->loadMissing('trainingProgram');
+
+        return FilamentAssignmentVisibility::userManagesTrainingProgram($user, $registration->trainingProgram);
     }
 
     public function reject(User $user, ProgramRegistration $registration): bool
     {
-        return $registration->status === RegistrationStatus::Pending
-            && $user->hasPermissionTo('registrations.reject');
+        if ($registration->status !== RegistrationStatus::Pending || ! $user->hasPermissionTo('registrations.reject')) {
+            return false;
+        }
+
+        $registration->loadMissing('trainingProgram');
+
+        return FilamentAssignmentVisibility::userManagesTrainingProgram($user, $registration->trainingProgram);
     }
 
     public function cancel(User $user, ProgramRegistration $registration): bool
     {
-        // The registrant can cancel their own pending or approved registration
         if ($user->id === $registration->user_id) {
             return in_array($registration->status, [
                 RegistrationStatus::Pending,
                 RegistrationStatus::Approved,
-            ]);
+            ], true);
         }
 
-        // Admins/staff with view permission can cancel on behalf of users
-        return $user->hasPermissionTo('registrations.view');
+        if (! $user->hasPermissionTo('registrations.view')) {
+            return false;
+        }
+
+        $registration->loadMissing('trainingProgram');
+
+        return FilamentAssignmentVisibility::userManagesTrainingProgram($user, $registration->trainingProgram);
     }
 }

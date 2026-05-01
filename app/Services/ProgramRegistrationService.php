@@ -11,12 +11,14 @@ use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Notifications\ProgramRegistrationApproved;
 use App\Notifications\ProgramRegistrationRejected;
+use App\Services\Inbox\InboxNotificationService;
 
 class ProgramRegistrationService
 {
     public function __construct(
         private readonly EmailLogService $emailLogService,
         private readonly CertificateService $certificateService,
+        private readonly InboxNotificationService $inboxNotifications,
     ) {}
 
     /**
@@ -85,6 +87,8 @@ class ProgramRegistrationService
             sentBy: $approvedBy,
         );
 
+        $this->inboxNotifications->registrationApprovedProgram($registration->user, $program, $approvedBy);
+
         return $registration->fresh();
     }
 
@@ -105,6 +109,14 @@ class ProgramRegistrationService
             notification: new ProgramRegistrationRejected($registration),
             templateKey: 'program_registration.rejected',
             subject: 'Registration Update — '.$registration->trainingProgram->title,
+        );
+
+        $rejector = auth()->user();
+        $this->inboxNotifications->registrationRejectedProgram(
+            $registration->user,
+            $registration->trainingProgram,
+            $reason,
+            $rejector instanceof User ? $rejector : null,
         );
 
         return $registration->fresh();
@@ -162,6 +174,7 @@ class ProgramRegistrationService
             $this->certificateService->issue(
                 $registration->user,
                 $registration->trainingProgram,
+                $admin,
             );
         }
 

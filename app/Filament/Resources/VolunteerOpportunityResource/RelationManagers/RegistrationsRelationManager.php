@@ -180,7 +180,7 @@ class RegistrationsRelationManager extends RelationManager
 
                             return;
                         }
-                        app(CertificateService::class)->issue($record->user, $record->opportunity);
+                        app(CertificateService::class)->issue($record->user, $record->opportunity, auth()->user());
                         Notification::make()->title('تم إصدار شهادة التطوع بنجاح')->success()->send();
                     }),
             ])

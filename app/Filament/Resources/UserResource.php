@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
+use App\Support\UserAccountRoleForm;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -11,26 +13,29 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
+use Livewire\Component as LivewireComponent;
 
 class UserResource extends Resource
 {
+    use RegistersNavigationByPermission;
+
     protected static ?string $model = User::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
 
     protected static string|\UnitEnum|null $navigationGroup = 'إدارة الوصول';
-
-    protected static ?string $navigationLabel = 'المستخدمون';
 
     protected static ?string $modelLabel = 'مستخدم';
 
@@ -39,6 +44,25 @@ class UserResource extends Resource
     protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    public static function getNavigationLabel(): string
+    {
+        if (auth()->user()?->can('roles.view')) {
+            return 'إدارة المستخدمين';
+        }
+
+        return 'المستفيدين';
+    }
+
+    protected static function requiredNavigationPermissions(): array
+    {
+        return ['users.view'];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with('roles');
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -72,26 +96,48 @@ class UserResource extends Resource
                             ->tel()
                             ->maxLength(20),
 
-                        Select::make('role_type')
-                            ->label('نوع الدور')
-                            ->options([
-                                'admin' => 'مسؤول',
-                                'staff' => 'موظف',
-                                'beneficiary' => 'مستفيد',
-                            ])
-                            ->required(),
-
                         Toggle::make('is_active')
                             ->default(true)
                             ->label('نشط'),
                     ]),
 
-                Section::make('الأدوار')
+                Section::make('الأدوار والصلاحيات')
+                    ->description('تعيين نوع الحساب والدور — يتطلب صلاحية إدارة أدوار المستخدمين.')
+                    ->visible(function (LivewireComponent $livewire): bool {
+                        $actor = auth()->user();
+                        if (! $actor?->can('manage_roles')) {
+                            return false;
+                        }
+                        if ($livewire instanceof EditRecord) {
+                            $record = $livewire->getRecord();
+
+                            return $record instanceof User && ! $record->isProtectedAdminUser();
+                        }
+
+                        return true;
+                    })
                     ->schema([
-                        Select::make('roles')
-                            ->multiple()
-                            ->relationship('roles', 'name')
-                            ->preload(),
+                        Select::make('role_type')
+                            ->label('نوع الحساب')
+                            ->options(UserAccountRoleForm::accountTypeOptionsAr())
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(function (callable $set): void {
+                                $set('assigned_role', null);
+                            }),
+
+                        Select::make('assigned_role')
+                            ->label('الدور')
+                            ->options(function (Get $get): array {
+                                return match ($get('role_type')) {
+                                    UserAccountRoleForm::TYPE_STAFF => UserAccountRoleForm::staffRoleSelectOptionsAr(),
+                                    UserAccountRoleForm::TYPE_BENEFICIARY => UserAccountRoleForm::beneficiaryRoleSelectOptionsAr(),
+                                    default => [],
+                                };
+                            })
+                            ->visible(fn (Get $get): bool => filled($get('role_type')))
+                            ->required(fn (Get $get): bool => filled($get('role_type')))
+                            ->dehydrated(true),
                     ]),
             ]);
     }
@@ -110,25 +156,18 @@ class UserResource extends Resource
                     ->searchable()
                     ->sortable(),
 
+                TextColumn::make('account_type_display')
+                    ->label('نوع الحساب')
+                    ->getStateUsing(fn (User $record): string => UserAccountRoleForm::tableAccountTypeLabelAr($record)),
+
+                TextColumn::make('primary_role_display')
+                    ->label('الدور')
+                    ->getStateUsing(fn (User $record): string => UserAccountRoleForm::tablePrimaryRoleLabelAr($record)),
+
                 TextColumn::make('phone')
                     ->label('الجوال')
                     ->searchable()
-                    ->toggleable(),
-
-                BadgeColumn::make('role_type')
-                    ->label('الدور')
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'admin' => 'مسؤول',
-                        'staff' => 'موظف',
-                        'beneficiary' => 'مستفيد',
-                        default => $state,
-                    })
-                    ->colors([
-                        'danger' => 'admin',
-                        'warning' => 'staff',
-                        'success' => 'beneficiary',
-                    ])
-                    ->sortable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 IconColumn::make('is_active')
                     ->boolean()
@@ -149,11 +188,13 @@ class UserResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('role_type')
-                    ->label('الدور')
+                    ->label('نوع الحساب')
                     ->options([
-                        'admin' => 'مسؤول',
+                        'admin' => 'مدير النظام',
                         'staff' => 'موظف',
                         'beneficiary' => 'مستفيد',
+                        'trainee' => 'متدرب (قديم)',
+                        'volunteer' => 'متطوع (قديم)',
                     ]),
 
                 TernaryFilter::make('is_active')
@@ -165,10 +206,31 @@ class UserResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords('delete'),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->can('users.create') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->can('users.update') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        $user = auth()->user();
+        if (! $user?->can('users.delete')) {
+            return false;
+        }
+
+        return $user->can('delete', $record);
     }
 
     public static function getPages(): array

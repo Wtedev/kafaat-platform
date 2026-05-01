@@ -16,6 +16,8 @@ class VolunteerOpportunitySeeder extends Seeder
         $admin = User::where('email', 'admin@example.com')->first()
             ?? User::where('email', 'admin@kafaat.test')->first();
 
+        $volunteeringManager = User::role('volunteering_manager')->first();
+
         $opportunities = [
             [
                 'title' => 'مساعد إداري لملتقى كفاءات',
@@ -85,8 +87,13 @@ class VolunteerOpportunitySeeder extends Seeder
                     'status' => OpportunityStatus::Published,
                     'published_at' => now(),
                     'created_by' => $admin?->id,
+                    'assigned_to' => $volunteeringManager?->id,
                 ]
             );
+        }
+
+        if ($volunteeringManager) {
+            VolunteerOpportunity::query()->whereNull('assigned_to')->update(['assigned_to' => $volunteeringManager->id]);
         }
     }
 }

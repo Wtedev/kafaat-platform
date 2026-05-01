@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\RegistrationStatus;
 use App\Exceptions\PathCapacityExceededException;
+use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\PathRegistrationResource\Pages;
 use App\Models\PathRegistration;
 use App\Services\PathRegistrationService;
@@ -24,6 +25,8 @@ use Filament\Tables\Table;
 
 class PathRegistrationResource extends Resource
 {
+    use RegistersNavigationByPermission;
+
     protected static ?string $model = PathRegistration::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
@@ -37,6 +40,11 @@ class PathRegistrationResource extends Resource
     protected static ?string $modelLabel = 'تسجيل مسار';
 
     protected static ?string $pluralModelLabel = 'تسجيلات المسارات';
+
+    protected static function requiredNavigationPermissions(): array
+    {
+        return ['roles.view'];
+    }
 
     public static function form(Schema $schema): Schema
     {

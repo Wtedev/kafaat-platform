@@ -4,6 +4,7 @@ namespace App\Filament\Resources\LearningPathResource\RelationManagers;
 
 use App\Enums\ProgramStatus;
 use App\Models\TrainingProgram;
+use App\Support\FilamentAssignmentVisibility;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -22,6 +23,7 @@ use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class TrainingProgramsRelationManager extends RelationManager
 {
@@ -77,12 +79,22 @@ class TrainingProgramsRelationManager extends RelationManager
                 ->label('الوصف')
                 ->rows(3)
                 ->columnSpanFull(),
+
+            Select::make('assigned_to')
+                ->label('المسؤول عن البرنامج')
+                ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $q) => $q->role('training_manager'))
+                ->searchable()
+                ->preload()
+                ->visible(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
+                ->required(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
+                ->dehydrated(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user())),
         ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->forFilamentAssignmentAccess(auth()->user()))
             ->columns([
                 TextColumn::make('title')
                     ->label('البرنامج')

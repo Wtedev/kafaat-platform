@@ -12,11 +12,13 @@ use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
 use App\Notifications\VolunteerRegistrationApproved;
 use App\Notifications\VolunteerRegistrationRejected;
+use App\Services\Inbox\InboxNotificationService;
 
 class VolunteerRegistrationService
 {
     public function __construct(
         private readonly EmailLogService $emailLogService,
+        private readonly InboxNotificationService $inboxNotifications,
     ) {}
 
     /**
@@ -94,6 +96,8 @@ class VolunteerRegistrationService
             sentBy: $approvedBy,
         );
 
+        $this->inboxNotifications->registrationApprovedVolunteer($registration->user, $opportunity, $approvedBy);
+
         return $registration->fresh();
     }
 
@@ -115,6 +119,13 @@ class VolunteerRegistrationService
             templateKey: 'volunteer_registration.rejected',
             subject: 'Volunteer Registration Update — '.$registration->opportunity->title,
             sentBy: $rejectedBy,
+        );
+
+        $this->inboxNotifications->registrationRejectedVolunteer(
+            $registration->user,
+            $registration->opportunity,
+            $reason,
+            $rejectedBy,
         );
 
         return $registration->fresh();

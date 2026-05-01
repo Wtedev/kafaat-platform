@@ -4,12 +4,15 @@ namespace App\Models;
 
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
+use App\Services\Inbox\InboxNotificationService;
+use App\Support\FilamentAssignmentVisibility;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class TrainingProgram extends Model
@@ -30,6 +33,7 @@ class TrainingProgram extends Model
         'created_by',
         'updated_by',
         'learning_path_id',
+        'assigned_to',
     ];
 
     protected function casts(): array
@@ -51,6 +55,52 @@ class TrainingProgram extends Model
         static::creating(function (self $program) {
             if (empty($program->slug)) {
                 $program->slug = Str::slug($program->title);
+            }
+
+            if ($program->assigned_to === null && Auth::check()) {
+                $user = Auth::user();
+                if ($user->hasRole('training_manager') && ! FilamentAssignmentVisibility::bypasses($user)) {
+                    $program->assigned_to = $user->id;
+                }
+            }
+        });
+
+        static::created(function (self $program): void {
+            if ($program->status !== ProgramStatus::Published) {
+                return;
+            }
+
+            $actor = Auth::user();
+            app(InboxNotificationService::class)->programLaunched(
+                $program,
+                $actor instanceof User ? $actor : null,
+            );
+        });
+
+        static::updated(function (self $program): void {
+            $inbox = app(InboxNotificationService::class);
+            $editor = Auth::user();
+
+            if ($program->wasChanged('status') && $program->status === ProgramStatus::Published) {
+                $inbox->programLaunched($program, $editor instanceof User ? $editor : null);
+
+                return;
+            }
+
+            if ($program->status !== ProgramStatus::Published) {
+                return;
+            }
+
+            $watched = [
+                'title', 'slug', 'description', 'start_date', 'end_date',
+                'registration_start', 'registration_end', 'capacity', 'weekdays', 'learning_path_id',
+            ];
+
+            if ($program->wasChanged($watched)) {
+                $inbox->programUpdatedForRegistrants(
+                    $program,
+                    $editor instanceof User ? $editor : null,
+                );
             }
         });
     }
@@ -83,6 +133,14 @@ class TrainingProgram extends Model
             $q->whereNull('registration_end')
                 ->orWhere('registration_end', '>=', $today);
         });
+    }
+
+    /**
+     * نطاق لوحة الإدارة: المدرب يرى البرامج المعيّنة له فقط؛ المسؤول يرى الكل.
+     */
+    public function scopeForFilamentAssignmentAccess(Builder $query, ?User $viewer): void
+    {
+        FilamentAssignmentVisibility::constrainTrainingPrograms($query, $viewer);
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -141,5 +199,10 @@ class TrainingProgram extends Model
     public function learningPath(): BelongsTo
     {
         return $this->belongsTo(LearningPath::class);
+    }
+
+    public function assignee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
     }
 }

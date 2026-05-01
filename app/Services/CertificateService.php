@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Certificate;
 use App\Models\User;
+use App\Services\Inbox\InboxNotificationService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -11,6 +12,7 @@ class CertificateService
 {
     public function __construct(
         private readonly CertificatePdfService $pdfService,
+        private readonly InboxNotificationService $inboxNotifications,
     ) {}
 
     /**
@@ -18,7 +20,7 @@ class CertificateService
      * (e.g. a TrainingProgram or LearningPath).
      * Idempotent: returns the existing certificate if one already exists.
      */
-    public function issue(User $user, Model $certificateable): Certificate
+    public function issue(User $user, Model $certificateable, ?User $issuedBy = null): Certificate
     {
         // Return existing certificate if already issued
         $existing = Certificate::query()
@@ -43,6 +45,8 @@ class CertificateService
         // Generate PDF and attach path
         $filePath = $this->pdfService->generate($certificate);
         $certificate->update(['file_path' => $filePath]);
+
+        $this->inboxNotifications->certificateIssued($user, $certificateable, $issuedBy);
 
         return $certificate->fresh();
     }

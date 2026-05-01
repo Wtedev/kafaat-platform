@@ -184,7 +184,7 @@ class PathRegistrationsRelationManager extends RelationManager
 
                             return;
                         }
-                        app(CertificateService::class)->issue($record->user, $record->learningPath);
+                        app(CertificateService::class)->issue($record->user, $record->learningPath, auth()->user());
                         Notification::make()->title('تم إصدار الشهادة بنجاح')->success()->send();
                     }),
             ])

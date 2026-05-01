@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\OpportunityStatus;
 use App\Enums\RegistrationStatus;
 use App\Exceptions\OpportunityCapacityExceededException;
+use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerRegistrationResource\Pages;
 use App\Models\Certificate;
 use App\Models\VolunteerOpportunity;
@@ -25,9 +26,12 @@ use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class VolunteerRegistrationResource extends Resource
 {
+    use RegistersNavigationByPermission;
+
     protected static ?string $model = VolunteerRegistration::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-user-plus';
@@ -36,18 +40,27 @@ class VolunteerRegistrationResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    protected static ?string $navigationLabel = 'تسجيلات التطوع';
+    protected static ?string $navigationLabel = 'المتطوعين';
 
     protected static ?string $modelLabel = 'تسجيل تطوع';
 
-    protected static ?string $pluralModelLabel = 'تسجيلات التطوع';
+    protected static ?string $pluralModelLabel = 'المتطوعين';
+
+    protected static function requiredNavigationPermissions(): array
+    {
+        return ['registrations.view', 'volunteering.view'];
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
             Section::make()->columns(2)->schema([
                 Select::make('opportunity_id')
-                    ->relationship('opportunity', 'title')
+                    ->relationship(
+                        'opportunity',
+                        'title',
+                        modifyQueryUsing: fn (Builder $q) => $q->forFilamentAssignmentAccess(auth()->user()),
+                    )
                     ->searchable()
                     ->preload()
                     ->required()
@@ -153,7 +166,11 @@ class VolunteerRegistrationResource extends Resource
                     ->options(RegistrationStatus::class),
 
                 SelectFilter::make('opportunity_id')
-                    ->relationship('opportunity', 'title')
+                    ->relationship(
+                        'opportunity',
+                        'title',
+                        modifyQueryUsing: fn (Builder $q) => $q->forFilamentAssignmentAccess(auth()->user()),
+                    )
                     ->label('الفرصة التطوعية')
                     ->searchable(),
             ])
@@ -226,7 +243,7 @@ class VolunteerRegistrationResource extends Resource
 
                             return;
                         }
-                        app(CertificateService::class)->issue($record->user, $record->opportunity);
+                        app(CertificateService::class)->issue($record->user, $record->opportunity, auth()->user());
                         Notification::make()
                             ->title('تم إصدار شهادة التطوع بنجاح')
                             ->success()
@@ -238,6 +255,7 @@ class VolunteerRegistrationResource extends Resource
                     DeleteBulkAction::make(),
                 ]),
             ])
+            ->modifyQueryUsing(fn (Builder $query) => $query->forFilamentAssignmentAccess(auth()->user()))
             ->defaultSort('created_at', 'desc');
     }
 

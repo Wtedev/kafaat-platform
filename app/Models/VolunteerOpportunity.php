@@ -5,11 +5,14 @@ namespace App\Models;
 use App\Enums\OpportunityStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\VolunteerHoursStatus;
+use App\Services\Inbox\InboxNotificationService;
+use App\Support\FilamentAssignmentVisibility;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class VolunteerOpportunity extends Model
@@ -26,6 +29,7 @@ class VolunteerOpportunity extends Model
         'published_at',
         'created_by',
         'updated_by',
+        'assigned_to',
     ];
 
     protected function casts(): array
@@ -46,6 +50,34 @@ class VolunteerOpportunity extends Model
             if (empty($opportunity->slug)) {
                 $opportunity->slug = Str::slug($opportunity->title);
             }
+
+            if ($opportunity->assigned_to === null && Auth::check()) {
+                $user = Auth::user();
+                if ($user->hasRole('volunteering_manager') && ! FilamentAssignmentVisibility::bypasses($user)) {
+                    $opportunity->assigned_to = $user->id;
+                }
+            }
+        });
+
+        static::updated(function (self $opportunity): void {
+            if ($opportunity->status !== OpportunityStatus::Published) {
+                return;
+            }
+
+            $watched = [
+                'title', 'slug', 'description', 'capacity', 'hours_expected',
+                'start_date', 'end_date', 'status', 'published_at',
+            ];
+
+            if (! $opportunity->wasChanged($watched)) {
+                return;
+            }
+
+            $editor = Auth::user();
+            app(InboxNotificationService::class)->volunteerOpportunityUpdated(
+                $opportunity,
+                $editor instanceof User ? $editor : null,
+            );
         });
     }
 
@@ -64,6 +96,11 @@ class VolunteerOpportunity extends Model
     public function scopeArchived(Builder $query): void
     {
         $query->where('status', OpportunityStatus::Archived);
+    }
+
+    public function scopeForFilamentAssignmentAccess(Builder $query, ?User $viewer): void
+    {
+        FilamentAssignmentVisibility::constrainVolunteerOpportunities($query, $viewer);
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -119,5 +156,10 @@ class VolunteerOpportunity extends Model
     public function certificates(): MorphMany
     {
         return $this->morphMany(Certificate::class, 'certificateable');
+    }
+
+    public function assignee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
     }
 }

@@ -356,7 +356,7 @@ class ProgramRegistrationsRelationManager extends RelationManager
                             return;
                         }
 
-                        app(CertificateService::class)->issue($record->user, $record->trainingProgram);
+                        app(CertificateService::class)->issue($record->user, $record->trainingProgram, auth()->user());
                         Notification::make()->title('تم إصدار الشهادة بنجاح')->success()->send();
                     }),
             ])

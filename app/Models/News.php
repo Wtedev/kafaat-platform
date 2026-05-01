@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Services\Inbox\InboxNotificationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class News extends Model
@@ -42,6 +44,23 @@ class News extends Model
                 }
                 $news->slug = $slug;
             }
+        });
+
+        static::saved(function (self $news): void {
+            if (! $news->wasChanged('published_at')) {
+                return;
+            }
+
+            $publishedAt = $news->published_at;
+            if ($publishedAt === null || $publishedAt->isFuture()) {
+                return;
+            }
+
+            $publisher = Auth::user();
+            app(InboxNotificationService::class)->newsPublished(
+                $news,
+                $publisher instanceof User ? $publisher : null,
+            );
         });
     }
 

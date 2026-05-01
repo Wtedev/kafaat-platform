@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\PathStatus;
+use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\LearningPathResource\Pages;
 use App\Filament\Resources\LearningPathResource\RelationManagers\CoursesRelationManager;
 use App\Filament\Resources\LearningPathResource\RelationManagers\PathRegistrationsRelationManager;
@@ -26,21 +27,28 @@ use Filament\Tables\Table;
 
 class LearningPathResource extends Resource
 {
+    use RegistersNavigationByPermission;
+
     protected static ?string $model = LearningPath::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
 
     protected static string|\UnitEnum|null $navigationGroup = 'التدريب';
 
-    protected static ?string $navigationLabel = 'المسارات التعليمية';
+    protected static ?string $navigationLabel = 'المسارات';
 
     protected static ?string $modelLabel = 'مسار تعليمي';
 
-    protected static ?string $pluralModelLabel = 'المسارات التعليمية';
+    protected static ?string $pluralModelLabel = 'المسارات';
 
     protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'title';
+
+    protected static function requiredNavigationPermissions(): array
+    {
+        return ['paths.view'];
+    }
 
     public static function form(Schema $schema): Schema
     {

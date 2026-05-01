@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\PartnerResource\Pages;
 use App\Models\Partner;
 use Filament\Actions\BulkActionGroup;
@@ -24,6 +25,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PartnerResource extends Resource
 {
+    use RegistersNavigationByPermission;
+
     protected static ?string $model = Partner::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-building-office-2';
@@ -37,6 +40,11 @@ class PartnerResource extends Resource
     protected static ?string $modelLabel = 'شريك';
 
     protected static ?string $pluralModelLabel = 'الشركاء';
+
+    protected static function requiredNavigationPermissions(): array
+    {
+        return ['manage_partners'];
+    }
 
     public static function form(Schema $schema): Schema
     {

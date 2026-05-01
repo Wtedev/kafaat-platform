@@ -3,10 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Enums\OpportunityStatus;
+use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerOpportunityResource\Pages;
 use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\RegistrationsRelationManager;
 use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\VolunteerHoursRelationManager;
 use App\Models\VolunteerOpportunity;
+use App\Support\FilamentAssignmentVisibility;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -24,9 +26,12 @@ use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class VolunteerOpportunityResource extends Resource
 {
+    use RegistersNavigationByPermission;
+
     protected static ?string $model = VolunteerOpportunity::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-hand-raised';
@@ -40,6 +45,11 @@ class VolunteerOpportunityResource extends Resource
     protected static ?string $modelLabel = 'فرصة تطوعية';
 
     protected static ?string $pluralModelLabel = 'الفرص التطوعية';
+
+    protected static function requiredNavigationPermissions(): array
+    {
+        return ['volunteering.view'];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -61,6 +71,16 @@ class VolunteerOpportunityResource extends Resource
                     ->options(OpportunityStatus::class)
                     ->required()
                     ->default(OpportunityStatus::Draft->value),
+
+                Select::make('assigned_to')
+                    ->label('مسؤول الفرصة')
+                    ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $q) => $q->role('volunteering_manager'))
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
+                    ->required(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
+                    ->dehydrated(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
+                    ->helperText('يحدد مدير التطوع الذي يدير هذه الفرصة في لوحة الإدارة.'),
 
                 Textarea::make('description')
                     ->label('الوصف')
@@ -100,6 +120,11 @@ class VolunteerOpportunityResource extends Resource
                     ->label('العنوان')
                     ->searchable()
                     ->sortable(),
+
+                TextColumn::make('assignee.name')
+                    ->label('المسؤول')
+                    ->toggleable()
+                    ->searchable(),
 
                 BadgeColumn::make('status')
                     ->label('الحالة')
@@ -157,6 +182,7 @@ class VolunteerOpportunityResource extends Resource
                     DeleteBulkAction::make(),
                 ]),
             ])
+            ->modifyQueryUsing(fn (Builder $query) => $query->forFilamentAssignmentAccess(auth()->user()))
             ->defaultSort('created_at', 'desc');
     }
 

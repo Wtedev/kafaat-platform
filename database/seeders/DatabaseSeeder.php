@@ -35,10 +35,10 @@ class DatabaseSeeder extends Seeder
             Profile::firstOrCreate(['user_id' => $user->id]);
         }
 
-        // ─── Staff users ──────────────────────────────────────────────────────
+        // ─── Staff users (أدوار Spatie: مدير تدريب / مدير تطوع) ────────────────
         foreach ([
-            ['email' => 'staff@kafaat.test', 'name' => 'موظف العمليات'],
-            ['email' => 'staff@example.com', 'name' => 'موظف العمليات'],
+            ['email' => 'staff@kafaat.test', 'name' => 'موظف العمليات', 'spatie_role' => 'training_manager'],
+            ['email' => 'staff@example.com', 'name' => 'موظف العمليات', 'spatie_role' => 'volunteering_manager'],
         ] as $data) {
             $user = User::firstOrCreate(
                 ['email' => $data['email']],
@@ -49,11 +49,11 @@ class DatabaseSeeder extends Seeder
                     'is_active' => true,
                 ]
             );
-            $user->syncRoles(['staff']);
+            $user->syncRoles([$data['spatie_role']]);
             Profile::firstOrCreate(['user_id' => $user->id]);
         }
 
-        // ─── Beneficiary users ────────────────────────────────────────────────
+        // ─── مستخدمو البوابة (Spatie: trainee) ────────────────────────────────
         $beneficiaries = [
             ['email' => 'beneficiary@kafaat.test',  'name' => 'أحمد العمري',    'city' => 'الرياض', 'gender' => 'male'],
             ['email' => 'beneficiary@example.com',  'name' => 'أحمد العمري',    'city' => 'الرياض', 'gender' => 'male'],
@@ -71,7 +71,7 @@ class DatabaseSeeder extends Seeder
                     'is_active' => true,
                 ]
             );
-            $user->syncRoles(['beneficiary']);
+            $user->syncRoles(['trainee']);
             Profile::firstOrCreate(
                 ['user_id' => $user->id],
                 ['city' => $data['city'], 'gender' => $data['gender']]
@@ -85,6 +85,7 @@ class DatabaseSeeder extends Seeder
             VolunteerOpportunitySeeder::class,
             NewsSeeder::class,
             RegistrationsSeeder::class,
+            VolunteerTeamSeeder::class,
         ]);
     }
 }

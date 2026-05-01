@@ -34,8 +34,7 @@ class RegisterController extends Controller
             'is_active' => true,
         ]);
 
-        // Assign Spatie role
-        $user->assignRole('beneficiary');
+        $user->assignRole('trainee');
 
         // Create empty profile
         $user->profile()->create();

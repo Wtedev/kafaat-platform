@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Enums\RegistrationStatus;
 use App\Models\User;
 use App\Models\VolunteerRegistration;
+use App\Support\FilamentAssignmentVisibility;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class VolunteerRegistrationPolicy
@@ -22,7 +23,25 @@ class VolunteerRegistrationPolicy
             return true;
         }
 
-        return $user->hasPermissionTo('registrations.view');
+        if (! $user->hasPermissionTo('registrations.view')) {
+            return false;
+        }
+
+        if ($user->hasRole('training_manager')) {
+            return false;
+        }
+
+        if (FilamentAssignmentVisibility::bypasses($user)) {
+            return true;
+        }
+
+        if ($user->hasRole('volunteering_manager')) {
+            $registration->loadMissing('opportunity');
+
+            return FilamentAssignmentVisibility::userManagesVolunteerOpportunity($user, $registration->opportunity);
+        }
+
+        return true;
     }
 
     public function create(User $user): bool
@@ -32,14 +51,24 @@ class VolunteerRegistrationPolicy
 
     public function approve(User $user, VolunteerRegistration $registration): bool
     {
-        return $registration->status === RegistrationStatus::Pending
-            && $user->hasPermissionTo('registrations.approve');
+        if ($registration->status !== RegistrationStatus::Pending || ! $user->hasPermissionTo('registrations.approve')) {
+            return false;
+        }
+
+        $registration->loadMissing('opportunity');
+
+        return FilamentAssignmentVisibility::userManagesVolunteerOpportunity($user, $registration->opportunity);
     }
 
     public function reject(User $user, VolunteerRegistration $registration): bool
     {
-        return $registration->status === RegistrationStatus::Pending
-            && $user->hasPermissionTo('registrations.reject');
+        if ($registration->status !== RegistrationStatus::Pending || ! $user->hasPermissionTo('registrations.reject')) {
+            return false;
+        }
+
+        $registration->loadMissing('opportunity');
+
+        return FilamentAssignmentVisibility::userManagesVolunteerOpportunity($user, $registration->opportunity);
     }
 
     public function cancel(User $user, VolunteerRegistration $registration): bool
@@ -48,9 +77,15 @@ class VolunteerRegistrationPolicy
             return in_array($registration->status, [
                 RegistrationStatus::Pending,
                 RegistrationStatus::Approved,
-            ]);
+            ], true);
         }
 
-        return $user->hasPermissionTo('registrations.view');
+        if (! $user->hasPermissionTo('registrations.view')) {
+            return false;
+        }
+
+        $registration->loadMissing('opportunity');
+
+        return FilamentAssignmentVisibility::userManagesVolunteerOpportunity($user, $registration->opportunity);
     }
 }

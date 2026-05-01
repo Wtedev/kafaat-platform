@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\CertificateResource\Pages;
 use App\Models\Certificate;
 use Filament\Actions\Action;
@@ -20,6 +21,8 @@ use Filament\Tables\Table;
 
 class CertificateResource extends Resource
 {
+    use RegistersNavigationByPermission;
+
     protected static ?string $model = Certificate::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-check';
@@ -33,6 +36,11 @@ class CertificateResource extends Resource
     protected static ?string $modelLabel = 'شهادة';
 
     protected static ?string $pluralModelLabel = 'الشهادات';
+
+    protected static function requiredNavigationPermissions(): array
+    {
+        return ['certificates.view', 'roles.view'];
+    }
 
     public static function form(Schema $schema): Schema
     {

@@ -10,6 +10,7 @@ use App\Http\Controllers\Portal\PortalCompetencyController;
 use App\Http\Controllers\Portal\PortalCompetencyExportController;
 use App\Http\Controllers\Portal\PortalCourseController;
 use App\Http\Controllers\Portal\PortalDashboardController;
+use App\Http\Controllers\Portal\PortalInboxController;
 use App\Http\Controllers\Portal\PortalPathController;
 use App\Http\Controllers\Portal\PortalProfileController;
 use App\Http\Controllers\Portal\PortalProgramController;
@@ -78,6 +79,11 @@ Route::middleware(['auth', 'beneficiary'])
     ->group(function () {
 
         Route::get('/', PortalDashboardController::class)->name('dashboard');
+
+        Route::get('/notifications', [PortalInboxController::class, 'index'])->name('notifications');
+        Route::post('/notifications/read-all', [PortalInboxController::class, 'markAllRead'])->name('notifications.read-all');
+        Route::post('/notifications/{notification}/read', [PortalInboxController::class, 'markRead'])
+            ->name('notifications.read');
         Route::get('/paths', PortalPathController::class)->name('paths');
         Route::get('/programs', PortalProgramController::class)->name('programs');
         Route::get('/volunteering', PortalVolunteerController::class)->name('volunteering');

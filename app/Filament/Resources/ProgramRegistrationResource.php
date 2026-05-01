@@ -6,6 +6,7 @@ use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Exceptions\RegistrationNotApprovedException;
+use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\ProgramRegistrationResource\Pages;
 use App\Filament\Resources\ProgramRegistrationResource\RelationManagers\AttendanceRelationManager;
 use App\Models\Certificate;
@@ -28,9 +29,12 @@ use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ProgramRegistrationResource extends Resource
 {
+    use RegistersNavigationByPermission;
+
     protected static ?string $model = ProgramRegistration::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-check';
@@ -45,12 +49,21 @@ class ProgramRegistrationResource extends Resource
 
     protected static ?string $pluralModelLabel = 'تسجيلات البرامج';
 
+    protected static function requiredNavigationPermissions(): array
+    {
+        return ['roles.view'];
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
             Section::make()->columns(2)->schema([
                 Select::make('training_program_id')
-                    ->relationship('trainingProgram', 'title')
+                    ->relationship(
+                        'trainingProgram',
+                        'title',
+                        modifyQueryUsing: fn (Builder $q) => $q->forFilamentAssignmentAccess(auth()->user()),
+                    )
                     ->searchable()
                     ->preload()
                     ->required()
@@ -201,7 +214,11 @@ class ProgramRegistrationResource extends Resource
                     ->options(RegistrationStatus::class),
 
                 SelectFilter::make('training_program_id')
-                    ->relationship('trainingProgram', 'title')
+                    ->relationship(
+                        'trainingProgram',
+                        'title',
+                        modifyQueryUsing: fn (Builder $q) => $q->forFilamentAssignmentAccess(auth()->user()),
+                    )
                     ->label('البرنامج')
                     ->searchable(),
             ])
@@ -373,7 +390,7 @@ class ProgramRegistrationResource extends Resource
                             return;
                         }
                         $record->loadMissing(['user', 'trainingProgram']);
-                        app(CertificateService::class)->issue($record->user, $record->trainingProgram);
+                        app(CertificateService::class)->issue($record->user, $record->trainingProgram, auth()->user());
                         Notification::make()
                             ->title('تم إصدار الشهادة بنجاح')
                             ->success()
@@ -385,6 +402,7 @@ class ProgramRegistrationResource extends Resource
                     DeleteBulkAction::make(),
                 ]),
             ])
+            ->modifyQueryUsing(fn (Builder $query) => $query->forFilamentAssignmentAccess(auth()->user()))
             ->defaultSort('created_at', 'desc');
     }
 

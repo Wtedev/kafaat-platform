@@ -17,7 +17,7 @@ RegistrationStatus::Completed->value => 'bg-blue-100 text-blue-700',
 ];
 
 $canRegister = auth()->check()
-&& auth()->user()->role_type === 'beneficiary'
+&& auth()->user()->isPortalUser()
 && $userRegistration === null
 && $trainingProgram->isRegistrationOpen();
 

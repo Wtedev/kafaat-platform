@@ -14,7 +14,7 @@ class BeneficiaryPortal
             return redirect()->route('login');
         }
 
-        if ($request->user()->role_type !== 'beneficiary') {
+        if (! $request->user()->isPortalUser()) {
             abort(403, 'Access restricted to beneficiaries.');
         }
 

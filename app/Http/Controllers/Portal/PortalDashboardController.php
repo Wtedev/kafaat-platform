@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Portal;
 
 use App\Enums\RegistrationStatus;
 use App\Http\Controllers\Controller;
+use App\Services\Inbox\InboxNotificationService;
 use App\Services\Portal\PortalDashboardComposer;
 use Illuminate\Http\Request;
 
@@ -27,6 +28,13 @@ class PortalDashboardController extends Controller
         $composed = PortalDashboardComposer::compose($user);
         $activities = $composed['activities'];
         $volunteerRows = $composed['volunteerRows'];
+        $showVolunteerTeamDashboard = $composed['showVolunteerTeamDashboard'];
+        $volunteerTeamMemberRows = $composed['volunteerTeamMemberRows'];
+        $volunteerTeamNotifications = $composed['volunteerTeamNotifications'];
+
+        $inbox = app(InboxNotificationService::class);
+        $inboxPreview = $inbox->latestForUser($user, 5);
+        $inboxUnreadCount = $inbox->unreadCount($user);
 
         return view('portal.dashboard', compact(
             'user',
@@ -36,6 +44,11 @@ class PortalDashboardController extends Controller
             'certificatesCount',
             'activities',
             'volunteerRows',
+            'showVolunteerTeamDashboard',
+            'volunteerTeamMemberRows',
+            'volunteerTeamNotifications',
+            'inboxPreview',
+            'inboxUnreadCount',
         ));
     }
 }

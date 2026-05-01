@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Enums\ProgramStatus;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Support\FilamentAssignmentVisibility;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class TrainingProgramPolicy
@@ -18,12 +19,15 @@ class TrainingProgramPolicy
 
     public function view(User $user, TrainingProgram $program): bool
     {
-        // Published programs are visible to all authenticated users
         if ($program->status === ProgramStatus::Published) {
             return true;
         }
 
-        return $user->hasPermissionTo('programs.view');
+        if (! $user->hasPermissionTo('programs.view')) {
+            return false;
+        }
+
+        return FilamentAssignmentVisibility::userManagesTrainingProgram($user, $program);
     }
 
     public function create(User $user): bool
@@ -33,21 +37,37 @@ class TrainingProgramPolicy
 
     public function update(User $user, TrainingProgram $program): bool
     {
-        return $user->hasPermissionTo('programs.update');
+        if (! $user->hasPermissionTo('programs.update')) {
+            return false;
+        }
+
+        return FilamentAssignmentVisibility::userManagesTrainingProgram($user, $program);
     }
 
     public function delete(User $user, TrainingProgram $program): bool
     {
-        return $user->hasPermissionTo('programs.delete');
+        if (! $user->hasPermissionTo('programs.delete')) {
+            return false;
+        }
+
+        return FilamentAssignmentVisibility::userManagesTrainingProgram($user, $program);
     }
 
     public function publish(User $user, TrainingProgram $program): bool
     {
-        return $user->hasPermissionTo('programs.publish');
+        if (! $user->hasPermissionTo('programs.publish')) {
+            return false;
+        }
+
+        return FilamentAssignmentVisibility::userManagesTrainingProgram($user, $program);
     }
 
     public function archive(User $user, TrainingProgram $program): bool
     {
-        return $user->hasPermissionTo('programs.archive');
+        if (! $user->hasPermissionTo('programs.archive')) {
+            return false;
+        }
+
+        return FilamentAssignmentVisibility::userManagesTrainingProgram($user, $program);
     }
 }

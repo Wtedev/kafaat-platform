@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\RegistrationStatus;
 use App\Enums\VolunteerHoursStatus;
+use App\Support\FilamentAssignmentVisibility;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -47,6 +48,11 @@ class VolunteerRegistration extends Model
     public function scopeCompleted(Builder $query): void
     {
         $query->where('status', RegistrationStatus::Completed);
+    }
+
+    public function scopeForFilamentAssignmentAccess(Builder $query, ?User $viewer): void
+    {
+        FilamentAssignmentVisibility::constrainVolunteerRegistrations($query, $viewer);
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────

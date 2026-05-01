@@ -13,6 +13,10 @@ class ViewUser extends ViewRecord
 
     protected function getHeaderActions(): array
     {
-        return [EditAction::make(), DeleteAction::make()];
+        return [
+            EditAction::make(),
+            DeleteAction::make()
+                ->hidden(fn (): bool => $this->getRecord()->isProtectedAdminUser()),
+        ];
     }
 }

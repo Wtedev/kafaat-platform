@@ -36,6 +36,40 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
     </div>
 </section>
 
+<section class="mb-8" aria-labelledby="inbox-heading">
+    <div class="mb-3 flex flex-wrap items-end justify-between gap-3">
+        <div class="text-right">
+            <h2 id="inbox-heading" class="text-base font-bold text-gray-900 sm:text-lg">التنبيهات</h2>
+            <p class="mt-0.5 text-xs text-gray-500 sm:text-sm">
+                غير مقروء: <span class="font-semibold tabular-nums" style="color:#253B5B">{{ $inboxUnreadCount }}</span>
+            </p>
+        </div>
+        <a href="{{ route('portal.notifications') }}" class="shrink-0 text-xs font-semibold underline-offset-2 hover:underline" style="color:#253B5B">عرض الكل</a>
+    </div>
+
+    @if ($inboxPreview->isEmpty())
+    <x-portal.empty-state
+        title="لا توجد تنبيهات بعد"
+        description="ستظهر هنا آخر التنبيهات المتعلقة بتسجيلاتك وشهاداتك والأخبار عند توفرها."
+    />
+    @else
+    <ul class="space-y-2 rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
+        @foreach ($inboxPreview as $n)
+        <li class="flex flex-wrap items-start justify-between gap-2 border-b border-gray-50 pb-2 last:border-0 last:pb-0">
+            <div class="min-w-0 flex-1 text-right">
+                <p class="text-xs font-medium text-gray-500">{{ $n->type->arabicLabel() }}</p>
+                <p class="mt-0.5 text-sm font-bold text-gray-900">{{ $n->title }}</p>
+                <time class="mt-1 block text-[10px] text-gray-400" datetime="{{ $n->created_at->toIso8601String() }}">{{ $n->created_at->translatedFormat('j F Y، H:i') }}</time>
+            </div>
+            @if ($n->read_at === null)
+            <span class="shrink-0 rounded-md bg-sky-50 px-1.5 py-0.5 text-[10px] font-bold text-sky-800">جديد</span>
+            @endif
+        </li>
+        @endforeach
+    </ul>
+    @endif
+</section>
+
 <section class="mb-8" aria-labelledby="programs-heading">
     <div class="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div class="text-right">
@@ -110,4 +144,67 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
     </div>
     @endif
 </section>
+
+@if ($showVolunteerTeamDashboard)
+<section class="mb-8" aria-labelledby="vol-team-heading">
+    <div class="mb-3 flex flex-wrap items-end justify-between gap-3">
+        <div class="text-right">
+            <h2 id="vol-team-heading" class="text-base font-bold text-gray-900 sm:text-lg">الفريق التطوعي</h2>
+            <p class="mt-0.5 text-xs text-gray-500 sm:text-sm">زملاؤك في الفرق النشطة التي انضممت إليها</p>
+        </div>
+    </div>
+
+    @if ($volunteerTeamMemberRows->isEmpty())
+    <x-portal.empty-state
+        title="لا يوجد فريق مرتبط بحسابك بعد"
+        description="عند إضافتك إلى فريق تطوعي من قبل الإدارة، سيظهر هنا أعضاء الفريق."
+    />
+    @else
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        @foreach ($volunteerTeamMemberRows as $m)
+        <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <p class="text-right text-sm font-bold text-gray-900">{{ $m['name'] }}</p>
+            @if (! empty($m['email']))
+            <p class="mt-1 text-right text-xs text-gray-500">{{ $m['email'] }}</p>
+            @endif
+            <p class="mt-2 text-right text-xs font-medium text-gray-600">{{ $m['team_name'] }}</p>
+        </div>
+        @endforeach
+    </div>
+    @endif
+</section>
+
+<section class="mb-4" aria-labelledby="vol-team-notif-heading">
+    <div class="mb-3 flex flex-wrap items-end justify-between gap-3">
+        <div class="text-right">
+            <h2 id="vol-team-notif-heading" class="text-base font-bold text-gray-900 sm:text-lg">تنبيهات الفريق</h2>
+            <p class="mt-0.5 text-xs text-gray-500 sm:text-sm">إعلانات منسّقي الفرق لأعضاء فريقك</p>
+        </div>
+    </div>
+
+    @if ($volunteerTeamNotifications->isEmpty())
+    <x-portal.empty-state
+        title="لا توجد تنبيهات منشورة"
+        description="عند نشر إدارة التطوع إعلاناً لفريقك، سيظهر هنا."
+    />
+    @else
+    <ul class="space-y-3">
+        @foreach ($volunteerTeamNotifications as $n)
+        <li class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <div class="flex flex-wrap items-start justify-between gap-2">
+                <h3 class="text-right text-sm font-bold text-gray-900">{{ $n['title'] }}</h3>
+                @if (! empty($n['published_at']))
+                <time class="shrink-0 text-xs text-gray-500" datetime="{{ $n['published_at']->toIso8601String() }}">{{ $n['published_at']->translatedFormat('j F Y، H:i') }}</time>
+                @endif
+            </div>
+            <p class="mt-1 text-right text-xs font-medium text-gray-500">{{ $n['team_name'] }}</p>
+            @if (! empty($n['body']))
+            <p class="mt-2 text-right text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">{{ $n['body'] }}</p>
+            @endif
+        </li>
+        @endforeach
+    </ul>
+    @endif
+</section>
+@endif
 @endsection

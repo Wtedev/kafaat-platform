@@ -19,10 +19,12 @@ class SampleDataSeeder extends Seeder
     public function run(): void
     {
         $admin = User::where('email', 'admin@example.com')->first();
+        $trainingManager = User::role('training_manager')->first();
+        $volunteeringManager = User::role('volunteering_manager')->first();
 
         $this->seedLearningPaths($admin);
-        $this->seedTrainingPrograms($admin);
-        $this->seedVolunteerOpportunities($admin);
+        $this->seedTrainingPrograms($admin, $trainingManager);
+        $this->seedVolunteerOpportunities($admin, $volunteeringManager);
     }
 
     // ─── Learning paths ───────────────────────────────────────────────────────
@@ -93,7 +95,7 @@ class SampleDataSeeder extends Seeder
 
     // ─── Training programs ────────────────────────────────────────────────────
 
-    private function seedTrainingPrograms(User $admin): void
+    private function seedTrainingPrograms(User $admin, ?User $trainingManager): void
     {
         $programs = [
             [
@@ -141,6 +143,7 @@ class SampleDataSeeder extends Seeder
                     'status' => ProgramStatus::Published,
                     'published_at' => now()->subDays(rand(5, 20)),
                     'created_by' => $admin->id,
+                    'assigned_to' => $trainingManager?->id,
                 ]
             );
         }
@@ -148,7 +151,7 @@ class SampleDataSeeder extends Seeder
 
     // ─── Volunteer opportunities ──────────────────────────────────────────────
 
-    private function seedVolunteerOpportunities(User $admin): void
+    private function seedVolunteerOpportunities(User $admin, ?User $volunteeringManager): void
     {
         $opportunities = [
             [
@@ -192,6 +195,7 @@ class SampleDataSeeder extends Seeder
                     'status' => OpportunityStatus::Published,
                     'published_at' => now()->subDays(rand(3, 15)),
                     'created_by' => $admin->id,
+                    'assigned_to' => $volunteeringManager?->id,
                 ]
             );
         }

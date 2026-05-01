@@ -3,9 +3,11 @@
 namespace App\Filament\Resources;
 
 use App\Enums\ProgramStatus;
+use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\TrainingProgramResource\Pages;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationsRelationManager;
 use App\Models\TrainingProgram;
+use App\Support\FilamentAssignmentVisibility;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -24,9 +26,12 @@ use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class TrainingProgramResource extends Resource
 {
+    use RegistersNavigationByPermission;
+
     protected static ?string $model = TrainingProgram::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
@@ -40,6 +45,11 @@ class TrainingProgramResource extends Resource
     protected static ?string $modelLabel = 'برنامج تدريبي';
 
     protected static ?string $pluralModelLabel = 'البرامج التدريبية';
+
+    protected static function requiredNavigationPermissions(): array
+    {
+        return ['programs.view'];
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -71,6 +81,16 @@ class TrainingProgramResource extends Resource
                     ->label('المسار التعليمي')
                     ->placeholder('(مستقل — لا ينتمي لمسار)')
                     ->helperText('اختياري: ربط هذا البرنامج بمسار تعليمي'),
+
+                Select::make('assigned_to')
+                    ->label('المسؤول عن البرنامج')
+                    ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $q) => $q->role('training_manager'))
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
+                    ->required(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
+                    ->dehydrated(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
+                    ->helperText('يحدد مدير التدريب الذي يدير هذا البرنامج في لوحة الإدارة.'),
 
                 Textarea::make('description')
                     ->label('الوصف')
@@ -128,6 +148,11 @@ class TrainingProgramResource extends Resource
                     ->label('العنوان')
                     ->searchable()
                     ->sortable(),
+
+                TextColumn::make('assignee.name')
+                    ->label('المسؤول')
+                    ->toggleable()
+                    ->searchable(),
 
                 BadgeColumn::make('status')
                     ->label('الحالة')
@@ -191,6 +216,7 @@ class TrainingProgramResource extends Resource
                     DeleteBulkAction::make(),
                 ]),
             ])
+            ->modifyQueryUsing(fn (Builder $query) => $query->forFilamentAssignmentAccess(auth()->user()))
             ->defaultSort('created_at', 'desc');
     }
 
