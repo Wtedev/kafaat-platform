@@ -28,7 +28,11 @@ $alreadyRegistered = $userRegistration !== null;
 @section('content')
 
 <div class="mb-4">
-    <a href="{{ route('public.paths.index') }}" class="text-sm text-indigo-600 hover:underline">← المسارات التعليمية</a>
+    <a href="{{ route('public.paths.index') }}" class="inline-flex items-center gap-1.5 text-sm font-medium hover:opacity-70 transition-opacity" style="color:#253B5B">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+        المسارات التدريبية
+    </a>
 </div>
 
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 mb-6">
@@ -48,7 +52,7 @@ $alreadyRegistered = $userRegistration !== null;
     <ol class="space-y-2">
         @foreach ($learningPath->courses as $i => $course)
         <li class="flex items-center gap-3 text-sm text-gray-700">
-            <span class="flex-none w-7 h-7 rounded-full bg-indigo-50 text-indigo-600 font-bold text-xs flex items-center justify-center">
+            <span class="flex-none w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center" style="background:#EAF2FA; color:#253B5B">
                 {{ $i + 1 }}
             </span>
             {{ $course->title }}
@@ -71,12 +75,14 @@ $alreadyRegistered = $userRegistration !== null;
     @elseif ($canRegister)
     <form method="POST" action="{{ route('public.paths.register', $learningPath->slug) }}">
         @csrf
-        <button type="submit" class="px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition shadow-sm">
-            سجّل الآن
+        <button type="submit" class="px-6 py-3 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md
+                       transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
+            سجّل في المسار
         </button>
     </form>
     @elseif (! auth()->check())
-    <a href="{{ route('login') }}" class="inline-block px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition shadow-sm">
+    <a href="{{ route('login') }}" class="inline-block px-6 py-3 rounded-2xl text-sm font-semibold text-white shadow-sm
+              hover:shadow-md transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
         سجّل الدخول للتسجيل
     </a>
     @else

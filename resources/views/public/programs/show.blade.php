@@ -29,7 +29,11 @@ $alreadyRegistered = $userRegistration !== null;
 @section('content')
 
 <div class="mb-4">
-    <a href="{{ route('public.programs.index') }}" class="text-sm text-indigo-600 hover:underline">← البرامج التدريبية</a>
+    <a href="{{ route('public.programs.index') }}" class="inline-flex items-center gap-1.5 text-sm font-medium hover:opacity-70 transition-opacity" style="color:#253B5B">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+        البرامج التدريبية
+    </a>
 </div>
 
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 mb-6">
@@ -71,12 +75,14 @@ $alreadyRegistered = $userRegistration !== null;
     @elseif ($canRegister)
     <form method="POST" action="{{ route('public.programs.register', $trainingProgram->slug) }}">
         @csrf
-        <button type="submit" class="px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition shadow-sm">
-            سجّل الآن
+        <button type="submit" class="px-6 py-3 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md
+                       transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
+            سجّل في البرنامج
         </button>
     </form>
     @elseif (! auth()->check())
-    <a href="{{ route('login') }}" class="inline-block px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition shadow-sm">
+    <a href="{{ route('login') }}" class="inline-block px-6 py-3 rounded-2xl text-sm font-semibold text-white shadow-sm
+              hover:shadow-md transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
         سجّل الدخول للتسجيل
     </a>
     @else

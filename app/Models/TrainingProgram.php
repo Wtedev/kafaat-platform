@@ -18,6 +18,7 @@ class TrainingProgram extends Model
         'title',
         'slug',
         'description',
+        'image',
         'capacity',
         'start_date',
         'end_date',

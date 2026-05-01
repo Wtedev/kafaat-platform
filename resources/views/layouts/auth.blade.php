@@ -17,6 +17,7 @@
                 }
             }
         }
+
     </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -24,16 +25,23 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet" />
 
     <style>
-        *, *::before, *::after { font-family: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif; }
-        button:focus-visible, a:focus-visible, input:focus-visible {
+        *,
+        *::before,
+        *::after {
+            font-family: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif;
+        }
+
+        button:focus-visible,
+        a:focus-visible,
+        input:focus-visible {
             outline: 2px solid #253B5B;
             outline-offset: 3px;
             border-radius: 8px;
         }
+
     </style>
 </head>
-<body class="min-h-screen antialiased flex items-center justify-center py-12 px-4"
-      style="background: linear-gradient(150deg, #EEF5FB 0%, #F3F7FB 55%, #EAF2FA 100%)">
+<body class="min-h-screen antialiased flex items-center justify-center py-12 px-4" style="background: linear-gradient(150deg, #EEF5FB 0%, #F3F7FB 55%, #EAF2FA 100%)">
 
     <div class="w-full max-w-md">
 

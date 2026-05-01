@@ -39,6 +39,7 @@ Route::post('/logout', LogoutController::class)->middleware('auth')->name('logou
 // ─── Public website ───────────────────────────────────────────────────────────
 
 Route::get('/', HomeController::class)->name('home');
+Route::view('/impact', 'public.impact')->name('impact.index');
 
 // Certificate verification (public, no auth required)
 Route::get('/certificates/verify/{code}', CertificateVerificationController::class)->name('certificates.verify');

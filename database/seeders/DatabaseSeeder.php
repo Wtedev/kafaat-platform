@@ -80,6 +80,7 @@ class DatabaseSeeder extends Seeder
 
         // ─── Sample content + registrations ──────────────────────────────────
         $this->call([
+            TrainingProgramSeeder::class,
             SampleDataSeeder::class,
             RegistrationsSeeder::class,
         ]);

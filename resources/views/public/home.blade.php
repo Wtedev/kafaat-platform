@@ -88,9 +88,10 @@
         .reveal-fade {
             opacity: 0;
             transform: translateY(28px);
-            transition: opacity 0.7s cubic-bezier(.22,1,.36,1),
-                        transform 0.7s cubic-bezier(.22,1,.36,1);
+            transition: opacity 0.7s cubic-bezier(.22, 1, .36, 1),
+                transform 0.7s cubic-bezier(.22, 1, .36, 1);
         }
+
         .reveal-fade.visible {
             opacity: 1;
             transform: translateY(0);
@@ -98,12 +99,13 @@
 
         /* ── Impact pillar card hover ───────────────────────────────────── */
         .impact-pillar-card {
-            transition: transform 0.35s cubic-bezier(.22,1,.36,1),
-                        box-shadow 0.35s cubic-bezier(.22,1,.36,1);
+            transition: transform 0.35s cubic-bezier(.22, 1, .36, 1),
+                box-shadow 0.35s cubic-bezier(.22, 1, .36, 1);
         }
+
         .impact-pillar-card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 24px 48px rgba(0,0,0,0.10);
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.10);
         }
 
         /* ── Gradient text cross-browser ───────────────────────────────── */
@@ -440,46 +442,64 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    @forelse ($programs as $program)
-                    <a href="{{ route('public.programs.show', $program->slug) }}" class="group bg-white rounded-3xl border border-gray-50 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 p-6 block text-right">
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-xl text-green-700 bg-green-100">
-                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>مفتوح
-                            </span>
-                            <span class="text-xs font-medium px-3 py-1.5 rounded-xl" style="background:#EAF2FA; color:#253B5B">برنامج تدريبي</span>
+                    @php
+                    $programGradients = [
+                        'linear-gradient(135deg,#1EB890 0%,#0ea5e9 100%)',
+                        'linear-gradient(135deg,#253B5B 0%,#3B82F6 100%)',
+                        'linear-gradient(135deg,#8B5CF6 0%,#3B82F6 100%)',
+                        'linear-gradient(135deg,#F59E0B 0%,#EF4444 100%)',
+                        'linear-gradient(135deg,#1EB890 0%,#8B5CF6 100%)',
+                        'linear-gradient(135deg,#253B5B 0%,#1EB890 100%)',
+                    ];
+                    @endphp
+                    @forelse ($programs as $index => $program)
+                    <a href="{{ route('public.programs.show', $program->slug) }}"
+                       class="group bg-white rounded-3xl border border-gray-50 shadow-sm hover:shadow-lg
+                              transition-all duration-300 hover:-translate-y-1 block text-right overflow-hidden">
+
+                        {{-- Image or gradient header --}}
+                        @if ($program->image)
+                        <img src="{{ asset('storage/' . $program->image) }}"
+                             alt="{{ $program->title }}"
+                             class="w-full h-28 object-cover">
+                        @else
+                        <div class="h-28 w-full flex items-end p-4"
+                             style="background:{{ $programGradients[$index % 6] }}">
+                            <span class="text-white text-lg font-black leading-tight opacity-90">{{ $program->title }}</span>
                         </div>
-                        <h3 class="font-bold text-base mb-2 clamp-2 group-hover:text-[#253B5B] transition-colors" style="color:#111827">{{ $program->title }}</h3>
-                        <p class="text-sm clamp-2 mb-4" style="color:#6B7280">{{ $program->description }}</p>
-                        <div class="flex items-center justify-between text-xs border-t border-gray-50 pt-4" style="color:#6B7280">
-                            @if($program->start_date)
-                            <span class="flex items-center gap-1">
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                {{ $program->start_date->format('Y/m/d') }}
-                            </span>
+                        @endif
+
+                        <div class="p-6">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-xl text-green-700 bg-green-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>مفتوح
+                                </span>
+                                <span class="text-xs font-medium px-3 py-1.5 rounded-xl" style="background:#EAF2FA; color:#253B5B">برنامج تدريبي</span>
+                            </div>
+                            @if (!$program->image)
+                            <p class="text-sm clamp-2 mb-4" style="color:#6B7280">{{ $program->description }}</p>
+                            @else
+                            <h3 class="font-bold text-base mb-2 clamp-1 group-hover:text-[#253B5B] transition-colors" style="color:#111827">{{ $program->title }}</h3>
+                            <p class="text-sm clamp-2 mb-4" style="color:#6B7280">{{ $program->description }}</p>
                             @endif
-                            <span class="font-semibold" style="color:#3CB878">سجّل الآن ←</span>
+                            <div class="flex items-center justify-between text-xs border-t border-gray-50 pt-4" style="color:#6B7280">
+                                @if($program->start_date)
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                    {{ $program->start_date->format('Y/m/d') }}
+                                </span>
+                                @else
+                                <span></span>
+                                @endif
+                                <span class="font-semibold" style="color:#3CB878">سجّل الآن ←</span>
+                            </div>
                         </div>
                     </a>
                     @empty
-                    @foreach([
-                    ['t' => 'مهارات التواصل الفعّال', 'd' => 'طوّر مهاراتك في التواصل والعرض والتقديم لتنجح في بيئة العمل الحديثة.', 'dt' => '٢٠٢٦/٦/١'],
-                    ['t' => 'أساسيات ريادة الأعمال', 'd' => 'دورة شاملة تأخذك من الفكرة إلى المشروع الناجح عبر مراحل عملية متدرجة.', 'dt' => '٢٠٢٦/٦/١٥'],
-                    ['t' => 'القيادة وإدارة الفرق', 'd' => 'تعلّم مهارات القيادة وبناء الفرق وإدارة الأداء في المنظمات الحديثة.', 'dt' => '٢٠٢٦/٧/١'],
-                    ] as $s)
-                    <div class="bg-white rounded-3xl border border-gray-50 shadow-sm p-6 text-right">
-                        <div class="flex items-center justify-between mb-4">
-                            <span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-xl text-green-700 bg-green-100"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>مفتوح</span>
-                            <span class="text-xs font-medium px-3 py-1.5 rounded-xl" style="background:#EAF2FA; color:#253B5B">برنامج تدريبي</span>
-                        </div>
-                        <h3 class="font-bold text-base mb-2" style="color:#111827">{{ $s['t'] }}</h3>
-                        <p class="text-sm clamp-2 mb-4" style="color:#6B7280">{{ $s['d'] }}</p>
-                        <div class="flex items-center justify-between text-xs border-t border-gray-50 pt-4" style="color:#6B7280">
-                            <span>📅 {{ $s['dt'] }}</span>
-                            <span class="font-semibold" style="color:#3CB878">سجّل الآن ←</span>
-                        </div>
+                    <div class="col-span-3 py-12 text-center rounded-3xl border border-dashed border-gray-200 bg-white" style="color:#6B7280">
+                        لا توجد برامج منشورة حالياً.
                     </div>
-                    @endforeach
                     @endforelse
                 </div>
             </div>
@@ -614,33 +634,30 @@
     <section id="impact-year">
 
         {{-- ─── Hero Block ────────────────────────────────────────────────── --}}
-        <div class="relative overflow-hidden"
-             style="background: linear-gradient(135deg, #0D1F2D 0%, #0a3550 40%, #063d30 100%)">
+        <div class="relative overflow-hidden" style="background: linear-gradient(135deg, #0D1F2D 0%, #0a3550 40%, #063d30 100%)">
 
             {{-- Decorative abstract shapes (Saudi geometric identity) --}}
             <div class="absolute inset-0 overflow-hidden pointer-events-none">
-                <div class="absolute top-0 right-0 w-[700px] h-[700px] rounded-full"
-                     style="background: radial-gradient(circle, rgba(30,184,144,0.12) 0%, transparent 65%);
+                <div class="absolute top-0 right-0 w-[700px] h-[700px] rounded-full" style="background: radial-gradient(circle, rgba(30,184,144,0.12) 0%, transparent 65%);
                             transform: translate(30%, -30%)"></div>
-                <div class="absolute bottom-0 left-0 w-[600px] h-[600px] rounded-full"
-                     style="background: radial-gradient(circle, rgba(59,130,246,0.10) 0%, transparent 65%);
+                <div class="absolute bottom-0 left-0 w-[600px] h-[600px] rounded-full" style="background: radial-gradient(circle, rgba(59,130,246,0.10) 0%, transparent 65%);
                             transform: translate(-30%, 30%)"></div>
                 <svg class="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <pattern id="impact-grid" width="60" height="60" patternUnits="userSpaceOnUse">
-                            <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+                            <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
                         </pattern>
                     </defs>
-                    <rect width="100%" height="100%" fill="url(#impact-grid)"/>
+                    <rect width="100%" height="100%" fill="url(#impact-grid)" />
                 </svg>
                 <svg class="absolute top-12 left-16 opacity-[0.07]" width="110" height="127" viewBox="0 0 120 138">
-                    <polygon points="60,0 120,34.5 120,103.5 60,138 0,103.5 0,34.5" fill="none" stroke="#1EB890" stroke-width="1.5"/>
+                    <polygon points="60,0 120,34.5 120,103.5 60,138 0,103.5 0,34.5" fill="none" stroke="#1EB890" stroke-width="1.5" />
                 </svg>
                 <svg class="absolute top-24 left-28 opacity-[0.04]" width="68" height="79" viewBox="0 0 120 138">
-                    <polygon points="60,0 120,34.5 120,103.5 60,138 0,103.5 0,34.5" fill="none" stroke="#1EB890" stroke-width="1.5"/>
+                    <polygon points="60,0 120,34.5 120,103.5 60,138 0,103.5 0,34.5" fill="none" stroke="#1EB890" stroke-width="1.5" />
                 </svg>
                 <svg class="absolute bottom-16 right-24 opacity-[0.05]" width="90" height="104" viewBox="0 0 120 138">
-                    <polygon points="60,0 120,34.5 120,103.5 60,138 0,103.5 0,34.5" fill="none" stroke="#60A5FA" stroke-width="1.5"/>
+                    <polygon points="60,0 120,34.5 120,103.5 60,138 0,103.5 0,34.5" fill="none" stroke="#60A5FA" stroke-width="1.5" />
                 </svg>
             </div>
 
@@ -648,16 +665,13 @@
             <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 text-center">
 
                 {{-- Pill label --}}
-                <div class="reveal-fade inline-flex items-center gap-2.5 px-5 py-2 rounded-2xl border mb-8"
-                     style="background:rgba(30,184,144,0.12); border-color:rgba(30,184,144,0.30); color:#1EB890">
-                    <span class="w-2 h-2 rounded-full flex-shrink-0"
-                          style="background:#1EB890; animation:pulse 2s infinite"></span>
+                <div class="reveal-fade inline-flex items-center gap-2.5 px-5 py-2 rounded-2xl border mb-8" style="background:rgba(30,184,144,0.12); border-color:rgba(30,184,144,0.30); color:#1EB890">
+                    <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#1EB890; animation:pulse 2s infinite"></span>
                     <span class="text-sm font-semibold tracking-wide">المبادرة الاستراتيجية ٢٠٢٦</span>
                 </div>
 
                 {{-- Main title --}}
-                <h2 class="reveal-fade font-black leading-none tracking-tight text-white mb-5"
-                    style="font-size:clamp(4rem,12vw,8rem); transition-delay:0.08s">
+                <h2 class="reveal-fade font-black leading-none tracking-tight text-white mb-5" style="font-size:clamp(4rem,12vw,8rem); transition-delay:0.08s">
                     عام
                     <span style="background: linear-gradient(135deg, #1EB890 0%, #60A5FA 100%);
                                  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -665,32 +679,26 @@
                 </h2>
 
                 {{-- Sub-headline --}}
-                <p class="reveal-fade text-2xl sm:text-3xl font-light mb-6 max-w-2xl mx-auto leading-relaxed"
-                   style="color:rgba(255,255,255,0.75); transition-delay:0.16s">
+                <p class="reveal-fade text-2xl sm:text-3xl font-light mb-6 max-w-2xl mx-auto leading-relaxed" style="color:rgba(255,255,255,0.75); transition-delay:0.16s">
                     نقيس ما نصنعه… ونبني أثراً مستداماً
                 </p>
 
                 {{-- Transformation pillars --}}
-                <div class="reveal-fade flex flex-col sm:flex-row items-center justify-center gap-3 mb-12 text-sm"
-                     style="color:rgba(255,255,255,0.45); transition-delay:0.24s">
+                <div class="reveal-fade flex flex-col sm:flex-row items-center justify-center gap-3 mb-12 text-sm" style="color:rgba(255,255,255,0.45); transition-delay:0.24s">
                     <span>من تنفيذ المبادرات إلى استدامة نتائجها</span>
-                    <span class="hidden sm:block w-1.5 h-1.5 rounded-full flex-shrink-0"
-                          style="background:rgba(255,255,255,0.2)"></span>
+                    <span class="hidden sm:block w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:rgba(255,255,255,0.2)"></span>
                     <span>من قياس الجهد إلى قياس الأثر الحقيقي</span>
-                    <span class="hidden sm:block w-1.5 h-1.5 rounded-full flex-shrink-0"
-                          style="background:rgba(255,255,255,0.2)"></span>
+                    <span class="hidden sm:block w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:rgba(255,255,255,0.2)"></span>
                     <span>من أنشطة متفرقة إلى منظومة متكاملة</span>
                 </div>
 
                 {{-- CTA --}}
                 <div class="reveal-fade" style="transition-delay:0.32s">
-                    <a href="{{ route('public.programs.index') }}"
-                       class="inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-white
-                              text-base shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-                       style="background: linear-gradient(135deg, #1EB890 0%, #0ea5e9 100%)">
+                    <a href="{{ route('public.programs.index') }}" class="inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-white
+                              text-base shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl" style="background: linear-gradient(135deg, #1EB890 0%, #0ea5e9 100%)">
                         استكشف أثر كفاءات
                         <svg class="w-5 h-5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </a>
                 </div>
@@ -710,65 +718,65 @@
 
                 @php
                 $impactPillars = [
-                    [
-                        'icon'  => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>',
-                        'title' => 'أثر الإنسان',
-                        'desc'  => 'تطوير القدرات البشرية وتحويلها إلى نتائج حقيقية موثّقة وقابلة للقياس.',
-                        'color' => '#1EB890',
-                        'glow'  => 'rgba(30,184,144,0.10)',
-                        'ring'  => 'rgba(30,184,144,0.22)',
-                        'delay' => '0s',
-                    ],
-                    [
-                        'icon'  => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>',
-                        'title' => 'أثر المبادرات',
-                        'desc'  => 'تحويل المبادرات من فعاليات مؤقتة إلى قيمة مستدامة قابلة للقياس والتوسع.',
-                        'color' => '#3B82F6',
-                        'glow'  => 'rgba(59,130,246,0.10)',
-                        'ring'  => 'rgba(59,130,246,0.22)',
-                        'delay' => '0.1s',
-                    ],
-                    [
-                        'icon'  => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>',
-                        'title' => 'أثر الأداء',
-                        'desc'  => 'رفع الكفاءة التشغيلية وجودة التنفيذ نحو أداء مؤسسي متميز ومستدام.',
-                        'color' => '#8B5CF6',
-                        'glow'  => 'rgba(139,92,246,0.10)',
-                        'ring'  => 'rgba(139,92,246,0.22)',
-                        'delay' => '0.2s',
-                    ],
-                    [
-                        'icon'  => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>',
-                        'title' => 'أثر المنظمة',
-                        'desc'  => 'بناء منظمة راسخة قائمة على الحوكمة والشفافية والاستدامة المؤسسية.',
-                        'color' => '#F59E0B',
-                        'glow'  => 'rgba(245,158,11,0.10)',
-                        'ring'  => 'rgba(245,158,11,0.22)',
-                        'delay' => '0.3s',
-                    ],
+                [
+                'icon' => '
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />',
+                'title' => 'أثر الإنسان',
+                'desc' => 'تطوير القدرات البشرية وتحويلها إلى نتائج حقيقية موثّقة وقابلة للقياس.',
+                'color' => '#1EB890',
+                'glow' => 'rgba(30,184,144,0.10)',
+                'ring' => 'rgba(30,184,144,0.22)',
+                'delay' => '0s',
+                ],
+                [
+                'icon' => '
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />',
+                'title' => 'أثر المبادرات',
+                'desc' => 'تحويل المبادرات من فعاليات مؤقتة إلى قيمة مستدامة قابلة للقياس والتوسع.',
+                'color' => '#3B82F6',
+                'glow' => 'rgba(59,130,246,0.10)',
+                'ring' => 'rgba(59,130,246,0.22)',
+                'delay' => '0.1s',
+                ],
+                [
+                'icon' => '
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />',
+                'title' => 'أثر الأداء',
+                'desc' => 'رفع الكفاءة التشغيلية وجودة التنفيذ نحو أداء مؤسسي متميز ومستدام.',
+                'color' => '#8B5CF6',
+                'glow' => 'rgba(139,92,246,0.10)',
+                'ring' => 'rgba(139,92,246,0.22)',
+                'delay' => '0.2s',
+                ],
+                [
+                'icon' => '
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />',
+                'title' => 'أثر المنظمة',
+                'desc' => 'بناء منظمة راسخة قائمة على الحوكمة والشفافية والاستدامة المؤسسية.',
+                'color' => '#F59E0B',
+                'glow' => 'rgba(245,158,11,0.10)',
+                'ring' => 'rgba(245,158,11,0.22)',
+                'delay' => '0.3s',
+                ],
                 ];
                 @endphp
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     @foreach($impactPillars as $pillar)
                     <div class="impact-pillar-card reveal-fade group relative bg-white rounded-3xl p-8 text-right
-                                border border-gray-100 shadow-sm overflow-hidden cursor-default"
-                         style="transition-delay:{{ $pillar['delay'] }}">
+                                border border-gray-100 shadow-sm overflow-hidden cursor-default" style="transition-delay:{{ $pillar['delay'] }}">
 
                         {{-- Radial glow overlay (hover) --}}
                         <div class="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100
-                                    transition-opacity duration-500 pointer-events-none"
-                             style="background: radial-gradient(ellipse at 50% -10%, {{ $pillar['glow'] }}, transparent 70%)"></div>
+                                    transition-opacity duration-500 pointer-events-none" style="background: radial-gradient(ellipse at 50% -10%, {{ $pillar['glow'] }}, transparent 70%)"></div>
 
                         {{-- Bottom accent line (hover) --}}
                         <div class="absolute bottom-0 right-0 left-0 h-[3px] rounded-b-3xl
-                                    opacity-0 group-hover:opacity-100 transition-opacity duration-400"
-                             style="background: linear-gradient(to left, {{ $pillar['color'] }}, transparent)"></div>
+                                    opacity-0 group-hover:opacity-100 transition-opacity duration-400" style="background: linear-gradient(to left, {{ $pillar['color'] }}, transparent)"></div>
 
                         {{-- Icon --}}
                         <div class="relative w-14 h-14 rounded-2xl flex items-center justify-center mb-6
-                                    transition-transform duration-300 group-hover:scale-110"
-                             style="background:{{ $pillar['glow'] }}; box-shadow: 0 0 0 1px {{ $pillar['ring'] }}">
+                                    transition-transform duration-300 group-hover:scale-110" style="background:{{ $pillar['glow'] }}; box-shadow: 0 0 0 1px {{ $pillar['ring'] }}">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="{{ $pillar['color'] }}">
                                 {!! $pillar['icon'] !!}
                             </svg>
@@ -797,18 +805,15 @@
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <div class="reveal-fade relative">
                     {{-- Oversized decorative quote mark --}}
-                    <div class="absolute inset-0 flex items-start justify-center select-none pointer-events-none"
-                         aria-hidden="true">
-                        <span class="text-[12rem] leading-none font-black"
-                              style="color:rgba(30,184,144,0.05); line-height:0.7">"</span>
+                    <div class="absolute inset-0 flex items-start justify-center select-none pointer-events-none" aria-hidden="true">
+                        <span class="text-[12rem] leading-none font-black" style="color:rgba(30,184,144,0.05); line-height:0.7">"</span>
                     </div>
                     {{-- Quote --}}
                     <p class="relative text-3xl sm:text-4xl lg:text-5xl font-bold leading-snug gradient-text">
                         معاً… نصنع أثراً يُقاس، ويُبنى، ويستمر
                     </p>
                     {{-- Divider --}}
-                    <div class="mt-8 w-20 h-1 rounded-full mx-auto"
-                         style="background: linear-gradient(to left, #1EB890, #3B82F6)"></div>
+                    <div class="mt-8 w-20 h-1 rounded-full mx-auto" style="background: linear-gradient(to left, #1EB890, #3B82F6)"></div>
                 </div>
             </div>
         </div>
@@ -828,13 +833,11 @@
                         <p class="leading-loose mb-8" style="color:#6B7280">
                             عام الأثر هو الترجمة التنفيذية للخطة الاستراتيجية للجمعية، ينقل المنظومة من منطق الأنشطة إلى منطق النتائج، ومن قياس الجهد إلى قياس التغيير الحقيقي في حياة المستفيدين.
                         </p>
-                        <a href="{{ route('public.programs.index') }}"
-                           class="inline-flex items-center gap-2 text-sm font-semibold transition-all duration-200
-                                  hover:gap-3 hover:opacity-80"
-                           style="color:#1EB890">
+                        <a href="{{ route('public.programs.index') }}" class="inline-flex items-center gap-2 text-sm font-semibold transition-all duration-200
+                                  hover:gap-3 hover:opacity-80" style="color:#1EB890">
                             تعرّف على برامجنا الاستراتيجية
                             <svg class="w-4 h-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                             </svg>
                         </a>
                     </div>
@@ -843,18 +846,17 @@
                     <div class="w-full lg:w-1/2 reveal-fade" style="transition-delay:0.15s">
                         @php
                         $stratPillars = [
-                            ['icon' => '📈', 'label' => 'تعظيم الأثر التنموي',    'bg' => 'rgba(30,184,144,0.08)'],
-                            ['icon' => '💻', 'label' => 'التحول الرقمي',          'bg' => 'rgba(59,130,246,0.08)'],
-                            ['icon' => '♻️', 'label' => 'الاستدامة المالية',      'bg' => 'rgba(139,92,246,0.08)'],
-                            ['icon' => '🧠', 'label' => 'تطوير رأس المال البشري', 'bg' => 'rgba(245,158,11,0.08)'],
+                        ['icon' => '📈', 'label' => 'تعظيم الأثر التنموي', 'bg' => 'rgba(30,184,144,0.08)'],
+                        ['icon' => '💻', 'label' => 'التحول الرقمي', 'bg' => 'rgba(59,130,246,0.08)'],
+                        ['icon' => '♻️', 'label' => 'الاستدامة المالية', 'bg' => 'rgba(139,92,246,0.08)'],
+                        ['icon' => '🧠', 'label' => 'تطوير رأس المال البشري', 'bg' => 'rgba(245,158,11,0.08)'],
                         ];
                         @endphp
                         <div class="grid grid-cols-2 gap-4">
                             @foreach($stratPillars as $sp)
                             <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm text-right
                                         hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-3 ms-auto"
-                                     style="background:{{ $sp['bg'] }}">{{ $sp['icon'] }}</div>
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-3 ms-auto" style="background:{{ $sp['bg'] }}">{{ $sp['icon'] }}</div>
                                 <p class="text-sm font-semibold" style="color:#111827">{{ $sp['label'] }}</p>
                             </div>
                             @endforeach
@@ -983,73 +985,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 11. FOOTER                                                          --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <footer style="background:#111827" class="text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-
-                {{-- Brand --}}
-                <div class="text-right lg:col-span-1">
-                    <a href="{{ route('home') }}" class="text-2xl font-bold text-white inline-block mb-4">كفاءات</a>
-                    <p class="text-gray-400 text-sm leading-relaxed mb-6">
-                        منصة تدريب وتطوع متكاملة تسعى إلى بناء قدرات الشباب وتمكينهم من التميز في مساراتهم المهنية.
-                    </p>
-                    <div class="flex items-center gap-3 justify-end">
-                        @foreach(['𝕏', 'in', 'f', '▶'] as $s)
-                        <a href="#" class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-sm text-gray-300 hover:bg-white/20 transition-colors" aria-label="social">{{ $s }}</a>
-                        @endforeach
-                    </div>
-                </div>
-
-                {{-- Quick Links --}}
-                <div class="text-right">
-                    <h4 class="font-bold text-white mb-5 text-sm uppercase tracking-wider">روابط سريعة</h4>
-                    <ul class="space-y-3">
-                        @foreach([
-                        ['الرئيسية', 'home'],
-                        ['المسارات التدريبية', 'public.paths.index'],
-                        ['البرامج التدريبية', 'public.programs.index'],
-                        ['الفرص التطوعية', 'public.volunteering.index'],
-                        ] as [$label, $routeName])
-                        <li><a href="{{ route($routeName) }}" class="text-gray-400 hover:text-white text-sm transition-colors">{{ $label }}</a></li>
-                        @endforeach
-                    </ul>
-                </div>
-
-                {{-- Platform --}}
-                <div class="text-right">
-                    <h4 class="font-bold text-white mb-5 text-sm uppercase tracking-wider">المنصة</h4>
-                    <ul class="space-y-3">
-                        <li><a href="{{ route('login') }}" class="text-gray-400 hover:text-white text-sm transition-colors">تسجيل الدخول</a></li>
-                        <li><a href="{{ route('register') }}" class="text-gray-400 hover:text-white text-sm transition-colors">إنشاء حساب</a></li>
-                        <li><a href="#faq" class="text-gray-400 hover:text-white text-sm transition-colors">الأسئلة الشائعة</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">سياسة الخصوصية</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">الشروط والأحكام</a></li>
-                    </ul>
-                </div>
-
-                {{-- Contact --}}
-                <div class="text-right">
-                    <h4 class="font-bold text-white mb-5 text-sm uppercase tracking-wider">تواصل معنا</h4>
-                    <ul class="space-y-3 text-sm text-gray-400">
-                        <li class="flex items-center gap-2 justify-end"><span>info@kafaat.com</span><span class="text-gray-500 flex-shrink-0">✉️</span></li>
-                        <li class="flex items-center gap-2 justify-end"><span>+966 5X XXX XXXX</span><span class="text-gray-500 flex-shrink-0">📞</span></li>
-                        <li class="flex items-center gap-2 justify-end"><span>المملكة العربية السعودية</span><span class="text-gray-500 flex-shrink-0">📍</span></li>
-                    </ul>
-                </div>
-
-            </div>
-
-            {{-- Divider + Copyright --}}
-            <div class="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-500">
-                <p>© {{ date('Y') }} كفاءات. جميع الحقوق محفوظة.</p>
-                <div class="flex items-center gap-5">
-                    <a href="#" class="hover:text-gray-300 transition-colors">سياسة الخصوصية</a>
-                    <a href="#" class="hover:text-gray-300 transition-colors">الشروط والأحكام</a>
-                </div>
-            </div>
-
-        </div>
-    </footer>
+    <x-public-footer />
 
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
@@ -1078,16 +1014,18 @@
         }
 
         // ── Scroll reveal (IntersectionObserver) ───────────────────────
-        (function () {
-            var io = new IntersectionObserver(function (entries) {
-                entries.forEach(function (entry) {
+        (function() {
+            var io = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('visible');
                         io.unobserve(entry.target);
                     }
                 });
-            }, { threshold: 0.12 });
-            document.querySelectorAll('.reveal-fade').forEach(function (el) {
+            }, {
+                threshold: 0.12
+            });
+            document.querySelectorAll('.reveal-fade').forEach(function(el) {
                 io.observe(el);
             });
         })();
