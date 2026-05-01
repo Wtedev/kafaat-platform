@@ -33,12 +33,12 @@ class News extends Model
             if (empty($news->slug)) {
                 $base = Str::slug($news->title);
                 if (empty($base)) {
-                    $base = 'news-' . Str::random(6);
+                    $base = 'news-'.Str::random(6);
                 }
                 $slug = $base;
-                $i    = 1;
+                $i = 1;
                 while (static::where('slug', $slug)->exists()) {
-                    $slug = $base . '-' . $i++;
+                    $slug = $base.'-'.$i++;
                 }
                 $news->slug = $slug;
             }
@@ -50,6 +50,17 @@ class News extends Model
     public function scopePublished(Builder $query): void
     {
         $query->whereNotNull('published_at')
-              ->where('published_at', '<=', now());
+            ->where('published_at', '<=', now());
+    }
+
+    public function scopeDraft(Builder $query): void
+    {
+        $query->whereNull('published_at');
+    }
+
+    public function scopeScheduled(Builder $query): void
+    {
+        $query->whereNotNull('published_at')
+            ->where('published_at', '>', now());
     }
 }
