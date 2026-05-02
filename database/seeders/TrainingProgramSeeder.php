@@ -3,106 +3,163 @@
 namespace Database\Seeders;
 
 use App\Enums\ProgramStatus;
+use App\Enums\TrainingProgramKind;
+use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class TrainingProgramSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::where('email', 'admin@example.com')->first()
-            ?? User::where('email', 'admin@kafaat.test')->first();
+        $owner = User::query()->where('email', 'lama.almeshiqeh@kafaat.org.sa')->first()
+            ?? User::role('admin')->orderBy('id')->first();
 
-        $trainingManager = User::role('training_manager')->first();
+        $trainingManager = User::query()->where('email', 'amna.albatti@kafaat.org.sa')->first();
 
-        $programs = [
-            [
-                'title' => 'سند',
-                'description' => 'تعزيز كفاءة المورد البشري من خلال برنامج تدريبي متكامل يُطوّر المهارات المهنية والقدرات الوظيفية للمستفيدين.',
-                'capacity' => 30,
-                'start_date' => Carbon::parse('2026-07-01'),
-                'end_date' => Carbon::parse('2026-08-30'),
-                'registration_start' => Carbon::parse('2026-05-15'),
-                'registration_end' => Carbon::parse('2026-06-25'),
-            ],
-            [
-                'title' => 'زارع',
-                'description' => 'بناء الكفاءات في القطاع الزراعي وتطوير مهارات المشاركين في مجال الزراعة المستدامة وإدارة الموارد الطبيعية.',
-                'capacity' => 25,
-                'start_date' => Carbon::parse('2026-07-15'),
-                'end_date' => Carbon::parse('2026-09-15'),
-                'registration_start' => Carbon::parse('2026-05-20'),
-                'registration_end' => Carbon::parse('2026-07-05'),
-            ],
-            [
-                'title' => 'قادة',
-                'description' => 'تطوير القيادات الشبابية وصقل مهارات الإدارة والقيادة الفعّالة لتأهيل جيل قادر على قيادة التغيير.',
-                'capacity' => 20,
-                'start_date' => Carbon::parse('2026-08-01'),
-                'end_date' => Carbon::parse('2026-09-30'),
-                'registration_start' => Carbon::parse('2026-06-01'),
-                'registration_end' => Carbon::parse('2026-07-20'),
-            ],
-            [
-                'title' => 'ساعد',
-                'description' => 'تمكين مدراء المشاريع من أدوات ومنهجيات إدارة المشاريع الاحترافية لتحقيق نتائج قابلة للقياس والاستدامة.',
-                'capacity' => 25,
-                'start_date' => Carbon::parse('2026-08-15'),
-                'end_date' => Carbon::parse('2026-10-15'),
-                'registration_start' => Carbon::parse('2026-06-10'),
-                'registration_end' => Carbon::parse('2026-08-05'),
-            ],
-            [
-                'title' => 'أكفاء',
-                'description' => 'العلاقات العامة والاتصال المؤسسي: برنامج احترافي لبناء مهارات التواصل وإدارة الصورة المؤسسية.',
-                'capacity' => 30,
-                'start_date' => Carbon::parse('2026-09-01'),
-                'end_date' => Carbon::parse('2026-10-31'),
-                'registration_start' => Carbon::parse('2026-07-01'),
-                'registration_end' => Carbon::parse('2026-08-20'),
-            ],
-            [
-                'title' => 'ملتقى تحليل البيانات',
-                'description' => 'بناء مهارات تحليل البيانات والاستفادة منها في دعم القرار المؤسسي باستخدام أدوات تحليل حديثة.',
-                'capacity' => null,
-                'start_date' => Carbon::parse('2026-09-15'),
-                'end_date' => Carbon::parse('2026-11-15'),
-                'registration_start' => Carbon::parse('2026-07-15'),
-                'registration_end' => Carbon::parse('2026-09-05'),
-            ],
-        ];
+        if ($owner === null) {
+            $this->command?->error('TrainingProgramSeeder: owner user missing. Run UserSeeder first.');
 
-        foreach ($programs as $data) {
-            $slug = Str::slug($data['title']);
+            return;
+        }
 
-            // Ensure slug uniqueness if arabic slug is empty
-            if (empty($slug)) {
-                $slug = 'program-'.Str::random(6);
+        $programs = $this->programDefinitions();
+
+        foreach ($programs as $def) {
+            $path = LearningPath::query()->where('slug', $def['path_slug'])->first();
+
+            if ($path === null) {
+                $this->command?->warn("TrainingProgramSeeder: path {$def['path_slug']} not found — skipping {$def['title']}.");
+
+                continue;
             }
 
-            TrainingProgram::firstOrCreate(
+            $slug = $def['slug'] ?: Str::slug($def['title']);
+
+            TrainingProgram::updateOrCreate(
                 ['slug' => $slug],
                 [
-                    'title' => $data['title'],
-                    'description' => $data['description'],
-                    'capacity' => $data['capacity'],
-                    'start_date' => $data['start_date'],
-                    'end_date' => $data['end_date'],
-                    'registration_start' => $data['registration_start'],
-                    'registration_end' => $data['registration_end'],
+                    'title' => $def['title'],
+                    'description' => $def['description'],
+                    'program_kind' => $def['kind'],
+                    'capacity' => $def['capacity'],
+                    'start_date' => $def['start_date'],
+                    'end_date' => $def['end_date'],
+                    'registration_start' => $def['registration_start'],
+                    'registration_end' => $def['registration_end'],
                     'status' => ProgramStatus::Published,
-                    'published_at' => now(),
-                    'created_by' => $admin?->id,
+                    'published_at' => now()->subDays(10),
+                    'learning_path_id' => $path->id,
+                    'path_sort_order' => $def['path_sort_order'],
+                    'created_by' => $owner->id,
+                    'owner_id' => $owner->id,
                     'assigned_to' => $trainingManager?->id,
                 ]
             );
         }
+    }
 
-        if ($trainingManager) {
-            TrainingProgram::query()->whereNull('assigned_to')->update(['assigned_to' => $trainingManager->id]);
-        }
+    /**
+     * @return list<array{
+     *   title: string,
+     *   slug: string,
+     *   description: string,
+     *   kind: TrainingProgramKind,
+     *   capacity: int,
+     *   start_date: Carbon,
+     *   end_date: Carbon,
+     *   registration_start: Carbon,
+     *   registration_end: Carbon,
+     *   path_slug: string,
+     *   path_sort_order: int
+     * }>
+     */
+    private function programDefinitions(): array
+    {
+        $y = (int) now()->year;
+
+        return [
+            [
+                'title' => 'قادة',
+                'slug' => 'qadah',
+                'description' => 'برنامج يهدف إلى صقل مهارات القيادة المباشرة وتمكين المشاركين من التأثير الإيجابي في فرق العمل، عبر ورش عملية ومشاريع تعزز الثقة والمساءلة واتخاذ القرار الجماعي.',
+                'kind' => TrainingProgramKind::Bootcamp,
+                'capacity' => 45,
+                'start_date' => Carbon::create($y, 4, 6),
+                'end_date' => Carbon::create($y, 6, 18),
+                'registration_start' => Carbon::create($y, 2, 1),
+                'registration_end' => Carbon::create($y, 3, 25),
+                'path_slug' => 'masar-altahil-almehnawi',
+                'path_sort_order' => 1,
+            ],
+            [
+                'title' => 'سند',
+                'slug' => 'sanad',
+                'description' => 'مسار دعم يعزز الاستقرار الوظيفي من خلال التوجيه المهني، تطوير المهارات اللينة، وبناء خطة تنمية فردية تربط أهداف المشارك بفرص سوق العمل.',
+                'kind' => TrainingProgramKind::Workshop,
+                'capacity' => 36,
+                'start_date' => Carbon::create($y, 5, 4),
+                'end_date' => Carbon::create($y, 7, 20),
+                'registration_start' => Carbon::create($y, 2, 15),
+                'registration_end' => Carbon::create($y, 4, 28),
+                'path_slug' => 'masar-altahil-almehnawi',
+                'path_sort_order' => 2,
+            ],
+            [
+                'title' => 'زارع',
+                'slug' => 'zarih',
+                'description' => 'مبادرة تربط التصميم الجرافيكي بالرسائل المجتمعية والبيئية، مع مشاريع تطبيقية تدعم التوعية الخضراء وبناء هوية بصرية مسؤولة.',
+                'kind' => TrainingProgramKind::Workshop,
+                'capacity' => 32,
+                'start_date' => Carbon::create($y, 3, 10),
+                'end_date' => Carbon::create($y, 5, 5),
+                'registration_start' => Carbon::create($y, 1, 20),
+                'registration_end' => Carbon::create($y, 3, 1),
+                'path_slug' => 'masar-altasim-algrafiki-101',
+                'path_sort_order' => 1,
+            ],
+            [
+                'title' => 'أكفاء',
+                'slug' => 'akfaa',
+                'description' => 'برنامج لرفع الجاهزية المهنية عبر معايير الجودة، إدارة المخرجات، والتميز التشغيلي، بما يتماشى مع توجهات منصة كفاءات في بناء كفاءات مؤثرة في سوق العمل.',
+                'kind' => TrainingProgramKind::Course,
+                'capacity' => 55,
+                'start_date' => Carbon::create($y, 4, 1),
+                'end_date' => Carbon::create($y, 8, 30),
+                'registration_start' => Carbon::create($y, 2, 1),
+                'registration_end' => Carbon::create($y, 3, 20),
+                'path_slug' => 'masar-muhalil-albayanat',
+                'path_sort_order' => 2,
+            ],
+            [
+                'title' => 'ملتقى تحليل البيانات',
+                'slug' => 'multaqa-tahlil-albayanat',
+                'description' => 'فعالية تفاعلية تجمع المهتمين بمجال تحليل البيانات، تهدف إلى تبادل الخبرات، استعراض التجارب، ومناقشة أحدث الممارسات في المجال.',
+                'kind' => TrainingProgramKind::Event,
+                'capacity' => 150,
+                'start_date' => Carbon::create($y, 6, 12),
+                'end_date' => Carbon::create($y, 6, 12),
+                'registration_start' => Carbon::create($y, 4, 1),
+                'registration_end' => Carbon::create($y, 6, 5),
+                'path_slug' => 'masar-muhalil-albayanat',
+                'path_sort_order' => 1,
+            ],
+            [
+                'title' => 'مهارات التواصل باللغة الإنجليزية',
+                'slug' => 'maharat-altawasul-billugha-alengliziyya',
+                'description' => 'برنامج تدريبي يركز على التواصل الفعّال في بيئات العمل والدراسة باللغة الإنجليزية، من خلال تمارين محادثة، عروض قصيرة، وكتابة رسائل مهنية واضحة.',
+                'kind' => TrainingProgramKind::Course,
+                'capacity' => 40,
+                'start_date' => Carbon::create($y, 3, 2),
+                'end_date' => Carbon::create($y, 6, 15),
+                'registration_start' => Carbon::create($y, 1, 10),
+                'registration_end' => Carbon::create($y, 2, 25),
+                'path_slug' => 'masar-allugha-alengliziyya',
+                'path_sort_order' => 1,
+            ],
+        ];
     }
 }

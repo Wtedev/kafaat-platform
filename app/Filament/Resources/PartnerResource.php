@@ -9,7 +9,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -141,8 +140,8 @@ class PartnerResource extends Resource
                     }),
             ])
             ->actions([
-                ViewAction::make(),
-                EditAction::make(),
+                EditAction::make()
+                    ->color('gray'),
                 DeleteAction::make(),
             ])
             ->bulkActions([

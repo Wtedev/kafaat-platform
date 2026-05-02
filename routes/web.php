@@ -8,10 +8,10 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Portal\PortalCertificateController;
 use App\Http\Controllers\Portal\PortalCompetencyController;
 use App\Http\Controllers\Portal\PortalCompetencyExportController;
-use App\Http\Controllers\Portal\PortalCourseController;
 use App\Http\Controllers\Portal\PortalDashboardController;
 use App\Http\Controllers\Portal\PortalInboxController;
 use App\Http\Controllers\Portal\PortalPathController;
+use App\Http\Controllers\Portal\PortalPathDetailController;
 use App\Http\Controllers\Portal\PortalProfileController;
 use App\Http\Controllers\Portal\PortalProgramController;
 use App\Http\Controllers\Portal\PortalVolunteerController;
@@ -85,6 +85,7 @@ Route::middleware(['auth', 'beneficiary'])
         Route::post('/notifications/{notification}/read', [PortalInboxController::class, 'markRead'])
             ->name('notifications.read');
         Route::get('/paths', PortalPathController::class)->name('paths');
+        Route::get('/paths/{learningPath}', PortalPathDetailController::class)->name('paths.show');
         Route::get('/programs', PortalProgramController::class)->name('programs');
         Route::get('/volunteering', PortalVolunteerController::class)->name('volunteering');
         Route::get('/certificates', PortalCertificateController::class)->name('certificates');
@@ -96,10 +97,4 @@ Route::middleware(['auth', 'beneficiary'])
         Route::patch('/competency', [PortalCompetencyController::class, 'update'])->name('competency.update');
         Route::get('/competency/export-pdf', PortalCompetencyExportController::class)->name('competency.export-pdf');
 
-        // Learning path courses
-        Route::get('/paths/{learningPath}/courses', [PortalCourseController::class, 'index'])->name('paths.courses');
-        Route::get('/paths/{learningPath}/courses/{pathCourse}', [PortalCourseController::class, 'show'])->name('paths.courses.show');
-        Route::post('/courses/{pathCourse}/start', [PortalCourseController::class, 'start'])->name('courses.start');
-        Route::post('/courses/{pathCourse}/progress', [PortalCourseController::class, 'progress'])->name('courses.progress');
-        Route::post('/courses/{pathCourse}/complete', [PortalCourseController::class, 'complete'])->name('courses.complete');
     });

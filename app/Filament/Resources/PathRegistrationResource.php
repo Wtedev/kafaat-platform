@@ -22,6 +22,7 @@ use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class PathRegistrationResource extends Resource
 {
@@ -44,6 +45,11 @@ class PathRegistrationResource extends Resource
     protected static function requiredNavigationPermissions(): array
     {
         return ['roles.view'];
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
     }
 
     public static function form(Schema $schema): Schema
@@ -140,7 +146,8 @@ class PathRegistrationResource extends Resource
                     ->searchable(),
             ])
             ->actions([
-                ViewAction::make(),
+                ViewAction::make()
+                    ->authorize('view'),
 
                 Action::make('approve')
                     ->label('قبول الطلب')
@@ -151,6 +158,7 @@ class PathRegistrationResource extends Resource
                     ->modalDescription('هل تريد قبول طلب التسجيل في هذا المسار؟')
                     ->modalSubmitActionLabel('نعم، قبول')
                     ->visible(fn (PathRegistration $record): bool => $record->status === RegistrationStatus::Pending)
+                    ->authorize('approve')
                     ->action(function (PathRegistration $record): void {
                         try {
                             app(PathRegistrationService::class)->approve($record, auth()->user());
@@ -180,6 +188,7 @@ class PathRegistrationResource extends Resource
                             ->rows(3),
                     ])
                     ->visible(fn (PathRegistration $record): bool => $record->status === RegistrationStatus::Pending)
+                    ->authorize('reject')
                     ->action(function (PathRegistration $record, array $data): void {
                         app(PathRegistrationService::class)->reject(
                             $record,
@@ -200,6 +209,7 @@ class PathRegistrationResource extends Resource
                     ->modalDescription('سيتم تغيير حالة التسجيل إلى مكتمل. هل أنت متأكد؟')
                     ->modalSubmitActionLabel('نعم، إنهاء')
                     ->visible(fn (PathRegistration $record): bool => $record->status === RegistrationStatus::Approved)
+                    ->authorize('update')
                     ->action(function (PathRegistration $record): void {
                         app(PathRegistrationService::class)->complete($record);
                         Notification::make()
@@ -210,9 +220,11 @@ class PathRegistrationResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords('delete'),
                 ]),
             ])
+            ->modifyQueryUsing(fn (Builder $query) => $query->forFilamentAssignmentAccess(auth()->user()))
             ->defaultSort('created_at', 'desc');
     }
 

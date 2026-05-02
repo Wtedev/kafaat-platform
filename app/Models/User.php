@@ -9,6 +9,7 @@ use Database\Factories\UserFactory;
 use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -55,11 +56,6 @@ class User extends Authenticatable implements FilamentUser
     public function learningPathRegistrations(): HasMany
     {
         return $this->hasMany(PathRegistration::class);
-    }
-
-    public function courseProgress(): HasMany
-    {
-        return $this->hasMany(UserCourseProgress::class);
     }
 
     public function programRegistrations(): HasMany
@@ -222,5 +218,28 @@ class User extends Authenticatable implements FilamentUser
     public function canAccessFilamentAdmin(): bool
     {
         return $this->canAccessPanel(Filament::getPanel('admin'));
+    }
+
+    /**
+     * Active admin/staff-style users eligible to become training entity owners (Filament ownership transfer).
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function scopeEligibleForTrainingOwnershipTransfer(Builder $query): Builder
+    {
+        return $query->where('is_active', true)
+            ->where(function (Builder $q): void {
+                $q->whereIn('role_type', ['admin', 'staff'])
+                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', [
+                        'admin',
+                        'media_pr',
+                        'media_employee',
+                        'pr_employee',
+                        'training_manager',
+                        'volunteering_manager',
+                        'staff',
+                    ]));
+            });
     }
 }

@@ -29,7 +29,18 @@ class PublicLearningPathController extends Controller
     {
         abort_if($learningPath->status->value !== 'published', 404);
 
-        $learningPath->load('courses');
+        $learningPath->load([
+            'programs' => fn ($q) => $q->published()
+                ->orderByRaw('path_sort_order IS NULL')
+                ->orderBy('path_sort_order')
+                ->orderBy('id'),
+        ]);
+
+        if (auth()->check()) {
+            $learningPath->programs->load([
+                'registrations' => fn ($q) => $q->where('user_id', auth()->id())->latest(),
+            ]);
+        }
 
         $userRegistration = null;
         if (auth()->check()) {

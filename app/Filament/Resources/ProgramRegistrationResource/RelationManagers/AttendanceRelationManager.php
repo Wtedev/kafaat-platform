@@ -22,12 +22,31 @@ use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class AttendanceRelationManager extends RelationManager
 {
     protected static string $relationship = 'attendanceRecords';
 
     protected static ?string $title = 'سجل الحضور اليومي';
+
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        $user = auth()->user();
+
+        if ($user === null) {
+            return false;
+        }
+
+        if ($ownerRecord instanceof ProgramRegistration) {
+            $ownerRecord->loadMissing('trainingProgram');
+
+            return $ownerRecord->trainingProgram !== null
+                && $user->can('viewOperational', $ownerRecord->trainingProgram);
+        }
+
+        return parent::canViewForRecord($ownerRecord, $pageClass);
+    }
 
     public function form(Schema $schema): Schema
     {
@@ -115,6 +134,7 @@ class AttendanceRelationManager extends RelationManager
                         .'السجلات الموجودة لن تُحذف أو تُعدَّل.'
                     )
                     ->modalSubmitActionLabel('نعم، توليد')
+                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
                     ->action(function (RelationManager $livewire): void {
                         /** @var ProgramRegistration $reg */
                         $reg = $livewire->getOwnerRecord();
@@ -135,15 +155,21 @@ class AttendanceRelationManager extends RelationManager
                     }),
 
                 CreateAction::make()
-                    ->label('إضافة يوم يدوياً'),
+                    ->label('إضافة يوم يدوياً')
+                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false),
             ])
             ->actions([
-                EditAction::make()->label('تعديل الحالة'),
-                DeleteAction::make()->label('حذف'),
+                EditAction::make()
+                    ->label('تعديل الحالة')
+                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false),
+                DeleteAction::make()
+                    ->label('حذف')
+                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false),
                 ]),
             ])
             ->defaultSort('training_date', 'asc');

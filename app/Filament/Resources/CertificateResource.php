@@ -42,6 +42,14 @@ class CertificateResource extends Resource
         return ['certificates.view', 'roles.view'];
     }
 
+    /**
+     * إخفاء عنصر «الشهادات» من القائمة؛ الوصول عبر تبويب داخل كل برنامج/مسار أو بالرابط المباشر.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([

@@ -54,6 +54,11 @@ class ProgramRegistrationResource extends Resource
         return ['roles.view'];
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -62,7 +67,7 @@ class ProgramRegistrationResource extends Resource
                     ->relationship(
                         'trainingProgram',
                         'title',
-                        modifyQueryUsing: fn (Builder $q) => $q->forFilamentAssignmentAccess(auth()->user()),
+                        modifyQueryUsing: fn (Builder $query) => $query->forFilamentAssignmentAccess(auth()->user()),
                     )
                     ->searchable()
                     ->preload()
@@ -217,13 +222,14 @@ class ProgramRegistrationResource extends Resource
                     ->relationship(
                         'trainingProgram',
                         'title',
-                        modifyQueryUsing: fn (Builder $q) => $q->forFilamentAssignmentAccess(auth()->user()),
+                        modifyQueryUsing: fn (Builder $query) => $query->forFilamentAssignmentAccess(auth()->user()),
                     )
                     ->label('البرنامج')
                     ->searchable(),
             ])
             ->actions([
-                ViewAction::make(),
+                ViewAction::make()
+                    ->authorize('view'),
 
                 Action::make('approve')
                     ->label('قبول الطلب')
@@ -234,6 +240,7 @@ class ProgramRegistrationResource extends Resource
                     ->modalDescription('هل تريد قبول طلب التسجيل في هذا البرنامج؟')
                     ->modalSubmitActionLabel('نعم، قبول')
                     ->visible(fn (ProgramRegistration $record): bool => $record->status === RegistrationStatus::Pending)
+                    ->authorize('approve')
                     ->action(function (ProgramRegistration $record): void {
                         try {
                             app(ProgramRegistrationService::class)->approve($record, auth()->user());
@@ -263,6 +270,7 @@ class ProgramRegistrationResource extends Resource
                             ->rows(3),
                     ])
                     ->visible(fn (ProgramRegistration $record): bool => $record->status === RegistrationStatus::Pending)
+                    ->authorize('reject')
                     ->action(function (ProgramRegistration $record, array $data): void {
                         app(ProgramRegistrationService::class)->reject(
                             $record,
@@ -279,6 +287,7 @@ class ProgramRegistrationResource extends Resource
                     ->icon('heroicon-o-pencil-square')
                     ->color('gray')
                     ->visible(fn (ProgramRegistration $record): bool => $record->isApproved())
+                    ->authorize('update')
                     ->fillForm(fn (ProgramRegistration $record): array => [
                         'attendance_percentage' => $record->attendance_percentage,
                         'score' => $record->score,
@@ -315,6 +324,7 @@ class ProgramRegistrationResource extends Resource
                     ->icon('heroicon-o-trophy')
                     ->color('info')
                     ->visible(fn (ProgramRegistration $record): bool => $record->isApproved())
+                    ->authorize('update')
                     ->fillForm(fn (ProgramRegistration $record): array => [
                         // Pre-fill with calculated value from daily records if available
                         'attendance_percentage' => $record->calculateAttendancePercentage() ?? $record->attendance_percentage,
@@ -379,6 +389,7 @@ class ProgramRegistrationResource extends Resource
                     ->color('success')
                     ->visible(fn (ProgramRegistration $record): bool => $record->isCompleted())
                     ->requiresConfirmation()
+                    ->authorize('update')
                     ->action(function (ProgramRegistration $record): void {
                         if (! $record->isEligibleForCertificate()) {
                             Notification::make()
@@ -399,7 +410,8 @@ class ProgramRegistrationResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords('delete'),
                 ]),
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->forFilamentAssignmentAccess(auth()->user()))

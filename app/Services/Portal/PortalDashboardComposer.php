@@ -11,6 +11,7 @@ use App\Models\TeamNotification;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
+use App\Services\ProgressService;
 use Illuminate\Support\Collection;
 
 final class PortalDashboardComposer
@@ -175,14 +176,8 @@ final class PortalDashboardComposer
         $title = $path?->title ?? 'مسار تعليمي';
         $progress = null;
 
-        if ($path && $reg->canAccessCourses()) {
-            $courseIds = $path->courses()->pluck('id');
-            if ($courseIds->isNotEmpty()) {
-                $avg = $user->courseProgress()
-                    ->whereIn('path_course_id', $courseIds)
-                    ->avg('progress_percentage');
-                $progress = $avg !== null ? (float) $avg : null;
-            }
+        if ($path && $reg->canAccessPathPrograms()) {
+            $progress = app(ProgressService::class)->calculatePathProgress($user, $path);
         }
 
         [$statusLabel, $statusTone] = self::registrationUxMeta($reg->status);
@@ -192,7 +187,7 @@ final class PortalDashboardComposer
             'discover' => false,
             'sort_at' => $reg->updated_at,
             'title' => $title,
-            'type_label' => 'لقاء',
+            'type_label' => 'مسار',
             'status_label' => $statusLabel,
             'status_tone' => $statusTone,
             'progress' => $progress !== null ? min(100, max(0, $progress)) : null,
@@ -286,8 +281,8 @@ final class PortalDashboardComposer
             return route('portal.paths');
         }
 
-        if ($reg->canAccessCourses()) {
-            return route('portal.paths.courses', $path);
+        if ($reg->canAccessPathPrograms()) {
+            return route('portal.paths.show', $path);
         }
 
         return route('portal.paths');

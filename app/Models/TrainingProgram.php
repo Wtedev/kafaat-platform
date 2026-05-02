@@ -4,11 +4,13 @@ namespace App\Models;
 
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
+use App\Enums\TrainingProgramKind;
 use App\Services\Inbox\InboxNotificationService;
 use App\Support\FilamentAssignmentVisibility;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
@@ -20,6 +22,7 @@ class TrainingProgram extends Model
     protected $fillable = [
         'title',
         'slug',
+        'program_kind',
         'description',
         'image',
         'capacity',
@@ -31,8 +34,10 @@ class TrainingProgram extends Model
         'status',
         'published_at',
         'created_by',
+        'owner_id',
         'updated_by',
         'learning_path_id',
+        'path_sort_order',
         'assigned_to',
     ];
 
@@ -40,6 +45,7 @@ class TrainingProgram extends Model
     {
         return [
             'status' => ProgramStatus::class,
+            'program_kind' => TrainingProgramKind::class,
             'published_at' => 'datetime',
             'start_date' => 'date',
             'end_date' => 'date',
@@ -57,11 +63,16 @@ class TrainingProgram extends Model
                 $program->slug = Str::slug($program->title);
             }
 
+            // Default operational coordinator (assigned_to) for training_manager creating a program — not the same as owner_id.
             if ($program->assigned_to === null && Auth::check()) {
                 $user = Auth::user();
                 if ($user->hasRole('training_manager') && ! FilamentAssignmentVisibility::bypasses($user)) {
                     $program->assigned_to = $user->id;
                 }
+            }
+
+            if ($program->owner_id === null && filled($program->created_by)) {
+                $program->owner_id = $program->created_by;
             }
         });
 
@@ -112,6 +123,14 @@ class TrainingProgram extends Model
         $query->where('status', ProgramStatus::Published);
     }
 
+    /**
+     * Programs not embedded in a learning path (public training catalog).
+     */
+    public function scopeStandaloneCatalog(Builder $query): void
+    {
+        $query->whereNull('learning_path_id');
+    }
+
     public function scopeDraft(Builder $query): void
     {
         $query->where('status', ProgramStatus::Draft);
@@ -136,7 +155,8 @@ class TrainingProgram extends Model
     }
 
     /**
-     * نطاق لوحة الإدارة: المدرب يرى البرامج المعيّنة له فقط؛ المسؤول يرى الكل.
+     * Historical hook for Filament queries; list filtering is no longer tied to assigned_to (see FilamentAssignmentVisibility).
+     * Authorization uses owner/editor/coordinator via policies.
      */
     public function scopeForFilamentAssignmentAccess(Builder $query, ?User $viewer): void
     {
@@ -165,6 +185,62 @@ class TrainingProgram extends Model
             ->count();
     }
 
+    public function totalRegistrationsCount(): int
+    {
+        return $this->registrations()->count();
+    }
+
+    public function completedRegistrationsCount(): int
+    {
+        return $this->registrations()
+            ->where('status', RegistrationStatus::Completed->value)
+            ->count();
+    }
+
+    /**
+     * واجهة المستخدم لحالة نافذة التسجيل (ليست حالة مسودة/منشور).
+     */
+    public function registrationWindowStatusLabel(): string
+    {
+        $today = Carbon::today();
+
+        if ($this->end_date !== null && $this->end_date->lt($today)) {
+            return 'منتهي';
+        }
+
+        if ($this->registration_end !== null && $this->registration_end->lt($today)) {
+            return 'منتهي';
+        }
+
+        if ($this->registration_start !== null && $this->registration_start->gt($today)) {
+            return 'لم يبدأ';
+        }
+
+        if ($this->start_date !== null && $this->start_date->gt($today) && ! $this->isRegistrationOpen()) {
+            return 'لم يبدأ';
+        }
+
+        if ($this->isRegistrationOpen()) {
+            return 'مفتوح';
+        }
+
+        return 'منتهي';
+    }
+
+    /**
+     * مدة البرنامج من تاريخ البداية والنهاية (لا يُعرض تاريخ النهاية في واجهة العرض).
+     */
+    public function programDurationDescription(): string
+    {
+        if ($this->start_date === null || $this->end_date === null) {
+            return 'غير محدد';
+        }
+
+        $days = max(1, (int) $this->start_date->diffInDays($this->end_date) + 1);
+
+        return sprintf('%d يوماً', $days);
+    }
+
     public function hasCapacity(): bool
     {
         if ($this->capacity === null) {
@@ -184,6 +260,16 @@ class TrainingProgram extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function editors(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'training_program_editors')->withTimestamps();
     }
 
     public function updater(): BelongsTo

@@ -416,6 +416,19 @@ html.fi .news-edit-main-grid {
     html.fi .news-edit-two-col-ltr .news-edit-mock-image-col {
         direction: rtl;
     }
+
+    /* البرامج والمسارات: صورة يسار الشاشة، البطاقات يمين (نفس منطق الأخبار) */
+    html.fi .fi-training-two-col-ltr,
+    html.fi .fi-learning-path-two-col-ltr {
+        direction: ltr;
+    }
+
+    html.fi .fi-training-two-col-ltr .fi-training-two-col-image,
+    html.fi .fi-training-two-col-ltr .fi-training-two-col-details,
+    html.fi .fi-learning-path-two-col-ltr .fi-learning-path-two-col-image,
+    html.fi .fi-learning-path-two-col-ltr .fi-learning-path-two-col-details {
+        direction: rtl;
+    }
 }
 
 html.fi.dark .news-edit-content-preview {

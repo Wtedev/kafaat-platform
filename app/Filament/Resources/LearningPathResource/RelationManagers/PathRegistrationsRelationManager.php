@@ -19,14 +19,29 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class PathRegistrationsRelationManager extends RelationManager
 {
     protected static string $relationship = 'registrations';
 
     protected static ?string $title = 'المسجلون في المسار';
+
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        $user = auth()->user();
+
+        if ($user === null) {
+            return false;
+        }
+
+        if ($ownerRecord instanceof LearningPath) {
+            return $user->can('viewOperational', $ownerRecord);
+        }
+
+        return parent::canViewForRecord($ownerRecord, $pageClass);
+    }
 
     public function form(Schema $schema): Schema
     {
@@ -52,6 +67,7 @@ class PathRegistrationsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->heading('')
             ->columns([
                 TextColumn::make('user.name')
                     ->searchable()
@@ -61,7 +77,7 @@ class PathRegistrationsRelationManager extends RelationManager
                 TextColumn::make('user.email')
                     ->searchable()
                     ->label('البريد الإلكتروني')
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 BadgeColumn::make('status')
                     ->label('الحالة')
@@ -71,41 +87,8 @@ class PathRegistrationsRelationManager extends RelationManager
                         'danger' => RegistrationStatus::Rejected->value,
                         'gray' => RegistrationStatus::Cancelled->value,
                         'info' => RegistrationStatus::Completed->value,
-                    ]),
-
-                TextColumn::make('approved_at')
-                    ->label('تاريخ القبول')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
-
-                TextColumn::make('completed_at')
-                    ->label('تاريخ الإكمال')
-                    ->dateTime()
-                    ->toggleable(),
-
-                TextColumn::make('has_certificate')
-                    ->label('الشهادة')
-                    ->badge()
-                    ->getStateUsing(function (PathRegistration $record): string {
-                        return Certificate::query()
-                            ->where('user_id', $record->user_id)
-                            ->where('certificateable_type', LearningPath::class)
-                            ->where('certificateable_id', $record->learning_path_id)
-                            ->exists() ? 'صدرت ✓' : '—';
-                    })
-                    ->color(fn (string $state): string => str_contains($state, 'صدرت') ? 'success' : 'gray'),
-
-                TextColumn::make('created_at')
-                    ->label('تاريخ التسجيل')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                SelectFilter::make('status')
-                    ->label('الحالة')
-                    ->options(RegistrationStatus::class),
+                    ])
+                    ->sortable(),
             ])
             ->actions([
                 Action::make('approve')
@@ -117,6 +100,7 @@ class PathRegistrationsRelationManager extends RelationManager
                     ->modalDescription('هل تريد قبول طلب التسجيل في هذا المسار؟')
                     ->modalSubmitActionLabel('نعم، قبول')
                     ->visible(fn (PathRegistration $record): bool => $record->status === RegistrationStatus::Pending)
+                    ->authorize('approve')
                     ->action(function (PathRegistration $record): void {
                         try {
                             app(PathRegistrationService::class)->approve($record, auth()->user());
@@ -140,6 +124,7 @@ class PathRegistrationsRelationManager extends RelationManager
                             ->rows(3),
                     ])
                     ->visible(fn (PathRegistration $record): bool => $record->status === RegistrationStatus::Pending)
+                    ->authorize('reject')
                     ->action(function (PathRegistration $record, array $data): void {
                         app(PathRegistrationService::class)->reject($record, $data['rejected_reason'] ?? null);
                         Notification::make()->title('تم رفض التسجيل')->warning()->send();
@@ -154,6 +139,7 @@ class PathRegistrationsRelationManager extends RelationManager
                     ->modalDescription('سيتم تغيير حالة التسجيل إلى مكتمل. هل أنت متأكد؟')
                     ->modalSubmitActionLabel('نعم، إنهاء')
                     ->visible(fn (PathRegistration $record): bool => $record->status === RegistrationStatus::Approved)
+                    ->authorize('update')
                     ->action(function (PathRegistration $record): void {
                         app(PathRegistrationService::class)->complete($record);
                         Notification::make()->title('تم تسجيل إكمال المسار')->success()->send();
@@ -168,6 +154,7 @@ class PathRegistrationsRelationManager extends RelationManager
                     ->modalDescription('سيتم إصدار شهادة PDF للمستفيد.')
                     ->modalSubmitActionLabel('نعم، إصدار')
                     ->visible(fn (PathRegistration $record): bool => $record->isCompleted())
+                    ->authorize('update')
                     ->action(function (PathRegistration $record): void {
                         $record->loadMissing(['user', 'learningPath']);
                         $existing = Certificate::query()
@@ -190,7 +177,8 @@ class PathRegistrationsRelationManager extends RelationManager
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords('delete'),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

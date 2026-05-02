@@ -24,12 +24,28 @@ use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class ProgramRegistrationsRelationManager extends RelationManager
 {
     protected static string $relationship = 'registrations';
 
-    protected static ?string $title = 'المسجلون في البرنامج';
+    protected static ?string $title = 'المسجلين في البرنامج';
+
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        $user = auth()->user();
+
+        if ($user === null) {
+            return false;
+        }
+
+        if ($ownerRecord instanceof TrainingProgram) {
+            return $user->can('viewOperational', $ownerRecord);
+        }
+
+        return parent::canViewForRecord($ownerRecord, $pageClass);
+    }
 
     public function form(Schema $schema): Schema
     {
@@ -168,6 +184,7 @@ class ProgramRegistrationsRelationManager extends RelationManager
                         .'السجلات الموجودة لن تُعدَّل.'
                     )
                     ->modalSubmitActionLabel('نعم، توليد')
+                    ->authorize(fn (): bool => auth()->user()?->can('viewOperational', $this->getOwnerRecord()) ?? false)
                     ->action(function (RelationManager $livewire): void {
                         /** @var TrainingProgram $program */
                         $program = $livewire->getOwnerRecord();
@@ -198,6 +215,7 @@ class ProgramRegistrationsRelationManager extends RelationManager
                     ->modalDescription('هل تريد قبول طلب التسجيل في هذا البرنامج؟')
                     ->modalSubmitActionLabel('نعم، قبول')
                     ->visible(fn (ProgramRegistration $record): bool => $record->status === RegistrationStatus::Pending)
+                    ->authorize('approve')
                     ->action(function (ProgramRegistration $record): void {
                         try {
                             app(ProgramRegistrationService::class)->approve($record, auth()->user());
@@ -221,6 +239,7 @@ class ProgramRegistrationsRelationManager extends RelationManager
                             ->rows(3),
                     ])
                     ->visible(fn (ProgramRegistration $record): bool => $record->status === RegistrationStatus::Pending)
+                    ->authorize('reject')
                     ->action(function (ProgramRegistration $record, array $data): void {
                         app(ProgramRegistrationService::class)->reject($record, $data['rejected_reason'] ?? null);
                         Notification::make()->title('تم رفض التسجيل')->warning()->send();
@@ -231,6 +250,7 @@ class ProgramRegistrationsRelationManager extends RelationManager
                     ->icon('heroicon-o-pencil-square')
                     ->color('gray')
                     ->visible(fn (ProgramRegistration $record): bool => $record->isApproved())
+                    ->authorize('update')
                     ->fillForm(fn (ProgramRegistration $record): array => [
                         'attendance_percentage' => $record->calculateAttendancePercentage() ?? $record->attendance_percentage,
                         'score' => $record->score,
@@ -267,6 +287,7 @@ class ProgramRegistrationsRelationManager extends RelationManager
                     ->icon('heroicon-o-trophy')
                     ->color('info')
                     ->visible(fn (ProgramRegistration $record): bool => $record->isApproved())
+                    ->authorize('update')
                     ->fillForm(fn (ProgramRegistration $record): array => [
                         'attendance_percentage' => $record->calculateAttendancePercentage() ?? $record->attendance_percentage,
                         'score' => $record->score,
@@ -328,6 +349,7 @@ class ProgramRegistrationsRelationManager extends RelationManager
                     ->modalDescription('سيتم إصدار شهادة PDF للمستفيد. تأكد من استيفاء شروط الحضور والدرجة.')
                     ->modalSubmitActionLabel('نعم، إصدار')
                     ->visible(fn (ProgramRegistration $record): bool => $record->isCompleted())
+                    ->authorize('update')
                     ->action(function (ProgramRegistration $record): void {
                         if (! $record->isEligibleForCertificate()) {
                             Notification::make()
@@ -362,7 +384,8 @@ class ProgramRegistrationsRelationManager extends RelationManager
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->authorizeIndividualRecords('delete'),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

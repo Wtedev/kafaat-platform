@@ -7,9 +7,9 @@ use App\Enums\RegistrationStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class LearningPath extends Model
@@ -18,10 +18,12 @@ class LearningPath extends Model
         'title',
         'slug',
         'description',
+        'image',
         'capacity',
         'status',
         'published_at',
         'created_by',
+        'owner_id',
         'updated_by',
     ];
 
@@ -39,6 +41,10 @@ class LearningPath extends Model
         static::creating(function (self $path) {
             if (empty($path->slug)) {
                 $path->slug = Str::slug($path->title);
+            }
+
+            if ($path->owner_id === null && filled($path->created_by)) {
+                $path->owner_id = $path->created_by;
             }
         });
     }
@@ -62,19 +68,33 @@ class LearningPath extends Model
 
     // ─── Relationships ────────────────────────────────────────────────────────
 
-    public function courses(): HasMany
-    {
-        return $this->hasMany(PathCourse::class)->orderBy('sort_order');
-    }
-
     public function registrations(): HasMany
     {
         return $this->hasMany(PathRegistration::class);
     }
 
+    /**
+     * For statistics / withCount — registrations marked completed (مجتازون).
+     */
+    public function completedPathRegistrations(): HasMany
+    {
+        return $this->hasMany(PathRegistration::class)
+            ->where('status', RegistrationStatus::Completed->value);
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function editors(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'learning_path_editors')->withTimestamps();
     }
 
     public function updater(): BelongsTo
@@ -121,22 +141,9 @@ class LearningPath extends Model
 
     public function programs(): HasMany
     {
-        return $this->hasMany(TrainingProgram::class);
-    }
-
-    /**
-     * Return a keyed collection of a user's course progress rows for this path.
-     * Keyed by path_course_id for O(1) look-up.
-     *
-     * @return Collection<int, UserCourseProgress>
-     */
-    public function getUserProgress(User $user): Collection
-    {
-        $courseIds = $this->courses()->pluck('id');
-
-        return UserCourseProgress::where('user_id', $user->id)
-            ->whereIn('path_course_id', $courseIds)
-            ->get()
-            ->keyBy('path_course_id');
+        return $this->hasMany(TrainingProgram::class)
+            ->orderByRaw('path_sort_order IS NULL')
+            ->orderBy('path_sort_order')
+            ->orderBy('id');
     }
 }

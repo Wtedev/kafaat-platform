@@ -11,7 +11,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
@@ -841,8 +840,8 @@ class NewsResource extends Resource
                     ->options(static::categoryOptions()),
             ])
             ->actions([
-                ViewAction::make(),
-                EditAction::make(),
+                EditAction::make()
+                    ->color('gray'),
                 DeleteAction::make(),
             ])
             ->bulkActions([

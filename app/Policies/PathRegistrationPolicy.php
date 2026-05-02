@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Enums\RegistrationStatus;
 use App\Models\PathRegistration;
 use App\Models\User;
+use App\Support\TrainingEntityAuthorization;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class PathRegistrationPolicy
@@ -18,43 +19,96 @@ class PathRegistrationPolicy
 
     public function view(User $user, PathRegistration $registration): bool
     {
-        // The registrant can always see their own registration
         if ($user->id === $registration->user_id) {
             return true;
         }
 
-        return $user->hasPermissionTo('registrations.view');
+        if (! $user->hasPermissionTo('registrations.view')) {
+            return false;
+        }
+
+        if (TrainingEntityAuthorization::adminBypass($user)) {
+            return true;
+        }
+
+        $registration->loadMissing('learningPath');
+
+        return $registration->learningPath !== null
+            && $user->can('viewOperational', $registration->learningPath);
     }
 
     public function create(User $user): bool
     {
-        // Any authenticated user may request registration
         return true;
+    }
+
+    public function update(User $user, PathRegistration $registration): bool
+    {
+        if ($user->id === $registration->user_id) {
+            return false;
+        }
+
+        return $this->view($user, $registration);
+    }
+
+    public function delete(User $user, PathRegistration $registration): bool
+    {
+        if ($user->id === $registration->user_id) {
+            return false;
+        }
+
+        return $this->view($user, $registration);
     }
 
     public function approve(User $user, PathRegistration $registration): bool
     {
-        return $registration->status === RegistrationStatus::Pending
-            && $user->hasPermissionTo('registrations.approve');
+        if ($registration->status !== RegistrationStatus::Pending || ! $user->hasPermissionTo('registrations.approve')) {
+            return false;
+        }
+
+        $registration->loadMissing('learningPath');
+
+        return $registration->learningPath !== null
+            && (
+                TrainingEntityAuthorization::adminBypass($user)
+                || $user->can('viewOperational', $registration->learningPath)
+            );
     }
 
     public function reject(User $user, PathRegistration $registration): bool
     {
-        return $registration->status === RegistrationStatus::Pending
-            && $user->hasPermissionTo('registrations.reject');
+        if ($registration->status !== RegistrationStatus::Pending || ! $user->hasPermissionTo('registrations.reject')) {
+            return false;
+        }
+
+        $registration->loadMissing('learningPath');
+
+        return $registration->learningPath !== null
+            && (
+                TrainingEntityAuthorization::adminBypass($user)
+                || $user->can('viewOperational', $registration->learningPath)
+            );
     }
 
     public function cancel(User $user, PathRegistration $registration): bool
     {
-        // The registrant can cancel their own pending or approved registration
         if ($user->id === $registration->user_id) {
             return in_array($registration->status, [
                 RegistrationStatus::Pending,
                 RegistrationStatus::Approved,
-            ]);
+            ], true);
         }
 
-        // Admins/staff with view permission can cancel on behalf of users
-        return $user->hasPermissionTo('registrations.view');
+        if (! $user->hasPermissionTo('registrations.view')) {
+            return false;
+        }
+
+        $registration->loadMissing('learningPath');
+
+        return $registration->learningPath !== null
+            && (
+                TrainingEntityAuthorization::adminBypass($user)
+                || $user->can('viewOperational', $registration->learningPath)
+            );
     }
 }

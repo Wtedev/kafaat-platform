@@ -43,10 +43,10 @@ RegistrationStatus::Completed->value => 'مكتمل',
     @php
     $sv = $reg->status->value;
     $pct = (float) ($reg->progress_percentage ?? 0);
-    $total = (int) ($reg->total_courses ?? 0);
-    $completed = (int) ($reg->completed_courses ?? 0);
+    $total = (int) ($reg->total_programs ?? 0);
+    $completed = (int) ($reg->completed_programs ?? 0);
     $path = $reg->learningPath;
-    $canAccess = $reg->canAccessCourses();
+    $canAccess = $reg->canAccessPathPrograms();
     @endphp
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
         <div class="flex items-start justify-between gap-4">
@@ -63,7 +63,7 @@ RegistrationStatus::Completed->value => 'مكتمل',
                     </span>
                     @if ($total > 0)
                     <span class="text-xs text-gray-500">
-                        {{ $completed }} / {{ $total }} دورات مكتملة
+                        {{ $completed }} / {{ $total }} برامج مكتملة
                     </span>
                     @endif
                     @if ($reg->approved_at)
@@ -89,12 +89,12 @@ RegistrationStatus::Completed->value => 'مكتمل',
             <div class="flex-shrink-0">
                 @if ($canAccess && $path)
                 @if ($sv === RegistrationStatus::Completed->value)
-                <a href="{{ route('portal.paths.courses', $path) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition">
-                    ✓ تم الإكمال &mdash; عرض الدورات
+                <a href="{{ route('portal.paths.show', $path) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition">
+                    ✓ تم الإكمال — عرض البرامج
                 </a>
                 @else
-                <a href="{{ route('portal.paths.courses', $path) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition">
-                    عرض الدورات ←
+                <a href="{{ route('portal.paths.show', $path) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition">
+                    عرض البرامج ←
                 </a>
                 @endif
                 @elseif ($sv === RegistrationStatus::Pending->value)

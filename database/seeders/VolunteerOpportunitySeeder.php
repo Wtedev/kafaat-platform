@@ -5,77 +5,82 @@ namespace Database\Seeders;
 use App\Enums\OpportunityStatus;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 class VolunteerOpportunitySeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::where('email', 'admin@example.com')->first()
-            ?? User::where('email', 'admin@kafaat.test')->first();
+        $creator = User::query()->where('email', 'lama.almeshiqeh@kafaat.org.sa')->first()
+            ?? User::role('admin')->orderBy('id')->first();
 
-        $volunteeringManager = User::role('volunteering_manager')->first();
+        $volunteeringManager = User::query()->where('email', 'eman.almutairi@kafaat.org.sa')->first();
 
-        $opportunities = [
+        if ($creator === null) {
+            $this->command?->error('VolunteerOpportunitySeeder: missing admin. Run UserSeeder first.');
+
+            return;
+        }
+
+        $y = (int) now()->year;
+
+        $items = [
             [
-                'title' => 'مساعد إداري لملتقى كفاءات',
-                'description' => 'ساهم في تنظيم وإدارة الملتقى السنوي لمنصة كفاءات من خلال دعم فرق العمل الإدارية والتنسيق بين المشاركين.',
-                'capacity' => 15,
-                'hours_expected' => 20,
-                'start_date' => Carbon::parse('2026-06-01'),
-                'end_date' => Carbon::parse('2026-06-15'),
-            ],
-            [
-                'title' => 'مدرّب أساسيات الحاسوب للمجتمع',
-                'description' => 'تدريب أفراد المجتمع على أساسيات استخدام الحاسوب والإنترنت في مراكز التعليم المجتمعي المحلية.',
-                'capacity' => 10,
-                'hours_expected' => 30,
-                'start_date' => Carbon::parse('2026-06-10'),
-                'end_date' => Carbon::parse('2026-07-10'),
-            ],
-            [
-                'title' => 'مشرف معسكر التطوير الشخصي',
-                'description' => 'الإشراف على تنظيم معسكر التطوير الشخصي للطلاب الجامعيين وقيادة جلسات الأنشطة والورش.',
-                'capacity' => 20,
-                'hours_expected' => 40,
-                'start_date' => Carbon::parse('2026-07-01'),
-                'end_date' => Carbon::parse('2026-07-05'),
-            ],
-            [
-                'title' => 'مرشد طلابي في رحلات التوجيه المهني',
-                'description' => 'مرافقة مجموعات من الطلاب خلال جولات التوجيه المهني في الشركات والمؤسسات وتيسير نقاشات الإرشاد.',
+                'title' => 'محلل بيانات تطوعي لدعم المبادرات',
+                'description' => 'دعم فرق المبادرات في جمع البيانات، تنظيمها، وإعداد ملخصات بسيطة تساعد على اتخاذ القرار، مع الالتزام بخصوصية البيانات وأخلاقيات الاستخدام.',
                 'capacity' => 8,
-                'hours_expected' => 16,
-                'start_date' => Carbon::parse('2026-06-20'),
-                'end_date' => Carbon::parse('2026-08-20'),
+                'hours_expected' => 40.00,
+                'start_date' => Carbon::create($y, 3, 1),
+                'end_date' => Carbon::create($y, 9, 30),
             ],
             [
-                'title' => 'متطوع في حملات التوعية المجتمعية',
-                'description' => 'المشاركة في حملات التوعية بأهمية التعلم المستمر والتطوير المهني عبر المجمعات والفعاليات المجتمعية.',
-                'capacity' => null,
-                'hours_expected' => 10,
-                'start_date' => Carbon::parse('2026-05-15'),
-                'end_date' => Carbon::parse('2026-09-15'),
-            ],
-            [
-                'title' => 'مساعد تقني لدعم المنصة الرقمية',
-                'description' => 'تقديم الدعم التقني للمستخدمين الجدد على المنصة وإرشادهم لاستخدام أدوات التعلم الإلكتروني.',
+                'title' => 'منسق فعاليات ومؤتمرات',
+                'description' => 'تنسيق الجداول الزمنية، التواصل مع المتحدثين، إدارة التسجيل في الموقع، ومتابعة تجربة المشاركين قبل وبعد الفعالية.',
                 'capacity' => 12,
-                'hours_expected' => 25,
-                'start_date' => Carbon::parse('2026-06-01'),
-                'end_date' => Carbon::parse('2026-12-31'),
+                'hours_expected' => 60.00,
+                'start_date' => Carbon::create($y, 4, 15),
+                'end_date' => Carbon::create($y, 11, 15),
+            ],
+            [
+                'title' => 'أخصائي استهداف وتسويق برامج',
+                'description' => 'صياغة رسائل استهداف مناسبة للفئات المختلفة، دعم الحملات الرقمية، وقياس مؤشرات الاستجابة بالتنسيق مع فريق المحتوى.',
+                'capacity' => 6,
+                'hours_expected' => 35.00,
+                'start_date' => Carbon::create($y, 2, 10),
+                'end_date' => Carbon::create($y, 8, 31),
+            ],
+            [
+                'title' => 'منسق مقابلات وتوظيف',
+                'description' => 'تنظيم جداول المقابلات، التواصل مع المرشحين، وأرشفة النتائج وفق سياسات الخصوصية المعتمدة لدى المنصة.',
+                'capacity' => 5,
+                'hours_expected' => 28.00,
+                'start_date' => Carbon::create($y, 5, 1),
+                'end_date' => Carbon::create($y, 10, 31),
+            ],
+            [
+                'title' => 'مدرب لإقامة ورش تدريبية',
+                'description' => 'إعداد وتقديم ورش عملية قصيرة ضمن برامج المنصة، مع أدلة تنفيذ وتمارين مشاركة للحضور.',
+                'capacity' => 10,
+                'hours_expected' => 48.00,
+                'start_date' => Carbon::create($y, 3, 20),
+                'end_date' => Carbon::create($y, 12, 15),
+            ],
+            [
+                'title' => 'متطوع للمشاركة في مبادرات التشجير',
+                'description' => 'المساهمة في تنظيم مواقع الزراعة، التوعية للمتطوعين، ومتابعة سلامة المشاركين وفق تعليمات الجهات الشريكة.',
+                'capacity' => 25,
+                'hours_expected' => 20.00,
+                'start_date' => Carbon::create($y, 11, 1),
+                'end_date' => Carbon::create($y, 12, 20),
             ],
         ];
 
-        foreach ($opportunities as $data) {
-            $slug = Str::slug($data['title']);
-            if (empty($slug)) {
-                $slug = 'opp-'.Str::random(6);
-            }
+        foreach ($items as $data) {
+            $slug = Str::slug($data['title']) ?: 'vol-'.Str::random(8);
 
-            VolunteerOpportunity::firstOrCreate(
+            VolunteerOpportunity::updateOrCreate(
                 ['slug' => $slug],
                 [
                     'title' => $data['title'],
@@ -85,15 +90,11 @@ class VolunteerOpportunitySeeder extends Seeder
                     'start_date' => $data['start_date'],
                     'end_date' => $data['end_date'],
                     'status' => OpportunityStatus::Published,
-                    'published_at' => now(),
-                    'created_by' => $admin?->id,
+                    'published_at' => now()->subDays(5),
+                    'created_by' => $creator->id,
                     'assigned_to' => $volunteeringManager?->id,
                 ]
             );
-        }
-
-        if ($volunteeringManager) {
-            VolunteerOpportunity::query()->whereNull('assigned_to')->update(['assigned_to' => $volunteeringManager->id]);
         }
     }
 }

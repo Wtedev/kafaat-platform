@@ -18,6 +18,7 @@ class PublicTrainingProgramController extends Controller
     public function index()
     {
         $programs = TrainingProgram::published()
+            ->standaloneCatalog()
             ->latest('published_at')
             ->paginate(12);
 

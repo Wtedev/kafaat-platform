@@ -2,14 +2,13 @@
 
 namespace App\Services;
 
-use App\Enums\CourseStatus;
-use App\Enums\ProgressStatus;
+use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Models\LearningPath;
-use App\Models\PathCourse;
 use App\Models\PathRegistration;
+use App\Models\ProgramRegistration;
+use App\Models\TrainingProgram;
 use App\Models\User;
-use App\Models\UserCourseProgress;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -19,185 +18,74 @@ class ProgressService
         private readonly CertificateService $certificateService,
     ) {}
 
-    // ─── Public API ───────────────────────────────────────────────────────────
-
     /**
-     * Start a course for a user (creates a progress row in InProgress state).
-     * If already started or completed, returns existing row without changes.
-     */
-    public function startCourse(User $user, PathCourse $course): UserCourseProgress
-    {
-        $progress = UserCourseProgress::firstOrCreate(
-            [
-                'user_id' => $user->id,
-                'path_course_id' => $course->id,
-            ],
-            [
-                'progress_percentage' => 0.0,
-                'status' => ProgressStatus::InProgress,
-            ]
-        );
-
-        if ($progress->status === ProgressStatus::NotStarted) {
-            $progress->update(['status' => ProgressStatus::InProgress]);
-        }
-
-        return $progress->fresh();
-    }
-
-    /**
-     * Mark a course as fully completed (100%, status = completed, completed_at = now).
-     * Then checks whether the parent path is now eligible for completion.
-     */
-    public function completeCourse(User $user, PathCourse $course): UserCourseProgress
-    {
-        $progress = UserCourseProgress::updateOrCreate(
-            [
-                'user_id' => $user->id,
-                'path_course_id' => $course->id,
-            ],
-            [
-                'progress_percentage' => 100.00,
-                'status' => ProgressStatus::Completed,
-                'completed_at' => now(),
-            ]
-        );
-
-        $this->completePathIfEligible($user, $course->learningPath);
-
-        return $progress->fresh();
-    }
-
-    /**
-     * Record or update a user's progress on a single course.
-     * Status is derived automatically from percentage.
-     * After updating, checks if the parent learning path is now fully completed.
-     */
-    public function updateCourseProgress(
-        User $user,
-        PathCourse $course,
-        float $percentage,
-        ?float $score = null,
-    ): UserCourseProgress {
-        $percentage = max(0.0, min(100.0, $percentage));
-
-        $status = match (true) {
-            $percentage >= 100.0 => ProgressStatus::Completed,
-            $percentage > 0.0 => ProgressStatus::InProgress,
-            default => ProgressStatus::NotStarted,
-        };
-
-        $attributes = [
-            'progress_percentage' => $percentage,
-            'status' => $status,
-        ];
-
-        if ($score !== null) {
-            $attributes['score'] = $score;
-        }
-
-        // Only set completed_at the first time the course reaches 100%
-        if ($status === ProgressStatus::Completed) {
-            $existing = UserCourseProgress::where('user_id', $user->id)
-                ->where('path_course_id', $course->id)
-                ->first();
-
-            if ($existing === null || $existing->completed_at === null) {
-                $attributes['completed_at'] = now();
-            }
-        }
-
-        $progress = UserCourseProgress::updateOrCreate(
-            [
-                'user_id' => $user->id,
-                'path_course_id' => $course->id,
-            ],
-            $attributes
-        );
-
-        $this->completePathIfEligible($user, $course->learningPath);
-
-        return $progress->fresh();
-    }
-
-    /**
-     * Calculate average progress across all required published courses in a path.
-     * Courses with no progress row are treated as 0%.
-     * Returns 0.0–100.0.
+     * Average progress across published programs in the path (0–100).
+     * Programs without a registration for the user count as 0%.
      */
     public function calculatePathProgress(User $user, LearningPath $path): float
     {
-        $courseIds = $this->getRequiredPublishedCourseIds($path);
+        $programs = $this->publishedProgramsInPath($path);
 
-        if ($courseIds->isEmpty()) {
+        if ($programs->isEmpty()) {
             return 0.0;
         }
 
-        $progressRows = UserCourseProgress::where('user_id', $user->id)
-            ->whereIn('path_course_id', $courseIds)
-            ->pluck('progress_percentage', 'path_course_id');
-
-        $total = $courseIds->reduce(
-            fn (float $carry, int $id) => $carry + (float) ($progressRows[$id] ?? 0.0),
+        $total = $programs->reduce(
+            fn (float $carry, TrainingProgram $program) => $carry + $this->programProgressPercentage($user, $program),
             0.0
         );
 
-        return round($total / $courseIds->count(), 2);
+        return round($total / $programs->count(), 2);
     }
 
-    /**
-     * Count how many required published courses the user has completed in a path.
-     */
-    public function getCompletedCoursesCount(User $user, LearningPath $path): int
+    public function getCompletedProgramsCount(User $user, LearningPath $path): int
     {
-        $courseIds = $this->getRequiredPublishedCourseIds($path);
+        $programs = $this->publishedProgramsInPath($path);
 
-        if ($courseIds->isEmpty()) {
+        if ($programs->isEmpty()) {
             return 0;
         }
 
-        return UserCourseProgress::where('user_id', $user->id)
-            ->whereIn('path_course_id', $courseIds)
-            ->where('status', ProgressStatus::Completed->value)
-            ->count();
+        $completed = 0;
+
+        foreach ($programs as $program) {
+            $reg = $this->registrationForProgram($user, $program);
+            if ($reg?->status === RegistrationStatus::Completed) {
+                $completed++;
+            }
+        }
+
+        return $completed;
     }
 
-    /**
-     * Count total required published courses in a path.
-     */
-    public function getTotalRequiredCoursesCount(LearningPath $path): int
+    public function getTotalProgramsInPathCount(LearningPath $path): int
     {
-        return $path->courses()
-            ->where('status', CourseStatus::Published->value)
-            ->where('is_required', true)
-            ->count();
+        return $this->publishedProgramsInPath($path)->count();
     }
 
     /**
-     * Return true if the user has completed ALL required published courses.
-     * A path with no required published courses is NOT considered complete.
+     * True when every published program in the path has a completed registration for the user.
      */
     public function isPathCompleted(User $user, LearningPath $path): bool
     {
-        $courseIds = $this->getRequiredPublishedCourseIds($path);
+        $programs = $this->publishedProgramsInPath($path);
 
-        if ($courseIds->isEmpty()) {
+        if ($programs->isEmpty()) {
             return false;
         }
 
-        $completedCount = UserCourseProgress::where('user_id', $user->id)
-            ->whereIn('path_course_id', $courseIds)
-            ->where('status', ProgressStatus::Completed->value)
-            ->count();
+        foreach ($programs as $program) {
+            $reg = $this->registrationForProgram($user, $program);
+            if ($reg === null || $reg->status !== RegistrationStatus::Completed) {
+                return false;
+            }
+        }
 
-        return $completedCount === $courseIds->count();
+        return true;
     }
 
     /**
-     * If the user has completed all required published courses:
-     * - mark the PathRegistration status → Completed
-     * - set completed_at
-     * - issue certificate (idempotent — no duplicates)
+     * When all path programs are completed for the user: path registration → Completed, issue path certificate.
      */
     public function completePathIfEligible(User $user, LearningPath $path): void
     {
@@ -229,16 +117,52 @@ class ProgressService
         });
     }
 
-    // ─── Private Helpers ──────────────────────────────────────────────────────
+    /**
+     * Progress for a single program from the user's registration (0–100).
+     */
+    public function programProgressPercentage(User $user, TrainingProgram $program): float
+    {
+        $reg = $this->registrationForProgram($user, $program);
+
+        if ($reg === null) {
+            return 0.0;
+        }
+
+        return match ($reg->status) {
+            RegistrationStatus::Completed => 100.0,
+            RegistrationStatus::Approved => $this->approvedProgramProgress($reg),
+            RegistrationStatus::Pending => 5.0,
+            default => 0.0,
+        };
+    }
+
+    private function approvedProgramProgress(ProgramRegistration $reg): float
+    {
+        if ($reg->attendance_percentage !== null) {
+            return min(99.0, max(0.0, (float) $reg->attendance_percentage));
+        }
+
+        return 25.0;
+    }
+
+    private function registrationForProgram(User $user, TrainingProgram $program): ?ProgramRegistration
+    {
+        return ProgramRegistration::query()
+            ->where('user_id', $user->id)
+            ->where('training_program_id', $program->id)
+            ->first();
+    }
 
     /**
-     * @return Collection<int>
+     * @return Collection<int, TrainingProgram>
      */
-    private function getRequiredPublishedCourseIds(LearningPath $path): Collection
+    private function publishedProgramsInPath(LearningPath $path): Collection
     {
-        return $path->courses()
-            ->where('status', CourseStatus::Published->value)
-            ->where('is_required', true)
-            ->pluck('id');
+        return $path->programs()
+            ->where('status', ProgramStatus::Published->value)
+            ->orderByRaw('path_sort_order IS NULL')
+            ->orderBy('path_sort_order')
+            ->orderBy('id')
+            ->get();
     }
 }

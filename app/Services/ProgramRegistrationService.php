@@ -19,6 +19,7 @@ class ProgramRegistrationService
         private readonly EmailLogService $emailLogService,
         private readonly CertificateService $certificateService,
         private readonly InboxNotificationService $inboxNotifications,
+        private readonly ProgressService $progressService,
     ) {}
 
     /**
@@ -176,6 +177,15 @@ class ProgramRegistrationService
                 $registration->trainingProgram,
                 $admin,
             );
+        }
+
+        $registration->loadMissing(['user', 'trainingProgram.learningPath']);
+        $program = $registration->trainingProgram;
+        if ($program !== null && $program->learning_path_id !== null) {
+            $path = $program->learningPath;
+            if ($path !== null) {
+                $this->progressService->completePathIfEligible($registration->user, $path);
+            }
         }
 
         return $registration;

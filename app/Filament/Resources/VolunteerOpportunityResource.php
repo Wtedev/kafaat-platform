@@ -74,7 +74,7 @@ class VolunteerOpportunityResource extends Resource
 
                 Select::make('assigned_to')
                     ->label('مسؤول الفرصة')
-                    ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $q) => $q->role('volunteering_manager'))
+                    ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $query) => $query->role('volunteering_manager'))
                     ->searchable()
                     ->preload()
                     ->visible(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))

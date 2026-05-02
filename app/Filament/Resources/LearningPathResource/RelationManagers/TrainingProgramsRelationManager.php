@@ -3,14 +3,13 @@
 namespace App\Filament\Resources\LearningPathResource\RelationManagers;
 
 use App\Enums\ProgramStatus;
+use App\Enums\TrainingProgramKind;
+use App\Filament\Resources\TrainingProgramResource;
+use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Support\FilamentAssignmentVisibility;
 use Filament\Actions\Action;
-use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -21,15 +20,31 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
 
 class TrainingProgramsRelationManager extends RelationManager
 {
     protected static string $relationship = 'programs';
 
-    protected static ?string $title = 'البرامج التدريبية';
+    protected static ?string $title = 'البرامج في المسار';
+
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        $user = auth()->user();
+
+        if ($user === null) {
+            return false;
+        }
+
+        if ($ownerRecord instanceof LearningPath) {
+            return $user->can('view', $ownerRecord);
+        }
+
+        return parent::canViewForRecord($ownerRecord, $pageClass);
+    }
 
     public function form(Schema $schema): Schema
     {
@@ -50,6 +65,12 @@ class TrainingProgramsRelationManager extends RelationManager
                 ->options(ProgramStatus::class)
                 ->required()
                 ->default(ProgramStatus::Draft->value),
+
+            Select::make('program_kind')
+                ->label('نوع البرنامج')
+                ->options(TrainingProgramKind::class)
+                ->required()
+                ->default(TrainingProgramKind::Course->value),
 
             TextInput::make('capacity')
                 ->label('الطاقة الاستيعابية')
@@ -81,25 +102,43 @@ class TrainingProgramsRelationManager extends RelationManager
                 ->columnSpanFull(),
 
             Select::make('assigned_to')
-                ->label('المسؤول عن البرنامج')
-                ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $q) => $q->role('training_manager'))
+                ->label('منسق البرنامج (تشغيلي)')
+                ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $query) => $query->role('training_manager'))
                 ->searchable()
                 ->preload()
                 ->visible(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
                 ->required(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
-                ->dehydrated(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user())),
+                ->dehydrated(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
+                ->helperText('منفصل عن المسؤول — المالك (owner_id). يُملأ من إعدادات البرنامج الرئيسية عند الحاجة.'),
         ]);
     }
 
     public function table(Table $table): Table
     {
+        /** @var LearningPath $path */
+        $path = $this->getOwnerRecord();
+
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->forFilamentAssignmentAccess(auth()->user()))
+            ->heading('')
+            ->modifyQueryUsing(function (Builder $query, bool $isResolvingRecord = false): Builder {
+                return $query->withCount('registrations');
+            })
             ->columns([
                 TextColumn::make('title')
-                    ->label('البرنامج')
+                    ->label('عنوان البرنامج')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->wrap(),
+
+                TextColumn::make('program_kind')
+                    ->label('نوع البرنامج')
+                    ->formatStateUsing(function ($state): string {
+                        if ($state instanceof TrainingProgramKind) {
+                            return $state->label();
+                        }
+
+                        return TrainingProgramKind::tryFrom((string) $state)?->label() ?? '—';
+                    }),
 
                 BadgeColumn::make('status')
                     ->label('الحالة')
@@ -107,59 +146,115 @@ class TrainingProgramsRelationManager extends RelationManager
                         'gray' => ProgramStatus::Draft->value,
                         'success' => ProgramStatus::Published->value,
                         'warning' => ProgramStatus::Archived->value,
-                    ]),
+                    ])
+                    ->formatStateUsing(function ($state): ?string {
+                        if ($state instanceof ProgramStatus) {
+                            return $state->label();
+                        }
 
-                TextColumn::make('start_date')
-                    ->label('بداية البرنامج')
-                    ->date()
+                        return ProgramStatus::tryFrom((string) $state)?->label();
+                    })
                     ->sortable(),
 
-                TextColumn::make('end_date')
-                    ->label('نهاية البرنامج')
-                    ->date()
-                    ->toggleable(),
-
                 TextColumn::make('registrations_count')
-                    ->counts('registrations')
-                    ->label('المسجلون')
-                    ->badge()
-                    ->color('info'),
-
-                TextColumn::make('capacity')
-                    ->label('الطاقة')
-                    ->default('غير محدودة'),
-            ])
-            ->filters([
-                SelectFilter::make('status')
-                    ->label('الحالة')
-                    ->options(ProgramStatus::class),
+                    ->label('عدد المسجلين')
+                    ->numeric()
+                    ->sortable()
+                    ->alignEnd(),
             ])
             ->headerActions([
-                CreateAction::make()->label('إنشاء برنامج جديد'),
+                CreateAction::make()
+                    ->label('إنشاء برنامج جديد في المسار')
+                    ->modalHeading('إنشاء برنامج جديد')
+                    ->authorize(fn (): bool => (auth()->user()?->can('updateContainerStructure', $path) ?? false)
+                        && (auth()->user()?->can('create', TrainingProgram::class) ?? false))
+                    ->mutateFormDataUsing(function (array $data) use ($path): array {
+                        $data['learning_path_id'] = $path->getKey();
+                        $max = (int) TrainingProgram::query()
+                            ->where('learning_path_id', $path->getKey())
+                            ->max('path_sort_order');
+                        $data['path_sort_order'] = $max > 0 ? $max + 1 : 1;
+
+                        return $data;
+                    }),
+
+                Action::make('attachExistingProgram')
+                    ->label('ربط برنامج موجود')
+                    ->icon('heroicon-o-link')
+                    ->color('gray')
+                    ->modalHeading('ربط برنامج بالمسار')
+                    ->modalDescription('يُربط برنامج غير مرتبط بمسار. يجب أن يكون لديك حق تعديل البرنامج لقبول الربط.')
+                    ->form([
+                        Select::make('training_program_id')
+                            ->label('البرنامج')
+                            ->options(function (): array {
+                                $user = auth()->user();
+                                if ($user === null) {
+                                    return [];
+                                }
+
+                                return TrainingProgram::query()
+                                    ->whereNull('learning_path_id')
+                                    ->orderBy('title')
+                                    ->get()
+                                    ->filter(fn (TrainingProgram $p) => $user->can('update', $p))
+                                    ->mapWithKeys(fn (TrainingProgram $p) => [$p->getKey() => $p->title])
+                                    ->all();
+                            })
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                    ])
+                    ->authorize(fn (): bool => auth()->user()?->can('updateContainerStructure', $path) ?? false)
+                    ->action(function (array $data) use ($path): void {
+                        Gate::authorize('updateContainerStructure', $path);
+                        $program = TrainingProgram::query()->findOrFail($data['training_program_id']);
+                        Gate::authorize('update', $program);
+                        $max = (int) TrainingProgram::query()
+                            ->where('learning_path_id', $path->getKey())
+                            ->max('path_sort_order');
+                        $program->update([
+                            'learning_path_id' => $path->getKey(),
+                            'path_sort_order' => $max > 0 ? $max + 1 : 1,
+                        ]);
+                        Notification::make()->title('تم ربط البرنامج بالمسار')->success()->send();
+                    }),
             ])
             ->actions([
-                EditAction::make()->label('تعديل'),
+                Action::make('editProgramContent')
+                    ->label('تعديل محتوى البرنامج')
+                    ->icon('heroicon-o-pencil-square')
+                    ->color('gray')
+                    ->url(fn (TrainingProgram $record): string => TrainingProgramResource::getUrl('edit', ['record' => $record]))
+                    ->openUrlInNewTab()
+                    ->visible(fn (TrainingProgram $record): bool => auth()->user()?->can('update', $record) ?? false),
 
                 Action::make('detach')
-                    ->label('فصل عن المسار')
+                    ->label('فصل من المسار')
                     ->icon('heroicon-o-x-mark')
                     ->color('gray')
                     ->requiresConfirmation()
                     ->modalHeading('فصل البرنامج عن المسار')
-                    ->modalDescription('سيتم إزالة هذا البرنامج من المسار التعليمي. يمكن إعادة ربطه لاحقاً من صفحة البرنامج.')
+                    ->modalDescription('سيتم إزالة هذا البرنامج من المسار التعليمي. يمكن إعادة ربطه لاحقاً.')
                     ->modalSubmitActionLabel('نعم، فصل')
-                    ->action(function (TrainingProgram $record): void {
-                        $record->update(['learning_path_id' => null]);
+                    ->visible(fn (): bool => auth()->user()?->can('updateContainerStructure', $path) ?? false)
+                    ->action(function (TrainingProgram $record) use ($path): void {
+                        Gate::authorize('updateContainerStructure', $path);
+                        if ((int) $record->learning_path_id !== (int) $path->getKey()) {
+                            return;
+                        }
+                        $record->update([
+                            'learning_path_id' => null,
+                            'path_sort_order' => null,
+                        ]);
                         Notification::make()->title('تم فصل البرنامج عن المسار')->success()->send();
                     }),
-
-                DeleteAction::make()->label('حذف'),
             ])
-            ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ])
-            ->defaultSort('start_date');
+            ->reorderable(
+                'path_sort_order',
+                fn (): bool => auth()->user()?->can('updateContainerStructure', $path) ?? false
+            )
+            ->authorizeReorder(fn (): bool => auth()->user()?->can('updateContainerStructure', $path) ?? false)
+            ->defaultSort('path_sort_order');
     }
 }

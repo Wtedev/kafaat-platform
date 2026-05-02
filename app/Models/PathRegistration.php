@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\RegistrationStatus;
+use App\Support\FilamentAssignmentVisibility;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -50,6 +51,14 @@ class PathRegistration extends Model
         $query->where('status', RegistrationStatus::Completed);
     }
 
+    /**
+     * Filament list: operational learner data only for path stakeholders or own registration.
+     */
+    public function scopeForFilamentAssignmentAccess(Builder $query, ?User $viewer): void
+    {
+        FilamentAssignmentVisibility::constrainPathRegistrations($query, $viewer);
+    }
+
     // ─── Relationships ────────────────────────────────────────────────────────
 
     public function learningPath(): BelongsTo
@@ -79,7 +88,10 @@ class PathRegistration extends Model
         return $this->status === RegistrationStatus::Completed;
     }
 
-    public function canAccessCourses(): bool
+    /**
+     * Approved or completed path registration: can view path programs and progress in the portal.
+     */
+    public function canAccessPathPrograms(): bool
     {
         return in_array($this->status, [
             RegistrationStatus::Approved,

@@ -6,6 +6,7 @@ use App\Enums\RegistrationStatus;
 use App\Models\ProgramRegistration;
 use App\Models\User;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\TrainingEntityAuthorization;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class ProgramRegistrationPolicy
@@ -35,18 +36,33 @@ class ProgramRegistrationPolicy
             return true;
         }
 
-        if ($user->hasRole('training_manager')) {
-            $registration->loadMissing('trainingProgram');
+        $registration->loadMissing('trainingProgram');
 
-            return FilamentAssignmentVisibility::userManagesTrainingProgram($user, $registration->trainingProgram);
-        }
-
-        return true;
+        return $registration->trainingProgram !== null
+            && $user->can('viewOperational', $registration->trainingProgram);
     }
 
     public function create(User $user): bool
     {
         return true;
+    }
+
+    public function update(User $user, ProgramRegistration $registration): bool
+    {
+        if ($user->id === $registration->user_id) {
+            return false;
+        }
+
+        return $this->view($user, $registration);
+    }
+
+    public function delete(User $user, ProgramRegistration $registration): bool
+    {
+        if ($user->id === $registration->user_id) {
+            return false;
+        }
+
+        return $this->view($user, $registration);
     }
 
     public function approve(User $user, ProgramRegistration $registration): bool
@@ -57,7 +73,11 @@ class ProgramRegistrationPolicy
 
         $registration->loadMissing('trainingProgram');
 
-        return FilamentAssignmentVisibility::userManagesTrainingProgram($user, $registration->trainingProgram);
+        return $registration->trainingProgram !== null
+            && (
+                TrainingEntityAuthorization::adminBypass($user)
+                || $user->can('viewOperational', $registration->trainingProgram)
+            );
     }
 
     public function reject(User $user, ProgramRegistration $registration): bool
@@ -68,7 +88,11 @@ class ProgramRegistrationPolicy
 
         $registration->loadMissing('trainingProgram');
 
-        return FilamentAssignmentVisibility::userManagesTrainingProgram($user, $registration->trainingProgram);
+        return $registration->trainingProgram !== null
+            && (
+                TrainingEntityAuthorization::adminBypass($user)
+                || $user->can('viewOperational', $registration->trainingProgram)
+            );
     }
 
     public function cancel(User $user, ProgramRegistration $registration): bool
@@ -86,6 +110,10 @@ class ProgramRegistrationPolicy
 
         $registration->loadMissing('trainingProgram');
 
-        return FilamentAssignmentVisibility::userManagesTrainingProgram($user, $registration->trainingProgram);
+        return $registration->trainingProgram !== null
+            && (
+                TrainingEntityAuthorization::adminBypass($user)
+                || $user->can('viewOperational', $registration->trainingProgram)
+            );
     }
 }

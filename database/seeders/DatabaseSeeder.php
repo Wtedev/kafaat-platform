@@ -2,90 +2,54 @@
 
 namespace Database\Seeders;
 
-use App\Models\Profile;
-use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
+/**
+ * Environment flags (use with `php artisan db:seed`):
+ *
+ * SEED_DEMO_DATA=true
+ *   Seeds demo/domain data for local/staging: staff users, learning paths, training programs,
+ *   partners, volunteer opportunities, portal registrations, certificates, volunteer team.
+ *   Default: off — do not enable in production unless you intentionally want this dataset.
+ *
+ * SEED_NEWS=true
+ *   Runs NewsSeeder (truncates and repopulates the `news` table — see that class).
+ *   Default: off so production deploys that run `db:seed` do not wipe curated news.
+ *
+ * RESET_DEMO_DATA=true
+ *   Runs CleanDemoDataSeeder: removes demo training/volunteer domain rows and listed demo users.
+ *   Default: off. If you enable this together with SEED_DEMO_DATA in one command, cleanup runs
+ *   after demo seeding and will remove the data just seeded — use separate runs or only one flag.
+ */
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Roles must exist before any user seeder assigns them
         $this->call(RolesAndPermissionsSeeder::class);
-
-        // Production admin from env vars — safe to call in all environments
         $this->call(AdminUserSeeder::class);
 
-        // ─── Admin users ──────────────────────────────────────────────────────
-        foreach ([
-            ['email' => 'admin@kafaat.test',   'name' => 'مسؤول النظام'],
-            ['email' => 'admin@example.com',   'name' => 'مسؤول النظام'],
-        ] as $data) {
-            $user = User::firstOrCreate(
-                ['email' => $data['email']],
-                [
-                    'name' => $data['name'],
-                    'password' => Hash::make('password'),
-                    'role_type' => 'admin',
-                    'is_active' => true,
-                ]
-            );
-            $user->syncRoles(['admin']);
-            Profile::firstOrCreate(['user_id' => $user->id]);
+        if ($this->envFlag('SEED_DEMO_DATA')) {
+            $this->call(UserSeeder::class);
+            $this->call(LearningPathSeeder::class);
+            $this->call(TrainingProgramSeeder::class);
+            $this->call(PartnerSeeder::class);
+            $this->call(VolunteerOpportunitySeeder::class);
+            $this->call(RegistrationsSeeder::class);
+            $this->call(CertificateSeeder::class);
+            $this->call(VolunteerTeamSeeder::class);
         }
 
-        // ─── Staff users (أدوار Spatie: مدير تدريب / مدير تطوع) ────────────────
-        foreach ([
-            ['email' => 'staff@kafaat.test', 'name' => 'موظف العمليات', 'spatie_role' => 'training_manager'],
-            ['email' => 'staff@example.com', 'name' => 'موظف العمليات', 'spatie_role' => 'volunteering_manager'],
-        ] as $data) {
-            $user = User::firstOrCreate(
-                ['email' => $data['email']],
-                [
-                    'name' => $data['name'],
-                    'password' => Hash::make('password'),
-                    'role_type' => 'staff',
-                    'is_active' => true,
-                ]
-            );
-            $user->syncRoles([$data['spatie_role']]);
-            Profile::firstOrCreate(['user_id' => $user->id]);
+        if ($this->envFlag('SEED_NEWS')) {
+            $this->call(NewsSeeder::class);
         }
 
-        // ─── مستخدمو البوابة (Spatie: trainee) ────────────────────────────────
-        $beneficiaries = [
-            ['email' => 'beneficiary@kafaat.test',  'name' => 'أحمد العمري',    'city' => 'الرياض', 'gender' => 'male'],
-            ['email' => 'beneficiary@example.com',  'name' => 'أحمد العمري',    'city' => 'الرياض', 'gender' => 'male'],
-            ['email' => 'sara@example.com',         'name' => 'سارة الخالدي',   'city' => 'جدة',    'gender' => 'female'],
-            ['email' => 'khalid@example.com',       'name' => 'خالد المطيري',   'city' => 'الدمام', 'gender' => 'male'],
-        ];
-
-        foreach ($beneficiaries as $data) {
-            $user = User::firstOrCreate(
-                ['email' => $data['email']],
-                [
-                    'name' => $data['name'],
-                    'password' => Hash::make('password'),
-                    'role_type' => 'beneficiary',
-                    'is_active' => true,
-                ]
-            );
-            $user->syncRoles(['trainee']);
-            Profile::firstOrCreate(
-                ['user_id' => $user->id],
-                ['city' => $data['city'], 'gender' => $data['gender']]
-            );
+        if ($this->envFlag('RESET_DEMO_DATA')) {
+            $this->call(CleanDemoDataSeeder::class);
         }
+    }
 
-        // ─── Sample content + registrations ──────────────────────────────────
-        $this->call([
-            TrainingProgramSeeder::class,
-            SampleDataSeeder::class,
-            VolunteerOpportunitySeeder::class,
-            NewsSeeder::class,
-            RegistrationsSeeder::class,
-            VolunteerTeamSeeder::class,
-        ]);
+    private function envFlag(string $key, bool $default = false): bool
+    {
+        return filter_var(env($key, $default), FILTER_VALIDATE_BOOLEAN);
     }
 }

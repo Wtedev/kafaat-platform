@@ -59,7 +59,7 @@ class VolunteerRegistrationResource extends Resource
                     ->relationship(
                         'opportunity',
                         'title',
-                        modifyQueryUsing: fn (Builder $q) => $q->forFilamentAssignmentAccess(auth()->user()),
+                        modifyQueryUsing: fn (Builder $query) => $query->forFilamentAssignmentAccess(auth()->user()),
                     )
                     ->searchable()
                     ->preload()
@@ -169,7 +169,7 @@ class VolunteerRegistrationResource extends Resource
                     ->relationship(
                         'opportunity',
                         'title',
-                        modifyQueryUsing: fn (Builder $q) => $q->forFilamentAssignmentAccess(auth()->user()),
+                        modifyQueryUsing: fn (Builder $query) => $query->forFilamentAssignmentAccess(auth()->user()),
                     )
                     ->label('الفرصة التطوعية')
                     ->searchable(),
