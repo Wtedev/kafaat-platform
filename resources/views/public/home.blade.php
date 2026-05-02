@@ -446,17 +446,25 @@
     <section class="py-20" style="background:#F3F7FB">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            {{-- ── Programs row ── --}}
+            {{-- ── المسارات + البرامج المستقلة (بدون تكرار برامج مدمجة داخل مسار) ── --}}
             <div class="mb-16">
-                <div class="flex items-end justify-between mb-8">
-                    <a href="{{ route('public.programs.index') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline" style="color:#253B5B">
-                        عرض الكل
-                        <svg class="w-4 h-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                    </a>
+                <div class="flex flex-wrap items-end justify-between gap-4 mb-8">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <a href="{{ route('public.paths.index') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline" style="color:#253B5B">
+                            كل المسارات
+                            <svg class="w-4 h-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                        </a>
+                        <span class="text-gray-300" aria-hidden="true">|</span>
+                        <a href="{{ route('public.programs.index') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline" style="color:#253B5B">
+                            البرامج المستقلة
+                            <svg class="w-4 h-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                        </a>
+                    </div>
                     <div class="text-right">
                         <p class="text-sm font-semibold mb-1" style="color:#3CB878">أحدث المتاح</p>
-                        <h2 class="text-2xl font-bold" style="color:#111827">برامج كفاءات</h2>
+                        <h2 class="text-2xl font-bold" style="color:#111827">البرامج والمسارات</h2>
                     </div>
                 </div>
 
@@ -471,16 +479,23 @@
                     'linear-gradient(135deg,#253B5B 0%,#1EB890 100%)',
                     ];
                     @endphp
-                    @forelse ($programs as $index => $program)
-                    <a href="{{ route('public.programs.show', $program->slug) }}" class="group bg-white rounded-3xl border border-gray-50 shadow-sm hover:shadow-lg
+                    @forelse ($pathsAndPrograms as $index => $row)
+                    @php
+                        $isPath = $row['kind'] === 'path';
+                        $item = $row['record'];
+                        $href = $isPath ? route('public.paths.show', $item->slug) : route('public.programs.show', $item->slug);
+                        $typeLabel = $isPath ? 'مسار تدريبي' : 'برنامج مستقل';
+                        $ctaLabel = $isPath ? 'اكتشف المسار ←' : 'سجّل الآن ←';
+                    @endphp
+                    <a href="{{ $href }}" class="group bg-white rounded-3xl border border-gray-50 shadow-sm hover:shadow-lg
                               transition-all duration-300 hover:-translate-y-1 block text-right overflow-hidden">
 
                         {{-- Image or gradient header --}}
-                        @if ($program->image)
-                        <img src="{{ asset('storage/' . $program->image) }}" alt="{{ $program->title }}" class="w-full h-28 object-cover">
+                        @if ($item->image)
+                        <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->title }}" class="w-full h-28 object-cover">
                         @else
                         <div class="h-28 w-full flex items-end p-4" style="background:{{ $programGradients[$index % 6] }}">
-                            <span class="text-white text-lg font-black leading-tight opacity-90">{{ $program->title }}</span>
+                            <span class="text-white text-lg font-black leading-tight opacity-90">{{ $item->title }}</span>
                         </div>
                         @endif
 
@@ -489,31 +504,37 @@
                                 <span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-xl text-green-700 bg-green-100">
                                     <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>مفتوح
                                 </span>
-                                <span class="text-xs font-medium px-3 py-1.5 rounded-xl" style="background:#EAF2FA; color:#253B5B">برنامج تدريبي</span>
+                                <span class="text-xs font-medium px-3 py-1.5 rounded-xl" style="background:#EAF2FA; color:#253B5B">{{ $typeLabel }}</span>
                             </div>
-                            @if (!$program->image)
-                            <p class="text-sm clamp-2 mb-4" style="color:#6B7280">{{ $program->description }}</p>
+                            @if (!$item->image)
+                            <p class="text-sm clamp-2 mb-4" style="color:#6B7280">{{ $item->description }}</p>
                             @else
-                            <h3 class="font-bold text-base mb-2 clamp-1 group-hover:text-[#253B5B] transition-colors" style="color:#111827">{{ $program->title }}</h3>
-                            <p class="text-sm clamp-2 mb-4" style="color:#6B7280">{{ $program->description }}</p>
+                            <h3 class="font-bold text-base mb-2 clamp-1 group-hover:text-[#253B5B] transition-colors" style="color:#111827">{{ $item->title }}</h3>
+                            <p class="text-sm clamp-2 mb-4" style="color:#6B7280">{{ $item->description }}</p>
                             @endif
                             <div class="flex items-center justify-between text-xs border-t border-gray-50 pt-4" style="color:#6B7280">
-                                @if($program->start_date)
+                                @if($isPath && $item->published_at)
                                 <span class="flex items-center gap-1">
                                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                    {{ $program->start_date->format('Y/m/d') }}
+                                    {{ $item->published_at->format('Y/m/d') }}
+                                </span>
+                                @elseif(!$isPath && $item->start_date)
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                    {{ $item->start_date->format('Y/m/d') }}
                                 </span>
                                 @else
                                 <span></span>
                                 @endif
-                                <span class="font-semibold" style="color:#3CB878">سجّل الآن ←</span>
+                                <span class="font-semibold" style="color:#3CB878">{{ $ctaLabel }}</span>
                             </div>
                         </div>
                     </a>
                     @empty
                     <div class="col-span-3 py-12 text-center rounded-3xl border border-dashed border-gray-200 bg-white" style="color:#6B7280">
-                        لا توجد برامج منشورة حالياً.
+                        لا توجد مسارات أو برامج مستقلة منشورة حالياً.
                     </div>
                     @endforelse
                 </div>
