@@ -19,6 +19,7 @@ class InboxNotification extends Model
         'type',
         'sender_id',
         'target_type',
+        'context',
         'read_at',
     ];
 
@@ -27,6 +28,7 @@ class InboxNotification extends Model
         return [
             'type' => InboxNotificationType::class,
             'target_type' => NotificationTargetType::class,
+            'context' => 'array',
             'read_at' => 'datetime',
         ];
     }

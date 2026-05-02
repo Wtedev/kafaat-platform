@@ -121,7 +121,7 @@ final class PortalDashboardComposer
     private static function composeActivities(User $user): Collection
     {
         $user->loadMissing([
-            'learningPathRegistrations.learningPath.courses',
+            'learningPathRegistrations.learningPath.programs',
             'programRegistrations.trainingProgram',
         ]);
 
@@ -138,6 +138,11 @@ final class PortalDashboardComposer
         }
 
         foreach ($progRegs->sortByDesc('updated_at') as $reg) {
+            $program = $reg->trainingProgram;
+            if ($program !== null && $program->learning_path_id !== null) {
+                continue;
+            }
+
             $rows->push(self::programActivity($reg));
         }
 
@@ -156,6 +161,7 @@ final class PortalDashboardComposer
 
         $extraProgs = TrainingProgram::query()
             ->published()
+            ->whereNull('learning_path_id')
             ->when($claimedProgIds->isNotEmpty(), fn ($q) => $q->whereNotIn('id', $claimedProgIds))
             ->latest('published_at')
             ->limit(3)
@@ -227,7 +233,7 @@ final class PortalDashboardComposer
             'discover' => true,
             'sort_at' => $path->published_at ?? $path->updated_at,
             'title' => $path->title,
-            'type_label' => 'لقاء',
+            'type_label' => 'مسار',
             'status_label' => 'غير مسجل',
             'status_tone' => 'slate',
             'progress' => null,

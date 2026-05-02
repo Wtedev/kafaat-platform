@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\TrainingProgramResource\Pages;
 
 use App\Enums\ProgramStatus;
-use App\Enums\TrainingProgramKind;
 use App\Filament\Actions\TransferTrainingEntityOwnershipAction;
 use App\Filament\Resources\Pages\BaseViewRecord;
 use App\Filament\Resources\TrainingProgramResource;
@@ -29,7 +28,7 @@ class ViewTrainingProgram extends BaseViewRecord
     {
         parent::mount($record);
 
-        $this->getRecord()->loadMissing(['learningPath', 'owner', 'creator', 'assignee']);
+        $this->getRecord()->loadMissing(['learningPath', 'owner', 'creator', 'assignee', 'editors']);
     }
 
     public function infolist(Schema $schema): Schema
@@ -53,7 +52,7 @@ class ViewTrainingProgram extends BaseViewRecord
             ->schema([
                 $this->getProgramMainDetailsCard(),
                 $this->getViewStatisticsSection(),
-                Text::make('تعديل البيانات الأساسية يتم من صفحة التعديل، وإدارة التسجيلات والفريق من التبويبات أدناه.')
+                Text::make('تعديل البيانات الأساسية وفريق العمل يتم من صفحة التعديل، وإدارة التسجيلات من التبويبات أدناه.')
                     ->size(TextSize::Small)
                     ->color('gray')
                     ->columnSpanFull(),
@@ -73,16 +72,6 @@ class ViewTrainingProgram extends BaseViewRecord
                     TextEntry::make('title')
                         ->label('اسم البرنامج')
                         ->columnSpanFull(),
-
-                    TextEntry::make('program_kind')
-                        ->label('نوع البرنامج')
-                        ->formatStateUsing(function ($state): string {
-                            if ($state instanceof TrainingProgramKind) {
-                                return $state->label();
-                            }
-
-                            return TrainingProgramKind::tryFrom((string) $state)?->label() ?? '—';
-                        }),
 
                     TextEntry::make('site_visibility_status')
                         ->label('الظهور في الموقع')
@@ -104,6 +93,23 @@ class ViewTrainingProgram extends BaseViewRecord
 
                             return $record->learningPath?->title ?? '—';
                         }),
+
+                    TextEntry::make('editors_list')
+                        ->label('أعضاء فريق العمل')
+                        ->visible(function (): bool {
+                            /** @var TrainingProgram $record */
+                            $record = $this->getRecord();
+
+                            return $record->learning_path_id === null;
+                        })
+                        ->getStateUsing(function (): string {
+                            /** @var TrainingProgram $record */
+                            $record = $this->getRecord();
+                            $names = $record->editors->pluck('name')->filter()->values();
+
+                            return $names->isEmpty() ? '—' : $names->implode('، ');
+                        })
+                        ->columnSpanFull(),
 
                     TextEntry::make('description')
                         ->label('نبذة')

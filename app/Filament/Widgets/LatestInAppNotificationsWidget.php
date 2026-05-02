@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Filament\Pages\InAppNotificationCenter;
+use App\Filament\Support\InboxNotificationRecordActions;
 use App\Models\InboxNotification;
 use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
@@ -60,6 +61,7 @@ class LatestInAppNotificationsWidget extends TableWidget
                 TextColumn::make('created_at')
                     ->label('التاريخ')
                     ->dateTime('Y/m/d'),
-            ]);
+            ])
+            ->actions(InboxNotificationRecordActions::filamentStandardRowActions());
     }
 }

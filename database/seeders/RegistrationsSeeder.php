@@ -84,7 +84,7 @@ class RegistrationsSeeder extends Seeder
     }
 
     /**
-     * Requires LearningPathSeeder, TrainingProgramSeeder, and VolunteerOpportunitySeeder to have run first.
+     * Requires LearningPathSeeder, TrainiپgProgramSeeder, and VolunteerOpportunitySeeder to have run first.
      */
     private function dependenciesMet(): bool
     {

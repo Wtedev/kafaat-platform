@@ -40,6 +40,17 @@ class AdminPanelProvider extends PanelProvider
         );
 
         FilamentView::registerRenderHook(
+            PanelsRenderHook::USER_MENU_BEFORE,
+            function (): string {
+                if (filament()->getId() !== 'admin') {
+                    return '';
+                }
+
+                return view('filament.components.admin-notifications-bell')->render();
+            },
+        );
+
+        FilamentView::registerRenderHook(
             PanelsRenderHook::HEAD_END,
             function (): string {
                 if (! filament()->getCurrentPanel() || filament()->getId() !== 'admin') {

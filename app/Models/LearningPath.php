@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
+use App\Enums\LearningPathKind;
 use App\Enums\PathStatus;
 use App\Enums\RegistrationStatus;
+use App\Services\Inbox\InboxNotificationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class LearningPath extends Model
@@ -17,6 +20,7 @@ class LearningPath extends Model
     protected $fillable = [
         'title',
         'slug',
+        'path_kind',
         'description',
         'image',
         'capacity',
@@ -30,6 +34,7 @@ class LearningPath extends Model
     protected function casts(): array
     {
         return [
+            'path_kind' => LearningPathKind::class,
             'status' => PathStatus::class,
             'published_at' => 'datetime',
             'capacity' => 'integer',
@@ -46,6 +51,36 @@ class LearningPath extends Model
             if ($path->owner_id === null && filled($path->created_by)) {
                 $path->owner_id = $path->created_by;
             }
+        });
+
+        static::created(function (self $path): void {
+            if ($path->status !== PathStatus::Published) {
+                return;
+            }
+
+            $actor = Auth::user();
+
+            app(InboxNotificationService::class)->learningPathLaunched(
+                $path,
+                $actor instanceof User ? $actor : null,
+            );
+        });
+
+        static::updated(function (self $path): void {
+            if (! $path->wasChanged('status')) {
+                return;
+            }
+
+            if ($path->status !== PathStatus::Published) {
+                return;
+            }
+
+            $actor = Auth::user();
+
+            app(InboxNotificationService::class)->learningPathLaunched(
+                $path,
+                $actor instanceof User ? $actor : null,
+            );
         });
     }
 

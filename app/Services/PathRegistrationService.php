@@ -10,6 +10,7 @@ use App\Exceptions\PathNotPublishedException;
 use App\Models\LearningPath;
 use App\Models\PathRegistration;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use App\Notifications\PathRegistrationApproved;
 use App\Notifications\PathRegistrationRejected;
 use App\Services\Inbox\InboxNotificationService;
@@ -19,6 +20,7 @@ class PathRegistrationService
     public function __construct(
         private readonly EmailLogService $emailLogService,
         private readonly InboxNotificationService $inboxNotifications,
+        private readonly ProgramRegistrationService $programRegistrationService,
     ) {}
 
     // ─── Public API ───────────────────────────────────────────────────────────
@@ -81,11 +83,23 @@ class PathRegistrationService
             }
         }
 
-        $registration->update([
-            'status' => RegistrationStatus::Approved,
-            'approved_by' => $approvedBy->id,
-            'approved_at' => now(),
-        ]);
+        $registration->loadMissing('user');
+
+        $newlyApprovedProgramRegs = [];
+
+        DB::transaction(function () use ($registration, $approvedBy, $path, &$newlyApprovedProgramRegs): void {
+            $registration->update([
+                'status' => RegistrationStatus::Approved,
+                'approved_by' => $approvedBy->id,
+                'approved_at' => now(),
+            ]);
+
+            $newlyApprovedProgramRegs = $this->programRegistrationService->approveAllProgramsForPathMemberWithoutNotifications(
+                $path,
+                $registration->user,
+                $approvedBy,
+            );
+        });
 
         $registration->loadMissing('user');
 
@@ -98,6 +112,13 @@ class PathRegistrationService
         );
 
         $this->inboxNotifications->registrationApprovedPath($registration->user, $path, $approvedBy);
+
+        foreach ($newlyApprovedProgramRegs as $programRegistration) {
+            $this->programRegistrationService->sendProgramRegistrationApprovedNotifications(
+                $programRegistration->fresh(),
+                $approvedBy,
+            );
+        }
 
         return $registration->fresh();
     }

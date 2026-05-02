@@ -4,29 +4,33 @@ namespace App\Inbox;
 
 use App\Enums\InboxNotificationType;
 use App\Enums\NotificationTargetType;
-use Illuminate\Support\Carbon;
 
 /**
  * حمولة تنبيه داخل التطبيق قبل التوزيع على المستلمين.
  */
 final readonly class NotificationMessage
 {
+    /**
+     * @param  array<string, mixed>|null  $context  روابط الإجراءات في لوحة الإدارة (مفتاح resource + id).
+     */
     public function __construct(
         public InboxNotificationType $type,
         public string $title,
         public string $message,
         public ?int $senderId,
         public NotificationTargetType $targetType,
+        public ?array $context = null,
     ) {}
 
     /**
      * @param  list<int>  $recipientUserIds
-     * @return list<array{user_id: int, title: string, message: string|null, type: string, sender_id: int|null, target_type: string, read_at: null, created_at: Carbon, updated_at: Carbon}>
+     * @return list<array<string, mixed>>
      */
     public function toRows(iterable $recipientUserIds): array
     {
         $now = now();
         $rows = [];
+        $contextJson = $this->context === null ? null : json_encode($this->context, JSON_UNESCAPED_UNICODE);
 
         foreach ($recipientUserIds as $userId) {
             $rows[] = [
@@ -36,6 +40,7 @@ final readonly class NotificationMessage
                 'type' => $this->type->value,
                 'sender_id' => $this->senderId,
                 'target_type' => $this->targetType->value,
+                'context' => $contextJson,
                 'read_at' => null,
                 'created_at' => $now,
                 'updated_at' => $now,

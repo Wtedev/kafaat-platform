@@ -1,5 +1,4 @@
 @php
-use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 
 $statusLabels = [
@@ -48,14 +47,14 @@ $alreadyRegisteredPath = $userRegistration !== null;
 
 @if ($learningPath->programs->isNotEmpty())
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
-    <h2 class="text-base font-semibold text-gray-700 mb-4">البرامج في المسار</h2>
+    <h2 class="text-base font-semibold text-gray-700 mb-2">البرامج في المسار</h2>
+    <p class="text-xs text-gray-500 mb-4">التسجيل يتم من قسم المسار أدناه؛ عند قبولك يُفعَّل تسجيلك في جميع هذه البرامج تلقائياً.</p>
     <ul class="space-y-4">
         @foreach ($learningPath->programs as $program)
         @php
         $userProgReg = auth()->check() ? $program->registrations->first() : null;
         $regLabel = $userProgReg ? ($statusLabels[$userProgReg->status->value] ?? $userProgReg->status->value) : null;
         $regColor = $userProgReg ? ($statusColors[$userProgReg->status->value] ?? 'bg-gray-100 text-gray-600') : null;
-        $open = $program->isRegistrationOpen() && $program->status === ProgramStatus::Published;
         @endphp
         <li class="border border-gray-100 rounded-xl p-4">
             <div class="flex flex-wrap items-start justify-between gap-3">
@@ -69,25 +68,11 @@ $alreadyRegisteredPath = $userRegistration !== null;
                         @endif
                     </div>
                     <p class="font-medium text-gray-900">{{ $program->title }}</p>
-                    @if (! $open && $program->status === ProgramStatus::Published)
-                    <p class="text-xs text-amber-700 mt-1">باب التسجيل غير مفتوح حالياً لهذا البرنامج.</p>
-                    @endif
                 </div>
                 <div class="flex-shrink-0">
-                    @if (auth()->check() && auth()->user()->isPortalUser() && $open && $userProgReg === null)
-                    <form method="POST" action="{{ route('public.programs.register', $program->slug) }}" class="inline">
-                        @csrf
-                        <button type="submit" class="px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition" style="background:#253B5B">
-                            سجّل في البرنامج
-                        </button>
-                    </form>
-                    @elseif (! auth()->check() && $open)
-                    <a href="{{ route('login') }}" class="inline-block px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-sm" style="background:#253B5B">سجّل الدخول للتسجيل</a>
-                    @else
                     <a href="{{ route('public.programs.show', $program) }}" class="inline-block px-4 py-2 rounded-xl text-sm font-semibold ring-1 ring-gray-200 text-gray-700 hover:bg-gray-50">
                         التفاصيل
                     </a>
-                    @endif
                 </div>
             </div>
         </li>

@@ -16,9 +16,12 @@ RegistrationStatus::Cancelled->value => 'bg-gray-100 text-gray-600',
 RegistrationStatus::Completed->value => 'bg-blue-100 text-blue-700',
 ];
 
+$viaPathOnly = $trainingProgram->learning_path_id !== null;
+
 $canRegister = auth()->check()
 && auth()->user()->isPortalUser()
 && $userRegistration === null
+&& ! $viaPathOnly
 && $trainingProgram->isRegistrationOpen();
 
 $alreadyRegistered = $userRegistration !== null;
@@ -70,6 +73,15 @@ $alreadyRegistered = $userRegistration !== null;
         </span>
         <span class="text-sm text-gray-500">لقد سجّلت في هذا البرنامج بالفعل.</span>
     </div>
+    @elseif ($viaPathOnly)
+    <p class="text-sm text-gray-600 mb-3">
+        هذا البرنامج جزء من مسار تعليمي. التسجيل يتم عبر المسار فقط، وبعد قبولك في المسار تُسجَّل تلقائياً في جميع برامجه.
+    </p>
+    @if ($trainingProgram->learningPath)
+    <a href="{{ route('public.paths.show', $trainingProgram->learningPath->slug) }}" class="inline-block px-6 py-3 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
+        الانتقال إلى صفحة المسار
+    </a>
+    @endif
     @elseif (! $trainingProgram->isRegistrationOpen())
     <p class="text-sm text-gray-400">باب التسجيل في هذا البرنامج مغلق حالياً.</p>
     @elseif ($canRegister)

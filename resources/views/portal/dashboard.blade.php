@@ -37,44 +37,15 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
 </section>
 
 <section class="mb-8" aria-labelledby="inbox-heading">
-    <div class="mb-3 flex flex-wrap items-end justify-between gap-3">
-        <div class="text-right">
-            <h2 id="inbox-heading" class="text-base font-bold text-gray-900 sm:text-lg">التنبيهات</h2>
-            <p class="mt-0.5 text-xs text-gray-500 sm:text-sm">
-                غير مقروء: <span class="font-semibold tabular-nums" style="color:#253B5B">{{ $inboxUnreadCount }}</span>
-            </p>
-        </div>
-        <a href="{{ route('portal.notifications') }}" class="shrink-0 text-xs font-semibold underline-offset-2 hover:underline" style="color:#253B5B">عرض الكل</a>
-    </div>
-
-    @if ($inboxPreview->isEmpty())
-    <x-portal.empty-state
-        title="لا توجد تنبيهات بعد"
-        description="ستظهر هنا آخر التنبيهات المتعلقة بتسجيلاتك وشهاداتك والأخبار عند توفرها."
-    />
-    @else
-    <ul class="space-y-2 rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
-        @foreach ($inboxPreview as $n)
-        <li class="flex flex-wrap items-start justify-between gap-2 border-b border-gray-50 pb-2 last:border-0 last:pb-0">
-            <div class="min-w-0 flex-1 text-right">
-                <p class="text-xs font-medium text-gray-500">{{ $n->type->arabicLabel() }}</p>
-                <p class="mt-0.5 text-sm font-bold text-gray-900">{{ $n->title }}</p>
-                <time class="mt-1 block text-[10px] text-gray-400" datetime="{{ $n->created_at->toIso8601String() }}">{{ $n->created_at->translatedFormat('j F Y، H:i') }}</time>
-            </div>
-            @if ($n->read_at === null)
-            <span class="shrink-0 rounded-md bg-sky-50 px-1.5 py-0.5 text-[10px] font-bold text-sky-800">جديد</span>
-            @endif
-        </li>
-        @endforeach
-    </ul>
-    @endif
+    <h2 id="inbox-heading" class="sr-only">التنبيهات</h2>
+    @include('portal.partials.inbox-notifications-panel', ['items' => $inboxPreview, 'unreadCount' => $inboxUnreadCount])
 </section>
 
 <section class="mb-8" aria-labelledby="programs-heading">
     <div class="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div class="text-right">
-            <h2 id="programs-heading" class="text-base font-bold text-gray-900 sm:text-lg">البرامج واللقاءات</h2>
-            <p class="mt-0.5 text-xs text-gray-500 sm:text-sm">حالة التسجيل والتقدّم لكل عنصر</p>
+            <h2 id="programs-heading" class="text-base font-bold text-gray-900 sm:text-lg">البرامج والمسارات</h2>
+            <p class="mt-0.5 text-xs text-gray-500 sm:text-sm">مساراتك والبرامج المستقلة — حالة التسجيل والتقدّم</p>
         </div>
         <div class="flex shrink-0 gap-2">
             <a href="{{ route('portal.paths') }}" class="rounded-lg px-2.5 py-1 text-xs font-semibold text-gray-600 ring-1 ring-gray-200 transition hover:bg-gray-50">المسارات</a>
@@ -84,8 +55,8 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
 
     @if (! $hasActivities)
     <x-portal.empty-state
-        title="لا توجد برامج أو لقاءات لعرضها"
-        description="لم يظهر عندك أي تسجيل أو فرصة مقترحة بعد. استكشف البرامج والمسارات من الموقع العام والتسجيل من هناك."
+        title="لا توجد مسارات أو برامج مستقلة لعرضها"
+        description="لم يظهر عندك أي تسجيل في مسار أو برنامج مستقل، أو اقتراحات بعد. استكشف المسارات والبرامج غير المرتبطة بمسار من الموقع العام."
     >
         <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#253B5B">استكشف البرامج</a>
         <a href="{{ route('public.paths.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">استكشف المسارات</a>

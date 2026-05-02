@@ -6,13 +6,16 @@ use App\Enums\InboxNotificationType;
 use App\Enums\NotificationTargetType;
 use App\Enums\RegistrationStatus;
 use App\Inbox\NotificationMessage;
+use App\Models\Certificate;
 use App\Models\InboxNotification;
 use App\Models\LearningPath;
 use App\Models\News;
+use App\Models\PathRegistration;
+use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\VolunteerRegistration;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -71,17 +74,39 @@ class InboxNotificationService
         }
     }
 
+    /**
+     * @return array{resource: string, id: int}
+     */
+    private static function inboxContext(string $resource, int $id): array
+    {
+        return ['resource' => $resource, 'id' => $id];
+    }
+
     public function programLaunched(TrainingProgram $program, ?User $publisher = null): void
     {
-        $ids = $this->resolveRecipientIds(NotificationTargetType::AllPortalUsers);
+        $staffIds = collect($this->resolveStaffUserIds());
+        $portalIds = collect($this->resolveRecipientIds(NotificationTargetType::AllPortalUsers));
+        $beneficiaryIds = $portalIds->diff($staffIds)->values()->all();
+
         $msg = new NotificationMessage(
             type: InboxNotificationType::ProgramLaunched,
             title: 'إطلاق برنامج: '.$program->title,
             message: 'تم نشر برنامج تدريبي جديد. يمكنك الاطلاع على التفاصيل والتسجيل من صفحة البرامج.',
             senderId: $publisher?->id,
             targetType: NotificationTargetType::AllPortalUsers,
+            context: self::inboxContext('training_program', (int) $program->getKey()),
         );
-        $this->dispatch($msg, $ids);
+        $this->dispatch($msg, $beneficiaryIds);
+
+        $staffMsg = new NotificationMessage(
+            type: InboxNotificationType::StaffTrainingEntityCreated,
+            title: 'برنامج تدريبي جديد: '.$program->title,
+            message: 'تم إنشاء أو نشر برنامج تدريبي جديد على المنصة.',
+            senderId: $publisher?->id,
+            targetType: NotificationTargetType::DirectRecipients,
+            context: self::inboxContext('training_program', (int) $program->getKey()),
+        );
+        $this->dispatch($staffMsg, $this->resolveAdminAndTrainingManagerIds());
     }
 
     public function programUpdatedForRegistrants(TrainingProgram $program, ?User $editor = null): void
@@ -105,22 +130,39 @@ class InboxNotificationService
             message: 'تم تحديث معلومات البرنامج الذي سجّلت فيه. يُرجى مراجعة الصفحة للاطلاع على آخر التفاصيل.',
             senderId: $editor?->id,
             targetType: NotificationTargetType::ProgramRegistrants,
+            context: self::inboxContext('training_program', (int) $program->getKey()),
         );
         $this->dispatch($msg, $ids);
     }
 
     public function newsPublished(News $news, ?User $publisher = null): void
     {
-        $ids = $this->resolveRecipientIds(NotificationTargetType::AllPortalUsers);
+        $staffIds = collect($this->resolveStaffUserIds());
+        $portalIds = collect($this->resolveRecipientIds(NotificationTargetType::AllPortalUsers));
+        $beneficiaryIds = $portalIds->diff($staffIds)->values()->all();
+
         $excerpt = $news->excerpt ?? '';
-        $msg = new NotificationMessage(
+        $body = $excerpt !== '' ? $excerpt : 'تم نشر خبر جديد على المنصة.';
+
+        $msgBeneficiary = new NotificationMessage(
             type: InboxNotificationType::NewsPublished,
             title: 'نشر خبر: '.$news->title,
-            message: $excerpt !== '' ? $excerpt : 'تم نشر خبر جديد على المنصة.',
+            message: $body,
             senderId: $publisher?->id,
             targetType: NotificationTargetType::AllPortalUsers,
+            context: self::inboxContext('news', (int) $news->getKey()),
         );
-        $this->dispatch($msg, $ids);
+        $this->dispatch($msgBeneficiary, $beneficiaryIds);
+
+        $msgStaff = new NotificationMessage(
+            type: InboxNotificationType::NewsStaffCopy,
+            title: 'نشر خبر: '.$news->title,
+            message: $body,
+            senderId: $publisher?->id,
+            targetType: NotificationTargetType::Staff,
+            context: self::inboxContext('news', (int) $news->getKey()),
+        );
+        $this->dispatch($msgStaff, $staffIds->all());
     }
 
     public function registrationApprovedProgram(User $recipient, TrainingProgram $program, ?User $approver = null): void
@@ -131,6 +173,7 @@ class InboxNotificationService
             message: 'تم قبول طلبك في البرنامج التدريبي «'.$program->title.'».',
             senderId: $approver?->id,
             targetType: NotificationTargetType::SingleUser,
+            context: self::inboxContext('training_program', (int) $program->getKey()),
         );
         $this->dispatch($msg, [$recipient->id]);
     }
@@ -148,6 +191,7 @@ class InboxNotificationService
             message: $body,
             senderId: $rejector?->id,
             targetType: NotificationTargetType::SingleUser,
+            context: self::inboxContext('training_program', (int) $program->getKey()),
         );
         $this->dispatch($msg, [$recipient->id]);
     }
@@ -160,6 +204,7 @@ class InboxNotificationService
             message: 'تم قبول طلبك في اللقاء / المسار «'.$path->title.'».',
             senderId: $approver?->id,
             targetType: NotificationTargetType::SingleUser,
+            context: self::inboxContext('learning_path', (int) $path->getKey()),
         );
         $this->dispatch($msg, [$recipient->id]);
     }
@@ -177,6 +222,7 @@ class InboxNotificationService
             message: $body,
             senderId: $rejector?->id,
             targetType: NotificationTargetType::SingleUser,
+            context: self::inboxContext('learning_path', (int) $path->getKey()),
         );
         $this->dispatch($msg, [$recipient->id]);
     }
@@ -189,6 +235,7 @@ class InboxNotificationService
             message: 'تم قبول طلبك في الفرصة التطوعية «'.$opportunity->title.'».',
             senderId: $approver?->id,
             targetType: NotificationTargetType::SingleUser,
+            context: self::inboxContext('volunteer_opportunity', (int) $opportunity->getKey()),
         );
         $this->dispatch($msg, [$recipient->id]);
     }
@@ -206,12 +253,15 @@ class InboxNotificationService
             message: $body,
             senderId: $rejector?->id,
             targetType: NotificationTargetType::SingleUser,
+            context: self::inboxContext('volunteer_opportunity', (int) $opportunity->getKey()),
         );
         $this->dispatch($msg, [$recipient->id]);
     }
 
-    public function certificateIssued(User $recipient, Model $certificateable, ?User $issuedBy = null): void
+    public function certificateIssued(User $recipient, Certificate $certificate, ?User $issuedBy = null): void
     {
+        $certificate->loadMissing('certificateable');
+        $certificateable = $certificate->certificateable;
         $label = match (true) {
             $certificateable instanceof TrainingProgram => $certificateable->title,
             $certificateable instanceof LearningPath => $certificateable->title,
@@ -225,6 +275,7 @@ class InboxNotificationService
             message: 'صدرت شهادتك المتعلقة بـ «'.$label.'». يمكنك استعراضها من قسم الشهادات في بوابتك.',
             senderId: $issuedBy?->id,
             targetType: NotificationTargetType::SingleUser,
+            context: self::inboxContext('certificate', (int) $certificate->getKey()),
         );
         $this->dispatch($msg, [$recipient->id]);
     }
@@ -254,6 +305,7 @@ class InboxNotificationService
             message: 'تم تحديث تفاصيل الفرصة التطوعية. يُرجى مراجعة الصفحة للاطلاع على آخر المعلومات.',
             senderId: $editor?->id,
             targetType: NotificationTargetType::DirectRecipients,
+            context: self::inboxContext('volunteer_opportunity', (int) $opportunity->getKey()),
         );
         $this->dispatch($msg, $ids);
     }
@@ -344,5 +396,275 @@ class InboxNotificationService
             targetType: $storedTarget,
         );
         $this->dispatch($msg, $recipientUserIds);
+    }
+
+    public function learningPathLaunched(LearningPath $path, ?User $publisher = null): void
+    {
+        $staffIds = collect($this->resolveStaffUserIds());
+        $portalIds = collect($this->resolveRecipientIds(NotificationTargetType::AllPortalUsers));
+        $beneficiaryIds = $portalIds->diff($staffIds)->values()->all();
+
+        $msg = new NotificationMessage(
+            type: InboxNotificationType::LearningPathLaunched,
+            title: 'مسار تعليمي جديد: '.$path->title,
+            message: 'تم نشر مسار تعليمي جديد. يمكنك الاطلاع على التفاصيل والتسجيل من صفحة المسارات.',
+            senderId: $publisher?->id,
+            targetType: NotificationTargetType::AllPortalUsers,
+            context: self::inboxContext('learning_path', (int) $path->getKey()),
+        );
+        $this->dispatch($msg, $beneficiaryIds);
+
+        $staffMsg = new NotificationMessage(
+            type: InboxNotificationType::StaffTrainingEntityCreated,
+            title: 'مسار تعليمي جديد: '.$path->title,
+            message: 'تم إنشاء أو نشر مسار تعليمي جديد على المنصة.',
+            senderId: $publisher?->id,
+            targetType: NotificationTargetType::DirectRecipients,
+            context: self::inboxContext('learning_path', (int) $path->getKey()),
+        );
+        $this->dispatch($staffMsg, $this->resolveAdminAndTrainingManagerIds());
+    }
+
+    public function volunteerOpportunityFirstPublished(VolunteerOpportunity $opportunity, ?User $publisher = null): void
+    {
+        $trainees = collect($this->resolveRecipientIds(NotificationTargetType::Trainees));
+        $volunteers = collect($this->resolveRecipientIds(NotificationTargetType::Volunteers));
+        $staff = collect($this->resolveStaffUserIds());
+        $audience = $trainees->merge($volunteers)->diff($staff)->unique()->values()->all();
+
+        $msg = new NotificationMessage(
+            type: InboxNotificationType::VolunteerOpportunityPublished,
+            title: 'فرصة تطوعية جديدة: '.$opportunity->title,
+            message: 'تم نشر فرصة تطوعية جديدة. يمكنك الاطلاع على التفاصيل من قسم التطوع.',
+            senderId: $publisher?->id,
+            targetType: NotificationTargetType::DirectRecipients,
+            context: self::inboxContext('volunteer_opportunity', (int) $opportunity->getKey()),
+        );
+        $this->dispatch($msg, $audience);
+
+        $staffMsg = new NotificationMessage(
+            type: InboxNotificationType::StaffVolunteerOpportunityCreated,
+            title: 'فرصة تطوعية جديدة: '.$opportunity->title,
+            message: 'تم إنشاء أو نشر فرصة تطوعية على المنصة.',
+            senderId: $publisher?->id,
+            targetType: NotificationTargetType::DirectRecipients,
+            context: self::inboxContext('volunteer_opportunity', (int) $opportunity->getKey()),
+        );
+        $this->dispatch($staffMsg, $this->resolveStaffForVolunteerDomain());
+    }
+
+    public function notifyStaffOfNewProgramRegistration(ProgramRegistration $registration): void
+    {
+        $registration->loadMissing('trainingProgram', 'user');
+        $program = $registration->trainingProgram;
+        $user = $registration->user;
+        if ($program === null || $user === null) {
+            return;
+        }
+
+        $title = 'تسجيل جديد في برنامج';
+        $message = 'تسجيل جديد في البرنامج «'.$program->title.'» — '.$user->name.'.';
+
+        $msg = new NotificationMessage(
+            type: InboxNotificationType::StaffNewProgramRegistration,
+            title: $title,
+            message: $message,
+            senderId: null,
+            targetType: NotificationTargetType::DirectRecipients,
+            context: self::inboxContext('program_registration', (int) $registration->getKey()),
+        );
+        $this->dispatch($msg, $this->resolveAdminAndTrainingManagerIds());
+    }
+
+    public function notifyStaffOfNewPathRegistration(PathRegistration $registration): void
+    {
+        $registration->loadMissing('learningPath', 'user');
+        $path = $registration->learningPath;
+        $user = $registration->user;
+        if ($path === null || $user === null) {
+            return;
+        }
+
+        $msg = new NotificationMessage(
+            type: InboxNotificationType::StaffNewPathRegistration,
+            title: 'تسجيل جديد في مسار',
+            message: 'تسجيل جديد في المسار «'.$path->title.'» — '.$user->name.'.',
+            senderId: null,
+            targetType: NotificationTargetType::DirectRecipients,
+            context: self::inboxContext('path_registration', (int) $registration->getKey()),
+        );
+        $this->dispatch($msg, $this->resolveAdminAndTrainingManagerIds());
+    }
+
+    public function notifyStaffOfNewVolunteerRegistration(VolunteerRegistration $registration): void
+    {
+        $registration->loadMissing('opportunity', 'user');
+        $opportunity = $registration->opportunity;
+        $user = $registration->user;
+        if ($opportunity === null || $user === null) {
+            return;
+        }
+
+        $msg = new NotificationMessage(
+            type: InboxNotificationType::StaffNewVolunteerRegistration,
+            title: 'تسجيل جديد في تطوع',
+            message: 'تسجيل جديد في الفرصة «'.$opportunity->title.'» — '.$user->name.'.',
+            senderId: null,
+            targetType: NotificationTargetType::DirectRecipients,
+            context: self::inboxContext('volunteer_registration', (int) $registration->getKey()),
+        );
+        $this->dispatch($msg, $this->resolveStaffForVolunteerDomain());
+    }
+
+    public function registrationWindowOpenedForProgram(TrainingProgram $program): void
+    {
+        $staffIds = collect($this->resolveStaffUserIds());
+        $portalIds = collect($this->resolveRecipientIds(NotificationTargetType::AllPortalUsers));
+        $beneficiaryIds = $portalIds->diff($staffIds)->values()->all();
+
+        $msg = new NotificationMessage(
+            type: InboxNotificationType::RegistrationWindowOpened,
+            title: 'بدء التسجيل: '.$program->title,
+            message: 'بدأت فترة التسجيل في البرنامج «'.$program->title.'».',
+            senderId: null,
+            targetType: NotificationTargetType::AllPortalUsers,
+            context: self::inboxContext('training_program', (int) $program->getKey()),
+        );
+        $this->dispatch($msg, $beneficiaryIds);
+
+        $staffMsg = new NotificationMessage(
+            type: InboxNotificationType::RegistrationWindowOpened,
+            title: 'بدء التسجيل (إداري): '.$program->title,
+            message: 'بدأت فترة التسجيل في البرنامج «'.$program->title.'».',
+            senderId: null,
+            targetType: NotificationTargetType::DirectRecipients,
+            context: self::inboxContext('training_program', (int) $program->getKey()),
+        );
+        $this->dispatch($staffMsg, $this->resolveAdminAndTrainingManagerIds());
+    }
+
+    public function registrationWindowClosedForProgram(TrainingProgram $program): void
+    {
+        $staffIds = collect($this->resolveStaffUserIds());
+        $portalIds = collect($this->resolveRecipientIds(NotificationTargetType::AllPortalUsers));
+        $beneficiaryIds = $portalIds->diff($staffIds)->values()->all();
+
+        $msg = new NotificationMessage(
+            type: InboxNotificationType::RegistrationWindowClosed,
+            title: 'انتهاء التسجيل: '.$program->title,
+            message: 'انتهت فترة التسجيل في البرنامج «'.$program->title.'».',
+            senderId: null,
+            targetType: NotificationTargetType::AllPortalUsers,
+            context: self::inboxContext('training_program', (int) $program->getKey()),
+        );
+        $this->dispatch($msg, $beneficiaryIds);
+
+        $staffMsg = new NotificationMessage(
+            type: InboxNotificationType::RegistrationWindowClosed,
+            title: 'انتهاء التسجيل (إداري): '.$program->title,
+            message: 'انتهت فترة التسجيل في البرنامج «'.$program->title.'».',
+            senderId: null,
+            targetType: NotificationTargetType::DirectRecipients,
+            context: self::inboxContext('training_program', (int) $program->getKey()),
+        );
+        $this->dispatch($staffMsg, $this->resolveAdminAndTrainingManagerIds());
+    }
+
+    public function trainingRunStartedForProgram(TrainingProgram $program): void
+    {
+        $staffMsg = new NotificationMessage(
+            type: InboxNotificationType::TrainingRunStarted,
+            title: 'بدء البرنامج: '.$program->title,
+            message: 'بدأت فترة انعقاد البرنامج «'.$program->title.'».',
+            senderId: null,
+            targetType: NotificationTargetType::DirectRecipients,
+            context: self::inboxContext('training_program', (int) $program->getKey()),
+        );
+        $this->dispatch($staffMsg, $this->resolveAdminAndTrainingManagerIds());
+
+        $recipientIds = $program->registrations()
+            ->where('status', RegistrationStatus::Approved->value)
+            ->pluck('user_id')
+            ->unique()
+            ->all();
+
+        if ($recipientIds === []) {
+            return;
+        }
+
+        $msg = new NotificationMessage(
+            type: InboxNotificationType::BeneficiaryApprovedProgramStarting,
+            title: 'بدء البرنامج: '.$program->title,
+            message: 'بدأ البرنامج «'.$program->title.'» الذي أنت مسجّل ومقبول فيه.',
+            senderId: null,
+            targetType: NotificationTargetType::DirectRecipients,
+            context: self::inboxContext('training_program', (int) $program->getKey()),
+        );
+        $this->dispatch($msg, $recipientIds);
+    }
+
+    public function trainingRunEndedForProgram(TrainingProgram $program): void
+    {
+        $staffMsg = new NotificationMessage(
+            type: InboxNotificationType::TrainingRunEnded,
+            title: 'انتهاء البرنامج: '.$program->title,
+            message: 'انتهت فترة البرنامج «'.$program->title.'».',
+            senderId: null,
+            targetType: NotificationTargetType::DirectRecipients,
+            context: self::inboxContext('training_program', (int) $program->getKey()),
+        );
+        $this->dispatch($staffMsg, $this->resolveAdminAndTrainingManagerIds());
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function resolveStaffUserIds(): array
+    {
+        return User::query()
+            ->where('is_active', true)
+            ->where(function ($q): void {
+                $q->whereIn('role_type', ['staff', 'admin'])
+                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', [
+                        'admin', 'media_pr', 'media_employee', 'pr_employee', 'training_manager', 'volunteering_manager', 'staff',
+                    ]));
+            })
+            ->pluck('id')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function resolveAdminAndTrainingManagerIds(): array
+    {
+        return User::query()
+            ->where('is_active', true)
+            ->where(function ($q): void {
+                $q->where('role_type', 'admin')
+                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['admin', 'training_manager']));
+            })
+            ->pluck('id')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function resolveStaffForVolunteerDomain(): array
+    {
+        return User::query()
+            ->where('is_active', true)
+            ->whereHas('roles', fn ($r) => $r->whereIn('name', [
+                'admin', 'training_manager', 'volunteering_manager',
+            ]))
+            ->pluck('id')
+            ->unique()
+            ->values()
+            ->all();
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\RegistrationStatus;
+use App\Services\Inbox\InboxNotificationService;
 use App\Support\FilamentAssignmentVisibility;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -27,6 +28,13 @@ class PathRegistration extends Model
             'approved_at' => 'datetime',
             'completed_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function (self $registration): void {
+            app(InboxNotificationService::class)->notifyStaffOfNewPathRegistration($registration);
+        });
     }
 
     // ─── Scopes ───────────────────────────────────────────────────────────────

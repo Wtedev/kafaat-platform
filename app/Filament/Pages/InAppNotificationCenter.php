@@ -2,9 +2,11 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Support\InboxNotificationRecordActions;
 use App\Models\InboxNotification;
 use App\Services\Inbox\InboxNotificationService;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Pages\Page;
@@ -19,12 +21,13 @@ use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\HtmlString;
 use Livewire\Attributes\Url;
 
 class InAppNotificationCenter extends Page implements HasTable
 {
     use Tables\Concerns\InteractsWithTable;
+
+    protected static bool $shouldRegisterNavigation = false;
 
     protected static ?string $title = 'التنبيهات';
 
@@ -58,6 +61,20 @@ class InAppNotificationCenter extends Page implements HasTable
         $this->mountInteractsWithTable();
     }
 
+    /**
+     * @return array<Action|ActionGroup>
+     */
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('send_in_app')
+                ->label('إرسال تنبيه')
+                ->icon('heroicon-o-paper-airplane')
+                ->url(SendInAppNotification::getUrl())
+                ->visible(fn (): bool => Gate::allows('accessSendInAppNotificationPage', auth()->user())),
+        ];
+    }
+
     public static function canAccess(): bool
     {
         $user = auth()->user();
@@ -67,7 +84,7 @@ class InAppNotificationCenter extends Page implements HasTable
 
     public static function shouldRegisterNavigation(): bool
     {
-        return auth()->check() && static::canAccess();
+        return false;
     }
 
     public static function getNavigationBadge(): ?string
@@ -96,7 +113,7 @@ class InAppNotificationCenter extends Page implements HasTable
     {
         return InboxNotification::query()
             ->where('user_id', auth()->id())
-            ->with('sender');
+            ->with(['sender']);
     }
 
     public function table(Table $table): Table
@@ -151,41 +168,7 @@ class InAppNotificationCenter extends Page implements HasTable
                         }
                     }),
             ])
-            ->actions([
-                Action::make('mark_read')
-                    ->label('تحديد كمقروء')
-                    ->icon('heroicon-o-check')
-                    ->visible(fn (InboxNotification $record): bool => $record->read_at === null)
-                    ->action(function (InboxNotification $record): void {
-                        Gate::authorize('update', $record);
-                        $record->markAsRead();
-                    }),
-
-                Action::make('mark_unread')
-                    ->label('تحديد كغير مقروء')
-                    ->icon('heroicon-o-arrow-uturn-left')
-                    ->visible(fn (InboxNotification $record): bool => $record->read_at !== null)
-                    ->action(function (InboxNotification $record): void {
-                        Gate::authorize('update', $record);
-                        $record->forceFill(['read_at' => null])->save();
-                    }),
-
-                Action::make('view_details')
-                    ->label('عرض التفاصيل')
-                    ->icon('heroicon-o-eye')
-                    ->modalHeading('تفاصيل التنبيه')
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('إغلاق')
-                    ->modalContent(fn (InboxNotification $record): HtmlString => new HtmlString(
-                        '<div class="fi-prose space-y-3 text-sm">'
-                        .'<p><strong>العنوان:</strong> '.e($record->title).'</p>'
-                        .'<p><strong>الرسالة:</strong><br>'.e($record->message ?? '').'</p>'
-                        .'<p><strong>النوع:</strong> '.e($record->type?->arabicLabel() ?? '').'</p>'
-                        .'<p><strong>المرسل:</strong> '.e($record->sender?->name ?? '—').'</p>'
-                        .'<p><strong>تاريخ الإرسال:</strong> '.e($record->created_at?->format('Y/m/d H:i') ?? '').'</p>'
-                        .'</div>'
-                    )),
-            ])
+            ->actions(InboxNotificationRecordActions::filamentStandardRowActions())
             ->bulkActions([
                 BulkActionGroup::make([
                     BulkAction::make('mark_selected_read')

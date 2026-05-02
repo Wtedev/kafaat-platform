@@ -35,6 +35,8 @@ class SendInAppNotification extends Page
 {
     use CanUseDatabaseTransactions;
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $title = 'إرسال تنبيه';
 
     protected static ?string $navigationLabel = 'إرسال تنبيه';
@@ -57,7 +59,7 @@ class SendInAppNotification extends Page
 
     public static function shouldRegisterNavigation(): bool
     {
-        return auth()->check() && static::canAccess();
+        return false;
     }
 
     public function mount(): void

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\AttendanceStatus;
 use App\Enums\RegistrationStatus;
+use App\Services\Inbox\InboxNotificationService;
 use App\Support\FilamentAssignmentVisibility;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +32,13 @@ class ProgramRegistration extends Model
             'attendance_percentage' => 'decimal:2',
             'score' => 'decimal:2',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function (self $registration): void {
+            app(InboxNotificationService::class)->notifyStaffOfNewProgramRegistration($registration);
+        });
     }
 
     // ─── Scopes ───────────────────────────────────────────────────────────────

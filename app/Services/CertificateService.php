@@ -46,7 +46,7 @@ class CertificateService
         $filePath = $this->pdfService->generate($certificate);
         $certificate->update(['file_path' => $filePath]);
 
-        $this->inboxNotifications->certificateIssued($user, $certificateable, $issuedBy);
+        $this->inboxNotifications->certificateIssued($user, $certificate, $issuedBy);
 
         return $certificate->fresh();
     }

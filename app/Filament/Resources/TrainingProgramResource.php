@@ -8,7 +8,6 @@ use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\TrainingProgramResource\Pages;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramCertificatesRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationsRelationManager;
-use App\Filament\Resources\TrainingProgramResource\RelationManagers\TrainingProgramEditorsRelationManager;
 use App\Models\TrainingProgram;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\TrainingEntityAuthorization;
@@ -19,6 +18,7 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -161,13 +161,59 @@ class TrainingProgramResource extends Resource
             return $record === null || ! $record->exists || $record->owner_id === null;
         };
 
-        $basicFields = [
+        $basicSchema = [
+            Hidden::make('program_kind')
+                ->live()
+                ->dehydrated()
+                ->default(fn (): string => static::defaultProgramKindFromRequest()),
+
+            Toggle::make('is_linked_to_path')
+                ->label('تابع لمسار تدريبي')
+                ->helperText('عند التفعيل يُختار المسار؛ تبويب التسجيل وأعضاء الفريق يُخفىان لأنها تُدار من المسار.')
+                ->default(false)
+                ->live()
+                ->dehydrated(false),
+
+            Select::make('learning_path_id')
+                ->label('المسار التعليمي')
+                ->relationship(
+                    name: 'learningPath',
+                    titleAttribute: 'title',
+                    modifyQueryUsing: fn (Builder $query) => $query->orderBy('title'),
+                )
+                ->searchable()
+                ->preload()
+                ->nullable()
+                ->required(fn (Get $get): bool => (bool) $get('is_linked_to_path'))
+                ->visible(fn (Get $get): bool => (bool) $get('is_linked_to_path'))
+                ->live(),
+
+            TextInput::make('path_sort_order')
+                ->label('ترتيب البرنامج داخل المسار')
+                ->numeric()
+                ->minValue(1)
+                ->nullable()
+                ->visible(fn (Get $get): bool => (bool) $get('is_linked_to_path') && filled($get('learning_path_id')))
+                ->helperText('ترتيب الظهور ضمن المسار.'),
+
             TextInput::make('title')
                 ->label('اسم البرنامج')
                 ->required()
                 ->maxLength(255)
                 ->live(onBlur: true)
                 ->columnSpanFull(),
+
+            Grid::make(2)->schema([
+                DatePicker::make('start_date')
+                    ->label('تاريخ بدء البرنامج')
+                    ->live(),
+
+                DatePicker::make('end_date')
+                    ->label('تاريخ انتهاء البرنامج')
+                    ->afterOrEqual('start_date')
+                    ->live()
+                    ->visible(fn (Get $get): bool => ! static::isSessionKindValue((string) ($get('program_kind') ?? ''))),
+            ]),
 
             TextInput::make('slug')
                 ->label('الرابط المختصر')
@@ -177,26 +223,20 @@ class TrainingProgramResource extends Resource
                 ->dehydrated($adminBypass)
                 ->helperText('للمشرفين: يُستخدم في الروابط العامة.'),
 
-            Select::make('program_kind')
-                ->label('نوع البرنامج')
-                ->options(TrainingProgramKind::class)
-                ->required()
-                ->default(TrainingProgramKind::Course->value),
-
             Textarea::make('description')
-                ->label('نبذة')
+                ->label('نبذة عن البرنامج')
                 ->rows(4)
                 ->columnSpanFull(),
         ];
 
         if ($includeImageInBasicSection) {
-            $basicFields[] = static::trainingProgramImageUploadField();
+            $basicSchema[] = static::trainingProgramImageUploadField();
         }
 
         return [
             Section::make('البيانات الأساسية')
                 ->columns(2)
-                ->schema($basicFields),
+                ->schema($basicSchema),
 
             Section::make('الظهور في الموقع')
                 ->schema([
@@ -208,56 +248,59 @@ class TrainingProgramResource extends Resource
                         ->offColor('gray'),
                 ]),
 
-            Section::make('الجدولة والتسجيل')
+            Section::make('التسجيل')
+                ->description('يُخفى هذا القسم عند ربط البرنامج بمسار؛ يُدار التسجيل من إعدادات المسار.')
+                ->visible(fn (Get $get): bool => ! (bool) $get('is_linked_to_path'))
                 ->columns(2)
                 ->schema([
+                    Toggle::make('capacity_unlimited')
+                        ->label('سعة غير محدودة')
+                        ->default(true)
+                        ->live()
+                        ->dehydrated(false),
+
                     TextInput::make('capacity')
-                        ->label('السعة الاستيعابية')
+                        ->label('السعة الاستيعابية للبرنامج')
                         ->numeric()
                         ->minValue(1)
                         ->nullable()
-                        ->helperText('اتركه فارغاً لعدد غير محدود.'),
-
-                    DatePicker::make('start_date')
-                        ->label('تاريخ البدء')
-                        ->live(),
-
-                    DatePicker::make('end_date')
-                        ->label('تاريخ الانتهاء')
-                        ->afterOrEqual('start_date')
-                        ->live(),
-
-                    TextEntry::make('duration_hint')
-                        ->label('المدة (محسوبة)')
-                        ->state(function (Get $get): string {
-                            $start = $get('start_date');
-                            $end = $get('end_date');
-                            if (blank($start) || blank($end)) {
-                                return '—';
-                            }
-                            $s = Carbon::parse((string) $start)->startOfDay();
-                            $e = Carbon::parse((string) $end)->startOfDay();
-                            if ($e->lt($s)) {
-                                return '—';
-                            }
-                            $days = max(1, (int) $s->diffInDays($e) + 1);
-
-                            return sprintf('%d يوماً', $days);
-                        })
-                        ->columnSpanFull(),
+                        ->visible(fn (Get $get): bool => ! (bool) $get('capacity_unlimited'))
+                        ->dehydrated(fn (Get $get): bool => ! (bool) $get('is_linked_to_path') && ! (bool) $get('capacity_unlimited'))
+                        ->helperText('عدد المقاعد عند وجود حد أقصى.'),
 
                     Grid::make(2)->schema([
                         DatePicker::make('registration_start')
-                            ->label('بداية التسجيل'),
+                            ->label('تاريخ فتح التسجيل')
+                            ->dehydrated(fn (Get $get): bool => ! (bool) $get('is_linked_to_path')),
 
                         DatePicker::make('registration_end')
-                            ->label('نهاية التسجيل')
-                            ->afterOrEqual('registration_start'),
+                            ->label('تاريخ انتهاء مدة التسجيل')
+                            ->afterOrEqual('registration_start')
+                            ->dehydrated(fn (Get $get): bool => ! (bool) $get('is_linked_to_path')),
                     ])
                         ->columnSpanFull(),
 
+                    TextEntry::make('registration_status_display')
+                        ->label('حالة التسجيل (حالية)')
+                        ->getStateUsing(fn (?TrainingProgram $record): string => ($record !== null && $record->exists)
+                            ? $record->registrationWindowStatusLabel()
+                            : '—')
+                        ->visible(fn (?TrainingProgram $record): bool => $record !== null && $record->exists)
+                        ->columnSpanFull(),
+                ]),
+
+            Section::make('التحضير')
+                ->description('للبرامج التي تمتد أكثر من يوم تقويمي؛ يُخفى لنوع «لقاء».')
+                ->visible(function (Get $get): bool {
+                    if (static::isSessionKindValue((string) ($get('program_kind') ?? ''))) {
+                        return false;
+                    }
+
+                    return static::programCoversMoreThanOneCalendarDay($get('start_date'), $get('end_date'));
+                })
+                ->schema([
                     CheckboxList::make('weekdays')
-                        ->label('أيام الجلسات الأسبوعية')
+                        ->label('أيام التحضير الأسبوعية (لاحتساب التحضير)')
                         ->options([
                             '0' => 'الأحد',
                             '1' => 'الاثنين',
@@ -269,34 +312,27 @@ class TrainingProgramResource extends Resource
                         ])
                         ->columns(4)
                         ->columnSpanFull()
-                        ->helperText('اختياري: لتوليد الجلسات والإشعارات حسب أيام الأسبوع.'),
-
-                    TextEntry::make('registration_status_display')
-                        ->label('حالة التسجيل (حالية)')
-                        ->getStateUsing(fn (TrainingProgram $record): string => $record->exists
-                            ? $record->registrationWindowStatusLabel()
-                            : '—')
-                        ->visible(fn (TrainingProgram $record): bool => $record->exists),
+                        ->helperText('يُستخدم عند امتداد البرنامج لأكثر من يوم واحد.'),
                 ]),
 
-            Section::make('الارتباط')
+            Section::make('أعضاء الفريق المسؤولين')
+                ->description('محرّرون من الموظفين؛ يُخفى القسم عند ربط البرنامج بمسار.')
+                ->visible(fn (Get $get): bool => ! (bool) $get('is_linked_to_path'))
                 ->schema([
-                    TextEntry::make('learning_path_linked')
-                        ->label('اسم المسار')
-                        ->visible(fn (TrainingProgram $record): bool => $record->learning_path_id !== null)
-                        ->getStateUsing(fn (TrainingProgram $record): string => $record->learningPath?->title ?? '—'),
-
-                    Text::make('learning_path_unlinked')
-                        ->content('لا يوجد ارتباط بمسار. الربط والترتيب من صفحة المسار التعليمي.')
-                        ->visible(fn (TrainingProgram $record): bool => $record->learning_path_id === null),
-
-                    TextInput::make('path_sort_order')
-                        ->label('ترتيب البرنامج في المسار')
-                        ->numeric()
-                        ->minValue(1)
-                        ->nullable()
-                        ->visible(fn (?TrainingProgram $record): bool => $record !== null && $record->learning_path_id !== null)
-                        ->helperText('يظهر عندما يكون البرنامج مرتبطاً بمسار.'),
+                    Select::make('editors')
+                        ->label('إضافة من الموظفين')
+                        ->relationship(
+                            name: 'editors',
+                            titleAttribute: 'name',
+                            modifyQueryUsing: fn (Builder $query) => $query
+                                ->where('is_active', true)
+                                ->orderBy('name'),
+                        )
+                        ->multiple()
+                        ->searchable()
+                        ->preload()
+                        ->dehydrated(fn (Get $get): bool => ! (bool) $get('is_linked_to_path'))
+                        ->columnSpanFull(),
                 ]),
 
             Section::make('المسؤولية')
@@ -304,7 +340,7 @@ class TrainingProgramResource extends Resource
                     TextEntry::make('owner_display')
                         ->label('المسؤول')
                         ->visible(fn (): bool => ! $adminBypass())
-                        ->getStateUsing(fn (TrainingProgram $record): string => $record->owner?->name ?? '—'),
+                        ->getStateUsing(fn (?TrainingProgram $record): string => $record?->owner?->name ?? '—'),
 
                     Select::make('owner_id')
                         ->label('المسؤول (المالك)')
@@ -328,6 +364,38 @@ class TrainingProgramResource extends Resource
                         ->helperText('يُعرض فقط عند عدم تعيين مالك للبرنامج؛ للمشرفين.'),
                 ]),
         ];
+    }
+
+    public static function defaultProgramKindFromRequest(): string
+    {
+        $q = request()->query('kind');
+        $allowed = array_map(
+            static fn (TrainingProgramKind $k): string => $k->value,
+            TrainingProgramKind::cases(),
+        );
+
+        if (is_string($q) && in_array($q, $allowed, true)) {
+            return $q;
+        }
+
+        return TrainingProgramKind::Course->value;
+    }
+
+    public static function isSessionKindValue(string $kind): bool
+    {
+        return $kind === TrainingProgramKind::Session->value;
+    }
+
+    public static function programCoversMoreThanOneCalendarDay(mixed $start, mixed $end): bool
+    {
+        if (blank($start) || blank($end)) {
+            return false;
+        }
+
+        $s = Carbon::parse((string) $start)->startOfDay();
+        $e = Carbon::parse((string) $end)->startOfDay();
+
+        return $e->gt($s);
     }
 
     public static function form(Schema $schema): Schema
@@ -466,7 +534,6 @@ class TrainingProgramResource extends Resource
     {
         return [
             ProgramRegistrationsRelationManager::class,
-            TrainingProgramEditorsRelationManager::class,
             ProgramCertificatesRelationManager::class,
         ];
     }

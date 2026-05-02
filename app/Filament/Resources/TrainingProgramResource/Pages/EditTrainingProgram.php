@@ -47,6 +47,9 @@ class EditTrainingProgram extends BaseEditRecord
         /** @var TrainingProgram $record */
         $record = $this->getRecord();
         $data['visible_on_site'] = $record->status === ProgramStatus::Published;
+        $data['is_linked_to_path'] = $record->learning_path_id !== null;
+        $data['capacity_unlimited'] = $record->capacity === null;
+        $data['editors'] = $record->editors()->pluck('id')->all();
 
         return $data;
     }
@@ -61,6 +64,20 @@ class EditTrainingProgram extends BaseEditRecord
         $program = $this->getRecord();
         $wasArchived = $program->status === ProgramStatus::Archived;
         $visible = (bool) ($data['visible_on_site'] ?? false);
+
+        $linked = (bool) ($data['is_linked_to_path'] ?? false);
+        $unlimited = (bool) ($data['capacity_unlimited'] ?? false);
+
+        unset($data['is_linked_to_path'], $data['capacity_unlimited']);
+
+        if ($unlimited) {
+            $data['capacity'] = null;
+        }
+
+        if (! $linked) {
+            $data['learning_path_id'] = null;
+            $data['path_sort_order'] = null;
+        }
 
         if ($wasArchived && ! $visible) {
             $data['status'] = ProgramStatus::Archived->value;
@@ -87,7 +104,7 @@ class EditTrainingProgram extends BaseEditRecord
     {
         return $schema
             ->components([
-                Text::make('تعديل البيانات الأساسية يتم من صفحة التعديل، وإدارة التسجيلات والفريق من صفحة العرض.')
+                Text::make('تعديل البيانات الأساسية وفريق العمل من هذه الصفحة؛ إدارة التسجيلات من صفحة عرض البرنامج.')
                     ->columnSpanFull(),
                 $this->getFormContentComponent(),
             ]);

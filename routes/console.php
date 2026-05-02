@@ -16,3 +16,5 @@ Artisan::command('inspire', function () {
 |--------------------------------------------------------------------------
 */
 Schedule::command('news:publish-scheduled')->everyMinute();
+
+Schedule::command('inbox:dispatch-training-milestones')->hourly();

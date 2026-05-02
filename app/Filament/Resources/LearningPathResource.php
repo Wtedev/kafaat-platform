@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\LearningPathKind;
 use App\Enums\PathStatus;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\LearningPathResource\Pages;
@@ -15,6 +16,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -75,6 +77,21 @@ class LearningPathResource extends Resource
             : asset('images/news-placeholder.svg');
     }
 
+    public static function defaultPathKindFromRequest(): string
+    {
+        $q = request()->query('kind') ?? request()->query('path_kind');
+        $allowed = array_map(
+            static fn (LearningPathKind $k): string => $k->value,
+            LearningPathKind::cases(),
+        );
+
+        if (is_string($q) && in_array($q, $allowed, true)) {
+            return $q;
+        }
+
+        return LearningPathKind::TrainingPath->value;
+    }
+
     public static function learningPathImageUploadField(): FileUpload
     {
         return FileUpload::make('image')
@@ -100,6 +117,10 @@ class LearningPathResource extends Resource
         $adminBypass = fn (): bool => TrainingEntityAuthorization::adminBypass(auth()->user());
 
         $basicFields = [
+            Hidden::make('path_kind')
+                ->dehydrated()
+                ->default(fn (): string => static::defaultPathKindFromRequest()),
+
             TextInput::make('title')
                 ->label('اسم المسار')
                 ->required()

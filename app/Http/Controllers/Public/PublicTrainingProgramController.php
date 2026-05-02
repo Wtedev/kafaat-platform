@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Exceptions\ProgramBelongsToLearningPathException;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Exceptions\RegistrationWindowClosedException;
 use App\Http\Controllers\Controller;
@@ -37,6 +38,10 @@ class PublicTrainingProgramController extends Controller
                 ->first();
         }
 
+        if ($trainingProgram->learning_path_id !== null) {
+            $trainingProgram->loadMissing('learningPath');
+        }
+
         return view('public.programs.show', compact('trainingProgram', 'userRegistration'));
     }
 
@@ -54,6 +59,8 @@ class PublicTrainingProgramController extends Controller
             $this->registrationService->register($trainingProgram, $request->user());
 
             return back()->with('success', 'تم تسجيلك بنجاح! سيتم مراجعة طلبك قريباً.');
+        } catch (ProgramBelongsToLearningPathException) {
+            return back()->with('error', 'هذا البرنامج ضمن مسار تعليمي؛ التسجيل يكون من صفحة المسار فقط.');
         } catch (RegistrationWindowClosedException) {
             return back()->with('error', 'باب التسجيل في هذا البرنامج مغلق حالياً.');
         } catch (ProgramCapacityExceededException) {

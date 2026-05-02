@@ -22,6 +22,20 @@ class CreateTrainingProgram extends BaseCreateRecord
      */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        $linked = (bool) ($data['is_linked_to_path'] ?? false);
+        $unlimited = (bool) ($data['capacity_unlimited'] ?? false);
+
+        unset($data['is_linked_to_path'], $data['capacity_unlimited']);
+
+        if ($unlimited) {
+            $data['capacity'] = null;
+        }
+
+        if (! $linked) {
+            $data['learning_path_id'] = null;
+            $data['path_sort_order'] = null;
+        }
+
         $visible = (bool) ($data['visible_on_site'] ?? false);
         $data['status'] = $visible
             ? ProgramStatus::Published->value

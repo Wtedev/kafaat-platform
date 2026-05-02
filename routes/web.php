@@ -84,6 +84,8 @@ Route::middleware(['auth', 'beneficiary'])
         Route::post('/notifications/read-all', [PortalInboxController::class, 'markAllRead'])->name('notifications.read-all');
         Route::post('/notifications/{notification}/read', [PortalInboxController::class, 'markRead'])
             ->name('notifications.read');
+        Route::post('/notifications/{notification}/registration-action', [PortalInboxController::class, 'registrationAction'])
+            ->name('notifications.registration-action');
         Route::get('/paths', PortalPathController::class)->name('paths');
         Route::get('/paths/{learningPath}', PortalPathDetailController::class)->name('paths.show');
         Route::get('/programs', PortalProgramController::class)->name('programs');

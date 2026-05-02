@@ -145,13 +145,14 @@ class TrainingProgram extends Model
     {
         $today = Carbon::today();
 
-        $query->where(function (Builder $q) use ($today) {
-            $q->whereNull('registration_start')
-                ->orWhere('registration_start', '<=', $today);
-        })->where(function (Builder $q) use ($today) {
-            $q->whereNull('registration_end')
-                ->orWhere('registration_end', '>=', $today);
-        });
+        $query->whereNull('learning_path_id')
+            ->where(function (Builder $q) use ($today) {
+                $q->whereNull('registration_start')
+                    ->orWhere('registration_start', '<=', $today);
+            })->where(function (Builder $q) use ($today) {
+                $q->whereNull('registration_end')
+                    ->orWhere('registration_end', '>=', $today);
+            });
     }
 
     /**
@@ -165,8 +166,16 @@ class TrainingProgram extends Model
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
+    /**
+     * Whether the public standalone registration window is open.
+     * Programs linked to a learning path are never open for direct public registration.
+     */
     public function isRegistrationOpen(): bool
     {
+        if ($this->learning_path_id !== null) {
+            return false;
+        }
+
         $today = Carbon::today();
 
         $afterStart = $this->registration_start === null
@@ -202,6 +211,10 @@ class TrainingProgram extends Model
      */
     public function registrationWindowStatusLabel(): string
     {
+        if ($this->learning_path_id !== null) {
+            return 'التسجيل عبر المسار';
+        }
+
         $today = Carbon::today();
 
         if ($this->end_date !== null && $this->end_date->lt($today)) {

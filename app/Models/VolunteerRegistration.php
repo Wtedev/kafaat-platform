@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\RegistrationStatus;
 use App\Enums\VolunteerHoursStatus;
+use App\Services\Inbox\InboxNotificationService;
 use App\Support\FilamentAssignmentVisibility;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +27,13 @@ class VolunteerRegistration extends Model
             'status' => RegistrationStatus::class,
             'approved_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function (self $registration): void {
+            app(InboxNotificationService::class)->notifyStaffOfNewVolunteerRegistration($registration);
+        });
     }
 
     // ─── Scopes ───────────────────────────────────────────────────────────────

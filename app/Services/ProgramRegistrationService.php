@@ -2,10 +2,13 @@
 
 namespace App\Services;
 
+use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
+use App\Exceptions\ProgramBelongsToLearningPathException;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Exceptions\RegistrationNotApprovedException;
 use App\Exceptions\RegistrationWindowClosedException;
+use App\Models\LearningPath;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
@@ -25,11 +28,16 @@ class ProgramRegistrationService
     /**
      * Register a user to a training program.
      *
+     * @throws ProgramBelongsToLearningPathException
      * @throws RegistrationWindowClosedException
      * @throws ProgramCapacityExceededException
      */
     public function register(TrainingProgram $program, User $user): ProgramRegistration
     {
+        if ($program->learning_path_id !== null) {
+            throw new ProgramBelongsToLearningPathException;
+        }
+
         if (! $program->isRegistrationOpen()) {
             throw new RegistrationWindowClosedException;
         }
@@ -60,6 +68,101 @@ class ProgramRegistrationService
             return $registration;
         }
 
+        if (! $this->assertCapacityAndApproveRegistration($registration, $approvedBy)) {
+            return $registration->fresh();
+        }
+
+        $registration = $registration->fresh();
+        $this->sendProgramRegistrationApprovedNotifications($registration, $approvedBy);
+
+        return $registration->fresh();
+    }
+
+    /**
+     * Approve the user for every published program in the path (same DB transaction as path approval when used from PathRegistrationService).
+     * Does not send email/inbox; caller should invoke {@see sendProgramRegistrationApprovedNotifications} after commit.
+     *
+     * @return list<ProgramRegistration> Registrations that newly became approved (for notifications).
+     *
+     * @throws ProgramCapacityExceededException
+     */
+    public function approveAllProgramsForPathMemberWithoutNotifications(
+        LearningPath $path,
+        User $user,
+        User $approvedBy,
+    ): array {
+        $path->loadMissing('programs');
+
+        $newlyApproved = [];
+
+        foreach ($path->programs as $program) {
+            if ($program->status !== ProgramStatus::Published) {
+                continue;
+            }
+
+            if ((int) $program->learning_path_id !== (int) $path->id) {
+                continue;
+            }
+
+            $reg = ProgramRegistration::query()->firstOrCreate(
+                [
+                    'training_program_id' => $program->id,
+                    'user_id' => $user->id,
+                ],
+                [
+                    'status' => RegistrationStatus::Pending,
+                ],
+            );
+
+            if ($reg->status === RegistrationStatus::Approved) {
+                continue;
+            }
+
+            if (in_array($reg->status, [RegistrationStatus::Rejected, RegistrationStatus::Cancelled], true)) {
+                $reg->update([
+                    'status' => RegistrationStatus::Pending,
+                    'rejected_reason' => null,
+                    'approved_by' => null,
+                    'approved_at' => null,
+                ]);
+                $reg->refresh();
+            }
+
+            $reg = $reg->fresh();
+
+            if ($this->assertCapacityAndApproveRegistration($reg, $approvedBy)) {
+                $newlyApproved[] = $reg->fresh();
+            }
+        }
+
+        return $newlyApproved;
+    }
+
+    public function sendProgramRegistrationApprovedNotifications(ProgramRegistration $registration, User $approvedBy): void
+    {
+        $registration->loadMissing(['user', 'trainingProgram']);
+        $program = $registration->trainingProgram;
+
+        $this->emailLogService->send(
+            recipient: $registration->user,
+            notification: new ProgramRegistrationApproved($registration),
+            templateKey: 'program_registration.approved',
+            subject: 'Your Registration Has Been Approved — '.$program->title,
+            sentBy: $approvedBy,
+        );
+
+        $this->inboxNotifications->registrationApprovedProgram($registration->user, $program, $approvedBy);
+    }
+
+    /**
+     * @throws ProgramCapacityExceededException
+     */
+    private function assertCapacityAndApproveRegistration(ProgramRegistration $registration, User $approvedBy): bool
+    {
+        if ($registration->status === RegistrationStatus::Approved) {
+            return false;
+        }
+
         $program = $registration->trainingProgram;
 
         if ($program->capacity !== null) {
@@ -78,19 +181,7 @@ class ProgramRegistrationService
             'approved_at' => now(),
         ]);
 
-        $registration->loadMissing('user');
-
-        $this->emailLogService->send(
-            recipient: $registration->user,
-            notification: new ProgramRegistrationApproved($registration),
-            templateKey: 'program_registration.approved',
-            subject: 'Your Registration Has Been Approved — '.$program->title,
-            sentBy: $approvedBy,
-        );
-
-        $this->inboxNotifications->registrationApprovedProgram($registration->user, $program, $approvedBy);
-
-        return $registration->fresh();
+        return true;
     }
 
     /**

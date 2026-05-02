@@ -59,7 +59,30 @@ class VolunteerOpportunity extends Model
             }
         });
 
+        static::created(function (self $opportunity): void {
+            if ($opportunity->status !== OpportunityStatus::Published) {
+                return;
+            }
+
+            $editor = Auth::user();
+            app(InboxNotificationService::class)->volunteerOpportunityFirstPublished(
+                $opportunity,
+                $editor instanceof User ? $editor : null,
+            );
+        });
+
         static::updated(function (self $opportunity): void {
+            $editor = Auth::user();
+
+            if ($opportunity->wasChanged('status') && $opportunity->status === OpportunityStatus::Published) {
+                app(InboxNotificationService::class)->volunteerOpportunityFirstPublished(
+                    $opportunity,
+                    $editor instanceof User ? $editor : null,
+                );
+
+                return;
+            }
+
             if ($opportunity->status !== OpportunityStatus::Published) {
                 return;
             }
@@ -73,7 +96,6 @@ class VolunteerOpportunity extends Model
                 return;
             }
 
-            $editor = Auth::user();
             app(InboxNotificationService::class)->volunteerOpportunityUpdated(
                 $opportunity,
                 $editor instanceof User ? $editor : null,
