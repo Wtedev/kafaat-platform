@@ -2,15 +2,15 @@
 
 namespace App\Filament\Resources\UserResource\Pages;
 
+use App\Filament\Resources\Pages\BaseListRecords;
 use App\Filament\Resources\UserResource;
 use Filament\Actions\CreateAction;
-use Filament\Resources\Pages\ListRecords;
 
-class ListUsers extends ListRecords
+class ListUsers extends BaseListRecords
 {
     protected static string $resource = UserResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getListPageToolbarActions(): array
     {
         return [CreateAction::make()];
     }

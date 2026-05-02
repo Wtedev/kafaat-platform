@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\PartnerResource\Pages;
 
+use App\Filament\Resources\Pages\BaseEditRecord;
 use App\Filament\Resources\PartnerResource;
-use Filament\Resources\Pages\EditRecord;
 
-class EditPartner extends EditRecord
+class EditPartner extends BaseEditRecord
 {
     protected static string $resource = PartnerResource::class;
 }

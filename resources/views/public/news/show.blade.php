@@ -44,10 +44,18 @@
     </div>
     @endif
 
-    {{-- Article content --}}
+    {{-- Article content (نص عادي أو HTML من محرّر لوحة التحكم) --}}
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-right">
-        <div class="prose prose-lg max-w-none leading-relaxed whitespace-pre-line text-right" style="color:#374151; font-family: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif; direction: rtl">
-            {!! nl2br(e($news->content)) !!}
+        @php
+            $body = (string) ($news->content ?? '');
+            $isRichHtml = $body !== '' && preg_match('/<[a-z][\s\S]*>/i', $body);
+        @endphp
+        <div class="news-article-body prose prose-lg max-w-none leading-relaxed text-right {{ $isRichHtml ? '' : 'whitespace-pre-line' }}" style="color:#374151; font-family: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif; direction: rtl">
+            @if ($isRichHtml)
+                {!! $body !!}
+            @else
+                {!! nl2br(e($body)) !!}
+            @endif
         </div>
     </div>
 

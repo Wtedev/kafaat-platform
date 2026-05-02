@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources\UserResource\Pages;
 
+use App\Filament\Resources\Pages\BaseEditRecord;
 use App\Filament\Resources\UserResource;
 use App\Models\User;
 use App\Support\UserAccountRoleForm;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
-use Filament\Resources\Pages\EditRecord;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 
-class EditUser extends EditRecord
+class EditUser extends BaseEditRecord
 {
     protected static string $resource = UserResource::class;
 
@@ -51,7 +51,7 @@ class EditUser extends EditRecord
         }
     }
 
-    protected function getHeaderActions(): array
+    protected function getRecordToolbarActions(): array
     {
         return [
             ViewAction::make(),

@@ -39,7 +39,11 @@
                     <li><a href="{{ route('login') }}" class="text-gray-400 hover:text-white text-sm transition-colors">تسجيل الدخول</a></li>
                     <li><a href="{{ route('register') }}" class="text-gray-400 hover:text-white text-sm transition-colors">إنشاء حساب</a></li>
                     @else
+                    @if(auth()->user()->canAccessFilamentAdmin())
+                    <li><a href="{{ url('/admin') }}" class="text-gray-400 hover:text-white text-sm transition-colors">لوحة الإدارة</a></li>
+                    @else
                     <li><a href="{{ route('portal.dashboard') }}" class="text-gray-400 hover:text-white text-sm transition-colors">بوابتي</a></li>
+                    @endif
                     @endguest
                     <li><a href="{{ route('home') }}#faq" class="text-gray-400 hover:text-white text-sm transition-colors">الأسئلة الشائعة</a></li>
                     <li><a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">سياسة الخصوصية</a></li>

@@ -2,15 +2,10 @@
 
 namespace App\Filament\Resources\PathRegistrationResource\Pages;
 
+use App\Filament\Resources\Pages\BaseListRecords;
 use App\Filament\Resources\PathRegistrationResource;
-use Filament\Resources\Pages\ListRecords;
 
-class ListPathRegistrations extends ListRecords
+class ListPathRegistrations extends BaseListRecords
 {
     protected static string $resource = PathRegistrationResource::class;
-
-    protected function getHeaderActions(): array
-    {
-        return [];
-    }
 }

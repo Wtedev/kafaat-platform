@@ -3,14 +3,9 @@
 namespace App\Filament\Resources\CertificateResource\Pages;
 
 use App\Filament\Resources\CertificateResource;
-use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\Pages\BaseListRecords;
 
-class ListCertificates extends ListRecords
+class ListCertificates extends BaseListRecords
 {
     protected static string $resource = CertificateResource::class;
-
-    protected function getHeaderActions(): array
-    {
-        return [];
-    }
 }

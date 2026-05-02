@@ -2,15 +2,10 @@
 
 namespace App\Filament\Resources\VolunteerRegistrationResource\Pages;
 
+use App\Filament\Resources\Pages\BaseListRecords;
 use App\Filament\Resources\VolunteerRegistrationResource;
-use Filament\Resources\Pages\ListRecords;
 
-class ListVolunteerRegistrations extends ListRecords
+class ListVolunteerRegistrations extends BaseListRecords
 {
     protected static string $resource = VolunteerRegistrationResource::class;
-
-    protected function getHeaderActions(): array
-    {
-        return [];
-    }
 }

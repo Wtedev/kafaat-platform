@@ -2,15 +2,10 @@
 
 namespace App\Filament\Resources\VolunteerHourResource\Pages;
 
+use App\Filament\Resources\Pages\BaseListRecords;
 use App\Filament\Resources\VolunteerHourResource;
-use Filament\Resources\Pages\ListRecords;
 
-class ListVolunteerHours extends ListRecords
+class ListVolunteerHours extends BaseListRecords
 {
     protected static string $resource = VolunteerHourResource::class;
-
-    protected function getHeaderActions(): array
-    {
-        return [];
-    }
 }

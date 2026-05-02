@@ -3,15 +3,15 @@
 namespace App\Filament\Resources\LearningPathResource\Pages;
 
 use App\Filament\Resources\LearningPathResource;
+use App\Filament\Resources\Pages\BaseEditRecord;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
-use Filament\Resources\Pages\EditRecord;
 
-class EditLearningPath extends EditRecord
+class EditLearningPath extends BaseEditRecord
 {
     protected static string $resource = LearningPathResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getRecordToolbarActions(): array
     {
         return [ViewAction::make(), DeleteAction::make()];
     }

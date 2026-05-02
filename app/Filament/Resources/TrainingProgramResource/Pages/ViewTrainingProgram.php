@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources\TrainingProgramResource\Pages;
 
+use App\Filament\Resources\Pages\BaseViewRecord;
 use App\Filament\Resources\TrainingProgramResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Resources\Pages\ViewRecord;
 
-class ViewTrainingProgram extends ViewRecord
+class ViewTrainingProgram extends BaseViewRecord
 {
     protected static string $resource = TrainingProgramResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getViewPageToolbarActions(): array
     {
         return [EditAction::make(), DeleteAction::make()];
     }

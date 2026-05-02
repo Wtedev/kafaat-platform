@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\PermissionResource\Pages;
 
+use App\Filament\Resources\Pages\BaseListRecords;
 use App\Filament\Resources\PermissionResource;
-use Filament\Resources\Pages\ListRecords;
 
-class ListPermissions extends ListRecords
+class ListPermissions extends BaseListRecords
 {
     protected static string $resource = PermissionResource::class;
 }

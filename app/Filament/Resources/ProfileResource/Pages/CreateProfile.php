@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\ProfileResource\Pages;
 
+use App\Filament\Resources\Pages\BaseCreateRecord;
 use App\Filament\Resources\ProfileResource;
-use Filament\Resources\Pages\CreateRecord;
 
-class CreateProfile extends CreateRecord
+class CreateProfile extends BaseCreateRecord
 {
     protected static string $resource = ProfileResource::class;
 }

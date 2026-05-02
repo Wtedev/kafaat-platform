@@ -3,14 +3,14 @@
 namespace App\Filament\Resources\LearningPathResource\Pages;
 
 use App\Filament\Resources\LearningPathResource;
+use App\Filament\Resources\Pages\BaseListRecords;
 use Filament\Actions\CreateAction;
-use Filament\Resources\Pages\ListRecords;
 
-class ListLearningPaths extends ListRecords
+class ListLearningPaths extends BaseListRecords
 {
     protected static string $resource = LearningPathResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getListPageToolbarActions(): array
     {
         return [CreateAction::make()];
     }

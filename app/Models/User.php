@@ -6,6 +6,7 @@ namespace App\Models;
 use App\Enums\VolunteerHoursStatus;
 use App\Services\Rbac\RbacService;
 use Database\Factories\UserFactory;
+use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -213,5 +214,13 @@ class User extends Authenticatable implements FilamentUser
             'volunteering_manager',
             'staff',
         ]);
+    }
+
+    /**
+     * وصول لوحة Filament الإدارية (نفس شرط canAccessPanel للوحة admin).
+     */
+    public function canAccessFilamentAdmin(): bool
+    {
+        return $this->canAccessPanel(Filament::getPanel('admin'));
     }
 }

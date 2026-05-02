@@ -2,17 +2,17 @@
 
 namespace App\Filament\Resources\ProfileResource\Pages;
 
+use App\Filament\Resources\Pages\BaseEditRecord;
 use App\Filament\Resources\ProfileResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
-use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 
-class EditProfile extends EditRecord
+class EditProfile extends BaseEditRecord
 {
     protected static string $resource = ProfileResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getRecordToolbarActions(): array
     {
         return [
             ViewAction::make(),

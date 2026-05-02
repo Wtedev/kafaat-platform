@@ -1,0 +1,494 @@
+/**
+ * لوحة الإدارة — مظهر داكن مستوحى من لوحات حديثة (فحمي + نعناع).
+ * يُحمَّل من AdminPanelProvider دون الحاجة إلى Vite.
+ */
+
+:root {
+    --admin-canvas: #121212;
+    --admin-surface: #1a1a1a;
+    --admin-surface-elevated: #1e1e1e;
+    --admin-border: rgba(255, 255, 255, 0.08);
+    --admin-muted: #9ca3af;
+    --admin-heading: #fafafa;
+}
+
+/* ——— أساس الصفحة ——— */
+html.fi.dark .fi-body {
+    background-color: var(--admin-canvas) !important;
+    color: var(--admin-heading) !important;
+}
+
+html.fi:not(.dark) .fi-body {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+html.fi .fi-body {
+    font-family: 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ——— الشريط الجانبي ——— */
+html.fi.dark .fi-sidebar {
+    background-color: #161616 !important;
+    border-color: var(--admin-border) !important;
+    box-shadow: none !important;
+}
+
+html.fi.dark .fi-sidebar-header {
+    border-color: var(--admin-border) !important;
+}
+
+html.fi.dark .fi-sidebar-group-label {
+    color: var(--admin-muted) !important;
+}
+
+html.fi.dark .fi-sidebar-item-btn {
+    border-radius: 0.75rem !important;
+}
+
+html.fi.dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
+    background-color: rgba(74, 222, 128, 0.14) !important;
+}
+
+html.fi.dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-label,
+html.fi.dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-icon {
+    color: #86efac !important;
+}
+
+html.fi.dark .fi-sidebar-item-has-url > .fi-sidebar-item-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ——— الشريط العلوي ——— */
+html.fi.dark .fi-topbar {
+    background-color: rgba(22, 22, 22, 0.92) !important;
+    border-color: var(--admin-border) !important;
+    backdrop-filter: blur(10px);
+    box-shadow: none !important;
+}
+
+html.fi.dark .fi-topbar .fi-btn,
+html.fi.dark .fi-topbar a.fi-btn {
+    border-radius: 0.75rem !important;
+}
+
+/* ——— المحتوى الرئيسي ——— */
+html.fi.dark .fi-main {
+    background-color: transparent !important;
+}
+
+html.fi.dark .fi-page {
+    gap: 1.25rem;
+}
+
+/* ——— رأس الصفحة (عنوان + مسارات) ——— */
+html.fi.dark .fi-header-heading {
+    color: var(--admin-heading) !important;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+html.fi.dark .fi-breadcrumbs__item,
+html.fi.dark .fi-breadcrumbs__item a {
+    color: var(--admin-muted) !important;
+}
+
+html.fi.dark .fi-header-subheading {
+    color: var(--admin-muted) !important;
+}
+
+/* ——— أقسام النماذج / الـ infolist (بطاقات) ——— */
+html.fi.dark .fi-section {
+    background-color: var(--admin-surface-elevated) !important;
+    border: 1px solid var(--admin-border) !important;
+    border-radius: 1.25rem !important;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset !important;
+}
+
+html.fi.dark .fi-section-has-header .fi-section-header {
+    border-inline-start: 4px solid #4ade80;
+    padding-inline-start: 1rem;
+    margin-inline-start: -1px;
+}
+
+html.fi.dark .fi-section-header-heading {
+    color: var(--admin-heading) !important;
+    font-weight: 600;
+}
+
+html.fi.dark .fi-section-header-description,
+html.fi.dark .fi-sc-section .fi-prose {
+    color: var(--admin-muted) !important;
+}
+
+html.fi.dark .fi-section-content-ctn {
+    border-color: var(--admin-border) !important;
+}
+
+/* ——— حقول الإدخال ——— */
+html.fi.dark .fi-input-wrp,
+html.fi.dark .fi-fo-field-wrp-label,
+html.fi.dark select,
+html.fi.dark textarea,
+html.fi.dark input:not([type='checkbox']):not([type='radio']) {
+    border-radius: 0.75rem !important;
+}
+
+html.fi.dark .fi-input-wrp {
+    background-color: #141414 !important;
+    border-color: var(--admin-border) !important;
+}
+
+html.fi.dark .fi-fo-field-wrp-label span {
+    color: var(--admin-muted) !important;
+    font-size: 0.8125rem;
+    font-weight: 500;
+}
+
+/* ——— أزرار ——— */
+html.fi.dark .fi-btn {
+    border-radius: 0.75rem !important;
+    font-weight: 600;
+}
+
+html.fi.dark .fi-btn-color-primary {
+    box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.25);
+}
+
+html.fi.dark .fi-btn-color-gray.fi-btn-outlined,
+html.fi.dark .fi-btn.fi-btn-outlined {
+    border-color: var(--admin-border) !important;
+    background: transparent !important;
+    color: #e5e7eb !important;
+}
+
+/* ——— جداول ——— */
+html.fi.dark .fi-ta-ctn {
+    border-radius: 1rem !important;
+    border: 1px solid var(--admin-border) !important;
+    background-color: var(--admin-surface) !important;
+    overflow: hidden;
+}
+
+html.fi.dark .fi-ta-header-cell {
+    background-color: #141414 !important;
+    color: var(--admin-muted) !important;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+html.fi.dark .fi-ta-row {
+    border-color: var(--admin-border) !important;
+}
+
+html.fi.dark .fi-ta-row:hover {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+html.fi.dark .fi-ta-text-item {
+    color: #e5e7eb !important;
+}
+
+/* ——— شريط إجراءات النموذج السفلي ——— */
+html.fi.dark .fi-sc-actions.fi-sticky .fi-ac {
+    background-color: rgba(26, 26, 26, 0.95) !important;
+    border: 1px solid var(--admin-border) !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* ——— تبويبات ——— */
+html.fi.dark .fi-tabs-item {
+    border-radius: 0.75rem !important;
+}
+
+html.fi.dark .fi-tabs-item.fi-active {
+    background-color: rgba(74, 222, 128, 0.1) !important;
+    color: #86efac !important;
+}
+
+/* ——— ويدجات لوحة التحكم ——— */
+html.fi.dark .fi-wi-stats-overview-stat {
+    border-radius: 1rem !important;
+    border: 1px solid var(--admin-border) !important;
+    background-color: var(--admin-surface-elevated) !important;
+}
+
+html.fi.dark .fi-wi-stats-overview-stat-value {
+    color: var(--admin-heading) !important;
+}
+
+html.fi.dark .fi-wi-stats-overview-stat-label {
+    color: var(--admin-muted) !important;
+}
+
+/* ——— صفحات تسجيل الدخول ——— */
+html.fi.dark .fi-simple-main {
+    background-color: var(--admin-canvas) !important;
+}
+
+html.fi.dark .fi-simple-page {
+    background: transparent !important;
+}
+
+html.fi.dark .fi-simple-header-heading {
+    color: var(--admin-heading) !important;
+}
+
+/* ——— News edit: card system (CMS-style) ——— */
+html.fi.dark .news-edit-card {
+    background: var(--admin-surface-elevated) !important;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 1rem;
+    padding: 1.25rem 1.35rem;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+html.fi:not(.dark) .news-edit-card {
+    background: #ffffff;
+    border: 1px solid #e4e4e7;
+    border-radius: 1rem;
+    padding: 1.25rem 1.35rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+html.fi.dark .news-edit-card--active {
+    border-color: rgba(74, 222, 128, 0.45);
+    box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.12);
+}
+
+html.fi .news-edit-card-header {
+    display: block;
+    margin-bottom: 0.85rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--admin-muted);
+}
+
+html.fi:not(.dark) .news-edit-card-header {
+    color: #71717a;
+}
+
+html.fi .news-edit-card-body {
+    min-width: 0;
+}
+
+html.fi .news-edit-card-footer {
+    min-width: 0;
+}
+
+html.fi.dark .news-edit-image-placeholder {
+    background: #1f1f1f;
+}
+
+html.fi:not(.dark) .news-edit-image-placeholder {
+    background: #f4f4f5;
+}
+
+html.fi .news-edit-dates-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+html.fi .news-edit-dates-table tr:not(:last-child) td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+html.fi:not(.dark) .news-edit-dates-table tr:not(:last-child) td {
+    border-bottom-color: #e4e4e7;
+}
+
+html.fi .news-edit-dates-table td {
+    padding: 0.7rem 0;
+    vertical-align: top;
+}
+
+html.fi .news-edit-dates-table td:first-child {
+    width: 40%;
+    padding-inline-end: 1rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--admin-muted);
+}
+
+html.fi:not(.dark) .news-edit-dates-table td:first-child {
+    color: #71717a;
+}
+
+html.fi .news-edit-dates-table td:last-child {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #fafafa;
+}
+
+html.fi:not(.dark) .news-edit-dates-table td:last-child {
+    color: #18181b;
+}
+
+@media (min-width: 768px) {
+    html.fi .news-edit-metadata-card .news-edit-meta-grid__col:not(:last-child) {
+        border-inline-end: 1px solid rgba(255, 255, 255, 0.08);
+        padding-inline-end: 1.25rem;
+        margin-inline-end: 1.25rem;
+    }
+
+    html.fi:not(.dark) .news-edit-metadata-card .news-edit-meta-grid__col:not(:last-child) {
+        border-inline-end-color: #e4e4e7;
+    }
+}
+
+html.fi .news-edit-meta-label {
+    letter-spacing: 0.02em;
+}
+
+html.fi .news-edit-content-body {
+    max-width: 52rem;
+}
+
+/* ——— تعديل خبر: لوحة معلومات ——— */
+html.fi .news-edit-dashboard-stack {
+    padding-bottom: 0.5rem;
+}
+
+/* تعديل خبر — ماكيت عمودين (صورة | تفاصيل) */
+html.fi .news-edit-mock-details {
+    min-width: 0;
+    gap: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+    html.fi .news-edit-mock-image-col {
+        align-self: start;
+    }
+}
+
+html.fi .fi-header-heading-ctn .news-edit-page-title-heading {
+    line-height: 1.25;
+}
+
+html.fi .news-edit-soft-strip {
+    border-bottom: 1px solid rgba(24, 24, 27, 0.06);
+}
+
+html.fi.dark .news-edit-soft-strip {
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+/* ——— نمط فاتح (اختياري عند التبديل) ——— */
+html.fi:not(.dark) .fi-section {
+    border-radius: 1.25rem !important;
+    border: 1px solid #e2e8f0 !important;
+    background-color: #fff !important;
+}
+
+html.fi:not(.dark) .fi-sidebar {
+    background-color: #fff !important;
+    border-color: #e2e8f0 !important;
+}
+
+/* ——— تعديل خبر: صفوف مسطّحة + معاينة الصورة ——— */
+html.fi .news-edit-hero .fi-fo-file-upload {
+    max-width: 42rem;
+}
+
+/* ——— تعديل خبر: تخطيط الماكيت ——— */
+html.fi .news-edit-page-inner {
+    padding-inline: 0.25rem;
+}
+
+html.fi .news-edit-main-grid {
+    align-items: start;
+}
+
+/* عمودان: صورة الخبر يسار الشاشة، التفاصيل يمين (LTR للشبكة فقط) */
+@media (min-width: 1024px) {
+    html.fi .news-edit-two-col-ltr {
+        direction: ltr;
+    }
+
+    html.fi .news-edit-two-col-ltr .news-edit-mock-details,
+    html.fi .news-edit-two-col-ltr .news-edit-mock-image-col {
+        direction: rtl;
+    }
+}
+
+html.fi.dark .news-edit-content-preview {
+    color: #d4d4d8 !important;
+}
+
+html.fi:not(.dark) .news-edit-content-preview {
+    color: #3f3f46 !important;
+}
+
+/* أزرار القلم: خلفية داكنة مربّعة */
+html.fi.dark .news-edit-pencil-btn.fi-btn {
+    background-color: #262626 !important;
+    border: 1px solid var(--admin-border) !important;
+    border-radius: 0.5rem !important;
+    color: #e5e7eb !important;
+    box-shadow: none !important;
+}
+
+html.fi.dark .news-edit-pencil-btn.fi-btn:hover {
+    background-color: #2e2e2e !important;
+}
+
+html.fi:not(.dark) .news-edit-pencil-btn.fi-btn {
+    background-color: #f4f4f5 !important;
+    border: 1px solid #e4e4e7 !important;
+    border-radius: 0.5rem !important;
+    color: #3f3f46 !important;
+}
+
+/* شريط إجراءات سفلي: تجميع الأزرار مع تباعد متسق (RTL) */
+html.fi .fi-body:has(.news-edit-dashboard-stack) .fi-sc-actions.fi-sticky .fi-ac {
+    width: 100%;
+    max-width: none;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    row-gap: 0.5rem;
+}
+
+html.fi .news-edit-field-apply-row {
+    width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+html.fi:not(.dark) .news-edit-field-apply-row {
+    border-top-color: #e4e4e7;
+}
+
+html.fi .news-edit-metadata-card .news-edit-meta-grid__col {
+    min-width: 0;
+}
+
+html.fi .news-edit-metadata-card .news-edit-field-card-row {
+    align-items: flex-start;
+}
+
+html.fi.dark .news-edit-strip--active {
+    background-color: rgba(74, 222, 128, 0.06);
+    border-bottom-color: rgba(74, 222, 128, 0.35) !important;
+}
+
+html.fi:not(.dark) .news-edit-strip--active {
+    background-color: rgba(74, 222, 128, 0.08);
+    border-bottom-color: rgba(22, 163, 74, 0.35) !important;
+}
+
+html.fi.dark .news-edit-row {
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}

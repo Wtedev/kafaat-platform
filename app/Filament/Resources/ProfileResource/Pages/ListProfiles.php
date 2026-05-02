@@ -2,15 +2,15 @@
 
 namespace App\Filament\Resources\ProfileResource\Pages;
 
+use App\Filament\Resources\Pages\BaseListRecords;
 use App\Filament\Resources\ProfileResource;
 use Filament\Actions\CreateAction;
-use Filament\Resources\Pages\ListRecords;
 
-class ListProfiles extends ListRecords
+class ListProfiles extends BaseListRecords
 {
     protected static string $resource = ProfileResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getListPageToolbarActions(): array
     {
         return [
             CreateAction::make()

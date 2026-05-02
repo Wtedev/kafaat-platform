@@ -2,15 +2,15 @@
 
 namespace App\Filament\Resources\RoleResource\Pages;
 
+use App\Filament\Resources\Pages\BaseListRecords;
 use App\Filament\Resources\RoleResource;
 use Filament\Actions\CreateAction;
-use Filament\Resources\Pages\ListRecords;
 
-class ListRoles extends ListRecords
+class ListRoles extends BaseListRecords
 {
     protected static string $resource = RoleResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getListPageToolbarActions(): array
     {
         return [
             CreateAction::make(),

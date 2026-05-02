@@ -4,6 +4,8 @@ namespace App\Providers\Filament;
 
 use App\Filament\Widgets\LatestInAppNotificationsWidget;
 use App\Filament\Widgets\PlatformStatsWidget;
+use Filament\Enums\ThemeMode;
+use Filament\FontProviders\BunnyFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -12,9 +14,9 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\Width;
 use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
-use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -36,20 +38,45 @@ class AdminPanelProvider extends PanelProvider
                 return view('filament.components.admin-main-site-button')->render();
             },
         );
+
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::HEAD_END,
+            function (): string {
+                if (! filament()->getCurrentPanel() || filament()->getId() !== 'admin') {
+                    return '';
+                }
+
+                $href = asset('css/filament-admin-surface.css').'?v=7';
+
+                return '<link rel="stylesheet" href="'.e($href).'">';
+            },
+        );
     }
 
     public function panel(Panel $panel): Panel
     {
-        return $panel
+        $panel = $panel
             ->default()
             ->id('admin')
             ->path('admin')
             ->login()
             ->brandName('كفاءات — لوحة الإدارة')
             ->bootUsing(fn () => app()->setLocale('ar'))
+            ->font(
+                'IBM Plex Sans Arabic',
+                'https://fonts.bunny.net/css?family=ibm-plex-sans-arabic:300,400,500,600,700&display=swap',
+                BunnyFontProvider::class,
+            )
+            ->defaultThemeMode(ThemeMode::Dark)
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#4ade80'),
+                'gray' => Color::Zinc,
+                'danger' => Color::hex('#f87171'),
+                'warning' => Color::hex('#eab308'),
+                'success' => Color::hex('#4ade80'),
             ])
+            ->globalSearch(false)
+            ->maxContentWidth(Width::SevenExtraLarge)
             ->spa(false)
             ->sidebarCollapsibleOnDesktop()
             ->unsavedChangesAlerts()
@@ -62,7 +89,6 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 PlatformStatsWidget::class,
                 LatestInAppNotificationsWidget::class,
-                AccountWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -79,5 +105,7 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->authGuard('web');
+
+        return $panel;
     }
 }

@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources\VolunteerOpportunityResource\Pages;
 
+use App\Filament\Resources\Pages\BaseEditRecord;
 use App\Filament\Resources\VolunteerOpportunityResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
-use Filament\Resources\Pages\EditRecord;
 
-class EditVolunteerOpportunity extends EditRecord
+class EditVolunteerOpportunity extends BaseEditRecord
 {
     protected static string $resource = VolunteerOpportunityResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getRecordToolbarActions(): array
     {
         return [ViewAction::make(), DeleteAction::make()];
     }

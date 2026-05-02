@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\ProgramRegistrationResource\Pages;
 
+use App\Filament\Resources\Pages\BaseViewRecord;
 use App\Filament\Resources\ProgramRegistrationResource;
-use Filament\Resources\Pages\ViewRecord;
 
-class ViewProgramRegistration extends ViewRecord
+class ViewProgramRegistration extends BaseViewRecord
 {
     protected static string $resource = ProgramRegistrationResource::class;
 }

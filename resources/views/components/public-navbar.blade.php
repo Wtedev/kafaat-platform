@@ -34,7 +34,7 @@ $faqHref = request()->routeIs('home') ? '#faq' : route('home') . '#faq';
             {{-- Desktop Auth --}}
             <div class="hidden lg:flex items-center gap-3 flex-shrink-0">
                 @auth
-                @if(auth()->user()->hasRole(['admin', 'staff']))
+                @if(auth()->user()->canAccessFilamentAdmin())
                 <a href="{{ url('/admin') }}" class="px-5 py-2 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200" style="background:#253B5B">لوحة الإدارة</a>
                 @else
                 <a href="{{ route('portal.dashboard') }}" class="px-5 py-2 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200" style="background:#253B5B">بوابتي</a>
@@ -68,7 +68,7 @@ $faqHref = request()->routeIs('home') ? '#faq' : route('home') . '#faq';
             <a href="{{ $faqHref }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#EAF2FA] hover:text-[#253B5B] transition-colors text-right">الأسئلة الشائعة</a>
 
             @auth
-            @if(auth()->user()->hasRole(['admin', 'staff']))
+            @if(auth()->user()->canAccessFilamentAdmin())
             <a href="{{ url('/admin') }}" class="mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-white text-center" style="background:#253B5B">لوحة الإدارة</a>
             @else
             <a href="{{ route('portal.dashboard') }}" class="mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-white text-center" style="background:#253B5B">بوابتي</a>

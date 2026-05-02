@@ -2,15 +2,15 @@
 
 namespace App\Filament\Resources\VolunteerOpportunityResource\Pages;
 
+use App\Filament\Resources\Pages\BaseListRecords;
 use App\Filament\Resources\VolunteerOpportunityResource;
 use Filament\Actions\CreateAction;
-use Filament\Resources\Pages\ListRecords;
 
-class ListVolunteerOpportunities extends ListRecords
+class ListVolunteerOpportunities extends BaseListRecords
 {
     protected static string $resource = VolunteerOpportunityResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getListPageToolbarActions(): array
     {
         return [CreateAction::make()];
     }

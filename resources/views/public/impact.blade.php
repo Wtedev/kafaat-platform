@@ -424,10 +424,17 @@
             </p>
             <div class="flex flex-wrap items-center justify-center gap-4">
                 @auth
+                @if(auth()->user()->canAccessFilamentAdmin())
+                <a href="{{ url('/admin') }}" class="px-8 py-4 rounded-2xl text-base font-semibold text-white shadow-md hover:shadow-lg
+                          transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
+                    لوحة الإدارة
+                </a>
+                @else
                 <a href="{{ route('portal.dashboard') }}" class="px-8 py-4 rounded-2xl text-base font-semibold text-white shadow-md hover:shadow-lg
                           transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
                     بوابتي
                 </a>
+                @endif
                 @else
                 <a href="{{ route('register') }}" class="px-8 py-4 rounded-2xl text-base font-semibold text-white shadow-md hover:shadow-lg
                           transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">

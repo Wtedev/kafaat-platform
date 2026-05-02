@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources\ProfileResource\Pages;
 
+use App\Filament\Resources\Pages\BaseViewRecord;
 use App\Filament\Resources\ProfileResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Resources\Pages\ViewRecord;
 
-class ViewProfile extends ViewRecord
+class ViewProfile extends BaseViewRecord
 {
     protected static string $resource = ProfileResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getViewPageToolbarActions(): array
     {
         return [
             EditAction::make(),

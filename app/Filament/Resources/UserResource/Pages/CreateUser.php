@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources\UserResource\Pages;
 
+use App\Filament\Resources\Pages\BaseCreateRecord;
 use App\Filament\Resources\UserResource;
 use App\Support\UserAccountRoleForm;
-use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Validation\ValidationException;
 
-class CreateUser extends CreateRecord
+class CreateUser extends BaseCreateRecord
 {
     protected static string $resource = UserResource::class;
 

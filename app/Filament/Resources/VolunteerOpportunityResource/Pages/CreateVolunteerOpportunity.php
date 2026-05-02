@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\VolunteerOpportunityResource\Pages;
 
+use App\Filament\Resources\Pages\BaseCreateRecord;
 use App\Filament\Resources\VolunteerOpportunityResource;
-use Filament\Resources\Pages\CreateRecord;
 
-class CreateVolunteerOpportunity extends CreateRecord
+class CreateVolunteerOpportunity extends BaseCreateRecord
 {
     protected static string $resource = VolunteerOpportunityResource::class;
 }

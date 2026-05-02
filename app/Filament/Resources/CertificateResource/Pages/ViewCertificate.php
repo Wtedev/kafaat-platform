@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\CertificateResource\Pages;
 
 use App\Filament\Resources\CertificateResource;
-use Filament\Resources\Pages\ViewRecord;
+use App\Filament\Resources\Pages\BaseViewRecord;
 
-class ViewCertificate extends ViewRecord
+class ViewCertificate extends BaseViewRecord
 {
     protected static string $resource = CertificateResource::class;
 }

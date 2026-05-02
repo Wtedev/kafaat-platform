@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\PartnerResource\Pages;
 
+use App\Filament\Resources\Pages\BaseCreateRecord;
 use App\Filament\Resources\PartnerResource;
-use Filament\Resources\Pages\CreateRecord;
 
-class CreatePartner extends CreateRecord
+class CreatePartner extends BaseCreateRecord
 {
     protected static string $resource = PartnerResource::class;
 }

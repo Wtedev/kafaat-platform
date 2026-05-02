@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\VolunteerHourResource\Pages;
 
+use App\Filament\Resources\Pages\BaseViewRecord;
 use App\Filament\Resources\VolunteerHourResource;
-use Filament\Resources\Pages\ViewRecord;
 
-class ViewVolunteerHour extends ViewRecord
+class ViewVolunteerHour extends BaseViewRecord
 {
     protected static string $resource = VolunteerHourResource::class;
 }
