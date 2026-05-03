@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\PublicDiskPath;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -49,7 +50,29 @@ class Certificate extends Model
             return null;
         }
 
-        return Storage::disk('public')->url($this->relativePathOnPublicDisk());
+        return PublicDiskPath::url($this->file_path);
+    }
+
+    /**
+     * Authenticated download URL (streams via CertificateDownloadController).
+     * Works on servers where the public/storage symlink is missing.
+     */
+    public function downloadUrl(): ?string
+    {
+        if ($this->file_path === null) {
+            return null;
+        }
+
+        $relative = PublicDiskPath::normalize($this->file_path);
+        if ($relative === null || str_starts_with($relative, 'http://') || str_starts_with($relative, 'https://')) {
+            return null;
+        }
+
+        if (! Storage::disk('public')->exists($relative)) {
+            return null;
+        }
+
+        return route('certificates.download', ['certificate' => $this->getKey()]);
     }
 
     /**
@@ -61,17 +84,11 @@ class Certificate extends Model
             return null;
         }
 
-        return Storage::disk('public')->path($this->relativePathOnPublicDisk());
-    }
+        $relative = PublicDiskPath::normalize($this->file_path);
+        if ($relative === null || str_starts_with($relative, 'http://') || str_starts_with($relative, 'https://')) {
+            return null;
+        }
 
-    /**
-     * Paths are stored as certificates/....pdf on the public disk.
-     * Legacy rows may still have public/certificates/....pdf — strip the redundant prefix for disk('public').
-     */
-    private function relativePathOnPublicDisk(): string
-    {
-        $p = (string) $this->file_path;
-
-        return str_starts_with($p, 'public/') ? substr($p, strlen('public/')) : $p;
+        return Storage::disk('public')->path($relative);
     }
 }

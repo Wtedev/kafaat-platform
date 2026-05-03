@@ -469,17 +469,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    @php
-                    $programGradients = [
-                    'linear-gradient(135deg,#1EB890 0%,#0ea5e9 100%)',
-                    'linear-gradient(135deg,#253B5B 0%,#3B82F6 100%)',
-                    'linear-gradient(135deg,#8B5CF6 0%,#3B82F6 100%)',
-                    'linear-gradient(135deg,#F59E0B 0%,#EF4444 100%)',
-                    'linear-gradient(135deg,#1EB890 0%,#8B5CF6 100%)',
-                    'linear-gradient(135deg,#253B5B 0%,#1EB890 100%)',
-                    ];
-                    @endphp
-                    @forelse ($pathsAndPrograms as $index => $row)
+                    @forelse ($pathsAndPrograms as $row)
                     @php
                         $isPath = $row['kind'] === 'path';
                         $item = $row['record'];
@@ -490,14 +480,20 @@
                     <a href="{{ $href }}" class="group bg-white rounded-3xl border border-gray-50 shadow-sm hover:shadow-lg
                               transition-all duration-300 hover:-translate-y-1 block text-right overflow-hidden">
 
-                        {{-- Image or gradient header --}}
-                        @if ($item->image)
-                        <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->title }}" class="w-full h-28 object-cover">
-                        @else
-                        <div class="h-28 w-full flex items-end p-4" style="background:{{ $programGradients[$index % 6] }}">
-                            <span class="text-white text-lg font-black leading-tight opacity-90">{{ $item->title }}</span>
+                        {{-- صورة الغلاف (أو placeholder من النموذج) — دائماً نعرض مساحة صورة --}}
+                        <div class="relative h-28 w-full overflow-hidden bg-gray-100">
+                            <img
+                                src="{{ $item->imagePublicUrl() }}"
+                                alt=""
+                                class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                                loading="lazy"
+                                decoding="async"
+                            />
+                            @unless (filled($item->image))
+                            <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" aria-hidden="true"></div>
+                            <span class="pointer-events-none absolute bottom-3 right-4 left-4 text-end text-sm font-bold leading-snug text-white drop-shadow-sm line-clamp-2">{{ $item->title }}</span>
+                            @endunless
                         </div>
-                        @endif
 
                         <div class="p-6">
                             <div class="flex items-center justify-between mb-3">
@@ -506,12 +502,10 @@
                                 </span>
                                 <span class="text-xs font-medium px-3 py-1.5 rounded-xl" style="background:#EAF2FA; color:#253B5B">{{ $typeLabel }}</span>
                             </div>
-                            @if (!$item->image)
-                            <p class="text-sm clamp-2 mb-4" style="color:#6B7280">{{ $item->description }}</p>
-                            @else
+                            @if (filled($item->image))
                             <h3 class="font-bold text-base mb-2 clamp-1 group-hover:text-[#253B5B] transition-colors" style="color:#111827">{{ $item->title }}</h3>
-                            <p class="text-sm clamp-2 mb-4" style="color:#6B7280">{{ $item->description }}</p>
                             @endif
+                            <p class="text-sm clamp-2 mb-4" style="color:#6B7280">{{ $item->description }}</p>
                             <div class="flex items-center justify-between text-xs border-t border-gray-50 pt-4" style="color:#6B7280">
                                 @if($isPath && $item->published_at)
                                 <span class="flex items-center gap-1">
@@ -619,7 +613,7 @@
                 <a href="{{ route('public.news.show', $item->slug) }}" class="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden block">
                     @if ($item->image)
                     <div class="h-48 overflow-hidden">
-                        <img src="{{ $item->image }}" alt="{{ $item->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        <img src="{{ $item->imagePublicUrl() }}" alt="{{ $item->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                     </div>
                     @else
                     <div class="h-48 flex items-center justify-center" style="background: {{ $newsBgs[$i % 3] }}">
@@ -953,7 +947,7 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
                 @foreach ($partners as $partner)
                 @php
-                $logoUrl = $partner->logo ? asset('storage/'.$partner->logo) : null;
+                $logoUrl = $partner->logoPublicUrl();
                 $hasLink = filled($partner->website_url);
                 $cardClass = 'group flex w-full max-w-[180px] flex-col items-center justify-center rounded-2xl border border-gray-100 bg-white px-4 py-6 shadow-sm transition-all duration-200 hover:border-[#c5ddef] hover:shadow-md min-h-[100px] sm:min-h-[120px]';
                 @endphp

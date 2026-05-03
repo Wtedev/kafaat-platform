@@ -7,6 +7,7 @@ use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
 use App\Services\Inbox\InboxNotificationService;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\PublicDiskPath;
 use App\Support\StaffFilamentRoles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -116,6 +117,12 @@ class TrainingProgram extends Model
                 );
             }
         });
+    }
+
+    /** Public URL for catalog image (or placeholder). */
+    public function imagePublicUrl(): string
+    {
+        return PublicDiskPath::urlOrPlaceholder($this->image ?? null);
     }
 
     // ─── Scopes ───────────────────────────────────────────────────────────────

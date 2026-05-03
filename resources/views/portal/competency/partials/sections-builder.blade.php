@@ -590,8 +590,8 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
         </form>
         </x-portal.cv-edit-dropdown>
     </div>
-    @if ($p?->cv_path)
-    <p class="mb-3 text-sm"><a href="{{ asset('storage/'.$p->cv_path) }}" target="_blank" class="font-semibold text-[#253B5B] hover:underline">{{ $cvLocale === 'en' ? 'Download current file' : 'تحميل الملف الحالي' }}</a></p>
+    @if ($p?->cvPublicUrl())
+    <p class="mb-3 text-sm"><a href="{{ $p->cvPublicUrl() }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-[#253B5B] hover:underline">{{ $cvLocale === 'en' ? 'Download current file' : 'تحميل الملف الحالي' }}</a></p>
     @else
     <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No CV file uploaded yet. Upload a PDF or Word file via Edit.' : 'لم يُرفع ملف سيرة ذاتية بعد. يمكنك رفع PDF أو Word من «'.$tEdit.'».' }}</p>
     @endif

@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\NewsResource\Pages;
 use App\Filament\Resources\NewsResource\Pages\EditNews;
 use App\Models\News;
+use App\Support\PublicDiskPath;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -35,7 +36,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
@@ -122,17 +122,7 @@ class NewsResource extends Resource
      */
     public static function resolveNewsImagePublicUrl(?string $path): string
     {
-        if ($path === null || $path === '') {
-            return asset('images/news-placeholder.svg');
-        }
-
-        if (Str::startsWith($path, ['http://', 'https://'])) {
-            return $path;
-        }
-
-        return Storage::disk('public')->exists($path)
-            ? Storage::disk('public')->url($path)
-            : asset('images/news-placeholder.svg');
+        return PublicDiskPath::urlOrPlaceholder($path);
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Enums\LearningPathKind;
 use App\Enums\PathStatus;
 use App\Enums\RegistrationStatus;
 use App\Services\Inbox\InboxNotificationService;
+use App\Support\PublicDiskPath;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -82,6 +83,12 @@ class LearningPath extends Model
                 $actor instanceof User ? $actor : null,
             );
         });
+    }
+
+    /** Public URL for catalog image (or placeholder). */
+    public function imagePublicUrl(): string
+    {
+        return PublicDiskPath::urlOrPlaceholder($this->image ?? null);
     }
 
     // ─── Scopes ───────────────────────────────────────────────────────────────

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\News\NewsPublicationService;
+use App\Support\PublicDiskPath;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -59,6 +60,12 @@ class News extends Model
                 Auth::user() instanceof User ? Auth::user() : null,
             );
         });
+    }
+
+    /** Public URL for the featured image (or placeholder). */
+    public function imagePublicUrl(): string
+    {
+        return PublicDiskPath::urlOrPlaceholder($this->image ?? null);
     }
 
     public function isDraft(): bool

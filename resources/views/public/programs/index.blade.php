@@ -12,32 +12,27 @@
     لا توجد برامج منشورة حالياً.
 </div>
 @else
-@php
-$programGradients = [
-'linear-gradient(135deg,#1EB890 0%,#0ea5e9 100%)',
-'linear-gradient(135deg,#253B5B 0%,#3B82F6 100%)',
-'linear-gradient(135deg,#8B5CF6 0%,#3B82F6 100%)',
-'linear-gradient(135deg,#F59E0B 0%,#EF4444 100%)',
-'linear-gradient(135deg,#1EB890 0%,#8B5CF6 100%)',
-'linear-gradient(135deg,#253B5B 0%,#1EB890 100%)',
-];
-@endphp
 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-    @foreach ($programs as $index => $program)
+    @foreach ($programs as $program)
     <a href="{{ route('public.programs.show', $program->slug) }}" class="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md
               hover:-translate-y-0.5 transition-all duration-300 block text-right overflow-hidden">
 
-        {{-- Image or gradient header --}}
-        @if ($program->image)
-        <img src="{{ asset('storage/' . $program->image) }}" alt="{{ $program->title }}" class="w-full h-24 object-cover">
-        @else
-        <div class="h-24 w-full flex items-end p-4" style="background:{{ $programGradients[$index % 6] }}">
-            <span class="text-white text-base font-black leading-tight opacity-90">{{ $program->title }}</span>
+        <div class="relative h-28 w-full overflow-hidden bg-gray-100">
+            <img
+                src="{{ $program->imagePublicUrl() }}"
+                alt=""
+                class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                loading="lazy"
+                decoding="async"
+            />
+            @unless (filled($program->image))
+            <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" aria-hidden="true"></div>
+            <span class="pointer-events-none absolute bottom-3 right-4 left-4 text-end text-sm font-bold leading-snug text-white drop-shadow-sm line-clamp-2">{{ $program->title }}</span>
+            @endunless
         </div>
-        @endif
 
         <div class="p-5">
-            @if ($program->image)
+            @if (filled($program->image))
             <h3 class="font-semibold mb-2 group-hover:text-[#253B5B] transition-colors" style="color:#111827">{{ $program->title }}</h3>
             @endif
             <p class="text-sm line-clamp-3" style="color:#6B7280">{{ $program->description }}</p>

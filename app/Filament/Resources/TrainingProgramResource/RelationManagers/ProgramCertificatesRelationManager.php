@@ -91,13 +91,13 @@ class ProgramCertificatesRelationManager extends RelationManager
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('info')
                     ->visible(function (Certificate $record): bool {
-                        if ($record->file_path === null) {
+                        if ($record->downloadUrl() === null) {
                             return false;
                         }
 
                         return auth()->user()?->can('download', $record) ?? false;
                     })
-                    ->url(fn (Certificate $record): string => $record->fileUrl() ?? '#')
+                    ->url(fn (Certificate $record): string => $record->downloadUrl() ?? '#')
                     ->openUrlInNewTab(),
             ])
             ->defaultSort('issued_at', 'desc');

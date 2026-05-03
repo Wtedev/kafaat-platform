@@ -41,7 +41,7 @@ $imageBgs = [
         {{-- Image / Gradient placeholder --}}
         @if ($item->image)
         <div class="h-48 overflow-hidden">
-            <img src="{{ $item->image }}" alt="{{ $item->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            <img src="{{ $item->imagePublicUrl() }}" alt="{{ $item->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
         </div>
         @else
         <div class="h-48 flex items-center justify-center" style="background: {{ $imageBgs[$index % count($imageBgs)] }}">

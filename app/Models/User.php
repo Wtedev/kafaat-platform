@@ -4,7 +4,9 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\VolunteerHoursStatus;
+use App\Services\Rbac\RbacCatalog;
 use App\Services\Rbac\RbacService;
+use App\Support\PublicDiskPath;
 use Database\Factories\UserFactory;
 use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
@@ -29,6 +31,7 @@ class User extends Authenticatable implements FilamentUser
         'password',
         'role_type',
         'phone',
+        'staff_photo',
         'is_active',
         'last_login_at',
     ];
@@ -178,6 +181,33 @@ class User extends Authenticatable implements FilamentUser
     public function isAdminOrStaff(): bool
     {
         return $this->isAdmin() || $this->isStaff();
+    }
+
+    /**
+     * رابط صورة الموظف/المسؤول في لوحة Filament (قرص public).
+     */
+    public function staffPhotoUrl(): ?string
+    {
+        return PublicDiskPath::url($this->staff_photo);
+    }
+
+    /**
+     * عرض أدوار Spatie للواجهة العربية (لوحة الإدارة).
+     */
+    public function filamentStaffRoleLabelsAr(): string
+    {
+        $this->loadMissing('roles');
+
+        $names = $this->roles->pluck('name')->unique()->filter()->values();
+        if ($names->isEmpty()) {
+            return match ($this->role_type) {
+                'admin' => RbacCatalog::roleArabicLabel('admin'),
+                'staff' => RbacCatalog::roleArabicLabel('staff'),
+                default => (string) $this->role_type,
+            };
+        }
+
+        return $names->map(fn (string $n): string => RbacCatalog::roleArabicLabel($n))->implode('، ');
     }
 
     /**

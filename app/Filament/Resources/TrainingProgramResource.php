@@ -10,6 +10,7 @@ use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramCerti
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationsRelationManager;
 use App\Models\TrainingProgram;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\PublicDiskPath;
 use App\Support\StaffFilamentRoles;
 use App\Support\TrainingEntityAuthorization;
 use Carbon\Carbon;
@@ -38,8 +39,6 @@ use Filament\Support\Enums\TextSize;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class TrainingProgramResource extends Resource
 {
@@ -69,17 +68,7 @@ class TrainingProgramResource extends Resource
      */
     public static function resolveTrainingProgramImagePublicUrl(?string $path): string
     {
-        if ($path === null || $path === '') {
-            return asset('images/news-placeholder.svg');
-        }
-
-        if (Str::startsWith($path, ['http://', 'https://'])) {
-            return $path;
-        }
-
-        return Storage::disk('public')->exists($path)
-            ? Storage::disk('public')->url($path)
-            : asset('images/news-placeholder.svg');
+        return PublicDiskPath::urlOrPlaceholder($path);
     }
 
     public static function trainingProgramImageUploadField(): FileUpload

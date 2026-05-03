@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\MembershipType;
 use App\Services\Portal\CvFormOptions;
 use App\Services\Portal\CvLanguagePresets;
+use App\Support\PublicDiskPath;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -629,7 +630,16 @@ class Profile extends Model
             return null;
         }
 
-        return asset('storage/'.$this->avatar);
+        return PublicDiskPath::url($this->avatar);
+    }
+
+    public function cvPublicUrl(): ?string
+    {
+        if (! filled($this->cv_path)) {
+            return null;
+        }
+
+        return PublicDiskPath::url($this->cv_path);
     }
 
     public static function initialsFromName(string $fullName): string

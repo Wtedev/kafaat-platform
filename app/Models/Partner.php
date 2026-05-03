@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\PublicDiskPath;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -27,5 +28,10 @@ class Partner extends Model
     public function scopeActive(Builder $query): void
     {
         $query->where('is_active', true);
+    }
+
+    public function logoPublicUrl(): ?string
+    {
+        return PublicDiskPath::url($this->logo);
     }
 }

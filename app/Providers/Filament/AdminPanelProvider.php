@@ -57,11 +57,12 @@ class AdminPanelProvider extends PanelProvider
                     return '';
                 }
 
-                $href = asset('css/filament-admin-surface.css').'?v=7';
+                $href = asset('css/filament-admin-surface.css').'?v=20';
 
                 return '<link rel="stylesheet" href="'.e($href).'">';
             },
         );
+
     }
 
     public function panel(Panel $panel): Panel

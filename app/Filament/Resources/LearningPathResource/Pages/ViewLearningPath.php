@@ -68,6 +68,7 @@ class ViewLearningPath extends BaseViewRecord
                 ->weight(FontWeight::SemiBold)
                 ->color('gray'),
             Section::make()
+                ->record(fn (): LearningPath => $this->getRecord())
                 ->schema([
                     TextEntry::make('title')
                         ->label('اسم المسار')

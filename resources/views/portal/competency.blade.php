@@ -66,8 +66,8 @@
                 @foreach ($platformCertificates as $cert)
                 <li class="flex flex-wrap items-center justify-between gap-2">
                     <span class="text-gray-900">{{ \App\Services\Portal\CompetencyProfilePresenter::certificateTitle($cert) }}</span>
-                    @if ($cert->fileUrl())
-                    <a href="{{ $cert->fileUrl() }}" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-[#253B5B] hover:underline">PDF</a>
+                    @if ($cert->downloadUrl())
+                    <a href="{{ $cert->downloadUrl() }}" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-[#253B5B] hover:underline">PDF</a>
                     @endif
                 </li>
                 @endforeach

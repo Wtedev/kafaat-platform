@@ -10,6 +10,7 @@
     --admin-border: rgba(255, 255, 255, 0.08);
     --admin-muted: #9ca3af;
     --admin-heading: #fafafa;
+    --admin-sidebar-avatar-size: 64px;
 }
 
 /* ——— أساس الصفحة ——— */
@@ -58,6 +59,200 @@ html.fi.dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-icon {
 
 html.fi.dark .fi-sidebar-item-has-url > .fi-sidebar-item-btn:hover {
     background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* بطاقة الملف الشخصي — صف مضغوط؛ الصورة داخل دائرة 64 فقط (لا بانر) */
+html.fi .fi-sidebar .fi-admin-sidebar-staff-card {
+    position: relative;
+    box-sizing: border-box;
+    padding: 14px 12px 14px 52px;
+    border-radius: 16px;
+    min-height: 84px;
+    height: auto;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+html.fi .fi-sidebar .fi-admin-sidebar-staff-menu {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+}
+
+html.fi .fi-sidebar .fi-admin-sidebar-staff-menu span {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.02em;
+}
+
+html.fi .fi-sidebar .admin-sidebar-profile {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    direction: rtl;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+html.fi .fi-sidebar .admin-sidebar-profile-avatar {
+    position: relative;
+    isolation: isolate;
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    max-width: 64px;
+    min-height: 64px;
+    max-height: 64px;
+    flex: none;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    overflow: hidden;
+    box-sizing: border-box;
+    background-color: rgba(63, 63, 70, 0.45);
+}
+
+html.fi .fi-sidebar .admin-sidebar-profile-avatar[style*='--admin-sidebar-avatar-bg']::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    background-image: var(--admin-sidebar-avatar-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: blur(12px);
+    transform: scale(1.2);
+    pointer-events: none;
+}
+
+html.fi .fi-sidebar .admin-sidebar-profile-avatar .admin-sidebar-profile-avatar-link {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: inherit;
+    line-height: 0;
+    background: transparent;
+}
+
+html.fi .fi-sidebar .admin-sidebar-profile-avatar .admin-sidebar-profile-img,
+html.fi .fi-sidebar .admin-sidebar-profile-avatar img.admin-sidebar-profile-img {
+    position: relative;
+    z-index: 1;
+    width: 64px;
+    height: 64px;
+    max-width: 64px;
+    max-height: 64px;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+    flex: none;
+    vertical-align: middle;
+}
+
+html.fi:not(.dark) .fi-sidebar .admin-sidebar-profile-avatar {
+    background-color: rgba(228, 228, 231, 0.85);
+}
+
+html.fi .fi-sidebar .admin-sidebar-profile-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: start;
+}
+
+html.fi .fi-sidebar .fi-admin-sidebar-staff-avatar-fallback {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 9999px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* بطاقة المستخدم (الملف الشخصي) في الشريط — مثل بطاقات لوحات حديثة */
+html.fi.dark .fi-admin-sidebar-staff-card {
+    contain: inline-size !important;
+    background-color: #27272a !important;
+    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35) !important;
+}
+
+html.fi.dark .fi-admin-sidebar-staff-name,
+html.fi.dark .admin-sidebar-profile-name {
+    color: #fafafa !important;
+}
+
+html.fi.dark .fi-admin-sidebar-staff-role,
+html.fi.dark .admin-sidebar-profile-role {
+    color: #a1a1aa !important;
+}
+
+html.fi.dark .fi-admin-sidebar-staff-menu {
+    color: #a1a1aa !important;
+}
+
+html.fi.dark .fi-admin-sidebar-staff-menu:hover {
+    color: #fafafa !important;
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.fi.dark .fi-admin-sidebar-staff-avatar-fallback {
+    background-color: #3f3f46 !important;
+    color: #fafafa !important;
+}
+
+html.fi.dark .admin-sidebar-profile-avatar {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1) !important;
+}
+
+html.fi:not(.dark) .fi-admin-sidebar-staff-card {
+    contain: inline-size !important;
+    background-color: #f4f4f5 !important;
+    border: 1px solid #e4e4e7 !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06) !important;
+}
+
+html.fi:not(.dark) .fi-admin-sidebar-staff-name,
+html.fi:not(.dark) .admin-sidebar-profile-name {
+    color: #18181b !important;
+}
+
+html.fi:not(.dark) .fi-admin-sidebar-staff-role,
+html.fi:not(.dark) .admin-sidebar-profile-role {
+    color: #71717a !important;
+}
+
+html.fi:not(.dark) .fi-admin-sidebar-staff-menu {
+    color: #71717a !important;
+}
+
+html.fi:not(.dark) .fi-admin-sidebar-staff-menu:hover {
+    color: #18181b !important;
+    background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+html.fi:not(.dark) .fi-admin-sidebar-staff-avatar-fallback {
+    background-color: #e4e4e7 !important;
+    color: #3f3f46 !important;
+}
+
+html.fi:not(.dark) .admin-sidebar-profile-avatar {
+    box-shadow: 0 0 0 2px rgba(24, 24, 27, 0.08) !important;
 }
 
 /* ——— الشريط العلوي ——— */

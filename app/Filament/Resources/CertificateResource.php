@@ -166,8 +166,8 @@ class CertificateResource extends Resource
                     ->label('تحميل PDF')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('info')
-                    ->visible(fn (Certificate $record): bool => $record->file_path !== null)
-                    ->url(fn (Certificate $record): string => $record->fileUrl())
+                    ->visible(fn (Certificate $record): bool => $record->downloadUrl() !== null)
+                    ->url(fn (Certificate $record): string => $record->downloadUrl() ?? '#')
                     ->openUrlInNewTab(),
             ])
             ->bulkActions([

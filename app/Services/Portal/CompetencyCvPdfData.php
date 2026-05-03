@@ -70,7 +70,7 @@ final class CompetencyCvPdfData
                 'title' => $m->title,
                 'provider' => CvUiTranslator::t($locale, 'kafaat'),
                 'date' => $cert->issued_at?->format('Y-m-d'),
-                'certificate_url' => $cert->fileUrl(),
+                'certificate_url' => route('certificates.verify', $cert->verification_code, absolute: true),
                 'description' => $label,
                 'source' => 'platform_program',
             ];

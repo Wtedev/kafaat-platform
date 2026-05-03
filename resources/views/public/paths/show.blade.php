@@ -35,14 +35,29 @@ $alreadyRegisteredPath = $userRegistration !== null;
     </a>
 </div>
 
-<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 mb-6">
-    <h1 class="text-2xl font-bold text-gray-900 mb-3">{{ $learningPath->title }}</h1>
+<div class="mb-6 overflow-hidden rounded-2xl border border-gray-100 bg-gray-100 shadow-sm">
+    <img
+        src="{{ $learningPath->imagePublicUrl() }}"
+        alt=""
+        class="h-52 w-full object-cover sm:h-56"
+        loading="eager"
+        decoding="async"
+    />
+    @unless (filled($learningPath->image))
+    <div class="relative border-t border-gray-100 bg-white px-6 py-4 sm:px-8">
+        <h1 class="text-xl font-bold text-gray-900 sm:text-2xl">{{ $learningPath->title }}</h1>
+    </div>
+    @endunless
+</div>
 
-    @if ($learningPath->capacity)
-    <p class="text-sm text-gray-400 mb-4">👥 الطاقة الاستيعابية: {{ $learningPath->capacity }}</p>
+<div class="mb-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+    @if (filled($learningPath->image))
+    <h1 class="mb-3 text-2xl font-bold text-gray-900">{{ $learningPath->title }}</h1>
     @endif
-
-    <p class="text-gray-600 leading-relaxed whitespace-pre-line">{{ $learningPath->description }}</p>
+    @if ($learningPath->capacity)
+    <p class="mb-4 text-sm text-gray-500">👥 الطاقة الاستيعابية: {{ $learningPath->capacity }}</p>
+    @endif
+    <p class="leading-relaxed whitespace-pre-line text-gray-600">{{ $learningPath->description }}</p>
 </div>
 
 @if ($learningPath->programs->isNotEmpty())
@@ -56,21 +71,30 @@ $alreadyRegisteredPath = $userRegistration !== null;
         $regLabel = $userProgReg ? ($statusLabels[$userProgReg->status->value] ?? $userProgReg->status->value) : null;
         $regColor = $userProgReg ? ($statusColors[$userProgReg->status->value] ?? 'bg-gray-100 text-gray-600') : null;
         @endphp
-        <li class="border border-gray-100 rounded-xl p-4">
-            <div class="flex flex-wrap items-start justify-between gap-3">
+        <li class="flex flex-wrap items-stretch gap-4 rounded-xl border border-gray-100 p-4">
+            <div class="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-100 ring-1 ring-gray-100">
+                <img
+                    src="{{ $program->imagePublicUrl() }}"
+                    alt=""
+                    class="h-full w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                />
+            </div>
+            <div class="flex min-w-0 flex-1 flex-col justify-between gap-3 sm:flex-row sm:items-start">
                 <div class="min-w-0 flex-1">
-                    <div class="flex flex-wrap items-center gap-2 mb-1">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold" style="background:#EAF2FA; color:#253B5B">
+                    <div class="mb-1 flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold" style="background:#EAF2FA; color:#253B5B">
                             {{ $program->program_kind->label() }}
                         </span>
                         @if ($userProgReg)
-                        <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $regColor }}">{{ $regLabel }}</span>
+                        <span class="rounded-full px-2 py-0.5 text-xs font-medium {{ $regColor }}">{{ $regLabel }}</span>
                         @endif
                     </div>
                     <p class="font-medium text-gray-900">{{ $program->title }}</p>
                 </div>
-                <div class="flex-shrink-0">
-                    <a href="{{ route('public.programs.show', $program) }}" class="inline-block px-4 py-2 rounded-xl text-sm font-semibold ring-1 ring-gray-200 text-gray-700 hover:bg-gray-50">
+                <div class="shrink-0 self-end sm:self-start">
+                    <a href="{{ route('public.programs.show', $program) }}" class="inline-block rounded-xl px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50">
                         التفاصيل
                     </a>
                 </div>

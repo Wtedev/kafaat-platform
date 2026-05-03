@@ -14,21 +14,40 @@
 @else
 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
     @foreach ($paths as $path)
-    <a href="{{ route('public.paths.show', $path->slug) }}" class="group bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md
-              hover:-translate-y-0.5 transition-all duration-300 block text-right">
-        <h3 class="font-semibold mb-2 group-hover:text-[#253B5B] transition-colors" style="color:#111827">{{ $path->title }}</h3>
-        <p class="text-sm line-clamp-3" style="color:#6B7280">{{ $path->description }}</p>
-        @if ($path->capacity)
-        <p class="mt-3 text-xs flex items-center gap-1.5 justify-end" style="color:#6B7280">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-            {{ $path->capacity }}
-        </p>
-        @endif
-        <div class="mt-4 text-xs font-semibold flex items-center gap-1.5 justify-end" style="color:#253B5B">
-            عرض المسار
-            <svg class="w-3.5 h-3.5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+    <a href="{{ route('public.paths.show', $path->slug) }}" class="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md
+              hover:-translate-y-0.5 transition-all duration-300 block text-right overflow-hidden">
+
+        <div class="relative h-28 w-full overflow-hidden bg-gray-100">
+            <img
+                src="{{ $path->imagePublicUrl() }}"
+                alt=""
+                class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                loading="lazy"
+                decoding="async"
+            />
+            @unless (filled($path->image))
+            <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" aria-hidden="true"></div>
+            <span class="pointer-events-none absolute bottom-3 right-4 left-4 text-end text-sm font-bold leading-snug text-white drop-shadow-sm line-clamp-2">{{ $path->title }}</span>
+            @endunless
+        </div>
+
+        <div class="p-5">
+            @if (filled($path->image))
+            <h3 class="mb-2 font-semibold transition-colors group-hover:text-[#253B5B]" style="color:#111827">{{ $path->title }}</h3>
+            @endif
+            <p class="line-clamp-3 text-sm" style="color:#6B7280">{{ $path->description }}</p>
+            @if ($path->capacity)
+            <p class="mt-3 flex items-center justify-end gap-1.5 text-xs" style="color:#6B7280">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                {{ $path->capacity }}
+            </p>
+            @endif
+            <div class="mt-4 flex items-center justify-end gap-1.5 text-xs font-semibold" style="color:#253B5B">
+                عرض المسار
+                <svg class="h-3.5 w-3.5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </div>
         </div>
     </a>
     @endforeach

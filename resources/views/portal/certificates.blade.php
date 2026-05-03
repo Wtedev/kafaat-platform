@@ -56,8 +56,8 @@
             </p>
         </div>
 
-        @if ($cert->fileUrl())
-        <a href="{{ $cert->fileUrl() }}" target="_blank" class="mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#253B5B">
+        @if ($cert->downloadUrl())
+        <a href="{{ $cert->downloadUrl() }}" target="_blank" rel="noopener noreferrer" class="mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#253B5B">
             تحميل الشهادة
         </a>
         @else

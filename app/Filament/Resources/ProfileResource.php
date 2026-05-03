@@ -105,6 +105,7 @@ class ProfileResource extends Resource
                     FileUpload::make('avatar')
                         ->label('الصورة الشخصية')
                         ->image()
+                        ->disk('public')
                         ->directory('avatars')
                         ->visibility('public')
                         ->nullable(),

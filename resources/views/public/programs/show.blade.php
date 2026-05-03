@@ -39,8 +39,25 @@ $alreadyRegistered = $userRegistration !== null;
     </a>
 </div>
 
+<div class="mb-6 overflow-hidden rounded-2xl border border-gray-100 bg-gray-100 shadow-sm">
+    <img
+        src="{{ $trainingProgram->imagePublicUrl() }}"
+        alt=""
+        class="h-48 w-full object-cover sm:h-56"
+        loading="eager"
+        decoding="async"
+    />
+    @unless (filled($trainingProgram->image))
+    <div class="relative border-t border-gray-100 bg-white px-6 py-4 sm:px-8">
+        <h1 class="text-xl font-bold text-gray-900 sm:text-2xl">{{ $trainingProgram->title }}</h1>
+    </div>
+    @endunless
+</div>
+
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 mb-6">
+    @if (filled($trainingProgram->image))
     <h1 class="text-2xl font-bold text-gray-900 mb-4">{{ $trainingProgram->title }}</h1>
+    @endif
 
     <div class="flex flex-wrap gap-4 text-sm text-gray-500 mb-5">
         @if ($trainingProgram->start_date)

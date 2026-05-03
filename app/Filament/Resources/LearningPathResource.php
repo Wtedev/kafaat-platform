@@ -11,6 +11,7 @@ use App\Filament\Resources\LearningPathResource\RelationManagers\PathCertificate
 use App\Filament\Resources\LearningPathResource\RelationManagers\PathRegistrationsRelationManager;
 use App\Filament\Resources\LearningPathResource\RelationManagers\TrainingProgramsRelationManager;
 use App\Models\LearningPath;
+use App\Support\PublicDiskPath;
 use App\Support\TrainingEntityAuthorization;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -34,8 +35,6 @@ use Filament\Support\Enums\TextSize;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class LearningPathResource extends Resource
 {
@@ -64,17 +63,7 @@ class LearningPathResource extends Resource
 
     public static function resolveLearningPathImagePublicUrl(?string $path): string
     {
-        if ($path === null || $path === '') {
-            return asset('images/news-placeholder.svg');
-        }
-
-        if (Str::startsWith($path, ['http://', 'https://'])) {
-            return $path;
-        }
-
-        return Storage::disk('public')->exists($path)
-            ? Storage::disk('public')->url($path)
-            : asset('images/news-placeholder.svg');
+        return PublicDiskPath::urlOrPlaceholder($path);
     }
 
     public static function defaultPathKindFromRequest(): string

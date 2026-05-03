@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Certificate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Mpdf\Config\ConfigVariables;
 use Mpdf\Config\FontVariables;
@@ -23,17 +24,29 @@ class CertificatePdfService
     {
         $certificate->loadMissing(['user.profile', 'certificateable']);
 
-        $mpdf = $this->newMpdf();
-        $html = view('certificates.certificate', [
-            'certificate' => $certificate,
-        ])->render();
-
-        $mpdf->WriteHTML($html);
-
         $storagePath = 'certificates/'.$certificate->certificate_number.'.pdf';
         Storage::disk('public')->makeDirectory('certificates');
         $fullPath = Storage::disk('public')->path($storagePath);
-        $mpdf->Output($fullPath, Destination::FILE);
+
+        try {
+            $mpdf = $this->newMpdf();
+            $html = view('certificates.certificate', [
+                'certificate' => $certificate,
+            ])->render();
+
+            $mpdf->WriteHTML($html);
+            $mpdf->Output($fullPath, Destination::FILE);
+        } catch (\Throwable $e) {
+            if (is_file($fullPath)) {
+                @unlink($fullPath);
+            }
+            Log::error('Certificate PDF generation failed', [
+                'certificate_id' => $certificate->getKey(),
+                'certificate_number' => $certificate->certificate_number,
+                'message' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
 
         return $storagePath;
     }

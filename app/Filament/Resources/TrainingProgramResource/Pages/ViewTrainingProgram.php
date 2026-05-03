@@ -68,6 +68,7 @@ class ViewTrainingProgram extends BaseViewRecord
                 ->weight(FontWeight::SemiBold)
                 ->color('gray'),
             Section::make()
+                ->record(fn (): TrainingProgram => $this->getRecord())
                 ->schema([
                     TextEntry::make('title')
                         ->label('اسم البرنامج')

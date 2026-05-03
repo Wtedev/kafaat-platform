@@ -87,8 +87,8 @@ RegistrationStatus::Completed->value => 'مكتمل',
                 </td>
                 <td class="px-5 py-4 text-center">
                     @if ($reg->certificate)
-                    @if ($reg->certificate->fileUrl())
-                    <a href="{{ $reg->certificate->fileUrl() }}" target="_blank" class="inline-block px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition">
+                    @if ($reg->certificate->downloadUrl())
+                    <a href="{{ $reg->certificate->downloadUrl() }}" target="_blank" rel="noopener noreferrer" class="inline-block px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition">
                         تحميل
                     </a>
                     @else

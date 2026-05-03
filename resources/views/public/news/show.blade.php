@@ -35,7 +35,7 @@
     {{-- Featured image --}}
     @if ($news->image)
     <div class="rounded-2xl overflow-hidden mb-8">
-        <img src="{{ $news->image }}" alt="{{ $news->title }}" class="w-full object-cover" style="max-height:420px">
+        <img src="{{ $news->imagePublicUrl() }}" alt="{{ $news->title }}" class="w-full object-cover" style="max-height:420px">
     </div>
     @else
     <div class="rounded-2xl h-56 flex items-center justify-center mb-8" style="background: linear-gradient(135deg, #EAF2FA, #DCE8F5)">
