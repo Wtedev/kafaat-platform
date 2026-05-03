@@ -13,9 +13,20 @@
 </div>
 @else
 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-    @foreach ($opportunities as $opp)
-    <a href="{{ route('public.volunteering.show', $opp->slug) }}" class="group bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md
-              hover:-translate-y-0.5 transition-all duration-300 block text-right">
+    @foreach ($opportunities as $index => $opp)
+    <a href="{{ route('public.volunteering.show', $opp->slug) }}" class="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md
+              hover:-translate-y-0.5 transition-all duration-300 block text-right overflow-hidden">
+
+        <x-public.card-media
+            variant="catalog"
+            mediaContext="volunteer"
+            :hasImage="filled($opp->image)"
+            :imageUrl="$opp->imagePublicUrl()"
+            :alt="$opp->title"
+            :index="$index"
+        />
+
+        <div class="p-5">
         <h3 class="font-semibold mb-2 group-hover:text-[#253B5B] transition-colors" style="color:#111827">{{ $opp->title }}</h3>
         <p class="text-sm line-clamp-3" style="color:#6B7280">{{ $opp->description }}</p>
         <div class="mt-3 flex flex-wrap gap-3 text-xs" style="color:#6B7280">
@@ -45,6 +56,7 @@
             قدّم طلبك
             <svg class="w-3.5 h-3.5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+        </div>
         </div>
     </a>
     @endforeach

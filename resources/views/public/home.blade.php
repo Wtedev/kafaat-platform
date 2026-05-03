@@ -480,20 +480,15 @@
                     <a href="{{ $href }}" class="group bg-white rounded-3xl border border-gray-50 shadow-sm hover:shadow-lg
                               transition-all duration-300 hover:-translate-y-1 block text-right overflow-hidden">
 
-                        {{-- صورة الغلاف (أو placeholder من النموذج) — دائماً نعرض مساحة صورة --}}
-                        <div class="relative h-28 w-full overflow-hidden bg-gray-100">
-                            <img
-                                src="{{ $item->imagePublicUrl() }}"
-                                alt=""
-                                class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
-                                loading="lazy"
-                                decoding="async"
-                            />
-                            @unless (filled($item->image))
-                            <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" aria-hidden="true"></div>
-                            <span class="pointer-events-none absolute bottom-3 right-4 left-4 text-end text-sm font-bold leading-snug text-white drop-shadow-sm line-clamp-2">{{ $item->title }}</span>
-                            @endunless
-                        </div>
+                        <x-public.card-media
+                            variant="catalog"
+                            :mediaContext="$isPath ? 'path' : 'program'"
+                            :programKind="$isPath ? null : $item->program_kind"
+                            :hasImage="filled($item->image)"
+                            :imageUrl="$item->imagePublicUrl()"
+                            :alt="$item->title"
+                            :index="$loop->index"
+                        />
 
                         <div class="p-6">
                             <div class="flex items-center justify-between mb-3">
@@ -502,9 +497,7 @@
                                 </span>
                                 <span class="text-xs font-medium px-3 py-1.5 rounded-xl" style="background:#EAF2FA; color:#253B5B">{{ $typeLabel }}</span>
                             </div>
-                            @if (filled($item->image))
                             <h3 class="font-bold text-base mb-2 clamp-1 group-hover:text-[#253B5B] transition-colors" style="color:#111827">{{ $item->title }}</h3>
-                            @endif
                             <p class="text-sm clamp-2 mb-4" style="color:#6B7280">{{ $item->description }}</p>
                             <div class="flex items-center justify-between text-xs border-t border-gray-50 pt-4" style="color:#6B7280">
                                 @if($isPath && $item->published_at)
@@ -550,7 +543,18 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     @forelse ($opportunities as $opp)
-                    <a href="{{ route('public.volunteering.show', $opp->slug) }}" class="group bg-white rounded-3xl border border-gray-50 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 p-6 block text-right">
+                    <a href="{{ route('public.volunteering.show', $opp->slug) }}" class="group bg-white rounded-3xl border border-gray-50 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 block text-right overflow-hidden">
+
+                        <x-public.card-media
+                            variant="catalog"
+                            mediaContext="volunteer"
+                            :hasImage="filled($opp->image)"
+                            :imageUrl="$opp->imagePublicUrl()"
+                            :alt="$opp->title"
+                            :index="$loop->index"
+                        />
+
+                        <div class="p-6">
                         <div class="flex items-center justify-between mb-4">
                             <span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-xl text-green-700 bg-green-100">
                                 <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>متاحة
@@ -568,6 +572,7 @@
                             </span>
                             @endif
                             <span class="font-semibold" style="color:#3CB878">تقدّم الآن ←</span>
+                        </div>
                         </div>
                     </a>
                     @empty

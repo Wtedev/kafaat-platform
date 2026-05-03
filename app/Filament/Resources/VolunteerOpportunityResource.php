@@ -9,6 +9,7 @@ use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\Registr
 use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\VolunteerHoursRelationManager;
 use App\Models\VolunteerOpportunity;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\PublicDiskPath;
 use App\Support\StaffFilamentRoles;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -16,14 +17,18 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -50,6 +55,31 @@ class VolunteerOpportunityResource extends Resource
     protected static function requiredNavigationPermissions(): array
     {
         return ['volunteering.view'];
+    }
+
+    /**
+     * مسار عام لمعاينة صورة الفرصة (تخزين محلي).
+     */
+    public static function resolveVolunteerOpportunityImagePublicUrl(?string $path): string
+    {
+        return PublicDiskPath::urlOrPlaceholder($path, PublicDiskPath::PLACEHOLDER_VOLUNTEER_OPPORTUNITY);
+    }
+
+    public static function volunteerOpportunityImageUploadField(): FileUpload
+    {
+        return FileUpload::make('image')
+            ->label('صورة الفرصة')
+            ->image()
+            ->disk('public')
+            ->directory('volunteer-opportunities/images')
+            ->visibility('public')
+            ->maxSize(4096)
+            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+            ->imagePreviewHeight('12rem')
+            ->imageResizeMode('cover')
+            ->nullable()
+            ->helperText('JPEG أو PNG أو WebP — حتى 4 ميجابايت. اختياري.')
+            ->columnSpanFull();
     }
 
     public static function form(Schema $schema): Schema
@@ -87,6 +117,8 @@ class VolunteerOpportunityResource extends Resource
                     ->label('الوصف')
                     ->rows(4)
                     ->columnSpanFull(),
+
+                static::volunteerOpportunityImageUploadField(),
             ]),
 
             Section::make('الطاقة والجدول')->columns(2)->schema([
@@ -117,6 +149,14 @@ class VolunteerOpportunityResource extends Resource
     {
         return $table
             ->columns([
+                ImageColumn::make('image')
+                    ->label('صورة')
+                    ->getStateUsing(fn (VolunteerOpportunity $record): string => $record->imagePublicUrl())
+                    ->checkFileExistence(false)
+                    ->square()
+                    ->imageSize(40)
+                    ->toggleable(),
+
                 TextColumn::make('title')
                     ->label('العنوان')
                     ->searchable()
@@ -185,6 +225,71 @@ class VolunteerOpportunityResource extends Resource
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->forFilamentAssignmentAccess(auth()->user()))
             ->defaultSort('created_at', 'desc');
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return $schema->components([
+            Section::make('الفرصة التطوعية')->schema([
+                ImageEntry::make('image')
+                    ->label('صورة الغلاف')
+                    ->getStateUsing(fn (VolunteerOpportunity $record): string => $record->imagePublicUrl())
+                    ->checkFileExistence(false)
+                    ->imageHeight('14rem')
+                    ->columnSpanFull(),
+
+                TextEntry::make('title')
+                    ->label('العنوان')
+                    ->columnSpanFull(),
+
+                TextEntry::make('slug')
+                    ->label('الرابط المختصر'),
+
+                TextEntry::make('status')
+                    ->label('الحالة')
+                    ->formatStateUsing(fn (?OpportunityStatus $state): string => $state?->label() ?? '—')
+                    ->badge()
+                    ->color(fn (?OpportunityStatus $state): string => match ($state) {
+                        OpportunityStatus::Published => 'success',
+                        OpportunityStatus::Archived => 'warning',
+                        default => 'gray',
+                    }),
+
+                TextEntry::make('assignee.name')
+                    ->label('مسؤول الفرصة')
+                    ->placeholder('—'),
+
+                TextEntry::make('description')
+                    ->label('الوصف')
+                    ->placeholder('—')
+                    ->columnSpanFull(),
+
+                TextEntry::make('capacity')
+                    ->label('الطاقة الاستيعابية')
+                    ->placeholder('غير محدودة'),
+
+                TextEntry::make('hours_expected')
+                    ->label('الساعات المطلوبة')
+                    ->suffix(' ساعة')
+                    ->placeholder('—'),
+
+                TextEntry::make('start_date')
+                    ->label('تاريخ البداية')
+                    ->date('Y/m/d')
+                    ->placeholder('—'),
+
+                TextEntry::make('end_date')
+                    ->label('تاريخ الانتهاء')
+                    ->date('Y/m/d')
+                    ->placeholder('—'),
+
+                TextEntry::make('published_at')
+                    ->label('تاريخ النشر')
+                    ->dateTime('Y/m/d H:i')
+                    ->placeholder('—'),
+            ])
+                ->columns(2),
+        ]);
     }
 
     public static function getRelations(): array

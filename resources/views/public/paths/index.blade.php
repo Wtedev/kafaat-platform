@@ -13,28 +13,21 @@
 </div>
 @else
 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-    @foreach ($paths as $path)
+    @foreach ($paths as $index => $path)
     <a href="{{ route('public.paths.show', $path->slug) }}" class="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md
               hover:-translate-y-0.5 transition-all duration-300 block text-right overflow-hidden">
 
-        <div class="relative h-28 w-full overflow-hidden bg-gray-100">
-            <img
-                src="{{ $path->imagePublicUrl() }}"
-                alt=""
-                class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
-                loading="lazy"
-                decoding="async"
-            />
-            @unless (filled($path->image))
-            <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" aria-hidden="true"></div>
-            <span class="pointer-events-none absolute bottom-3 right-4 left-4 text-end text-sm font-bold leading-snug text-white drop-shadow-sm line-clamp-2">{{ $path->title }}</span>
-            @endunless
-        </div>
+        <x-public.card-media
+            variant="catalog"
+            mediaContext="path"
+            :hasImage="filled($path->image)"
+            :imageUrl="$path->imagePublicUrl()"
+            :alt="$path->title"
+            :index="$index"
+        />
 
         <div class="p-5">
-            @if (filled($path->image))
             <h3 class="mb-2 font-semibold transition-colors group-hover:text-[#253B5B]" style="color:#111827">{{ $path->title }}</h3>
-            @endif
             <p class="line-clamp-3 text-sm" style="color:#6B7280">{{ $path->description }}</p>
             @if ($path->capacity)
             <p class="mt-3 flex items-center justify-end gap-1.5 text-xs" style="color:#6B7280">

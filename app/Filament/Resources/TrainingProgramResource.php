@@ -68,7 +68,7 @@ class TrainingProgramResource extends Resource
      */
     public static function resolveTrainingProgramImagePublicUrl(?string $path): string
     {
-        return PublicDiskPath::urlOrPlaceholder($path);
+        return PublicDiskPath::urlOrPlaceholder($path, PublicDiskPath::PLACEHOLDER_TRAINING_CATALOG);
     }
 
     public static function trainingProgramImageUploadField(): FileUpload

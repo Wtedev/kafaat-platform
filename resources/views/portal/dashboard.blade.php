@@ -90,7 +90,11 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
     @else
     <div class="-mx-1 flex gap-3 overflow-x-auto overflow-y-visible pb-2 pt-1 [scrollbar-width:thin]">
         @foreach ($volunteerRows as $row)
-        <article class="flex min-w-[17.5rem] max-w-[17.5rem] flex-none snap-start flex-col rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:min-w-[19rem] sm:max-w-[19rem]">
+        <article class="flex min-w-[17.5rem] max-w-[17.5rem] flex-none snap-start flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm sm:min-w-[19rem] sm:max-w-[19rem]">
+            <div class="relative h-24 w-full shrink-0 overflow-hidden bg-gray-100">
+                <img src="{{ $row['image_url'] ?? '' }}" alt="" class="h-full w-full object-cover" loading="lazy" decoding="async" />
+            </div>
+            <div class="flex flex-1 flex-col p-4">
             <h3 class="text-right text-sm font-bold leading-snug text-gray-900">{{ $row['title'] }}</h3>
             <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
                 @if ($row['hours'] !== null)
@@ -109,6 +113,7 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
             </div>
             <div class="mt-4 flex justify-end">
                 <a href="{{ $row['cta_url'] }}" class="text-sm font-semibold hover:underline" style="color:#253B5B">{{ $row['cta_label'] }}</a>
+            </div>
             </div>
         </article>
         @endforeach

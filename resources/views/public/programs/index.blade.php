@@ -13,28 +13,22 @@
 </div>
 @else
 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-    @foreach ($programs as $program)
+    @foreach ($programs as $index => $program)
     <a href="{{ route('public.programs.show', $program->slug) }}" class="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md
               hover:-translate-y-0.5 transition-all duration-300 block text-right overflow-hidden">
 
-        <div class="relative h-28 w-full overflow-hidden bg-gray-100">
-            <img
-                src="{{ $program->imagePublicUrl() }}"
-                alt=""
-                class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
-                loading="lazy"
-                decoding="async"
-            />
-            @unless (filled($program->image))
-            <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" aria-hidden="true"></div>
-            <span class="pointer-events-none absolute bottom-3 right-4 left-4 text-end text-sm font-bold leading-snug text-white drop-shadow-sm line-clamp-2">{{ $program->title }}</span>
-            @endunless
-        </div>
+        <x-public.card-media
+            variant="catalog"
+            mediaContext="program"
+            :programKind="$program->program_kind"
+            :hasImage="filled($program->image)"
+            :imageUrl="$program->imagePublicUrl()"
+            :alt="$program->title"
+            :index="$index"
+        />
 
         <div class="p-5">
-            @if (filled($program->image))
             <h3 class="font-semibold mb-2 group-hover:text-[#253B5B] transition-colors" style="color:#111827">{{ $program->title }}</h3>
-            @endif
             <p class="text-sm line-clamp-3" style="color:#6B7280">{{ $program->description }}</p>
             <div class="mt-3 flex flex-wrap gap-3 text-xs" style="color:#6B7280">
                 @if ($program->start_date)

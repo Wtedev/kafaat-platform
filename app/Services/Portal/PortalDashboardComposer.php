@@ -338,6 +338,7 @@ final class PortalDashboardComposer
 
         return [
             'title' => $opp->title,
+            'image_url' => $opp->imagePublicUrl(),
             'hours' => $opp->hours_expected,
             'state_label' => $stateLabel,
             'state_tone' => $stateTone,

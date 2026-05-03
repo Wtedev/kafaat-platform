@@ -88,7 +88,7 @@ class LearningPath extends Model
     /** Public URL for catalog image (or placeholder). */
     public function imagePublicUrl(): string
     {
-        return PublicDiskPath::urlOrPlaceholder($this->image ?? null);
+        return PublicDiskPath::urlOrPlaceholder($this->image ?? null, PublicDiskPath::PLACEHOLDER_TRAINING_CATALOG);
     }
 
     // ─── Scopes ───────────────────────────────────────────────────────────────

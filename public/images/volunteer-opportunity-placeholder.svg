@@ -1,12 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-label="لا صورة — الأخبار">
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-label="لا صورة — الفرص التطوعية">
   <defs>
-    <linearGradient id="news-ph-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFF8F2"/>
-      <stop offset="45%" stop-color="#FFEFE4"/>
-      <stop offset="100%" stop-color="#FFE8D6"/>
+    <linearGradient id="vol-ph-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFAF8"/>
+      <stop offset="45%" stop-color="#FFF0EA"/>
+      <stop offset="100%" stop-color="#FFE0D4"/>
     </linearGradient>
   </defs>
-  <path fill="url(#news-ph-bg)" d="M0 16C0 7.16 7.16 0 16 0h608c8.84 0 16 7.16 16 16v344H0V16z"/>
+  <path fill="url(#vol-ph-bg)" d="M0 16C0 7.16 7.16 0 16 0h608c8.84 0 16 7.16 16 16v344H0V16z"/>
   <g fill="none" stroke="#B8BEC9" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" opacity="0.92" transform="translate(320 178)">
     <rect x="-28" y="-46" width="56" height="92" rx="3" transform="rotate(-5.5)" opacity="0.5"/>
     <rect x="-46" y="-48" width="92" height="96" rx="4"/>

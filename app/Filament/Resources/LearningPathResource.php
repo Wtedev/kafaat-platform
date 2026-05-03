@@ -63,7 +63,7 @@ class LearningPathResource extends Resource
 
     public static function resolveLearningPathImagePublicUrl(?string $path): string
     {
-        return PublicDiskPath::urlOrPlaceholder($path);
+        return PublicDiskPath::urlOrPlaceholder($path, PublicDiskPath::PLACEHOLDER_TRAINING_CATALOG);
     }
 
     public static function defaultPathKindFromRequest(): string

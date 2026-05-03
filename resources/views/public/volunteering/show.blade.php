@@ -35,8 +35,17 @@ $alreadyRegistered = $userRegistration !== null;
     </a>
 </div>
 
+<h1 class="text-2xl font-bold text-gray-900 mb-4 sm:text-3xl">{{ $volunteerOpportunity->title }}</h1>
+
+<x-public.card-media
+    variant="hero"
+    mediaContext="volunteer"
+    :hasImage="filled($volunteerOpportunity->image)"
+    :imageUrl="$volunteerOpportunity->imagePublicUrl()"
+    :alt="$volunteerOpportunity->title"
+/>
+
 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 mb-6">
-    <h1 class="text-2xl font-bold text-gray-900 mb-4">{{ $volunteerOpportunity->title }}</h1>
 
     <div class="flex flex-wrap gap-4 text-sm text-gray-500 mb-5">
         @if ($volunteerOpportunity->hours_expected)

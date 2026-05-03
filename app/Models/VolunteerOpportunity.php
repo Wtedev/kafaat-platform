@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\OpportunityStatus;
+use App\Support\PublicDiskPath;
 use App\Enums\RegistrationStatus;
 use App\Enums\VolunteerHoursStatus;
 use App\Services\Inbox\InboxNotificationService;
@@ -22,6 +23,7 @@ class VolunteerOpportunity extends Model
         'title',
         'slug',
         'description',
+        'image',
         'capacity',
         'hours_expected',
         'start_date',
@@ -89,7 +91,7 @@ class VolunteerOpportunity extends Model
             }
 
             $watched = [
-                'title', 'slug', 'description', 'capacity', 'hours_expected',
+                'title', 'slug', 'description', 'image', 'capacity', 'hours_expected',
                 'start_date', 'end_date', 'status', 'published_at',
             ];
 
@@ -184,5 +186,11 @@ class VolunteerOpportunity extends Model
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    /** رابط الصورة للموقع العام أو لوحة الإدارة (أو صورة افتراضية). */
+    public function imagePublicUrl(): string
+    {
+        return PublicDiskPath::urlOrPlaceholder($this->image ?? null, PublicDiskPath::PLACEHOLDER_VOLUNTEER_OPPORTUNITY);
     }
 }

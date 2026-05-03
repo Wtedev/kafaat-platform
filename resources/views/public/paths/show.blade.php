@@ -35,25 +35,17 @@ $alreadyRegisteredPath = $userRegistration !== null;
     </a>
 </div>
 
-<div class="mb-6 overflow-hidden rounded-2xl border border-gray-100 bg-gray-100 shadow-sm">
-    <img
-        src="{{ $learningPath->imagePublicUrl() }}"
-        alt=""
-        class="h-52 w-full object-cover sm:h-56"
-        loading="eager"
-        decoding="async"
-    />
-    @unless (filled($learningPath->image))
-    <div class="relative border-t border-gray-100 bg-white px-6 py-4 sm:px-8">
-        <h1 class="text-xl font-bold text-gray-900 sm:text-2xl">{{ $learningPath->title }}</h1>
-    </div>
-    @endunless
-</div>
+<h1 class="mb-3 text-2xl font-bold text-gray-900 sm:text-3xl">{{ $learningPath->title }}</h1>
+
+<x-public.card-media
+    variant="hero"
+    mediaContext="path"
+    :hasImage="filled($learningPath->image)"
+    :imageUrl="$learningPath->imagePublicUrl()"
+    :alt="$learningPath->title"
+/>
 
 <div class="mb-6 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-    @if (filled($learningPath->image))
-    <h1 class="mb-3 text-2xl font-bold text-gray-900">{{ $learningPath->title }}</h1>
-    @endif
     @if ($learningPath->capacity)
     <p class="mb-4 text-sm text-gray-500">👥 الطاقة الاستيعابية: {{ $learningPath->capacity }}</p>
     @endif
@@ -72,15 +64,15 @@ $alreadyRegisteredPath = $userRegistration !== null;
         $regColor = $userProgReg ? ($statusColors[$userProgReg->status->value] ?? 'bg-gray-100 text-gray-600') : null;
         @endphp
         <li class="flex flex-wrap items-stretch gap-4 rounded-xl border border-gray-100 p-4">
-            <div class="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-100 ring-1 ring-gray-100">
-                <img
-                    src="{{ $program->imagePublicUrl() }}"
-                    alt=""
-                    class="h-full w-full object-cover"
-                    loading="lazy"
-                    decoding="async"
-                />
-            </div>
+            <x-public.card-media
+                variant="thumb"
+                mediaContext="program"
+                :programKind="$program->program_kind"
+                :hasImage="filled($program->image)"
+                :imageUrl="$program->imagePublicUrl()"
+                :alt="$program->title"
+                :index="$loop->index"
+            />
             <div class="flex min-w-0 flex-1 flex-col justify-between gap-3 sm:flex-row sm:items-start">
                 <div class="min-w-0 flex-1">
                     <div class="mb-1 flex flex-wrap items-center gap-2">

@@ -12,6 +12,12 @@ use Illuminate\Support\Str;
  */
 final class PublicDiskPath
 {
+    /** صورة افتراضية للكتالوج العام (برامج، مسارات) عند غياب صورة مرفوعة. */
+    public const PLACEHOLDER_TRAINING_CATALOG = 'images/training-catalog-placeholder.svg';
+
+    /** صورة افتراضية للفرص التطوعية عند غياب صورة مرفوعة. */
+    public const PLACEHOLDER_VOLUNTEER_OPPORTUNITY = 'images/volunteer-opportunity-placeholder.svg';
+
     /**
      * @return string|null Relative path on disk "public", or an absolute http(s) URL as stored.
      */
