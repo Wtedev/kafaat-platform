@@ -40,7 +40,11 @@ final class FilamentAssignmentVisibility
             return true;
         }
 
-        return $user->hasRole('training_manager')
+        if (StaffFilamentRoles::isProgramsActivitiesManager($user)) {
+            return true;
+        }
+
+        return $user->hasAnyRole(StaffFilamentRoles::TRAINING_COORDINATOR)
             && (int) $program->assigned_to === (int) $user->id;
     }
 
@@ -50,7 +54,11 @@ final class FilamentAssignmentVisibility
             return true;
         }
 
-        return $user->hasRole('volunteering_manager')
+        if (StaffFilamentRoles::isProgramsActivitiesManager($user)) {
+            return true;
+        }
+
+        return $user->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR)
             && (int) $opportunity->assigned_to === $user->id;
     }
 
@@ -73,7 +81,11 @@ final class FilamentAssignmentVisibility
             return;
         }
 
-        if ($viewer->hasRole('volunteering_manager')) {
+        if (StaffFilamentRoles::isProgramsActivitiesManager($viewer)) {
+            return;
+        }
+
+        if ($viewer->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR)) {
             $query->where($query->getModel()->getTable().'.assigned_to', $viewer->id);
         }
     }
@@ -84,7 +96,11 @@ final class FilamentAssignmentVisibility
             return true;
         }
 
-        return $user->hasRole('volunteering_manager')
+        if (StaffFilamentRoles::isProgramsActivitiesManager($user)) {
+            return true;
+        }
+
+        return $user->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR)
             && (int) $team->assigned_to === $user->id;
     }
 
@@ -94,7 +110,11 @@ final class FilamentAssignmentVisibility
             return;
         }
 
-        if ($viewer->hasRole('volunteering_manager')) {
+        if (StaffFilamentRoles::isProgramsActivitiesManager($viewer)) {
+            return;
+        }
+
+        if ($viewer->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR)) {
             $query->where($query->getModel()->getTable().'.assigned_to', $viewer->id);
         }
     }
@@ -138,7 +158,11 @@ final class FilamentAssignmentVisibility
             return;
         }
 
-        if ($viewer->hasRole('volunteering_manager')) {
+        if (StaffFilamentRoles::isProgramsActivitiesManager($viewer)) {
+            return;
+        }
+
+        if ($viewer->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR)) {
             $query->whereHas('opportunity', function (Builder $q) use ($viewer): void {
                 $q->where('assigned_to', $viewer->id);
             });

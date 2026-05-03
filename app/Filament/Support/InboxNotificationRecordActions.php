@@ -14,6 +14,7 @@ use App\Models\News;
 use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
+use App\Models\User;
 use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
 use App\Services\PathRegistrationService;
@@ -36,13 +37,13 @@ final class InboxNotificationRecordActions
     public static function contextual(): array
     {
         return [
-            Action::make('inbox_open_public')
-                ->label('عرض على الموقع')
-                ->icon('heroicon-o-globe-alt')
+            Action::make('inbox_open_portal_or_public')
+                ->label(fn (InboxNotification $record): string => self::inboxOpenLabel(auth()->user(), $record))
+                ->icon(fn (InboxNotification $record): string => self::inboxOpenIcon(auth()->user(), $record))
                 ->color('gray')
-                ->url(fn (InboxNotification $record): ?string => self::publicUrl($record))
-                ->visible(fn (InboxNotification $record): bool => self::publicUrl($record) !== null)
-                ->openUrlInNewTab(),
+                ->url(fn (InboxNotification $record): ?string => self::inboxOpenUrl(auth()->user(), $record))
+                ->visible(fn (InboxNotification $record): bool => self::inboxOpenUrl(auth()->user(), $record) !== null)
+                ->openUrlInNewTab(fn (InboxNotification $record): bool => self::portalUrl(auth()->user(), $record) === null),
 
             Action::make('inbox_approve_program_registration')
                 ->label('قبول')
@@ -249,6 +250,95 @@ final class InboxNotificationRecordActions
             'volunteer_opportunity' => ($m = VolunteerOpportunity::find($id)) ? route('public.volunteering.show', $m) : null,
             default => null,
         };
+    }
+
+    /**
+     * رابط البوابة للمستفيد (برنامج / مسار / تطوع / شهادة) عند وجود سياق مناسب.
+     */
+    public static function portalUrl(?User $user, InboxNotification $record): ?string
+    {
+        if ($user === null) {
+            return null;
+        }
+
+        $c = self::ctx($record);
+        if ($c === null) {
+            return null;
+        }
+
+        $id = (int) $c['id'];
+
+        return match ($c['resource']) {
+            'training_program' => ($p = TrainingProgram::find($id)) !== null
+                && $user->programRegistrations()->where('training_program_id', $p->id)->exists()
+                ? route('portal.programs.show', $p)
+                : null,
+            'learning_path' => ($path = LearningPath::find($id)) !== null
+                && PathRegistration::query()
+                    ->where('user_id', $user->id)
+                    ->where('learning_path_id', $path->id)
+                    ->exists()
+                ? route('portal.paths.show', $path)
+                : null,
+            'program_registration' => ($r = ProgramRegistration::find($id)) !== null
+                && (int) $r->user_id === (int) $user->id
+                && $r->trainingProgram !== null
+                ? route('portal.programs.show', $r->trainingProgram)
+                : null,
+            'path_registration' => ($r = PathRegistration::find($id)) !== null
+                && (int) $r->user_id === (int) $user->id
+                && $r->learningPath !== null
+                ? route('portal.paths.show', $r->learningPath)
+                : null,
+            'volunteer_opportunity' => ($opp = VolunteerOpportunity::find($id)) !== null
+                && VolunteerRegistration::query()
+                    ->where('user_id', $user->id)
+                    ->where('opportunity_id', $opp->id)
+                    ->exists()
+                ? route('portal.volunteering')
+                : null,
+            'volunteer_registration' => ($r = VolunteerRegistration::find($id)) !== null
+                && (int) $r->user_id === (int) $user->id
+                ? route('portal.volunteering')
+                : null,
+            'certificate' => route('portal.certificates'),
+            default => null,
+        };
+    }
+
+    public static function inboxOpenUrl(?User $user, InboxNotification $record): ?string
+    {
+        if ($user !== null && $user->isPortalUser()) {
+            return self::portalUrl($user, $record) ?? self::publicUrl($record);
+        }
+
+        return self::publicUrl($record);
+    }
+
+    public static function inboxOpenLabel(?User $user, InboxNotification $record): string
+    {
+        if ($user !== null && $user->isPortalUser() && self::portalUrl($user, $record) !== null) {
+            $resource = (self::ctx($record) ?? [])['resource'] ?? '';
+
+            return match ($resource) {
+                'training_program', 'program_registration' => 'عرض البرنامج',
+                'learning_path', 'path_registration' => 'عرض المسار',
+                'volunteer_opportunity', 'volunteer_registration' => 'عرض التطوع',
+                'certificate' => 'شهاداتي',
+                default => 'عرض في البوابة',
+            };
+        }
+
+        return 'عرض على الموقع';
+    }
+
+    public static function inboxOpenIcon(?User $user, InboxNotification $record): string
+    {
+        if ($user !== null && $user->isPortalUser() && self::portalUrl($user, $record) !== null) {
+            return 'heroicon-o-home';
+        }
+
+        return 'heroicon-o-globe-alt';
     }
 
     public static function programRegistration(InboxNotification $record): ?ProgramRegistration

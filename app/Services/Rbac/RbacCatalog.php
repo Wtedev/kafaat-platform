@@ -77,10 +77,15 @@ final class RbacCatalog
         return [
             'admin' => 'مسؤول النظام',
             'media_pr' => 'الإعلام والعلاقات العامة',
+            'public_relations' => 'علاقات عامة',
+            'media' => 'إعلام',
             'media_employee' => 'موظف الإعلام',
             'pr_employee' => 'موظف العلاقات العامة',
+            'training_enablement_manager' => 'مسؤول التدريب والتمكين',
             'training_manager' => 'مسؤول التدريب',
+            'programs_activities_manager' => 'مسؤول البرامج والأنشطة',
             'volunteering_manager' => 'مسؤول التطوع',
+            'volunteer_manager' => 'مسؤول التطوع',
             'trainee' => 'متدرب',
             'volunteer' => 'متطوع',
             // Legacy roles (may still exist in DB until cleaned up)
@@ -181,10 +186,15 @@ final class RbacCatalog
         return [
             'admin',
             'media_pr',
+            'public_relations',
+            'media',
             'media_employee',
             'pr_employee',
+            'training_enablement_manager',
             'training_manager',
+            'programs_activities_manager',
             'volunteering_manager',
+            'volunteer_manager',
             'trainee',
             'volunteer',
         ];
@@ -238,6 +248,8 @@ final class RbacCatalog
 
         $mediaPrLegacy = array_values(array_unique([...$media, ...$prOnly]));
 
+        $programsActivities = array_values(array_unique(array_merge($training, $volunteering)));
+
         $portalRead = [
             'paths.view', 'courses.view', 'programs.view', 'volunteering.view',
             'registrations.view', 'progress.view',
@@ -249,10 +261,15 @@ final class RbacCatalog
         return [
             'admin' => $all,
             'media_pr' => $mediaPrLegacy,
+            'public_relations' => $prOnly,
+            'media' => $media,
             'media_employee' => $media,
             'pr_employee' => $prOnly,
+            'training_enablement_manager' => $training,
             'training_manager' => $training,
+            'programs_activities_manager' => $programsActivities,
             'volunteering_manager' => $volunteering,
+            'volunteer_manager' => $volunteering,
             'trainee' => $portalRead,
             'volunteer' => $portalRead,
         ];

@@ -6,6 +6,7 @@ use App\Enums\VolunteerHoursStatus;
 use App\Models\User;
 use App\Models\VolunteerHour;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\StaffFilamentRoles;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class VolunteerHourPolicy
@@ -31,7 +32,7 @@ class VolunteerHourPolicy
             return true;
         }
 
-        if ($user->hasRole('volunteering_manager')) {
+        if ($user->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR) || StaffFilamentRoles::isProgramsActivitiesManager($user)) {
             $volunteerHour->loadMissing('opportunity');
 
             return FilamentAssignmentVisibility::userManagesVolunteerOpportunity($user, $volunteerHour->opportunity);

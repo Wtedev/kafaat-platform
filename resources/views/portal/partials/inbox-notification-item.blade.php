@@ -1,6 +1,7 @@
 @php
 /** @var \App\Models\InboxNotification $n */
-$inboxPublicUrl = \App\Filament\Support\InboxNotificationRecordActions::publicUrl($n);
+$inboxOpenUrl = \App\Filament\Support\InboxNotificationRecordActions::inboxOpenUrl(auth()->user(), $n);
+$inboxOpenLabel = \App\Filament\Support\InboxNotificationRecordActions::inboxOpenLabel(auth()->user(), $n);
 $canApproveProgram = \App\Filament\Support\InboxNotificationRecordActions::canApproveProgramRegistration($n);
 $canRejectProgram = \App\Filament\Support\InboxNotificationRecordActions::canRejectProgramRegistration($n);
 $canApprovePath = \App\Filament\Support\InboxNotificationRecordActions::canApprovePathRegistration($n);
@@ -29,9 +30,9 @@ $canRejectVolunteer = \App\Filament\Support\InboxNotificationRecordActions::canR
             <time class="mt-2 block text-xs text-gray-400" datetime="{{ $n->created_at->toIso8601String() }}">{{ $n->created_at->translatedFormat('j F Y، H:i') }}</time>
         </div>
         <div class="flex w-full max-w-[16rem] shrink-0 flex-col items-stretch gap-2 sm:w-auto sm:items-end">
-            @if ($inboxPublicUrl)
-            <a href="{{ $inboxPublicUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex justify-center rounded-lg px-3 py-1.5 text-center text-xs font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50 sm:justify-end">
-                عرض على الموقع
+            @if ($inboxOpenUrl)
+            <a href="{{ $inboxOpenUrl }}" @if(\App\Filament\Support\InboxNotificationRecordActions::publicUrl($n) === $inboxOpenUrl) target="_blank" rel="noopener noreferrer" @endif class="inline-flex justify-center rounded-lg px-3 py-1.5 text-center text-xs font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50 sm:justify-end">
+                {{ $inboxOpenLabel }}
             </a>
             @endif
 

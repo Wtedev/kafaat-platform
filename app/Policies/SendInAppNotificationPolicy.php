@@ -7,6 +7,7 @@ use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerTeam;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\StaffFilamentRoles;
 use Illuminate\Database\Eloquent\Builder;
 
 class SendInAppNotificationPolicy
@@ -35,12 +36,14 @@ class SendInAppNotificationPolicy
 
     public function isTrainingManager(User $user): bool
     {
-        return $user->hasRole('training_manager');
+        return StaffFilamentRoles::isProgramsActivitiesManager($user)
+            || $user->hasAnyRole(StaffFilamentRoles::TRAINING_COORDINATOR);
     }
 
     public function isVolunteeringManager(User $user): bool
     {
-        return $user->hasRole('volunteering_manager');
+        return StaffFilamentRoles::isProgramsActivitiesManager($user)
+            || $user->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR);
     }
 
     /**
@@ -80,7 +83,8 @@ class SendInAppNotificationPolicy
 
         $teamForLeaderOnly = $this->isVolunteerTeamLeader($sender)
             && ! $this->isAdmin($sender)
-            && ! $sender->hasRole('volunteering_manager');
+            && ! $sender->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR)
+            && ! StaffFilamentRoles::isProgramsActivitiesManager($sender);
 
         if ($teamForManagers || $teamForLeaderOnly) {
             $kinds['team'] = 'فريق تطوعي';
@@ -103,6 +107,13 @@ class SendInAppNotificationPolicy
             return [
                 'staff' => 'جميع الموظفين',
                 'all_beneficiaries' => 'جميع المستفيدين',
+            ];
+        }
+
+        if (StaffFilamentRoles::isProgramsActivitiesManager($sender)) {
+            return [
+                'trainees' => 'المتدربون والمستفيدون',
+                'volunteers' => 'المتطوعون',
             ];
         }
 
@@ -141,6 +152,13 @@ class SendInAppNotificationPolicy
             $memberIds = TeamMember::query()->whereIn('volunteer_team_id', $teamIds)->pluck('user_id')->unique();
 
             return $q->whereIn('id', $memberIds);
+        }
+
+        if (StaffFilamentRoles::isProgramsActivitiesManager($sender) && ! $this->isAdmin($sender)) {
+            return $q->where(function (Builder $sub): void {
+                $sub->whereIn('role_type', ['trainee', 'beneficiary', 'volunteer'])
+                    ->orWhereHas('roles', fn (Builder $r) => $r->whereIn('name', ['trainee', 'volunteer']));
+            });
         }
 
         if ($this->isTrainingManager($sender) && ! $this->isAdmin($sender)) {
@@ -184,7 +202,7 @@ class SendInAppNotificationPolicy
             return true;
         }
 
-        if ($sender->hasRole('volunteering_manager')) {
+        if ($sender->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR) || StaffFilamentRoles::isProgramsActivitiesManager($sender)) {
             return FilamentAssignmentVisibility::userManagesVolunteerTeam($sender, $team);
         }
 
@@ -207,7 +225,7 @@ class SendInAppNotificationPolicy
             return $q;
         }
 
-        if ($sender->hasRole('training_manager')) {
+        if ($sender->hasAnyRole(StaffFilamentRoles::TRAINING_COORDINATOR) || StaffFilamentRoles::isProgramsActivitiesManager($sender)) {
             return $q->forFilamentAssignmentAccess($sender);
         }
 
@@ -225,7 +243,7 @@ class SendInAppNotificationPolicy
             return $q;
         }
 
-        if ($sender->hasRole('volunteering_manager')) {
+        if ($sender->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR) || StaffFilamentRoles::isProgramsActivitiesManager($sender)) {
             return $q->forFilamentAssignmentAccess($sender);
         }
 

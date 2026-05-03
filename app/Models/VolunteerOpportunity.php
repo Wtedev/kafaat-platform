@@ -7,6 +7,7 @@ use App\Enums\RegistrationStatus;
 use App\Enums\VolunteerHoursStatus;
 use App\Services\Inbox\InboxNotificationService;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\StaffFilamentRoles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -53,7 +54,7 @@ class VolunteerOpportunity extends Model
 
             if ($opportunity->assigned_to === null && Auth::check()) {
                 $user = Auth::user();
-                if ($user->hasRole('volunteering_manager') && ! FilamentAssignmentVisibility::bypasses($user)) {
+                if ($user->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR) && ! FilamentAssignmentVisibility::bypasses($user)) {
                     $opportunity->assigned_to = $user->id;
                 }
             }

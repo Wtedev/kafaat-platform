@@ -3,33 +3,38 @@
 namespace App\Services;
 
 use App\Models\Certificate;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+use Mpdf\Config\ConfigVariables;
+use Mpdf\Config\FontVariables;
+use Mpdf\Mpdf;
+use Mpdf\Output\Destination;
 
 class CertificatePdfService
 {
     /**
-     * Generate a PDF for the given certificate and persist it to
-     * storage/app/public/certificates/{certificate_number}.pdf
+     * Generate a PDF for the given certificate and persist it to the public disk at
+     * certificates/{certificate_number}.pdf (under storage/app/public).
      *
-     * @return string The storage-relative path stored in the database.
+     * Uses mPDF (not DomPDF) for correct Arabic shaping, RTL, and IBM Plex Sans Arabic.
+     *
+     * @return string Path relative to the public disk root (e.g. certificates/CERT-....pdf).
      */
     public function generate(Certificate $certificate): string
     {
-        // Eager-load relationships needed by the Blade template
         $certificate->loadMissing(['user.profile', 'certificateable']);
 
-        $pdf = Pdf::loadView('certificates.certificate', [
+        $mpdf = $this->newMpdf();
+        $html = view('certificates.certificate', [
             'certificate' => $certificate,
-        ])->setPaper('a4', 'landscape');
+        ])->render();
 
-        $directory = 'public/certificates';
-        $filename = $certificate->certificate_number.'.pdf';
-        $storagePath = $directory.'/'.$filename;
+        $mpdf->WriteHTML($html);
 
-        Storage::put($storagePath, $pdf->output());
+        $storagePath = 'certificates/'.$certificate->certificate_number.'.pdf';
+        Storage::disk('public')->makeDirectory('certificates');
+        $fullPath = Storage::disk('public')->path($storagePath);
+        $mpdf->Output($fullPath, Destination::FILE);
 
-        // Return the path relative to the storage disk root
         return $storagePath;
     }
 
@@ -42,5 +47,44 @@ class CertificatePdfService
         $certificate->update(['file_path' => $path]);
 
         return $path;
+    }
+
+    private function newMpdf(): Mpdf
+    {
+        $fontDir = resource_path('fonts/certificates');
+
+        $defaultConfig = (new ConfigVariables)->getDefaults();
+        $fontDirs = array_merge([$fontDir], $defaultConfig['fontDir']);
+
+        $defaultFontConfig = (new FontVariables)->getDefaults();
+        $fontdata = $defaultFontConfig['fontdata'];
+        $fontdata['ibmplexsansarabic'] = [
+            'R' => 'IBMPlexSansArabic-Regular.ttf',
+            'B' => 'IBMPlexSansArabic-Bold.ttf',
+            'useOTL' => 0xFF,
+            'useKashida' => 75,
+        ];
+
+        $tempDir = storage_path('app/mpdf');
+        if (! is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
+        return new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'orientation' => 'L',
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_top' => 10,
+            'margin_bottom' => 10,
+            'fontDir' => $fontDirs,
+            'fontdata' => $fontdata,
+            'default_font' => 'ibmplexsansarabic',
+            'directionality' => 'rtl',
+            'autoScriptToLang' => true,
+            'autoLangToFont' => false,
+            'tempDir' => $tempDir,
+        ]);
     }
 }

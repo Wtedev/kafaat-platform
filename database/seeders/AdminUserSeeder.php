@@ -7,45 +7,73 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * Idempotent demo/production admins for local and staging seeds.
+ *
+ * Optional: set ADMIN_EMAIL + ADMIN_PASSWORD in .env for an additional admin with a strong password
+ * (validated below). Seeded platform admins always use password "password".
+ */
 class AdminUserSeeder extends Seeder
 {
+    private const DEMO_PASSWORD = 'password';
+
     public function run(): void
     {
-        // ── Read credentials from environment ─────────────────────────────────
+        foreach ($this->platformAdmins() as $row) {
+            $user = User::updateOrCreate(
+                ['email' => $row['email']],
+                [
+                    'name' => $row['name'],
+                    'password' => Hash::make(self::DEMO_PASSWORD),
+                    'role_type' => 'admin',
+                    'is_active' => true,
+                ]
+            );
+            $user->syncRoles(['admin']);
+            Profile::firstOrCreate(['user_id' => $user->id]);
+            $this->command?->info("  Admin ready: {$row['email']}");
+        }
+
+        $this->seedOptionalEnvAdmin();
+    }
+
+    /**
+     * @return list<array{name: string, email: string}>
+     */
+    private function platformAdmins(): array
+    {
+        return [
+            ['name' => 'عبدالسلام الصغير', 'email' => 'abdulsalam@kafaat.org.sa'],
+            ['name' => 'لمى المشيقح', 'email' => 'lama@kafaat.org.sa'],
+        ];
+    }
+
+    private function seedOptionalEnvAdmin(): void
+    {
         $email = env('ADMIN_EMAIL');
         $password = env('ADMIN_PASSWORD');
         $name = env('ADMIN_NAME', 'System Admin');
 
-        if (empty($email) || empty($password)) {
-            $this->command->warn('');
-            $this->command->warn('  AdminUserSeeder: ADMIN_EMAIL or ADMIN_PASSWORD is not set.');
-            $this->command->warn('  Set both variables in your .env (local) or Railway environment');
-            $this->command->warn('  variables (production) and re-run the seeder.');
-            $this->command->warn('');
-
+        if (! is_string($email) || $email === '' || ! is_string($password) || $password === '') {
             return;
         }
 
-        // ── Validate email format ─────────────────────────────────────────────
         if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->command->error("  AdminUserSeeder: ADMIN_EMAIL \"{$email}\" is not a valid email address.");
+            $this->command?->error("  AdminUserSeeder: ADMIN_EMAIL \"{$email}\" is not valid.");
 
             return;
         }
 
-        // ── Validate password strength ────────────────────────────────────────
         $errors = $this->validatePassword($password);
-
-        if (! empty($errors)) {
-            $this->command->error('  AdminUserSeeder: ADMIN_PASSWORD does not meet strength requirements:');
+        if ($errors !== []) {
+            $this->command?->error('  AdminUserSeeder: ADMIN_PASSWORD does not meet strength requirements; skipping env admin.');
             foreach ($errors as $error) {
-                $this->command->error("    - {$error}");
+                $this->command?->error("    - {$error}");
             }
 
             return;
         }
 
-        // ── Create or update admin user ───────────────────────────────────────
         $user = User::updateOrCreate(
             ['email' => $email],
             [
@@ -55,20 +83,12 @@ class AdminUserSeeder extends Seeder
                 'is_active' => true,
             ]
         );
-
-        // Ensure Spatie role is assigned
         $user->syncRoles(['admin']);
-
-        // Ensure a profile record exists
         Profile::firstOrCreate(['user_id' => $user->id]);
-
-        $this->command->info("  Admin user ready: {$email}");
+        $this->command?->info("  Env admin ready: {$email}");
     }
 
     /**
-     * Validate password complexity.
-     * Returns an array of human-readable error strings (empty = passes).
-     *
      * @return string[]
      */
     private function validatePassword(string $password): array

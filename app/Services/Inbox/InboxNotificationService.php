@@ -365,7 +365,18 @@ class InboxNotificationService
                 $sub->where('role_type', 'staff')
                     ->orWhere('role_type', 'admin')
                     ->orWhereHas('roles', fn ($r) => $r->whereIn('name', [
-                        'admin', 'media_pr', 'media_employee', 'pr_employee', 'training_manager', 'volunteering_manager', 'staff',
+                        'admin',
+                        'media_pr',
+                        'public_relations',
+                        'media',
+                        'media_employee',
+                        'pr_employee',
+                        'training_enablement_manager',
+                        'training_manager',
+                        'programs_activities_manager',
+                        'volunteering_manager',
+                        'volunteer_manager',
+                        'staff',
                     ]));
             })->pluck('id')->all(),
 
@@ -626,7 +637,18 @@ class InboxNotificationService
             ->where(function ($q): void {
                 $q->whereIn('role_type', ['staff', 'admin'])
                     ->orWhereHas('roles', fn ($r) => $r->whereIn('name', [
-                        'admin', 'media_pr', 'media_employee', 'pr_employee', 'training_manager', 'volunteering_manager', 'staff',
+                        'admin',
+                        'media_pr',
+                        'public_relations',
+                        'media',
+                        'media_employee',
+                        'pr_employee',
+                        'training_enablement_manager',
+                        'training_manager',
+                        'programs_activities_manager',
+                        'volunteering_manager',
+                        'volunteer_manager',
+                        'staff',
                     ]));
             })
             ->pluck('id')
@@ -644,7 +666,12 @@ class InboxNotificationService
             ->where('is_active', true)
             ->where(function ($q): void {
                 $q->where('role_type', 'admin')
-                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['admin', 'training_manager']));
+                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', [
+                        'admin',
+                        'training_manager',
+                        'training_enablement_manager',
+                        'programs_activities_manager',
+                    ]));
             })
             ->pluck('id')
             ->unique()
@@ -660,7 +687,12 @@ class InboxNotificationService
         return User::query()
             ->where('is_active', true)
             ->whereHas('roles', fn ($r) => $r->whereIn('name', [
-                'admin', 'training_manager', 'volunteering_manager',
+                'admin',
+                'training_manager',
+                'training_enablement_manager',
+                'programs_activities_manager',
+                'volunteering_manager',
+                'volunteer_manager',
             ]))
             ->pluck('id')
             ->unique()

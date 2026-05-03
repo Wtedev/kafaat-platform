@@ -49,7 +49,7 @@ class Certificate extends Model
             return null;
         }
 
-        return Storage::url($this->file_path);
+        return Storage::disk('public')->url($this->relativePathOnPublicDisk());
     }
 
     /**
@@ -61,6 +61,17 @@ class Certificate extends Model
             return null;
         }
 
-        return Storage::path($this->file_path);
+        return Storage::disk('public')->path($this->relativePathOnPublicDisk());
+    }
+
+    /**
+     * Paths are stored as certificates/....pdf on the public disk.
+     * Legacy rows may still have public/certificates/....pdf — strip the redundant prefix for disk('public').
+     */
+    private function relativePathOnPublicDisk(): string
+    {
+        $p = (string) $this->file_path;
+
+        return str_starts_with($p, 'public/') ? substr($p, strlen('public/')) : $p;
     }
 }

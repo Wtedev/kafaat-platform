@@ -9,6 +9,7 @@ use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\Registr
 use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\VolunteerHoursRelationManager;
 use App\Models\VolunteerOpportunity;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\StaffFilamentRoles;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -74,7 +75,7 @@ class VolunteerOpportunityResource extends Resource
 
                 Select::make('assigned_to')
                     ->label('مسؤول الفرصة')
-                    ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $query) => $query->role('volunteering_manager'))
+                    ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $query) => $query->role(StaffFilamentRoles::assignableVolunteeringCoordinatorRoleNames()))
                     ->searchable()
                     ->preload()
                     ->visible(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))

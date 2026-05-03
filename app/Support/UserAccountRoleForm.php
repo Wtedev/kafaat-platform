@@ -31,7 +31,17 @@ final class UserAccountRoleForm
      */
     public static function staffSpatieRoleNames(): array
     {
-        return ['media_employee', 'pr_employee', 'training_manager', 'volunteering_manager'];
+        return [
+            'public_relations',
+            'media',
+            'media_employee',
+            'pr_employee',
+            'training_enablement_manager',
+            'training_manager',
+            'programs_activities_manager',
+            'volunteering_manager',
+            'volunteer_manager',
+        ];
     }
 
     /**
@@ -116,7 +126,15 @@ final class UserAccountRoleForm
         $priority = [
             'admin',
             'media_pr',
-            ...self::staffSpatieRoleNames(),
+            'public_relations',
+            'media',
+            'media_employee',
+            'pr_employee',
+            'training_enablement_manager',
+            'training_manager',
+            'programs_activities_manager',
+            'volunteering_manager',
+            'volunteer_manager',
             'staff',
             ...self::beneficiarySpatieRoleNames(),
             'beneficiary',

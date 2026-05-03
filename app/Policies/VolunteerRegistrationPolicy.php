@@ -6,6 +6,7 @@ use App\Enums\RegistrationStatus;
 use App\Models\User;
 use App\Models\VolunteerRegistration;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\StaffFilamentRoles;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class VolunteerRegistrationPolicy
@@ -27,7 +28,7 @@ class VolunteerRegistrationPolicy
             return false;
         }
 
-        if ($user->hasRole('training_manager')) {
+        if ($user->hasAnyRole(StaffFilamentRoles::TRAINING_COORDINATOR)) {
             return false;
         }
 
@@ -35,7 +36,7 @@ class VolunteerRegistrationPolicy
             return true;
         }
 
-        if ($user->hasRole('volunteering_manager')) {
+        if ($user->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR) || StaffFilamentRoles::isProgramsActivitiesManager($user)) {
             $registration->loadMissing('opportunity');
 
             return FilamentAssignmentVisibility::userManagesVolunteerOpportunity($user, $registration->opportunity);

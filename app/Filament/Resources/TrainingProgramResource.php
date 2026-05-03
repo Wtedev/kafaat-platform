@@ -10,6 +10,7 @@ use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramCerti
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationsRelationManager;
 use App\Models\TrainingProgram;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\StaffFilamentRoles;
 use App\Support\TrainingEntityAuthorization;
 use Carbon\Carbon;
 use Filament\Actions\DeleteAction;
@@ -354,7 +355,7 @@ class TrainingProgramResource extends Resource
 
                     Select::make('assigned_to')
                         ->label('منسق تشغيلي')
-                        ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $query) => $query->role('training_manager'))
+                        ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $query) => $query->role(StaffFilamentRoles::assignableTrainingCoordinatorRoleNames()))
                         ->searchable()
                         ->preload()
                         ->nullable()

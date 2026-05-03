@@ -8,6 +8,7 @@ use App\Filament\Resources\TrainingProgramResource;
 use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\StaffFilamentRoles;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\DatePicker;
@@ -103,7 +104,7 @@ class TrainingProgramsRelationManager extends RelationManager
 
             Select::make('assigned_to')
                 ->label('منسق البرنامج (تشغيلي)')
-                ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $query) => $query->role('training_manager'))
+                ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $query) => $query->role(StaffFilamentRoles::assignableTrainingCoordinatorRoleNames()))
                 ->searchable()
                 ->preload()
                 ->visible(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))

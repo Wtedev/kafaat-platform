@@ -12,48 +12,40 @@
         }
 
         body {
-            font-family: DejaVu Sans, sans-serif;
+            font-family: ibmplexsansarabic, 'DejaVu Sans', sans-serif;
             background-color: #ffffff;
             color: #1a1a1a;
-            width: 297mm;
-            height: 210mm;
-            overflow: hidden;
             direction: rtl;
+            unicode-bidi: embed;
         }
 
         .page {
-            width: 297mm;
-            height: 210mm;
             position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 18mm 22mm;
+            width: 100%;
+            min-height: 190mm;
+            padding: 16mm 20mm;
             text-align: center;
             direction: rtl;
         }
 
-        /* Decorative border */
         .border-outer {
             position: absolute;
-            top: 8mm;
-            left: 8mm;
-            right: 8mm;
-            bottom: 8mm;
+            top: 6mm;
+            left: 6mm;
+            right: 6mm;
+            bottom: 6mm;
             border: 3px solid #1e3a5f;
         }
 
         .border-inner {
             position: absolute;
-            top: 11mm;
-            left: 11mm;
-            right: 11mm;
-            bottom: 11mm;
+            top: 9mm;
+            left: 9mm;
+            right: 9mm;
+            bottom: 9mm;
             border: 1px solid #c9a84c;
         }
 
-        /* Golden top accent line */
         .accent-line {
             width: 60mm;
             height: 2px;
@@ -61,22 +53,23 @@
             margin: 0 auto 5mm auto;
         }
 
-        /* Header */
         .org-name {
+            font-family: ibmplexsansarabic, sans-serif;
             font-size: 14pt;
             font-weight: bold;
             color: #1e3a5f;
             margin-bottom: 2mm;
-            letter-spacing: 1px;
         }
 
         .org-subtitle {
+            font-family: ibmplexsansarabic, sans-serif;
             font-size: 8.5pt;
             color: #888888;
             margin-bottom: 5mm;
         }
 
         .cert-title {
+            font-family: ibmplexsansarabic, sans-serif;
             font-size: 26pt;
             font-weight: bold;
             color: #c9a84c;
@@ -84,31 +77,32 @@
         }
 
         .subtitle {
+            font-family: ibmplexsansarabic, sans-serif;
             font-size: 10pt;
             color: #555555;
             margin-bottom: 6mm;
         }
 
-        /* Recipient */
         .recipient-name {
+            font-family: ibmplexsansarabic, sans-serif;
             font-size: 20pt;
             font-weight: bold;
             color: #1e3a5f;
             border-bottom: 1.5px solid #c9a84c;
             padding-bottom: 2mm;
-            margin-bottom: 6mm;
+            margin: 0 auto 6mm auto;
             min-width: 120mm;
             display: inline-block;
         }
 
-        /* Body text */
         .body-text {
+            font-family: ibmplexsansarabic, sans-serif;
             font-size: 10.5pt;
             color: #333333;
             text-align: center;
-            line-height: 1.8;
+            line-height: 1.9;
             max-width: 200mm;
-            margin-bottom: 7mm;
+            margin: 0 auto 7mm auto;
             direction: rtl;
         }
 
@@ -117,29 +111,29 @@
             color: #1e3a5f;
         }
 
-        /* Issued date */
         .issued-date {
+            font-family: ibmplexsansarabic, sans-serif;
             font-size: 9pt;
             color: #555555;
             margin-bottom: 7mm;
         }
 
-        /* Footer row */
-        .footer {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
+        .footer-table {
             width: 100%;
-            margin-top: 2mm;
+            border-collapse: collapse;
+            margin-top: 4mm;
             direction: rtl;
         }
 
-        .footer-block {
+        .footer-table td {
+            width: 33%;
             text-align: center;
-            min-width: 60mm;
+            vertical-align: top;
+            padding: 0 4mm;
         }
 
         .footer-label {
+            font-family: ibmplexsansarabic, sans-serif;
             font-size: 8pt;
             color: #888888;
             margin-bottom: 1mm;
@@ -147,16 +141,22 @@
 
         .footer-line {
             border-top: 1px solid #cccccc;
-            margin-bottom: 1.5mm;
-            width: 60mm;
+            margin: 0 auto 1.5mm auto;
+            width: 55mm;
         }
 
         .footer-value {
+            font-family: ibmplexsansarabic, sans-serif;
             font-size: 9pt;
             color: #1a1a1a;
             font-weight: bold;
         }
 
+        .footer-code {
+            font-size: 7pt;
+            letter-spacing: 0.5px;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
@@ -185,25 +185,25 @@
             تاريخ الإصدار: {{ $certificate->issued_at->format('Y/m/d') }}
         </div>
 
-        <div class="footer">
-            <div class="footer-block">
-                <div class="footer-label">رقم الشهادة</div>
-                <div class="footer-line"></div>
-                <div class="footer-value">{{ $certificate->certificate_number }}</div>
-            </div>
-
-            <div class="footer-block">
-                <div class="footer-label">التوقيع المعتمد</div>
-                <div class="footer-line"></div>
-                <div class="footer-value">إدارة جمعية كفاءات</div>
-            </div>
-
-            <div class="footer-block">
-                <div class="footer-label">رمز التحقق</div>
-                <div class="footer-line"></div>
-                <div class="footer-value" style="font-size:7pt; letter-spacing:1px;">{{ $certificate->verification_code }}</div>
-            </div>
-        </div>
+        <table class="footer-table" dir="rtl">
+            <tr>
+                <td>
+                    <div class="footer-label">رقم الشهادة</div>
+                    <div class="footer-line"></div>
+                    <div class="footer-value">{{ $certificate->certificate_number }}</div>
+                </td>
+                <td>
+                    <div class="footer-label">التوقيع المعتمد</div>
+                    <div class="footer-line"></div>
+                    <div class="footer-value">إدارة جمعية كفاءات</div>
+                </td>
+                <td>
+                    <div class="footer-label">رمز التحقق</div>
+                    <div class="footer-line"></div>
+                    <div class="footer-value footer-code">{{ $certificate->verification_code }}</div>
+                </td>
+            </tr>
+        </table>
     </div>
 </body>
 </html>

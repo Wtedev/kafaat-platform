@@ -7,6 +7,7 @@ use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
 use App\Services\Inbox\InboxNotificationService;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\StaffFilamentRoles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -66,7 +67,8 @@ class TrainingProgram extends Model
             // Default operational coordinator (assigned_to) for training_manager creating a program — not the same as owner_id.
             if ($program->assigned_to === null && Auth::check()) {
                 $user = Auth::user();
-                if ($user->hasRole('training_manager') && ! FilamentAssignmentVisibility::bypasses($user)) {
+                if (($user->hasAnyRole(StaffFilamentRoles::TRAINING_COORDINATOR) || $user->hasRole(StaffFilamentRoles::CROSS_PROGRAMS_ACTIVITIES))
+                    && ! FilamentAssignmentVisibility::bypasses($user)) {
                     $program->assigned_to = $user->id;
                 }
             }

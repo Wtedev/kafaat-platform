@@ -49,7 +49,7 @@ class EditTrainingProgram extends BaseEditRecord
         $data['visible_on_site'] = $record->status === ProgramStatus::Published;
         $data['is_linked_to_path'] = $record->learning_path_id !== null;
         $data['capacity_unlimited'] = $record->capacity === null;
-        $data['editors'] = $record->editors()->pluck('id')->all();
+        $data['editors'] = $record->editors()->pluck('users.id')->all();
 
         return $data;
     }

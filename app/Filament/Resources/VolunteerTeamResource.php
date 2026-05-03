@@ -8,6 +8,7 @@ use App\Filament\Resources\VolunteerTeamResource\RelationManagers\TeamMembersRel
 use App\Filament\Resources\VolunteerTeamResource\RelationManagers\TeamNotificationsRelationManager;
 use App\Models\VolunteerTeam;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\StaffFilamentRoles;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -66,7 +67,7 @@ class VolunteerTeamResource extends Resource
 
                 Select::make('assigned_to')
                     ->label('مسؤول الفريق')
-                    ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $query) => $query->role('volunteering_manager'))
+                    ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $query) => $query->role(StaffFilamentRoles::assignableVolunteeringCoordinatorRoleNames()))
                     ->searchable()
                     ->preload()
                     ->visible(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))

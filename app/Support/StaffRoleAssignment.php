@@ -17,8 +17,13 @@ final class StaffRoleAssignment
         return [
             'admin',
             'training_manager',
+            'training_enablement_manager',
+            'programs_activities_manager',
             'volunteering_manager',
+            'volunteer_manager',
             'media_pr',
+            'public_relations',
+            'media',
             'media_employee',
             'pr_employee',
             'staff',

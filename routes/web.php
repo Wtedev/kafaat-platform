@@ -14,6 +14,7 @@ use App\Http\Controllers\Portal\PortalPathController;
 use App\Http\Controllers\Portal\PortalPathDetailController;
 use App\Http\Controllers\Portal\PortalProfileController;
 use App\Http\Controllers\Portal\PortalProgramController;
+use App\Http\Controllers\Portal\PortalProgramDetailController;
 use App\Http\Controllers\Portal\PortalVolunteerController;
 use App\Http\Controllers\Public\CertificateVerificationController;
 use App\Http\Controllers\Public\HomeController;
@@ -89,6 +90,7 @@ Route::middleware(['auth', 'beneficiary'])
         Route::get('/paths', PortalPathController::class)->name('paths');
         Route::get('/paths/{learningPath}', PortalPathDetailController::class)->name('paths.show');
         Route::get('/programs', PortalProgramController::class)->name('programs');
+        Route::get('/programs/{trainingProgram}', PortalProgramDetailController::class)->name('programs.show');
         Route::get('/volunteering', PortalVolunteerController::class)->name('volunteering');
         Route::get('/certificates', PortalCertificateController::class)->name('certificates');
 

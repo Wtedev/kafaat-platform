@@ -191,7 +191,8 @@ class CleanDemoDataSeeder extends Seeder
         return User::query()
             ->where(function ($q) use ($explicit): void {
                 $q->whereIn('email', $explicit)
-                    ->orWhere('email', 'like', '%@kafaat.test');
+                    ->orWhere('email', 'like', '%@kafaat.test')
+                    ->orWhere('email', 'like', 'beneficiary.%@seed.kafaat.org.sa');
             })
             ->when($protectedEmail, fn ($q) => $q->whereRaw('LOWER(email) != ?', [strtolower($protectedEmail)]));
     }

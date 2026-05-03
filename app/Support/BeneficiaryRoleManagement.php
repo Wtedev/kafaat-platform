@@ -16,11 +16,15 @@ final class BeneficiaryRoleManagement
      */
     public static function allowedRoleTypesForManager(User $actor): array
     {
-        if ($actor->hasRole('training_manager')) {
+        if (StaffFilamentRoles::isProgramsActivitiesManager($actor)) {
+            return ['trainee', 'beneficiary', 'volunteer'];
+        }
+
+        if ($actor->hasAnyRole(StaffFilamentRoles::TRAINING_COORDINATOR)) {
             return ['trainee', 'beneficiary'];
         }
 
-        if ($actor->hasRole('volunteering_manager')) {
+        if ($actor->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR)) {
             return ['volunteer'];
         }
 
@@ -32,11 +36,15 @@ final class BeneficiaryRoleManagement
      */
     public static function allowedSpatieRoleNamesForManager(User $actor): array
     {
-        if ($actor->hasRole('training_manager')) {
+        if (StaffFilamentRoles::isProgramsActivitiesManager($actor)) {
+            return ['trainee', 'volunteer'];
+        }
+
+        if ($actor->hasAnyRole(StaffFilamentRoles::TRAINING_COORDINATOR)) {
             return ['trainee', 'beneficiary'];
         }
 
-        if ($actor->hasRole('volunteering_manager')) {
+        if ($actor->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR)) {
             return ['volunteer'];
         }
 

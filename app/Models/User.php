@@ -145,10 +145,15 @@ class User extends Authenticatable implements FilamentUser
 
         return $this->hasAnyRole([
             'media_pr',
+            'public_relations',
+            'media',
             'media_employee',
             'pr_employee',
+            'training_enablement_manager',
             'training_manager',
+            'programs_activities_manager',
             'volunteering_manager',
+            'volunteer_manager',
             'staff',
         ]);
     }
@@ -204,10 +209,15 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasAnyRole([
             'admin',
             'media_pr',
+            'public_relations',
+            'media',
             'media_employee',
             'pr_employee',
+            'training_enablement_manager',
             'training_manager',
+            'programs_activities_manager',
             'volunteering_manager',
+            'volunteer_manager',
             'staff',
         ]);
     }
@@ -234,10 +244,15 @@ class User extends Authenticatable implements FilamentUser
                     ->orWhereHas('roles', fn ($r) => $r->whereIn('name', [
                         'admin',
                         'media_pr',
+                        'public_relations',
+                        'media',
                         'media_employee',
                         'pr_employee',
+                        'training_enablement_manager',
                         'training_manager',
+                        'programs_activities_manager',
                         'volunteering_manager',
+                        'volunteer_manager',
                         'staff',
                     ]));
             });
