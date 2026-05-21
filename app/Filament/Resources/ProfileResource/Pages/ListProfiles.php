@@ -60,7 +60,7 @@ class ListProfiles extends BaseListRecords
 
                 $profiles = $this->getTableQueryForExport()
                     ->forPortalBeneficiaries()
-                    ->with(['user.roles'])
+                    ->with(['user'])
                     ->get();
 
                 if ($profiles->isEmpty()) {

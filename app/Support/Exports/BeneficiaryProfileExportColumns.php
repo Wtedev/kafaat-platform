@@ -52,7 +52,7 @@ final class BeneficiaryProfileExportColumns
 
     public static function resolve(Profile $profile, string $key): mixed
     {
-        $profile->loadMissing('user.roles');
+        $profile->loadMissing('user');
         $user = $profile->user;
         $locale = $profile->cvUiLocale();
 
@@ -62,9 +62,7 @@ final class BeneficiaryProfileExportColumns
             'user_email' => $user?->email,
             'user_phone' => $user?->phone,
             'user_role_type' => self::roleTypeLabel($user?->role_type),
-            'user_spatie_roles' => $user ? $user->filamentStaffRoleLabelsAr() : null,
-            'user_is_active' => $user === null ? null : ($user->is_active ? 'نعم' : 'لا'),
-            'user_last_login_at' => $user?->last_login_at?->format('Y-m-d H:i'),
+            'user_is_active' => $user === null ? null : ($user->is_active ? 'نشط' : 'موقوف'),
             'gender' => match ($profile->gender) {
                 'male' => 'ذكر',
                 'female' => 'أنثى',
@@ -77,10 +75,8 @@ final class BeneficiaryProfileExportColumns
             'membership_type' => ($profile->membership_type instanceof MembershipType
                 ? $profile->membership_type
                 : MembershipType::tryFrom((string) $profile->membership_type))?->label(),
-            'membership_badges' => implode(' + ', $profile->displayMembershipBadges()),
+            'membership_badges' => implode(' · ', $profile->displayMembershipBadges()),
             'iconic_skill' => $profile->iconicSkillLabel(),
-            'iconic_skill_style' => self::iconicSkillStyleLabel($profile->iconic_skill_style),
-            'cv_language' => $profile->cv_language === 'en' ? 'English' : 'العربية',
             'cv_file_url' => $profile->cvPublicUrl(),
             'competency_english' => $profile->competency_levels['english'] ?? null,
             'competency_office' => $profile->competency_levels['office'] ?? null,
@@ -93,50 +89,53 @@ final class BeneficiaryProfileExportColumns
             'cv_experience' => self::formatExperience($profile, $locale),
             'cv_external_courses' => self::formatExternalCourses($profile),
             'cv_links' => self::formatLinks($profile),
-            'created_at' => $profile->created_at?->format('Y-m-d H:i'),
-            'updated_at' => $profile->updated_at?->format('Y-m-d H:i'),
             default => null,
         };
     }
 
     /**
+     * ترتيب منطقي: حساب → بيانات شخصية → عضوية → كفاءات → سيرة ذاتية.
+     *
      * @return array<string, array{label: string, default?: bool}>
      */
     private static function definitions(): array
     {
         return [
+            // — الحساب —
             'profile_id' => ['label' => 'رقم الملف', 'default' => false],
-            'user_name' => ['label' => 'الاسم', 'default' => true],
+            'user_name' => ['label' => 'الاسم الكامل', 'default' => true],
             'user_email' => ['label' => 'البريد الإلكتروني', 'default' => true],
             'user_phone' => ['label' => 'رقم الجوال', 'default' => true],
-            'user_role_type' => ['label' => 'نوع الحساب', 'default' => true],
-            'user_spatie_roles' => ['label' => 'أدوار النظام (Spatie)', 'default' => false],
-            'user_is_active' => ['label' => 'الحساب نشط', 'default' => true],
-            'user_last_login_at' => ['label' => 'آخر تسجيل دخول', 'default' => false],
+            'user_role_type' => ['label' => 'تصنيف الحساب', 'default' => true],
+            'user_is_active' => ['label' => 'حالة الحساب', 'default' => true],
+
+            // — البيانات الشخصية —
             'gender' => ['label' => 'الجنس', 'default' => true],
             'birth_date' => ['label' => 'تاريخ الميلاد', 'default' => true],
             'city' => ['label' => 'المدينة', 'default' => true],
             'job_title' => ['label' => 'المسمى الوظيفي', 'default' => true],
-            'bio' => ['label' => 'نبذة / السيرة', 'default' => false],
+            'bio' => ['label' => 'نبذة تعريفية', 'default' => false],
+
+            // — العضوية والتميّز —
             'membership_type' => ['label' => 'نوع العضوية', 'default' => true],
-            'membership_badges' => ['label' => 'شارات نوع المستفيد', 'default' => true],
-            'iconic_skill' => ['label' => 'المهارة الأيقونية', 'default' => true],
-            'iconic_skill_style' => ['label' => 'لون شارة المهارة', 'default' => false],
-            'cv_language' => ['label' => 'لغة السيرة', 'default' => false],
-            'cv_file_url' => ['label' => 'رابط ملف السيرة المرفوع', 'default' => false],
-            'competency_english' => ['label' => 'مستوى الإنجليزية (بطاقات الكفاءات)', 'default' => false],
-            'competency_office' => ['label' => 'مستوى الأوفيس (بطاقات الكفاءات)', 'default' => false],
-            'competency_courses' => ['label' => 'مستوى الدورات (بطاقات الكفاءات)', 'default' => false],
-            'competency_continuous_learning' => ['label' => 'التعلم المستمر (بطاقات الكفاءات)', 'default' => false],
-            'cv_skills' => ['label' => 'المهارات (منشئ السيرة)', 'default' => false],
-            'cv_languages' => ['label' => 'اللغات (منشئ السيرة)', 'default' => false],
-            'cv_office_tools' => ['label' => 'أدوات الأوفيس (منشئ السيرة)', 'default' => false],
-            'cv_education' => ['label' => 'التعليم (منشئ السيرة)', 'default' => false],
-            'cv_experience' => ['label' => 'الخبرات (منشئ السيرة)', 'default' => false],
-            'cv_external_courses' => ['label' => 'دورات خارجية (منشئ السيرة)', 'default' => false],
-            'cv_links' => ['label' => 'الروابط (منشئ السيرة)', 'default' => false],
-            'created_at' => ['label' => 'تاريخ إنشاء الملف', 'default' => false],
-            'updated_at' => ['label' => 'آخر تحديث للملف', 'default' => false],
+            'membership_badges' => ['label' => 'شارات العضوية', 'default' => true],
+            'iconic_skill' => ['label' => 'المهارة المميزة', 'default' => true],
+
+            // — بطاقات الكفاءات —
+            'competency_english' => ['label' => 'مستوى الإنجليزية', 'default' => false],
+            'competency_office' => ['label' => 'مستوى برامج الأوفيس', 'default' => false],
+            'competency_courses' => ['label' => 'مستوى الدورات', 'default' => false],
+            'competency_continuous_learning' => ['label' => 'التعلم المستمر', 'default' => false],
+
+            // — السيرة الذاتية —
+            'cv_skills' => ['label' => 'المهارات', 'default' => false],
+            'cv_languages' => ['label' => 'اللغات', 'default' => false],
+            'cv_office_tools' => ['label' => 'أدوات المكتب', 'default' => false],
+            'cv_education' => ['label' => 'المؤهلات والتعليم', 'default' => false],
+            'cv_experience' => ['label' => 'الخبرات العملية', 'default' => false],
+            'cv_external_courses' => ['label' => 'الدورات الخارجية', 'default' => false],
+            'cv_links' => ['label' => 'الروابط والحسابات', 'default' => false],
+            'cv_file_url' => ['label' => 'رابط ملف السيرة', 'default' => false],
         ];
     }
 
@@ -152,25 +151,12 @@ final class BeneficiaryProfileExportColumns
         };
     }
 
-    private static function iconicSkillStyleLabel(?string $style): ?string
-    {
-        return match ($style) {
-            'amber' => 'ذهبي',
-            'emerald' => 'أخضر',
-            'sky' => 'أزرق',
-            'rose' => 'وردي',
-            'violet' => 'بنفسجي',
-            'brand' => 'لون الهوية',
-            default => null,
-        };
-    }
-
     private static function formatSkills(Profile $profile): ?string
     {
         $structured = $profile->cvSkillsStructured();
         if ($structured !== []) {
             return self::joinLines(array_map(
-                fn (array $row): string => ($row['category'] ? "{$row['category']}: " : '')."{$row['skill_name']} ({$row['level']})",
+                fn (array $row): string => ($row['category'] ? "{$row['category']} — " : '')."{$row['skill_name']} — {$row['level']}",
                 $structured,
             ));
         }
@@ -183,7 +169,7 @@ final class BeneficiaryProfileExportColumns
         $structured = $profile->cvLanguagesStructured();
         if ($structured !== []) {
             return self::joinLines(array_map(
-                fn (array $row): string => "{$row['language_name']} ({$row['level']})",
+                fn (array $row): string => "{$row['language_name']} — {$row['level']}",
                 $structured,
             ));
         }
@@ -199,7 +185,7 @@ final class BeneficiaryProfileExportColumns
         }
 
         return self::joinLines(array_map(
-            fn (array $row): string => "{$row['tool_name']} ({$row['level']})",
+            fn (array $row): string => "{$row['tool_name']} — {$row['level']}",
             $rows,
         ));
     }
@@ -234,7 +220,7 @@ final class BeneficiaryProfileExportColumns
                 $parts = array_filter([
                     $row['title'],
                     $row['organization'] !== '' ? $row['organization'] : null,
-                    "{$mode} / {$emp}",
+                    "{$mode} · {$emp}",
                     $dates,
                 ]);
 
@@ -267,7 +253,7 @@ final class BeneficiaryProfileExportColumns
         }
 
         return self::joinLines(array_map(
-            fn (array $row): string => ($row['type'] ? "[{$row['type']}] " : '')."{$row['label']}: {$row['url']}",
+            fn (array $row): string => ($row['type'] ? "{$row['type']} — " : '')."{$row['label']}: {$row['url']}",
             $links,
         ));
     }
