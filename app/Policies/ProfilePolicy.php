@@ -31,4 +31,9 @@ class ProfilePolicy
     {
         return $user->can('roles.view');
     }
+
+    public function export(User $user): bool
+    {
+        return $user->can('roles.view');
+    }
 }

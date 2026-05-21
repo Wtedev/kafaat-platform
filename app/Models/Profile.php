@@ -6,6 +6,7 @@ use App\Enums\MembershipType;
 use App\Services\Portal\CvFormOptions;
 use App\Services\Portal\CvLanguagePresets;
 use App\Support\PublicDiskPath;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -689,6 +690,19 @@ class Profile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * ملفات مرتبطة بمستخدمي البوابة فقط (مستفيد / متدرب / متطوع).
+     */
+    public function scopeForPortalBeneficiaries(Builder $query): Builder
+    {
+        return $query->whereHas('user', function (Builder $userQuery): void {
+            $userQuery->where(function (Builder $q): void {
+                $q->whereIn('role_type', ['beneficiary', 'trainee', 'volunteer'])
+                    ->orWhereHas('roles', fn (Builder $r) => $r->whereIn('name', ['trainee', 'volunteer']));
+            });
+        });
     }
 
     private function cvLegacyString(string $primaryKey, string $legacyKey): ?string
