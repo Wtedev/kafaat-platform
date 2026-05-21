@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Resources\NewsResource\Pages;
 use App\Filament\Resources\NewsResource\Pages\EditNews;
 use App\Models\News;
@@ -42,6 +43,8 @@ use Illuminate\Support\Str;
 
 class NewsResource extends Resource
 {
+    use ConfiguresEditOnlyResourceTable;
+
     protected static ?string $model = News::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-newspaper';
@@ -756,13 +759,13 @@ class NewsResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table
+        return static::applyEditOnlyTable($table)
             ->columns([
                 TextColumn::make('title')
                     ->label('العنوان')
-                    ->url(fn (News $record): string => auth()->user()?->can('update', $record) ?? false
+                    ->url(fn (News $record): ?string => auth()->user()?->can('update', $record)
                         ? static::getUrl('edit', ['record' => $record])
-                        : static::getUrl('view', ['record' => $record]))
+                        : (auth()->user()?->can('view', $record) ? static::getUrl('view', ['record' => $record]) : null))
                     ->color('primary')
                     ->searchable()
                     ->sortable()

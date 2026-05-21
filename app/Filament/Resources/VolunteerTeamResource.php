@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerTeamResource\Pages;
 use App\Filament\Resources\VolunteerTeamResource\RelationManagers\TeamMembersRelationManager;
@@ -13,7 +14,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -28,6 +28,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class VolunteerTeamResource extends Resource
 {
+    use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
 
     protected static ?string $model = VolunteerTeam::class;
@@ -90,7 +91,7 @@ class VolunteerTeamResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table
+        return static::applyEditOnlyTable($table)
             ->columns([
                 TextColumn::make('name')
                     ->label('الاسم')
@@ -123,8 +124,7 @@ class VolunteerTeamResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->actions([
-                ViewAction::make(),
-                EditAction::make(),
+                static::makeTableEditAction(),
                 DeleteAction::make(),
             ])
             ->bulkActions([

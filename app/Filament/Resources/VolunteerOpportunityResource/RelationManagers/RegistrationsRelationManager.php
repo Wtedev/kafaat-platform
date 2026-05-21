@@ -12,7 +12,7 @@ use App\Services\VolunteerRegistrationService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
@@ -114,7 +114,8 @@ class RegistrationsRelationManager extends RelationManager
                     ->options(RegistrationStatus::class),
             ])
             ->actions([
-                ViewAction::make(),
+                EditAction::make()
+                    ->url(fn ($record): string => \App\Filament\Resources\VolunteerRegistrationResource::getUrl('view', ['record' => $record])),
 
                 Action::make('approve')
                     ->label('قبول الطلب')

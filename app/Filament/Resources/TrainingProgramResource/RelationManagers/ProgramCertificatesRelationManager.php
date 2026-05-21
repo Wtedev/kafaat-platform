@@ -71,10 +71,7 @@ class ProgramCertificatesRelationManager extends RelationManager
                     ->color(fn (?string $state): string => $state ? 'success' : 'gray'),
             ])
             ->actions([
-                Action::make('view')
-                    ->label('عرض')
-                    ->icon('heroicon-o-eye')
-                    ->color('gray')
+                \Filament\Actions\EditAction::make()
                     ->url(fn (Certificate $record): string => CertificateResource::getUrl('view', ['record' => $record]))
                     ->visible(fn (Certificate $record): bool => auth()->user()?->can('view', $record) ?? false),
 

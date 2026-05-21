@@ -7,7 +7,6 @@ use App\Filament\Resources\UserResource;
 use App\Models\User;
 use App\Support\UserAccountRoleForm;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\ViewAction;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 
@@ -54,7 +53,6 @@ class EditUser extends BaseEditRecord
     protected function getRecordToolbarActions(): array
     {
         return [
-            ViewAction::make(),
             DeleteAction::make()
                 ->hidden(fn (): bool => $this->record->isProtectedAdminUser()),
         ];

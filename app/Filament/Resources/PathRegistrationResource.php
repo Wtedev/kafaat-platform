@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\RegistrationStatus;
 use App\Exceptions\PathCapacityExceededException;
+use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\PathRegistrationResource\Pages;
 use App\Models\PathRegistration;
@@ -11,7 +12,6 @@ use App\Services\PathRegistrationService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
@@ -26,6 +26,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PathRegistrationResource extends Resource
 {
+    use ConfiguresEditOnlyResourceTable;
+
     use RegistersNavigationByPermission;
 
     protected static ?string $model = PathRegistration::class;
@@ -85,7 +87,7 @@ class PathRegistrationResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table
+        return static::applyEditOnlyTable($table)
             ->columns([
                 TextColumn::make('user.name')
                     ->searchable()
@@ -146,7 +148,7 @@ class PathRegistrationResource extends Resource
                     ->searchable(),
             ])
             ->actions([
-                ViewAction::make()
+                static::makeTableEditAction()
                     ->authorize('view'),
 
                 Action::make('approve')

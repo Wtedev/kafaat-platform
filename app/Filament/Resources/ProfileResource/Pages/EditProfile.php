@@ -5,7 +5,6 @@ namespace App\Filament\Resources\ProfileResource\Pages;
 use App\Filament\Resources\Pages\BaseEditRecord;
 use App\Filament\Resources\ProfileResource;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\ViewAction;
 use Illuminate\Database\Eloquent\Model;
 
 class EditProfile extends BaseEditRecord
@@ -15,10 +14,17 @@ class EditProfile extends BaseEditRecord
     protected function getRecordToolbarActions(): array
     {
         return [
-            ViewAction::make(),
             DeleteAction::make()
                 ->visible(fn (): bool => auth()->user()?->can('delete', $this->getRecord()) ?? false),
         ];
+    }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $record = $this->getRecord();
+        $record->loadMissing('user');
+
+        return $data;
     }
 
     protected function handleRecordUpdate(Model $record, array $data): Model

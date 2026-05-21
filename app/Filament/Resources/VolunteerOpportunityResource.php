@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\OpportunityStatus;
+use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerOpportunityResource\Pages;
 use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\RegistrationsRelationManager;
@@ -15,7 +16,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -36,6 +36,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class VolunteerOpportunityResource extends Resource
 {
+    use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
 
     protected static ?string $model = VolunteerOpportunity::class;
@@ -147,7 +148,7 @@ class VolunteerOpportunityResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table
+        return static::applyEditOnlyTable($table)
             ->columns([
                 ImageColumn::make('image')
                     ->label('صورة')
@@ -214,8 +215,7 @@ class VolunteerOpportunityResource extends Resource
                     ->options(OpportunityStatus::class),
             ])
             ->actions([
-                ViewAction::make(),
-                EditAction::make(),
+                static::makeTableEditAction(),
                 DeleteAction::make(),
             ])
             ->bulkActions([

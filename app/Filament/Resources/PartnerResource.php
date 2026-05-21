@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\PartnerResource\Pages;
 use App\Models\Partner;
@@ -24,6 +25,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PartnerResource extends Resource
 {
+    use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
 
     protected static ?string $model = Partner::class;
@@ -90,7 +92,7 @@ class PartnerResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table
+        return static::applyEditOnlyTable($table)
             ->reorderable('sort_order')
             ->defaultSort('sort_order', 'asc')
             ->columns([

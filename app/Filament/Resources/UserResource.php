@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
@@ -9,7 +10,6 @@ use App\Support\UserAccountRoleForm;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -29,6 +29,7 @@ use Livewire\Component as LivewireComponent;
 
 class UserResource extends Resource
 {
+    use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
 
     protected static ?string $model = User::class;
@@ -144,7 +145,7 @@ class UserResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table
+        return static::applyEditOnlyTable($table)
             ->columns([
                 TextColumn::make('name')
                     ->label('الاسم')
@@ -201,8 +202,7 @@ class UserResource extends Resource
                     ->label('نشط'),
             ])
             ->actions([
-                ViewAction::make(),
-                EditAction::make(),
+                static::makeTableEditAction(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

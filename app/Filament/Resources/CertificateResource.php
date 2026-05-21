@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\CertificateResource\Pages;
 use App\Models\Certificate;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -21,6 +21,7 @@ use Filament\Tables\Table;
 
 class CertificateResource extends Resource
 {
+    use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
 
     protected static ?string $model = Certificate::class;
@@ -91,7 +92,7 @@ class CertificateResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table
+        return static::applyEditOnlyTable($table)
             ->columns([
                 TextColumn::make('user.name')
                     ->searchable()
@@ -153,7 +154,7 @@ class CertificateResource extends Resource
                     ->searchable(),
             ])
             ->actions([
-                ViewAction::make()->label('عرض'),
+                static::makeTableEditAction(),
 
                 Action::make('verify')
                     ->label('رابط التحقق')

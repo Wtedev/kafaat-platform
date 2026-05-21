@@ -31,7 +31,7 @@ class LearningPathEditorsRelationManager extends RelationManager
             ->modifyQueryUsing($this->modifyQueryWithActiveTab(...))
             ->queryStringIdentifier(Str::lcfirst(class_basename(static::class)))
             ->recordAction(function (Model $record, Table $table): ?string {
-                foreach (['view', 'edit'] as $action) {
+                foreach (['edit'] as $action) {
                     $action = $table->getAction($action);
 
                     if (! $action) {
@@ -64,7 +64,7 @@ class LearningPathEditorsRelationManager extends RelationManager
 
         if (! $table->hasCustomRecordUrl()) {
             $table->recordUrl(function (Model $record, Table $table): ?string {
-                foreach (['view', 'edit'] as $action) {
+                foreach (['edit'] as $action) {
                     $action = $table->getAction($action);
 
                     if (! $action) {

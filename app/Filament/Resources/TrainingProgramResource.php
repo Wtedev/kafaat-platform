@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
+use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\TrainingProgramResource\Pages;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramCertificatesRelationManager;
@@ -16,7 +17,6 @@ use App\Support\TrainingEntityAuthorization;
 use Carbon\Carbon;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
@@ -42,6 +42,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class TrainingProgramResource extends Resource
 {
+    use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
 
     protected static ?string $model = TrainingProgram::class;
@@ -453,7 +454,7 @@ class TrainingProgramResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table
+        return static::applyEditOnlyTable($table)
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['owner', 'creator', 'assignee', 'learningPath'])->withCount('registrations'))
             ->columns([
                 TextColumn::make('title')
@@ -507,12 +508,9 @@ class TrainingProgramResource extends Resource
                     ->alignEnd(),
             ])
             ->actions([
-                ViewAction::make()
+                static::makeTableEditAction()
                     ->color('gray')
-                    ->visible(fn (TrainingProgram $record): bool => auth()->user()?->can('view', $record) ?? false),
-                EditAction::make()
-                    ->color('gray')
-                    ->visible(fn (TrainingProgram $record): bool => auth()->user()?->can('update', $record) ?? false),
+                    ->visible(fn (TrainingProgram $record): bool => (auth()->user()?->can('update', $record) || auth()->user()?->can('view', $record)) ?? false),
                 DeleteAction::make()
                     ->color('danger')
                     ->visible(fn (TrainingProgram $record): bool => auth()->user()?->can('delete', $record) ?? false),

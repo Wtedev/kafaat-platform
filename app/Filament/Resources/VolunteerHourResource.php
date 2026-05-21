@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\VolunteerHoursStatus;
+use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerHourResource\Pages;
 use App\Models\VolunteerHour;
@@ -10,7 +11,6 @@ use App\Services\VolunteerHoursService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -25,6 +25,7 @@ use Filament\Tables\Table;
 
 class VolunteerHourResource extends Resource
 {
+    use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
 
     protected static ?string $model = VolunteerHour::class;
@@ -87,7 +88,7 @@ class VolunteerHourResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table
+        return static::applyEditOnlyTable($table)
             ->columns([
                 TextColumn::make('user.name')
                     ->searchable()
@@ -150,7 +151,7 @@ class VolunteerHourResource extends Resource
                     ->searchable(),
             ])
             ->actions([
-                ViewAction::make(),
+                static::makeTableEditAction(),
 
                 Action::make('approve')
                     ->label('موافقة الساعات')

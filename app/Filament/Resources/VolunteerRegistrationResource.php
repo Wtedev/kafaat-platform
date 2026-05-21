@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\OpportunityStatus;
 use App\Enums\RegistrationStatus;
 use App\Exceptions\OpportunityCapacityExceededException;
+use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerRegistrationResource\Pages;
 use App\Models\Certificate;
@@ -15,7 +16,6 @@ use App\Services\VolunteerRegistrationService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
@@ -30,6 +30,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class VolunteerRegistrationResource extends Resource
 {
+    use ConfiguresEditOnlyResourceTable;
+
     use RegistersNavigationByPermission;
 
     protected static ?string $model = VolunteerRegistration::class;
@@ -88,7 +90,7 @@ class VolunteerRegistrationResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table
+        return static::applyEditOnlyTable($table)
             ->columns([
                 TextColumn::make('user.name')
                     ->label('المتطوع')
@@ -175,7 +177,7 @@ class VolunteerRegistrationResource extends Resource
                     ->searchable(),
             ])
             ->actions([
-                ViewAction::make(),
+                static::makeTableEditAction(),
 
                 Action::make('approve')
                     ->label('قبول الطلب')

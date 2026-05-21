@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\LearningPathKind;
 use App\Enums\PathStatus;
+use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\LearningPathResource\Pages;
 use App\Filament\Resources\LearningPathResource\RelationManagers\LearningPathEditorsRelationManager;
@@ -15,7 +16,6 @@ use App\Support\PublicDiskPath;
 use App\Support\TrainingEntityAuthorization;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
@@ -38,6 +38,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class LearningPathResource extends Resource
 {
+    use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
 
     protected static ?string $model = LearningPath::class;
@@ -270,7 +271,7 @@ class LearningPathResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table
+        return static::applyEditOnlyTable($table)
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['owner', 'creator'])->withCount(['programs', 'registrations']))
             ->columns([
                 TextColumn::make('title')
@@ -306,12 +307,9 @@ class LearningPathResource extends Resource
                     ->alignEnd(),
             ])
             ->actions([
-                ViewAction::make()
+                static::makeTableEditAction()
                     ->color('gray')
-                    ->visible(fn (LearningPath $record): bool => auth()->user()?->can('view', $record) ?? false),
-                EditAction::make()
-                    ->color('gray')
-                    ->visible(fn (LearningPath $record): bool => auth()->user()?->can('update', $record) ?? false),
+                    ->visible(fn (LearningPath $record): bool => (auth()->user()?->can('update', $record) || auth()->user()?->can('view', $record)) ?? false),
                 DeleteAction::make()
                     ->color('danger')
                     ->visible(fn (LearningPath $record): bool => auth()->user()?->can('delete', $record) ?? false),

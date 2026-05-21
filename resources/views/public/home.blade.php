@@ -148,8 +148,7 @@
 
                     {{-- Headline --}}
                     <h1 class="text-4xl sm:text-5xl lg:text-[3.4rem] font-bold leading-snug mb-5" style="color:#111827">
-                        مرحبًا بك،<br>
-                        في <span style="color:#253B5B">كفاءات</span>
+                        المنصة التدريبية لجمعية <span style="color:#253B5B">كفاءات</span>
                     </h1>
 
                     {{-- Subtitle --}}
