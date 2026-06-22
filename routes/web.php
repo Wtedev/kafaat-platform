@@ -59,7 +59,7 @@ Route::middleware('auth')->group(function () {
         ->name('verification.send');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'otp.verified'])->group(function () {
     Route::get('/certificates/{certificate}/download', CertificateDownloadController::class)
         ->name('certificates.download');
 });
@@ -106,7 +106,7 @@ Route::view('/terms', 'public.terms')->name('public.terms');
 
 // ─── Beneficiary Portal ───────────────────────────────────────────────────────
 
-Route::middleware(['auth', 'verified', 'beneficiary'])
+Route::middleware(['auth', 'otp.verified', 'beneficiary'])
     ->prefix('portal')
     ->name('portal.')
     ->group(function () {

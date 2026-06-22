@@ -2,7 +2,7 @@
 
 use App\Http\Middleware\BeneficiaryPortal;
 use App\Http\Middleware\EnsureAdminOrStaff;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Http\Middleware\EnsureOtpVerified;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -31,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'beneficiary' => BeneficiaryPortal::class,
             'admin-or-staff' => EnsureAdminOrStaff::class,
+            'otp.verified' => EnsureOtpVerified::class,
         ]);
 
         // Redirect authenticated users away from guest-only pages
@@ -38,7 +39,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(function (Request $request) {
             $user = $request->user();
 
-            if ($user instanceof MustVerifyEmail && ! $user->hasVerifiedEmail()) {
+            // البوابة معتمدة على الجلسة: يلزم إدخال رمز التحقق في كل دخول.
+            if ($user && $request->session()->get('otp_verified') !== true) {
                 return route('verification.notice');
             }
 

@@ -14,7 +14,7 @@ class EmailVerificationController extends Controller
     {
         $user = $request->user();
 
-        if ($user->hasVerifiedEmail()) {
+        if ($request->session()->get('otp_verified') === true) {
             return $this->redirectVerifiedUser($request);
         }
 
@@ -28,10 +28,13 @@ class EmailVerificationController extends Controller
         $result = $service->verify($user, $validated['code']);
 
         if ($result === 'success') {
+            // فتح بوابة الجلسة لهذه الجلسة فقط.
+            $request->session()->put('otp_verified', true);
+
             event(new Verified($user));
 
             return $this->redirectVerifiedUser($request)
-                ->with('status', 'تم التحقق من بريدك الإلكتروني بنجاح.');
+                ->with('status', 'تم التحقق بنجاح.');
         }
 
         $message = match ($result) {

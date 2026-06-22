@@ -50,17 +50,9 @@ class LoginController extends Controller
         // prior unauthenticated visit to /admin) to redirect a beneficiary → 403.
         $request->session()->forget('url.intended');
 
-        // التحقق من البريد إلزامي لجميع أنواع الحسابات (مستفيد، موظف، أدمن).
-        if (! $user->hasVerifiedEmail()) {
-            return redirect()->route('verification.notice')
-                ->with('status', 'يرجى إدخال رمز التحقق المرسل إلى بريدك الإلكتروني.');
-        }
-
-        // Explicit role-based redirect — never follows url.intended
-        if ($user->isAdminOrStaff()) {
-            return redirect('/admin');
-        }
-
-        return redirect()->route('portal.dashboard');
+        // رمز التحقق إلزامي في كل دخول لجميع الأنواع (مستفيد/موظف/أدمن).
+        // الـ Login listener أرسل الرمز وضبط بوابة الجلسة otp_verified=false.
+        return redirect()->route('verification.notice')
+            ->with('status', 'أرسلنا رمز تحقق إلى بريدك الإلكتروني. يرجى إدخاله للمتابعة.');
     }
 }

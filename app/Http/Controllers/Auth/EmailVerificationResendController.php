@@ -10,7 +10,7 @@ class EmailVerificationResendController extends Controller
 {
     public function __invoke(Request $request): RedirectResponse
     {
-        if ($request->user()->hasVerifiedEmail()) {
+        if ($request->session()->get('otp_verified') === true) {
             return redirect()->route('portal.dashboard');
         }
 

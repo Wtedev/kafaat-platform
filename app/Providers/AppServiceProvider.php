@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use App\Models\BoardMember;
 use App\Models\GovernanceDocument;
-use App\Models\EmailVerificationCode;
 use App\Models\InboxNotification;
 use App\Models\MediaPhoto;
 use App\Models\News;
@@ -83,20 +82,18 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureEmailVerificationOnLogin(): void
     {
-        // يغطي /login و /admin/login: إرسال OTP عند الدخول إذا لم يُتحقق البريد بعد.
+        // يغطي /login و /admin/login والتسجيل: يُرسل رمز OTP جديد في كل تسجيل دخول
+        // ويعيد ضبط بوابة الجلسة، فيُطلب الرمز من الجميع (مستفيد/موظف/أدمن) في كل مرة.
         Event::listen(Login::class, function (Login $event): void {
             $user = $event->user;
 
-            if (! ($user instanceof MustVerifyEmail) || $user->hasVerifiedEmail()) {
+            if (! ($user instanceof MustVerifyEmail)) {
                 return;
             }
 
-            $hasActiveCode = EmailVerificationCode::query()
-                ->where('user_id', $user->id)
-                ->where('expires_at', '>', now())
-                ->exists();
+            session()->put('otp_verified', false);
 
-            if (! $hasActiveCode) {
+            if (method_exists($user, 'sendEmailVerificationNotification')) {
                 $user->sendEmailVerificationNotification();
             }
         });

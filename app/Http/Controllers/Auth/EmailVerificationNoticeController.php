@@ -12,7 +12,8 @@ class EmailVerificationNoticeController extends Controller
 {
     public function __invoke(Request $request): View|RedirectResponse
     {
-        if ($request->user()->hasVerifiedEmail()) {
+        // البوابة معتمدة على الجلسة: من أكمل الرمز في هذه الجلسة يُوجَّه لوجهته.
+        if ($request->session()->get('otp_verified') === true) {
             return $this->redirectVerifiedUser($request);
         }
 
