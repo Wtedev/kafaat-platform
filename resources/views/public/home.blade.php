@@ -202,7 +202,9 @@
 
                             {{-- Card header --}}
                             <div class="flex items-center justify-between">
-                                <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-xl flex-shrink-0" style="background:#EAF2FA">📊</div>
+                                <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:#EAF2FA">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                </div>
                                 <div class="text-right">
                                     <p class="text-xs mb-0.5" style="color:#6B7280">أهلاً، أحمد!</p>
                                     <p class="text-sm font-bold" style="color:#111827">لوحة تقدمك</p>
@@ -250,14 +252,16 @@
                             {{-- Badges --}}
                             <div class="flex flex-wrap gap-2 pt-1">
                                 <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-green-100 text-green-700">✓ متقدم</span>
-                                <span class="px-3 py-1.5 rounded-xl text-xs font-medium" style="background:#EAF2FA; color:#253B5B">🏅 شهادة ممتازة</span>
-                                <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-amber-100 text-amber-600">⭐ نشط</span>
+                                <span class="px-3 py-1.5 rounded-xl text-xs font-medium" style="background:#EAF2FA; color:#253B5B">شهادة ممتازة</span>
+                                <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-amber-100 text-amber-600">نشط</span>
                             </div>
                         </div>
 
                         {{-- Floating notification --}}
                         <div class="absolute -bottom-4 -left-4 bg-white rounded-2xl shadow-lg px-4 py-3 flex items-center gap-3 border border-gray-50">
-                            <div class="w-8 h-8 rounded-xl bg-green-100 flex items-center justify-center text-sm flex-shrink-0">🏅</div>
+                            <div class="w-8 h-8 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                            </div>
                             <div>
                                 <p class="text-xs font-semibold text-gray-800">شهادة جديدة!</p>
                                 <p class="text-xs" style="color:#6B7280">تم إصدارها للتو</p>
@@ -291,7 +295,9 @@
 
                 {{-- Card: Learning Paths --}}
                 <a href="{{ route('public.paths.index') }}" class="group block bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 p-8 text-right">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-5 transition-transform group-hover:scale-110" style="background:#EAF2FA">🗺️</div>
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 transition-transform group-hover:scale-110" style="background:#EAF2FA">
+                        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                    </div>
                     <h3 class="text-xl font-bold mb-3 transition-colors" style="color:#111827">المسارات التدريبية</h3>
                     <p class="text-sm leading-relaxed mb-5" style="color:#6B7280">سلاسل تعليمية منظمة تأخذك من الأساسيات إلى الاحترافية في مجالات متنوعة، مصممة لتناسب جميع المستويات.</p>
                     <span class="inline-flex items-center gap-1.5 text-sm font-semibold" style="color:#253B5B">
@@ -303,7 +309,9 @@
 
                 {{-- Card: Training Programs (highlighted) --}}
                 <a href="{{ route('public.programs.index') }}" class="group block rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 p-8 text-right" style="background: linear-gradient(145deg, #EAF2FA 0%, #F3F7FB 100%); border: 1px solid #dceaf7">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-5 bg-white shadow-sm transition-transform group-hover:scale-110">📘</div>
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 bg-white shadow-sm transition-transform group-hover:scale-110">
+                        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    </div>
                     <h3 class="text-xl font-bold mb-3" style="color:#111827">البرامج التدريبية</h3>
                     <p class="text-sm leading-relaxed mb-5" style="color:#6B7280">برامج تدريبية متخصصة بمحتوى عملي وتطبيقي تُصدر شهادات معتمدة عند إتمامها بنجاح.</p>
                     <span class="inline-flex items-center gap-1.5 text-sm font-semibold" style="color:#253B5B">
@@ -315,7 +323,9 @@
 
                 {{-- Card: Volunteering --}}
                 <a href="{{ route('public.volunteering.index') }}" class="group block bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 p-8 text-right">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-5 bg-green-50 transition-transform group-hover:scale-110">🤝</div>
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 bg-green-50 transition-transform group-hover:scale-110">
+                        <svg class="w-7 h-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </div>
                     <h3 class="text-xl font-bold mb-3" style="color:#111827">الفرص التطوعية</h3>
                     <p class="text-sm leading-relaxed mb-5" style="color:#6B7280">انضم إلى مجتمع التطوع وأحدث فارقاً حقيقياً. ساعات تطوعك توثَّق وتُحتسب في سجلك المهني.</p>
                     <span class="inline-flex items-center gap-1.5 text-sm font-semibold" style="color:#3CB878">
@@ -350,19 +360,18 @@
 
                 @php
                 $stats = [
-                ['value' => '+١٢٠٠', 'label' => 'المستفيدون', 'icon' => '👥'],
-                ['value' => '٣٨', 'label' => 'المسارات', 'icon' => '🗺️'],
-                ['value' => '٦٥', 'label' => 'البرامج', 'icon' => '📘'],
-                ['value' => '٤٢', 'label' => 'الفرص التطوعية', 'icon' => '🤝'],
-                ['value' => '+٨٠٠', 'label' => 'الشهادات', 'icon' => '🏅'],
-                ['value' => '٢٥', 'label' => 'الشركاء', 'icon' => '🤲'],
+                ['value' => '+١٢٠٠', 'label' => 'المستفيدون'],
+                ['value' => '٣٨',    'label' => 'المسارات'],
+                ['value' => '٦٥',    'label' => 'البرامج'],
+                ['value' => '٤٢',    'label' => 'الفرص التطوعية'],
+                ['value' => '+٨٠٠',  'label' => 'الشهادات'],
+                ['value' => '٢٥',    'label' => 'الشركاء'],
                 ];
                 @endphp
 
                 <div class="relative z-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-8">
                     @foreach($stats as $stat)
                     <div class="text-center">
-                        <div class="text-3xl mb-3">{{ $stat['icon'] }}</div>
                         <div class="text-4xl font-bold text-white mb-1 tabular-nums">{{ $stat['value'] }}</div>
                         <div class="text-blue-200 text-sm">{{ $stat['label'] }}</div>
                     </div>
@@ -377,7 +386,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 5. ABOUT PLATFORM SECTION                                           --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section class="py-20 bg-white">
+    <section id="about" class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col lg:flex-row items-center gap-16">
 
@@ -419,7 +428,9 @@
                         <div class="absolute -top-5 -right-5 w-28 h-28 rounded-3xl opacity-50" style="background:#EAF2FA"></div>
                         <div class="absolute -bottom-5 -left-5 w-20 h-20 rounded-2xl opacity-40 bg-green-100"></div>
                         <div class="relative bg-white rounded-3xl shadow-xl border border-gray-50 p-9 text-center">
-                            <div class="w-20 h-20 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-5" style="background:#EAF2FA">🎓</div>
+                            <div class="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-5" style="background:#EAF2FA">
+                            <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+                        </div>
                             <h3 class="text-xl font-bold mb-2" style="color:#253B5B">منصة متكاملة</h3>
                             <p class="text-sm mb-7" style="color:#6B7280">للتدريب والتطوع والشهادات</p>
                             <div class="space-y-3 text-right">
@@ -870,17 +881,25 @@
                     <div class="w-full lg:w-1/2 reveal-fade" style="transition-delay:0.15s">
                         @php
                         $stratPillars = [
-                        ['icon' => '📈', 'label' => 'تعظيم الأثر التنموي', 'bg' => 'rgba(30,184,144,0.08)'],
-                        ['icon' => '💻', 'label' => 'التحول الرقمي', 'bg' => 'rgba(59,130,246,0.08)'],
-                        ['icon' => '♻️', 'label' => 'الاستدامة المالية', 'bg' => 'rgba(139,92,246,0.08)'],
-                        ['icon' => '🧠', 'label' => 'تطوير رأس المال البشري', 'bg' => 'rgba(245,158,11,0.08)'],
+                        ['label' => 'تعظيم الأثر التنموي', 'bg' => 'rgba(30,184,144,0.08)', 'stroke' => '#1EB890',
+                         'path' => 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6'],
+                        ['label' => 'التحول الرقمي', 'bg' => 'rgba(59,130,246,0.08)', 'stroke' => '#3B82F6',
+                         'path' => 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
+                        ['label' => 'الاستدامة المالية', 'bg' => 'rgba(139,92,246,0.08)', 'stroke' => '#8B5CF6',
+                         'path' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+                        ['label' => 'تطوير رأس المال البشري', 'bg' => 'rgba(245,158,11,0.08)', 'stroke' => '#F59E0B',
+                         'path' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
                         ];
                         @endphp
                         <div class="grid grid-cols-2 gap-4">
                             @foreach($stratPillars as $sp)
                             <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm text-right
                                         hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-3 ms-auto" style="background:{{ $sp['bg'] }}">{{ $sp['icon'] }}</div>
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3 ms-auto" style="background:{{ $sp['bg'] }}">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="{{ $sp['stroke'] }}">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="{{ $sp['path'] }}"/>
+                                    </svg>
+                                </div>
                                 <p class="text-sm font-semibold" style="color:#111827">{{ $sp['label'] }}</p>
                             </div>
                             @endforeach
@@ -921,7 +940,9 @@
                     {{-- Download block (left in RTL) — يوجّه لصفحة عام الأثر إلى حين توفر ملف التقرير --}}
                     <div class="flex-shrink-0">
                         <a href="{{ route('impact.index') }}" class="w-40 h-40 rounded-3xl flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-white/20 transition-colors text-white no-underline" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2)" aria-label="صفحة عام الأثر — التقرير السنوي قيد الإعداد">
-                            <span class="text-4xl" aria-hidden="true">📄</span>
+                            <svg class="w-10 h-10 text-white opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                            </svg>
                             <span class="text-white text-sm font-semibold">تحميل التقرير</span>
                         </a>
                     </div>

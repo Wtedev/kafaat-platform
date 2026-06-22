@@ -19,8 +19,11 @@ use App\Http\Controllers\Portal\PortalProgramDetailController;
 use App\Http\Controllers\Portal\PortalVolunteerController;
 use App\Http\Controllers\Public\CertificateVerificationController;
 use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\PublicGovernanceController;
 use App\Http\Controllers\Public\PublicLearningPathController;
+use App\Http\Controllers\Public\PublicMediaController;
 use App\Http\Controllers\Public\PublicNewsController;
+use App\Http\Controllers\Public\PublicRegulationController;
 use App\Http\Controllers\Public\PublicTrainingProgramController;
 use App\Http\Controllers\Public\PublicVolunteerOpportunityController;
 use Illuminate\Support\Facades\Route;
@@ -77,6 +80,12 @@ Route::prefix('news')->name('public.news.')->group(function () {
     Route::get('/', [PublicNewsController::class, 'index'])->name('index');
     Route::get('/{news:slug}', [PublicNewsController::class, 'show'])->name('show');
 });
+
+Route::get('/regulations', PublicRegulationController::class)->name('public.regulations.index');
+
+Route::get('/governance', PublicGovernanceController::class)->name('public.governance.index');
+
+Route::get('/media', PublicMediaController::class)->name('public.media.index');
 
 // ─── Beneficiary Portal ───────────────────────────────────────────────────────
 
