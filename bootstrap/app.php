@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\BeneficiaryPortal;
 use App\Http\Middleware\EnsureAdminOrStaff;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -36,6 +37,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(function (Request $request) {
             $user = $request->user();
+
+            if ($user instanceof MustVerifyEmail && ! $user->hasVerifiedEmail()) {
+                return route('verification.notice');
+            }
+
             if ($user && $user->isAdminOrStaff()) {
                 return '/admin';
             }

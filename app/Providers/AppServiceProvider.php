@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\BoardMember;
 use App\Models\GovernanceDocument;
+use App\Models\EmailVerificationCode;
 use App\Models\InboxNotification;
 use App\Models\MediaPhoto;
 use App\Models\News;
@@ -24,6 +25,9 @@ use App\Services\News\NewsPublicationService;
 use App\Services\Rbac\RbacService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
@@ -46,6 +50,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureRateLimiting();
+        $this->configureEmailVerificationOnLogin();
 
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Profile::class, ProfilePolicy::class);
@@ -73,6 +78,27 @@ class AppServiceProvider extends ServiceProvider
                 'portalInboxUnreadCount',
                 app(InboxNotificationService::class)->unreadCount(auth()->user()),
             );
+        });
+    }
+
+    private function configureEmailVerificationOnLogin(): void
+    {
+        // يغطي /login و /admin/login: إرسال OTP عند الدخول إذا لم يُتحقق البريد بعد.
+        Event::listen(Login::class, function (Login $event): void {
+            $user = $event->user;
+
+            if (! ($user instanceof MustVerifyEmail) || $user->hasVerifiedEmail()) {
+                return;
+            }
+
+            $hasActiveCode = EmailVerificationCode::query()
+                ->where('user_id', $user->id)
+                ->where('expires_at', '>', now())
+                ->exists();
+
+            if (! $hasActiveCode) {
+                $user->sendEmailVerificationNotification();
+            }
         });
     }
 

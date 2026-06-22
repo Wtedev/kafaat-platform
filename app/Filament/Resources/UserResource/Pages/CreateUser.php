@@ -57,13 +57,15 @@ class CreateUser extends BaseCreateRecord
     {
         if (($this->pendingAssignedRoleForSync ?? '') !== '') {
             $this->record->syncRoles([$this->pendingAssignedRoleForSync]);
-
-            return;
+        } else {
+            $this->record->syncRoles(['trainee']);
+            if ($this->record->role_type !== 'beneficiary') {
+                $this->record->update(['role_type' => 'beneficiary']);
+            }
         }
 
-        $this->record->syncRoles(['trainee']);
-        if ($this->record->role_type !== 'beneficiary') {
-            $this->record->update(['role_type' => 'beneficiary']);
+        if (! $this->record->hasVerifiedEmail()) {
+            $this->record->sendEmailVerificationNotification();
         }
     }
 }

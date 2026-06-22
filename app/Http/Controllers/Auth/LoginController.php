@@ -50,17 +50,15 @@ class LoginController extends Controller
         // prior unauthenticated visit to /admin) to redirect a beneficiary → 403.
         $request->session()->forget('url.intended');
 
+        // التحقق من البريد إلزامي لجميع أنواع الحسابات (مستفيد، موظف، أدمن).
+        if (! $user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice')
+                ->with('status', 'يرجى إدخال رمز التحقق المرسل إلى بريدك الإلكتروني.');
+        }
+
         // Explicit role-based redirect — never follows url.intended
         if ($user->isAdminOrStaff()) {
             return redirect('/admin');
-        }
-
-        // توجيه المستفيد لتأكيد البريد إذا لم يتحقق بعد — مع إرسال رمز جديد
-        if (! $user->hasVerifiedEmail()) {
-            $user->sendEmailVerificationNotification();
-
-            return redirect()->route('verification.notice')
-                ->with('status', 'أرسلنا رمز تحقق إلى بريدك الإلكتروني.');
         }
 
         return redirect()->route('portal.dashboard');

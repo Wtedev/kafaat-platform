@@ -49,6 +49,7 @@ class RegisterController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->route('verification.notice');
+        return redirect()->route('verification.notice')
+            ->with('status', 'أرسلنا رمز تحقق إلى بريدك الإلكتروني. يرجى إدخاله لتفعيل حسابك.');
     }
 }

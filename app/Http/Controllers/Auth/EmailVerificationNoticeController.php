@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\EmailVerificationCode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -15,7 +16,27 @@ class EmailVerificationNoticeController extends Controller
             return $this->redirectVerifiedUser($request);
         }
 
+        $this->ensureActiveVerificationCode($request);
+
         return view('auth.verify-email');
+    }
+
+    private function ensureActiveVerificationCode(Request $request): void
+    {
+        $user = $request->user();
+
+        $hasActiveCode = EmailVerificationCode::query()
+            ->where('user_id', $user->id)
+            ->where('expires_at', '>', now())
+            ->exists();
+
+        if ($hasActiveCode) {
+            return;
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        session()->flash('status', 'أرسلنا رمز تحقق إلى بريدك الإلكتروني.');
     }
 
     private function redirectVerifiedUser(Request $request): RedirectResponse
