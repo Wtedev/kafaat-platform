@@ -239,6 +239,25 @@ class TrainingProgramResource extends Resource
                         ->offColor('gray'),
                 ]),
 
+            Section::make('التنبيهات')
+                ->description('تحكم في ما يُرسل للمستفيدين. تنبيهات الموظفين الإدارية تبقى كما هي.')
+                ->schema([
+                    Toggle::make('notify_on_publish')
+                        ->label('تنبيه عند نشر البرنامج')
+                        ->default(true)
+                        ->helperText('يُرسل للمستفيدين المهتمين بالبرامج الجديدة (حسب تفضيلاتهم).'),
+
+                    Toggle::make('notify_registrants_on_update')
+                        ->label('تنبيه المسجّلين عند تعديل البرنامج')
+                        ->default(false)
+                        ->helperText('يُفضّل إيقافه إلا عند تغييرات جوهرية.'),
+
+                    Toggle::make('notify_milestones')
+                        ->label('تذكيرات المواعيد (فتح/إغلاق التسجيل وبدء البرنامج)')
+                        ->default(false)
+                        ->helperText('معطّل افتراضياً لتقليل الإزعاج — فعّله عند الحاجة.'),
+                ]),
+
             Section::make('التسجيل')
                 ->description('يُخفى هذا القسم عند ربط البرنامج بمسار؛ يُدار التسجيل من إعدادات المسار.')
                 ->visible(fn (Get $get): bool => ! (bool) $get('is_linked_to_path'))

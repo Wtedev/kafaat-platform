@@ -21,7 +21,7 @@ final readonly class NotificationMessage
         public ?int $senderId,
         public NotificationTargetType $targetType,
         public ?array $context = null,
-        public bool $emailable = true,
+        public bool $emailable = false,
     ) {}
 
     /**

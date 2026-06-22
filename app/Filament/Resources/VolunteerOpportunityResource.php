@@ -21,6 +21,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
@@ -143,6 +144,17 @@ class VolunteerOpportunityResource extends Resource
                         ->afterOrEqual('start_date'),
                 ]),
             ]),
+
+            Section::make('التنبيهات')
+                ->schema([
+                    Toggle::make('notify_on_publish')
+                        ->label('تنبيه عند نشر الفرصة')
+                        ->default(true),
+
+                    Toggle::make('notify_registrants_on_update')
+                        ->label('تنبيه المسجّلين عند تعديل الفرصة')
+                        ->default(false),
+                ]),
         ]);
     }
 

@@ -23,6 +23,7 @@ class News extends Model
         'category',
         'published_at',
         'published_notification_sent_at',
+        'notify_audience_on_publish',
     ];
 
     protected function casts(): array
@@ -30,6 +31,7 @@ class News extends Model
         return [
             'published_at' => 'datetime',
             'published_notification_sent_at' => 'datetime',
+            'notify_audience_on_publish' => 'boolean',
         ];
     }
 
@@ -239,7 +241,8 @@ class News extends Model
     public function shouldSendPublishedNotification(): bool
     {
         return $this->isPublished()
-            && $this->published_notification_sent_at === null;
+            && $this->published_notification_sent_at === null
+            && $this->notify_audience_on_publish;
     }
 
     /**

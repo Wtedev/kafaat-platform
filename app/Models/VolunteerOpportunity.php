@@ -30,6 +30,8 @@ class VolunteerOpportunity extends Model
         'end_date',
         'status',
         'published_at',
+        'notify_on_publish',
+        'notify_registrants_on_update',
         'created_by',
         'updated_by',
         'assigned_to',
@@ -40,6 +42,8 @@ class VolunteerOpportunity extends Model
         return [
             'status' => OpportunityStatus::class,
             'published_at' => 'datetime',
+            'notify_on_publish' => 'boolean',
+            'notify_registrants_on_update' => 'boolean',
             'start_date' => 'date',
             'end_date' => 'date',
             'capacity' => 'integer',
@@ -63,7 +67,7 @@ class VolunteerOpportunity extends Model
         });
 
         static::created(function (self $opportunity): void {
-            if ($opportunity->status !== OpportunityStatus::Published) {
+            if ($opportunity->status !== OpportunityStatus::Published || ! $opportunity->notify_on_publish) {
                 return;
             }
 
@@ -78,15 +82,17 @@ class VolunteerOpportunity extends Model
             $editor = Auth::user();
 
             if ($opportunity->wasChanged('status') && $opportunity->status === OpportunityStatus::Published) {
-                app(InboxNotificationService::class)->volunteerOpportunityFirstPublished(
-                    $opportunity,
-                    $editor instanceof User ? $editor : null,
-                );
+                if ($opportunity->notify_on_publish) {
+                    app(InboxNotificationService::class)->volunteerOpportunityFirstPublished(
+                        $opportunity,
+                        $editor instanceof User ? $editor : null,
+                    );
+                }
 
                 return;
             }
 
-            if ($opportunity->status !== OpportunityStatus::Published) {
+            if ($opportunity->status !== OpportunityStatus::Published || ! $opportunity->notify_registrants_on_update) {
                 return;
             }
 

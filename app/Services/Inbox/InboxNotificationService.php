@@ -18,6 +18,8 @@ use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
 use App\Notifications\InboxNotificationEmail;
 use App\Services\EmailLogService;
+use App\Services\Inbox\NotificationPreferenceCatalog;
+use App\Services\Inbox\UserNotificationPreferences;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -25,6 +27,7 @@ class InboxNotificationService
 {
     public function __construct(
         private readonly EmailLogService $emailLog,
+        private readonly UserNotificationPreferences $userPreferences,
     ) {}
 
     public function unreadCount(User $user): int
@@ -73,15 +76,40 @@ class InboxNotificationService
             return;
         }
 
-        $rows = $message->toRows($ids->all());
+        $eligibleIds = $this->filterRecipientsForInApp($message->type, $ids->all());
+        if ($eligibleIds === []) {
+            return;
+        }
+
+        $rows = $message->toRows($eligibleIds);
 
         foreach (array_chunk($rows, 250) as $chunk) {
             DB::table((new InboxNotification)->getTable())->insert($chunk);
         }
 
-        if ($message->emailable) {
-            $this->dispatchEmails($message, $ids->all());
+        if ($message->emailable && NotificationPreferenceCatalog::systemAllowsEmail($message->type)) {
+            $this->dispatchEmails($message, $eligibleIds);
         }
+    }
+
+    /**
+     * @param  list<int>  $recipientUserIds
+     * @return list<int>
+     */
+    private function filterRecipientsForInApp(InboxNotificationType $type, array $recipientUserIds): array
+    {
+        if ($recipientUserIds === []) {
+            return [];
+        }
+
+        return User::query()
+            ->where(fn ($q) => $q->whereIn('id', $recipientUserIds))
+            ->get(['id', 'email', 'role_type', 'notify_email', 'notification_settings'])
+            ->filter(fn (User $user): bool => $this->userPreferences->wantsInApp($user, $type))
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
     }
 
     /**
@@ -101,12 +129,11 @@ class InboxNotificationService
 
         User::query()
             ->where(fn ($q) => $q->whereIn('id', $recipientUserIds))
-            ->where('notify_email', true)
             ->whereNotNull('email')
-            ->select(['id', 'name', 'email', 'role_type', 'notify_email'])
+            ->select(['id', 'name', 'email', 'role_type', 'notify_email', 'notification_settings'])
             ->chunkById(200, function (Collection $users) use ($message, $sentBy): void {
                 foreach ($users as $user) {
-                    if (! $user->wantsEmailNotifications()) {
+                    if (! $this->userPreferences->wantsEmailForType($user, $message->type)) {
                         continue;
                     }
 
@@ -338,6 +365,7 @@ class InboxNotificationService
             senderId: $issuedBy?->id,
             targetType: NotificationTargetType::SingleUser,
             context: self::inboxContext('certificate', (int) $certificate->getKey()),
+            emailable: true,
         );
         $this->dispatch($msg, [$recipient->id]);
     }

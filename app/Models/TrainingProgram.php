@@ -35,6 +35,9 @@ class TrainingProgram extends Model
         'registration_end',
         'status',
         'published_at',
+        'notify_on_publish',
+        'notify_milestones',
+        'notify_registrants_on_update',
         'created_by',
         'owner_id',
         'updated_by',
@@ -49,6 +52,9 @@ class TrainingProgram extends Model
             'status' => ProgramStatus::class,
             'program_kind' => TrainingProgramKind::class,
             'published_at' => 'datetime',
+            'notify_on_publish' => 'boolean',
+            'notify_milestones' => 'boolean',
+            'notify_registrants_on_update' => 'boolean',
             'start_date' => 'date',
             'end_date' => 'date',
             'registration_start' => 'date',
@@ -80,7 +86,7 @@ class TrainingProgram extends Model
         });
 
         static::created(function (self $program): void {
-            if ($program->status !== ProgramStatus::Published) {
+            if ($program->status !== ProgramStatus::Published || ! $program->notify_on_publish) {
                 return;
             }
 
@@ -96,12 +102,14 @@ class TrainingProgram extends Model
             $editor = Auth::user();
 
             if ($program->wasChanged('status') && $program->status === ProgramStatus::Published) {
-                $inbox->programLaunched($program, $editor instanceof User ? $editor : null);
+                if ($program->notify_on_publish) {
+                    $inbox->programLaunched($program, $editor instanceof User ? $editor : null);
+                }
 
                 return;
             }
 
-            if ($program->status !== ProgramStatus::Published) {
+            if ($program->status !== ProgramStatus::Published || ! $program->notify_registrants_on_update) {
                 return;
             }
 

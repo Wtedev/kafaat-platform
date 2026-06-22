@@ -19,6 +19,7 @@ use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Component;
@@ -194,6 +195,10 @@ class NewsResource extends Resource
                         ->columnSpan(1),
                     Group::make([
                         static::editNewsDatesCard(),
+                        Toggle::make('notify_audience_on_publish')
+                            ->label('إرسال تنبيه للمستفيدين عند النشر')
+                            ->default(true)
+                            ->helperText('يُحترم عند النشر أو الجدولة. المستفيدون يمكنهم إيقاف فئة الأخبار من إعداداتهم.'),
                         static::editNewsFieldCard($page, 'title', 'عنوان الخبر', static::editNewsTitleStack($page, $resolveNews), true, 'soft'),
                         static::editNewsMetadataCard($page, $resolveNews),
                         static::editNewsContentCard($page, $resolveNews),
@@ -701,6 +706,11 @@ class NewsResource extends Resource
                 ->label('التصنيف')
                 ->options(static::categoryOptions())
                 ->nullable(),
+
+            Toggle::make('notify_audience_on_publish')
+                ->label('إرسال تنبيه للمستفيدين عند النشر')
+                ->default(true)
+                ->helperText('يمكن للمستفيدين إيقاف أخبار المنصة من إعداداتهم. معطّل = نشر بدون تنبيه جماعي.'),
         ];
     }
 

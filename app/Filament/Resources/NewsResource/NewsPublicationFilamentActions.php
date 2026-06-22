@@ -10,6 +10,7 @@ use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Carbon;
 
@@ -90,10 +91,11 @@ final class NewsPublicationFilamentActions
             })
             ->requiresConfirmation()
             ->modalHeading('نشر الخبر الآن')
-            ->modalDescription('سيتم جعل الخبر ظاهراً للعامة فوراً، وقد يُرسل تنبيه الوارد حسب سياسة المنصة (مرة واحدة لكل دورة نشر).')
+            ->modalDescription('سيتم جعل الخبر ظاهراً للعامة فوراً. يمكنك اختيار إرسال تنبيه للمستفيدين أو النشر بصمت.')
             ->modalSubmitActionLabel('نشر الآن')
-            ->action(function () use ($resolveNews): void {
-                self::runPublishNow($resolveNews());
+            ->form(self::publishNowConfirmationForm($resolveNews))
+            ->action(function (array $data) use ($resolveNews): void {
+                self::applyPublishNowFromModal($resolveNews(), $data);
             });
 
         $schedule = Action::make('news_edit_schedule')
@@ -196,10 +198,11 @@ final class NewsPublicationFilamentActions
             })
             ->requiresConfirmation()
             ->modalHeading('نشر الخبر الآن')
-            ->modalDescription('سيتم جعل الخبر ظاهراً للعامة فوراً، وقد يُرسل تنبيه الوارد حسب سياسة المنصة (مرة واحدة لكل دورة نشر).')
+            ->modalDescription('سيتم جعل الخبر ظاهراً للعامة فوراً. يمكنك اختيار إرسال تنبيه للمستفيدين أو النشر بصمت.')
             ->modalSubmitActionLabel('نشر الآن')
-            ->action(function () use ($resolveNews): void {
-                self::runPublishNow($resolveNews());
+            ->form(self::publishNowConfirmationForm($resolveNews))
+            ->action(function (array $data) use ($resolveNews): void {
+                self::applyPublishNowFromModal($resolveNews(), $data);
             });
 
         if ($after instanceof Closure) {
@@ -207,6 +210,29 @@ final class NewsPublicationFilamentActions
         }
 
         return $action;
+    }
+
+    /**
+     * @return array<int, Toggle>
+     */
+    private static function publishNowConfirmationForm(Closure $resolveNews): array
+    {
+        return [
+            Toggle::make('notify_audience_on_publish')
+                ->label('إرسال تنبيه للمستفيدين')
+                ->default(fn (): bool => (bool) ($resolveNews()->notify_audience_on_publish ?? true))
+                ->helperText('يُرسل فقط للمستفيدين الذين فعّلوا فئة الأخبار في إعداداتهم.'),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private static function applyPublishNowFromModal(News $record, array $data): void
+    {
+        $record->notify_audience_on_publish = (bool) ($data['notify_audience_on_publish'] ?? true);
+        $record->saveQuietly();
+        self::runPublishNow($record);
     }
 
     private static function scheduleHeaderAction(Closure $resolveNews, string $name, ?Closure $after = null): Action

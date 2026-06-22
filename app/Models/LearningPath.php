@@ -27,6 +27,7 @@ class LearningPath extends Model
         'capacity',
         'status',
         'published_at',
+        'notify_on_publish',
         'created_by',
         'owner_id',
         'updated_by',
@@ -38,6 +39,7 @@ class LearningPath extends Model
             'path_kind' => LearningPathKind::class,
             'status' => PathStatus::class,
             'published_at' => 'datetime',
+            'notify_on_publish' => 'boolean',
             'capacity' => 'integer',
         ];
     }
@@ -55,7 +57,7 @@ class LearningPath extends Model
         });
 
         static::created(function (self $path): void {
-            if ($path->status !== PathStatus::Published) {
+            if ($path->status !== PathStatus::Published || ! $path->notify_on_publish) {
                 return;
             }
 
@@ -72,7 +74,7 @@ class LearningPath extends Model
                 return;
             }
 
-            if ($path->status !== PathStatus::Published) {
+            if ($path->status !== PathStatus::Published || ! $path->notify_on_publish) {
                 return;
             }
 

@@ -35,6 +35,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'is_active',
         'notify_email',
         'notification_prefs_set_at',
+        'notification_settings',
         'last_login_at',
     ];
 
@@ -52,6 +53,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             'is_active' => 'boolean',
             'notify_email' => 'boolean',
             'notification_prefs_set_at' => 'datetime',
+            'notification_settings' => 'array',
         ];
     }
 

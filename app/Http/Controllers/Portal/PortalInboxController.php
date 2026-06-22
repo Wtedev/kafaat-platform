@@ -6,6 +6,7 @@ use App\Exceptions\OpportunityCapacityExceededException;
 use App\Exceptions\PathCapacityExceededException;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Filament\Support\InboxNotificationRecordActions;
+use App\Services\Inbox\UserNotificationPreferences;
 use App\Http\Controllers\Controller;
 use App\Models\InboxNotification;
 use App\Models\User;
@@ -36,15 +37,21 @@ class PortalInboxController extends Controller
         ]);
     }
 
-    public function updateSettings(Request $request): RedirectResponse
+    public function updateSettings(Request $request, UserNotificationPreferences $preferences): RedirectResponse
     {
         $validated = $request->validate([
             'notify_email' => ['nullable', 'boolean'],
+            'categories' => ['nullable', 'array'],
+            'categories.*.in_app' => ['nullable', 'boolean'],
+            'categories.*.email' => ['nullable', 'boolean'],
         ]);
 
         $user = $request->user();
+        $normalized = $preferences->normalizeFromRequest($validated);
+
         $user->forceFill([
             'notify_email' => (bool) ($validated['notify_email'] ?? false),
+            'notification_settings' => $normalized,
             'notification_prefs_set_at' => now(),
         ])->save();
 

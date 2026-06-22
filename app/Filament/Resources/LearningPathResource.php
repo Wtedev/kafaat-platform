@@ -158,6 +158,14 @@ class LearningPathResource extends Resource
                         ->offColor('gray'),
                 ]),
 
+            Section::make('التنبيهات')
+                ->schema([
+                    Toggle::make('notify_on_publish')
+                        ->label('تنبيه عند نشر المسار')
+                        ->default(true)
+                        ->helperText('يُرسل للمستفيدين المهتمين بالمسارات الجديدة (حسب تفضيلاتهم).'),
+                ]),
+
             Section::make('المسؤولية')
                 ->visible(fn (?LearningPath $record): bool => $record !== null && $record->exists)
                 ->schema([
