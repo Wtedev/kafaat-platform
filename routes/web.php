@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CertificateDownloadController;
+use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\Portal\PortalCertificateController;
 use App\Http\Controllers\Portal\PortalCompetencyController;
 use App\Http\Controllers\Portal\PortalCompetencyExportController;
@@ -62,6 +63,10 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'otp.verified'])->group(function () {
     Route::get('/certificates/{certificate}/download', CertificateDownloadController::class)
         ->name('certificates.download');
+
+    // تفضيل إشعارات البريد (النافذة المنبثقة لمرة واحدة) — متاح لكل المستخدمين.
+    Route::post('/notification-prefs/ack', [NotificationPreferenceController::class, 'acknowledge'])
+        ->name('notification-prefs.ack');
 });
 
 // ─── Public website ───────────────────────────────────────────────────────────
@@ -116,7 +121,6 @@ Route::middleware(['auth', 'otp.verified', 'beneficiary'])
         Route::get('/notifications', [PortalInboxController::class, 'index'])->name('notifications');
         Route::get('/notifications/settings', [PortalInboxController::class, 'settings'])->name('notifications.settings');
         Route::patch('/notifications/settings', [PortalInboxController::class, 'updateSettings'])->name('notifications.settings.update');
-        Route::post('/notifications/prefs-ack', [PortalInboxController::class, 'acknowledgePrefs'])->name('notifications.prefs-ack');
         Route::post('/notifications/read-all', [PortalInboxController::class, 'markAllRead'])->name('notifications.read-all');
         Route::post('/notifications/{notification}/read', [PortalInboxController::class, 'markRead'])
             ->name('notifications.read');

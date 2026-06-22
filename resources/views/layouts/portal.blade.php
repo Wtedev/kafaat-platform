@@ -121,7 +121,7 @@
     <div id="portal-overlay" class="fixed inset-0 z-30 hidden bg-black/40 lg:hidden" aria-hidden="true"></div>
 
     @if (auth()->check() && auth()->user()->notification_prefs_set_at === null)
-        @include('portal.partials.notification-prefs-modal')
+        @include('partials.notification-prefs-modal')
     @endif
 
     <div class="mx-auto flex max-w-7xl gap-6 px-4 py-4 sm:px-6 lg:gap-8 lg:px-8 lg:py-6">

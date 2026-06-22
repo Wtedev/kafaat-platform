@@ -157,7 +157,7 @@
                         </a>
                         @else
                         <a href="{{ route('portal.dashboard') }}" class="px-7 py-3.5 rounded-2xl text-base font-semibold text-white shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5" style="background: linear-gradient(135deg, #253B5B 0%, #2e4a73 100%)">
-                            بوابتي
+                            منصة التدريب
                         </a>
                         @endif
                         @endauth
@@ -402,7 +402,7 @@
                         </a>
                         @else
                         <a href="{{ route('portal.dashboard') }}" class="px-7 py-3 rounded-2xl text-sm font-semibold border-2 transition-all duration-200 hover:bg-[#EAF2FA] hover:-translate-y-0.5" style="color:#253B5B; border-color:#c5ddef">
-                            بوابتي
+                            منصة التدريب
                         </a>
                         @endif
                         @endguest

@@ -64,6 +64,22 @@ class AdminPanelProvider extends PanelProvider
             },
         );
 
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::BODY_END,
+            function (): string {
+                if (! filament()->getCurrentPanel() || filament()->getId() !== 'admin') {
+                    return '';
+                }
+
+                $user = auth()->user();
+                if ($user === null || $user->notification_prefs_set_at !== null) {
+                    return '';
+                }
+
+                return view('partials.notification-prefs-modal')->render();
+            },
+        );
+
     }
 
     public function panel(Panel $panel): Panel

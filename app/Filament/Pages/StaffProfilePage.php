@@ -128,7 +128,7 @@ class StaffProfilePage extends Page
                 ->schema([
                     Toggle::make('notify_email')
                         ->label('استقبال التنبيهات عبر البريد الإلكتروني')
-                        ->default(true)
+                        ->default(false)
                         ->columnSpanFull(),
                 ]),
 

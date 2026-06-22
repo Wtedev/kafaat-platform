@@ -53,24 +53,6 @@ class PortalInboxController extends Controller
             ->with('success', 'تم حفظ تفضيلات التنبيهات.');
     }
 
-    /**
-     * حفظ التفضيل من النافذة العائمة التي تظهر مرة واحدة عند أول دخول.
-     */
-    public function acknowledgePrefs(Request $request): RedirectResponse
-    {
-        $validated = $request->validate([
-            'notify_email' => ['nullable', 'boolean'],
-        ]);
-
-        $user = $request->user();
-        $user->forceFill([
-            'notify_email' => (bool) ($validated['notify_email'] ?? false),
-            'notification_prefs_set_at' => now(),
-        ])->save();
-
-        return back()->with('success', 'تم حفظ تفضيلات التنبيهات.');
-    }
-
     public function markRead(Request $request, InboxNotification $notification, InboxNotificationService $inbox): RedirectResponse
     {
         Gate::authorize('update', $notification);

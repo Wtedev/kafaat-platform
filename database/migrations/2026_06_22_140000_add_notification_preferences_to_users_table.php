@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table): void {
             // التنبيهات داخل الموقع مفعّلة دائماً؛ هذا الحقل يتحكم بنسخة البريد الإلكتروني.
-            $table->boolean('notify_email')->default(true)->after('is_active');
+            $table->boolean('notify_email')->default(false)->after('is_active');
             // null = لم يضبط المستخدم تفضيلاته بعد (تظهر النافذة العائمة لأول مرة).
             $table->timestamp('notification_prefs_set_at')->nullable()->after('notify_email');
         });

@@ -78,7 +78,7 @@
                     @if(auth()->user()->canAccessFilamentAdmin())
                     <li><a href="{{ url('/admin') }}" class="text-gray-400 transition-colors hover:text-white">لوحة الإدارة</a></li>
                     @else
-                    <li><a href="{{ route('portal.dashboard') }}" class="text-gray-400 transition-colors hover:text-white">بوابتي</a></li>
+                    <li><a href="{{ route('portal.dashboard') }}" class="text-gray-400 transition-colors hover:text-white">منصة التدريب</a></li>
                     @endif
                     @endguest
                     <li><a href="{{ route('home') }}#faq" class="text-gray-400 transition-colors hover:text-white">الأسئلة الشائعة</a></li>

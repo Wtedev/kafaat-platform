@@ -424,7 +424,7 @@
                 @else
                 <a href="{{ route('portal.dashboard') }}" class="px-8 py-4 rounded-2xl text-base font-semibold text-white shadow-md hover:shadow-lg
                           transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
-                    بوابتي
+                    منصة التدريب
                 </a>
                 @endif
                 @else
