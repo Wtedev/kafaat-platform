@@ -76,8 +76,7 @@ class AdminPanelProvider extends PanelProvider
                     return '';
                 }
 
-                return view('partials.notification-prefs-modal')->render();
-            },
+                return view('partials.notification-prefs-modal')->render();            },
         );
 
     }
