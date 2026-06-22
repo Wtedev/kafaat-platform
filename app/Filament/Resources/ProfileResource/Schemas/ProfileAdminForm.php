@@ -89,6 +89,8 @@ final class ProfileAdminForm
                     FileUpload::make('avatar')
                         ->label('الصورة الشخصية')
                         ->image()
+                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                        ->maxSize(2048)
                         ->disk('public')
                         ->directory('avatars')
                         ->visibility('public')
@@ -268,6 +270,8 @@ final class ProfileAdminForm
 
                     FileUpload::make('cv_path')
                         ->label('ملف السيرة المرفوع')
+                        ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+                        ->maxSize(10240)
                         ->disk('public')
                         ->directory('cvs')
                         ->visibility('public')

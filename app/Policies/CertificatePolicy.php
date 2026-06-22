@@ -31,7 +31,8 @@ class CertificatePolicy
             return true;
         }
 
-        return $user->hasPermissionTo('certificates.view');
+        // الإذن العام للموظفين فقط؛ مستخدمو البوابة يصلون لشهاداتهم عبر فحص الملكية أعلاه.
+        return ! $user->isPortalUser() && $user->hasPermissionTo('certificates.view');
     }
 
     public function download(User $user, Certificate $certificate): bool
@@ -44,7 +45,8 @@ class CertificatePolicy
             return true;
         }
 
-        return $user->hasPermissionTo('certificates.download');
+        // الإذن العام للموظفين فقط؛ مستخدمو البوابة يصلون لشهاداتهم عبر فحص الملكية أعلاه.
+        return ! $user->isPortalUser() && $user->hasPermissionTo('certificates.download');
     }
 
     public function issue(User $user): bool

@@ -62,7 +62,19 @@ class UserResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with('roles');
+        $query = parent::getEloquentQuery()->with('roles');
+
+        $viewer = auth()->user();
+
+        // من لا يملك إدارة الأدوار يرى المستفيدين فقط، لا الموظفين/المسؤولين (حماية PII).
+        if ($viewer !== null && ! $viewer->hasPermission('manage_roles')) {
+            $query->where(function (Builder $q): void {
+                $q->whereIn('role_type', ['beneficiary', 'trainee', 'volunteer'])
+                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['trainee', 'volunteer']));
+            });
+        }
+
+        return $query;
     }
 
     public static function form(Schema $schema): Schema

@@ -62,6 +62,8 @@ class PartnerResource extends Resource
                     FileUpload::make('logo')
                         ->label('الشعار')
                         ->image()
+                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                        ->maxSize(2048)
                         ->disk('public')
                         ->directory('partners')
                         ->visibility('public')

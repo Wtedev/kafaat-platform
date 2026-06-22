@@ -3,27 +3,48 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\Auth\EmailVerificationCodeService;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class EmailVerificationController extends Controller
 {
-    public function __invoke(EmailVerificationRequest $request): RedirectResponse
+    public function __invoke(Request $request, EmailVerificationCodeService $service): RedirectResponse
     {
-        if ($request->user()->hasVerifiedEmail()) {
+        $user = $request->user();
+
+        if ($user->hasVerifiedEmail()) {
             return $this->redirectVerifiedUser($request);
         }
 
-        $request->fulfill();
+        $validated = $request->validate([
+            'code' => ['required', 'string', 'digits:6'],
+        ], [
+            'code.required' => 'يرجى إدخال رمز التحقق.',
+            'code.digits' => 'رمز التحقق يتكوّن من 6 أرقام.',
+        ]);
 
-        event(new Verified($request->user()));
+        $result = $service->verify($user, $validated['code']);
 
-        return $this->redirectVerifiedUser($request)
-            ->with('status', 'تم التحقق من بريدك الإلكتروني بنجاح.');
+        if ($result === 'success') {
+            event(new Verified($user));
+
+            return $this->redirectVerifiedUser($request)
+                ->with('status', 'تم التحقق من بريدك الإلكتروني بنجاح.');
+        }
+
+        $message = match ($result) {
+            'expired' => 'انتهت صلاحية الرمز. اطلب رمزاً جديداً.',
+            'too_many_attempts' => 'تجاوزت عدد المحاولات المسموح بها. اطلب رمزاً جديداً.',
+            'not_found' => 'لا يوجد رمز فعّال. اطلب رمزاً جديداً.',
+            default => 'رمز التحقق غير صحيح.',
+        };
+
+        return back()->withErrors(['code' => $message]);
     }
 
-    private function redirectVerifiedUser(EmailVerificationRequest $request): RedirectResponse
+    private function redirectVerifiedUser(Request $request): RedirectResponse
     {
         $user = $request->user();
 

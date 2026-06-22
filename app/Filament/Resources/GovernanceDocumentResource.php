@@ -126,6 +126,7 @@ class GovernanceDocumentResource extends Resource
                     FileUpload::make('cover_image')
                         ->label('صورة الغلاف')
                         ->image()
+                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                         ->disk('public')
                         ->directory('governance/covers')
                         ->visibility('public')

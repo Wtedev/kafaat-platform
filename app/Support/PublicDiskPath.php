@@ -58,6 +58,13 @@ final class PublicDiskPath
             }
         }
 
+        // رفض اجتياز المسار (path traversal): أي مقطع ".." يُبطل المسار.
+        foreach (explode('/', $p) as $segment) {
+            if ($segment === '..') {
+                return null;
+            }
+        }
+
         return $p !== '' ? $p : null;
     }
 

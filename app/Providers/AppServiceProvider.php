@@ -2,13 +2,21 @@
 
 namespace App\Providers;
 
+use App\Models\BoardMember;
+use App\Models\GovernanceDocument;
 use App\Models\InboxNotification;
+use App\Models\MediaPhoto;
 use App\Models\News;
 use App\Models\Profile;
+use App\Models\Regulation;
 use App\Models\User;
+use App\Policies\BoardMemberPolicy;
+use App\Policies\GovernanceDocumentPolicy;
 use App\Policies\InboxNotificationPolicy;
+use App\Policies\MediaPhotoPolicy;
 use App\Policies\NewsPolicy;
 use App\Policies\ProfilePolicy;
+use App\Policies\RegulationPolicy;
 use App\Policies\SendInAppNotificationPolicy;
 use App\Policies\UserPolicy;
 use App\Services\Inbox\InboxNotificationService;
@@ -43,6 +51,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Profile::class, ProfilePolicy::class);
         Gate::policy(InboxNotification::class, InboxNotificationPolicy::class);
         Gate::policy(News::class, NewsPolicy::class);
+        Gate::policy(Regulation::class, RegulationPolicy::class);
+        Gate::policy(GovernanceDocument::class, GovernanceDocumentPolicy::class);
+        Gate::policy(BoardMember::class, BoardMemberPolicy::class);
+        Gate::policy(MediaPhoto::class, MediaPhotoPolicy::class);
 
         Gate::define('accessSendInAppNotificationPage', function (?User $user): bool {
             if ($user === null || ! $user->is_active) {

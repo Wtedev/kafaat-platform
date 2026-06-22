@@ -13,8 +13,8 @@
 </div>
 
 <p class="text-sm text-gray-600 text-center mb-6 leading-relaxed">
-    أرسلنا إليك رابط تحقق على بريدك الإلكتروني.
-    يرجى فتح بريدك والنقر على الرابط لتفعيل حسابك.
+    أرسلنا رمز تحقق مكوّناً من 6 أرقام إلى بريدك الإلكتروني.
+    أدخل الرمز أدناه لتفعيل حسابك.
 </p>
 
 @if (session('status'))
@@ -23,18 +23,45 @@
 </div>
 @endif
 
-<form method="POST" action="{{ route('verification.send') }}">
+@error('code')
+<div class="mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm text-center">
+    {{ $message }}
+</div>
+@enderror
+
+<form method="POST" action="{{ route('verification.verify') }}">
     @csrf
+    <label for="code" class="sr-only">رمز التحقق</label>
+    <input type="text"
+           id="code"
+           name="code"
+           inputmode="numeric"
+           autocomplete="one-time-code"
+           pattern="[0-9]{6}"
+           maxlength="6"
+           required
+           autofocus
+           placeholder="000000"
+           class="w-full mb-4 py-3 rounded-xl border border-gray-200 text-center text-2xl font-bold tracking-[0.5em] text-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+           dir="ltr">
     <button type="submit"
             class="w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition">
-        إعادة إرسال رابط التحقق
+        تأكيد الرمز
+    </button>
+</form>
+
+<form method="POST" action="{{ route('verification.send') }}" class="mt-3">
+    @csrf
+    <button type="submit"
+            class="w-full py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium text-sm hover:bg-gray-50 transition">
+        إعادة إرسال الرمز
     </button>
 </form>
 
 <form method="POST" action="{{ route('logout') }}" class="mt-3">
     @csrf
     <button type="submit"
-            class="w-full py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium text-sm hover:bg-gray-50 transition">
+            class="w-full py-2.5 rounded-xl text-gray-500 font-medium text-sm hover:text-gray-700 transition">
         تسجيل الخروج
     </button>
 </form>

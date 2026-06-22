@@ -52,7 +52,8 @@
         @endphp
         <div class="news-article-body prose prose-lg max-w-none leading-relaxed text-right {{ $isRichHtml ? '' : 'whitespace-pre-line' }}" style="color:#374151; font-family: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif; direction: rtl">
             @if ($isRichHtml)
-                {!! $body !!}
+                {{-- تنقية HTML لمنع XSS المخزّن (وسوم مسموحة فقط) --}}
+                {!! clean($body) !!}
             @else
                 {!! nl2br(e($body)) !!}
             @endif

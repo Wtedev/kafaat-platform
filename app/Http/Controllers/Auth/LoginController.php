@@ -55,9 +55,12 @@ class LoginController extends Controller
             return redirect('/admin');
         }
 
-        // توجيه المستفيد لتأكيد البريد إذا لم يتحقق بعد
+        // توجيه المستفيد لتأكيد البريد إذا لم يتحقق بعد — مع إرسال رمز جديد
         if (! $user->hasVerifiedEmail()) {
-            return redirect()->route('verification.notice');
+            $user->sendEmailVerificationNotification();
+
+            return redirect()->route('verification.notice')
+                ->with('status', 'أرسلنا رمز تحقق إلى بريدك الإلكتروني.');
         }
 
         return redirect()->route('portal.dashboard');

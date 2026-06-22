@@ -111,6 +111,8 @@ class StaffProfilePage extends Page
                     FileUpload::make('staff_photo')
                         ->label('الصورة الشخصية')
                         ->image()
+                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                        ->maxSize(2048)
                         ->disk('public')
                         ->directory('staff-photos')
                         ->visibility('public')

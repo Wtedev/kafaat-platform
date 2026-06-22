@@ -51,15 +51,15 @@ Route::post('/logout', LogoutController::class)->middleware('auth')->name('logou
 // Email Verification
 Route::middleware('auth')->group(function () {
     Route::get('/email/verify', EmailVerificationNoticeController::class)->name('verification.notice');
-    Route::get('/email/verify/{id}/{hash}', EmailVerificationController::class)
-        ->middleware(['signed', 'throttle:6,1'])
+    Route::post('/email/verify', EmailVerificationController::class)
+        ->middleware('throttle:6,1')
         ->name('verification.verify');
     Route::post('/email/verification-notification', EmailVerificationResendController::class)
         ->middleware('throttle:3,1')
         ->name('verification.send');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/certificates/{certificate}/download', CertificateDownloadController::class)
         ->name('certificates.download');
 });

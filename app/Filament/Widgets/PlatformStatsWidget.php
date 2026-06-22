@@ -15,6 +15,13 @@ class PlatformStatsWidget extends BaseWidget
 {
     protected static ?int $sort = 1;
 
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+
+        return $user instanceof User && $user->hasPermission('statistics.view');
+    }
+
     protected function getStats(): array
     {
         $pendingPaths = PathRegistration::where('status', RegistrationStatus::Pending)->count();

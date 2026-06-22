@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Support\PublicDiskPath;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 
 class GovernanceDocument extends Model
 {
@@ -56,11 +56,14 @@ class GovernanceDocument extends Model
     public function filePublicUrl(): ?string
     {
         if ($this->file_url) {
-            return $this->file_url;
+            // مخطّطات آمنة فقط لمنع روابط javascript:/data: في href.
+            return preg_match('#^https?://#i', (string) $this->file_url) === 1
+                ? $this->file_url
+                : null;
         }
 
         if ($this->file_path) {
-            return Storage::disk('public')->url($this->file_path);
+            return PublicDiskPath::url($this->file_path);
         }
 
         return null;
@@ -72,6 +75,6 @@ class GovernanceDocument extends Model
             return null;
         }
 
-        return Storage::disk('public')->url($this->cover_image);
+        return PublicDiskPath::url($this->cover_image);
     }
 }

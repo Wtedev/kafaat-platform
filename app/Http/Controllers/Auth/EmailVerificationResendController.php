@@ -16,6 +16,6 @@ class EmailVerificationResendController extends Controller
 
         $request->user()->sendEmailVerificationNotification();
 
-        return back()->with('status', 'تم إعادة إرسال رابط التحقق إلى بريدك الإلكتروني.');
+        return back()->with('status', 'تم إرسال رمز تحقق جديد إلى بريدك الإلكتروني.');
     }
 }

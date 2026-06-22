@@ -42,7 +42,8 @@ class VolunteerRegistrationPolicy
             return FilamentAssignmentVisibility::userManagesVolunteerOpportunity($user, $registration->opportunity);
         }
 
-        return true;
+        // رفض افتراضي: من لا ينطبق عليه دور مُحدّد لا يرى سجلات غيره.
+        return false;
     }
 
     public function create(User $user): bool

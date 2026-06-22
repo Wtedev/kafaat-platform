@@ -51,6 +51,14 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         ];
     }
 
+    /**
+     * يرسل رمز التحقق الرقمي (OTP) بدل رابط Laravel الافتراضي.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        app(\App\Services\Auth\EmailVerificationCodeService::class)->sendCode($this);
+    }
+
     public function profile(): HasOne
     {
         return $this->hasOne(Profile::class);

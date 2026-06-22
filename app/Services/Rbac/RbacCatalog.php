@@ -20,6 +20,9 @@ final class RbacCatalog
         return [
             'view_news',
             'manage_news',
+            'manage_media',
+            'manage_regulations',
+            'manage_governance',
             'manage_programs',
             'manage_partners',
             'approve_registrations',
@@ -109,6 +112,9 @@ final class RbacCatalog
         $map = [
             'view_news' => 'عرض الأخبار',
             'manage_news' => 'إدارة الأخبار',
+            'manage_media' => 'إدارة المركز الإعلامي (الصور)',
+            'manage_regulations' => 'إدارة اللوائح والأنظمة',
+            'manage_governance' => 'إدارة الحوكمة',
             'manage_partners' => 'إدارة الشركاء',
             'manage_programs' => 'إدارة البرامج',
             'manage_roles' => 'إدارة أدوار المستخدمين',
@@ -239,11 +245,12 @@ final class RbacCatalog
         )));
 
         $media = [
-            'view_news', 'manage_news', 'view_notifications', 'emails.send', 'statistics.view',
+            'view_news', 'manage_news', 'manage_media', 'view_notifications', 'emails.send', 'statistics.view',
         ];
 
         $prOnly = [
-            'manage_partners', 'view_notifications', 'emails.send', 'statistics.view',
+            'manage_partners', 'manage_regulations', 'manage_governance',
+            'view_notifications', 'emails.send', 'statistics.view',
         ];
 
         $mediaPrLegacy = array_values(array_unique([...$media, ...$prOnly]));

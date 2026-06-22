@@ -38,7 +38,8 @@ class VolunteerHourPolicy
             return FilamentAssignmentVisibility::userManagesVolunteerOpportunity($user, $volunteerHour->opportunity);
         }
 
-        return true;
+        // رفض افتراضي: من لا ينطبق عليه دور مُحدّد لا يرى سجلات غيره.
+        return false;
     }
 
     public function create(User $user): bool

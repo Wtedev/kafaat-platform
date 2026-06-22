@@ -166,6 +166,11 @@ final class FilamentAssignmentVisibility
             $query->whereHas('opportunity', function (Builder $q) use ($viewer): void {
                 $q->where('assigned_to', $viewer->id);
             });
+
+            return;
         }
+
+        // رفض افتراضي: من لا ينطبق عليه دور مُحدّد لا يرى إلا سجلاته الخاصة.
+        $query->where($query->getModel()->getTable().'.user_id', $viewer->id);
     }
 }

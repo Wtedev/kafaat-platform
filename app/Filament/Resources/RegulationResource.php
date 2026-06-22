@@ -55,7 +55,7 @@ class RegulationResource extends Resource
 
     public static function canCreate(): bool
     {
-        return auth()->user()?->can('manage_regulations') || auth()->user()?->hasRole(['super_admin', 'admin']) ?? false;
+        return static::canViewAny();
     }
 
     public static function canEdit($record): bool
