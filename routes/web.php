@@ -114,6 +114,9 @@ Route::middleware(['auth', 'otp.verified', 'beneficiary'])
         Route::get('/', PortalDashboardController::class)->name('dashboard');
 
         Route::get('/notifications', [PortalInboxController::class, 'index'])->name('notifications');
+        Route::get('/notifications/settings', [PortalInboxController::class, 'settings'])->name('notifications.settings');
+        Route::patch('/notifications/settings', [PortalInboxController::class, 'updateSettings'])->name('notifications.settings.update');
+        Route::post('/notifications/prefs-ack', [PortalInboxController::class, 'acknowledgePrefs'])->name('notifications.prefs-ack');
         Route::post('/notifications/read-all', [PortalInboxController::class, 'markAllRead'])->name('notifications.read-all');
         Route::post('/notifications/{notification}/read', [PortalInboxController::class, 'markRead'])
             ->name('notifications.read');

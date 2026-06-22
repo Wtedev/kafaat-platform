@@ -16,11 +16,17 @@ use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
+use App\Notifications\InboxNotificationEmail;
+use App\Services\EmailLogService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class InboxNotificationService
 {
+    public function __construct(
+        private readonly EmailLogService $emailLog,
+    ) {}
+
     public function unreadCount(User $user): int
     {
         return InboxNotification::query()
@@ -72,6 +78,56 @@ class InboxNotificationService
         foreach (array_chunk($rows, 250) as $chunk) {
             DB::table((new InboxNotification)->getTable())->insert($chunk);
         }
+
+        if ($message->emailable) {
+            $this->dispatchEmails($message, $ids->all());
+        }
+    }
+
+    /**
+     * يرسل نسخة بريدية لكل مستلم فعّل خيار البريد (notify_email)، عبر طابور المهام.
+     *
+     * @param  list<int>  $recipientUserIds
+     */
+    private function dispatchEmails(NotificationMessage $message, array $recipientUserIds): void
+    {
+        if ($recipientUserIds === []) {
+            return;
+        }
+
+        $sentBy = $message->senderId !== null
+            ? User::query()->find($message->senderId)
+            : null;
+
+        User::query()
+            ->where(fn ($q) => $q->whereIn('id', $recipientUserIds))
+            ->where('notify_email', true)
+            ->whereNotNull('email')
+            ->select(['id', 'name', 'email', 'role_type', 'notify_email'])
+            ->chunkById(200, function (Collection $users) use ($message, $sentBy): void {
+                foreach ($users as $user) {
+                    if (! $user->wantsEmailNotifications()) {
+                        continue;
+                    }
+
+                    $this->emailLog->send(
+                        recipient: $user,
+                        notification: new InboxNotificationEmail(
+                            titleText: $message->title,
+                            bodyText: $message->message,
+                            actionUrl: $this->emailActionUrl($user),
+                        ),
+                        templateKey: 'inbox.'.$message->type->value,
+                        subject: $message->title,
+                        sentBy: $sentBy,
+                    );
+                }
+            });
+    }
+
+    private function emailActionUrl(User $user): ?string
+    {
+        return $user->isPortalUser() ? route('portal.notifications') : null;
     }
 
     /**
@@ -174,6 +230,7 @@ class InboxNotificationService
             senderId: $approver?->id,
             targetType: NotificationTargetType::SingleUser,
             context: self::inboxContext('training_program', (int) $program->getKey()),
+            emailable: false,
         );
         $this->dispatch($msg, [$recipient->id]);
     }
@@ -192,6 +249,7 @@ class InboxNotificationService
             senderId: $rejector?->id,
             targetType: NotificationTargetType::SingleUser,
             context: self::inboxContext('training_program', (int) $program->getKey()),
+            emailable: false,
         );
         $this->dispatch($msg, [$recipient->id]);
     }
@@ -205,6 +263,7 @@ class InboxNotificationService
             senderId: $approver?->id,
             targetType: NotificationTargetType::SingleUser,
             context: self::inboxContext('learning_path', (int) $path->getKey()),
+            emailable: false,
         );
         $this->dispatch($msg, [$recipient->id]);
     }
@@ -223,6 +282,7 @@ class InboxNotificationService
             senderId: $rejector?->id,
             targetType: NotificationTargetType::SingleUser,
             context: self::inboxContext('learning_path', (int) $path->getKey()),
+            emailable: false,
         );
         $this->dispatch($msg, [$recipient->id]);
     }
@@ -236,6 +296,7 @@ class InboxNotificationService
             senderId: $approver?->id,
             targetType: NotificationTargetType::SingleUser,
             context: self::inboxContext('volunteer_opportunity', (int) $opportunity->getKey()),
+            emailable: false,
         );
         $this->dispatch($msg, [$recipient->id]);
     }
@@ -254,6 +315,7 @@ class InboxNotificationService
             senderId: $rejector?->id,
             targetType: NotificationTargetType::SingleUser,
             context: self::inboxContext('volunteer_opportunity', (int) $opportunity->getKey()),
+            emailable: false,
         );
         $this->dispatch($msg, [$recipient->id]);
     }

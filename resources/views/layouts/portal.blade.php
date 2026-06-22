@@ -89,6 +89,15 @@
                     </span>
                     <span class="hidden sm:inline">التنبيهات</span>
                 </a>
+                @php $portalNotifSettingsActive = (request()->route()?->getName() ?? '') === 'portal.notifications.settings'; @endphp
+                <a
+                    href="{{ route('portal.notifications.settings') }}"
+                    class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#253B5B]/25 sm:h-auto sm:rounded-2xl sm:px-2.5 sm:py-2 {{ $portalNotifSettingsActive ? 'bg-white text-[#253B5B] shadow-[0_2px_12px_-2px_rgba(37,59,91,0.15)] ring-1 ring-slate-200/70' : 'text-slate-500 hover:bg-white/80 hover:text-[#253B5B] hover:shadow-sm hover:ring-1 hover:ring-slate-200/50' }}"
+                    aria-label="إعدادات التنبيهات"
+                    @if ($portalNotifSettingsActive) aria-current="page" @endif
+                >
+                    <svg class="h-[1.3rem] w-[1.3rem] sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </a>
                 <x-portal.external-nav />
                 <div class="hidden min-w-0 items-center gap-2 sm:flex lg:hidden">
                     <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white" style="background:#253B5B">
@@ -110,6 +119,10 @@
     </header>
 
     <div id="portal-overlay" class="fixed inset-0 z-30 hidden bg-black/40 lg:hidden" aria-hidden="true"></div>
+
+    @if (auth()->check() && auth()->user()->notification_prefs_set_at === null)
+        @include('portal.partials.notification-prefs-modal')
+    @endif
 
     <div class="mx-auto flex max-w-7xl gap-6 px-4 py-4 sm:px-6 lg:gap-8 lg:px-8 lg:py-6">
         @php

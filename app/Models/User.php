@@ -33,6 +33,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'phone',
         'staff_photo',
         'is_active',
+        'notify_email',
+        'notification_prefs_set_at',
         'last_login_at',
     ];
 
@@ -48,6 +50,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             'last_login_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'notify_email' => 'boolean',
+            'notification_prefs_set_at' => 'datetime',
         ];
     }
 
@@ -57,6 +61,22 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function sendEmailVerificationNotification(): void
     {
         app(\App\Services\Auth\EmailVerificationCodeService::class)->sendCode($this);
+    }
+
+    /**
+     * هل يرغب المستخدم باستقبال نسخة بريدية من التنبيهات؟ (داخل الموقع دائماً مفعّل).
+     */
+    public function wantsEmailNotifications(): bool
+    {
+        return (bool) $this->notify_email && filled($this->email);
+    }
+
+    /**
+     * هل ضبط المستخدم تفضيلات التنبيهات؟ (لإظهار النافذة العائمة مرة واحدة).
+     */
+    public function hasConfiguredNotificationPrefs(): bool
+    {
+        return $this->notification_prefs_set_at !== null;
     }
 
     public function profile(): HasOne

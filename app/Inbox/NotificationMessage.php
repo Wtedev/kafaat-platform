@@ -12,6 +12,7 @@ final readonly class NotificationMessage
 {
     /**
      * @param  array<string, mixed>|null  $context  روابط الإجراءات في لوحة الإدارة (مفتاح resource + id).
+     * @param  bool  $emailable  هل تُرسل نسخة بريدية عامة؟ (false للأنواع التي لها بريد مخصّص مسبقاً لتفادي الازدواج).
      */
     public function __construct(
         public InboxNotificationType $type,
@@ -20,6 +21,7 @@ final readonly class NotificationMessage
         public ?int $senderId,
         public NotificationTargetType $targetType,
         public ?array $context = null,
+        public bool $emailable = true,
     ) {}
 
     /**

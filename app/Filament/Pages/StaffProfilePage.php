@@ -6,6 +6,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Actions;
@@ -60,6 +61,7 @@ class StaffProfilePage extends Page
             'email' => $user->email,
             'phone' => $user->phone,
             'staff_photo' => $user->staff_photo,
+            'notify_email' => (bool) $user->notify_email,
             'password' => '',
             'password_confirmation' => '',
         ]);
@@ -121,6 +123,15 @@ class StaffProfilePage extends Page
                 ])
                 ->columns(2),
 
+            Section::make('تفضيلات التنبيهات')
+                ->description('تظهر التنبيهات دائماً داخل لوحة الإدارة. يمكنك تفعيل أو إيقاف نسخة البريد الإلكتروني.')
+                ->schema([
+                    Toggle::make('notify_email')
+                        ->label('استقبال التنبيهات عبر البريد الإلكتروني')
+                        ->default(true)
+                        ->columnSpanFull(),
+                ]),
+
             Section::make('تغيير كلمة المرور')
                 ->description('اترك الحقول فارغة إذا لم ترغب بتغيير كلمة المرور.')
                 ->schema([
@@ -175,6 +186,7 @@ class StaffProfilePage extends Page
         $user->staff_photo = isset($state['staff_photo']) && $state['staff_photo'] !== ''
             ? (string) $state['staff_photo']
             : null;
+        $user->notify_email = (bool) ($state['notify_email'] ?? false);
 
         if ($password !== '') {
             $user->password = $password;
@@ -192,6 +204,7 @@ class StaffProfilePage extends Page
             'email' => $user->email,
             'phone' => $user->phone,
             'staff_photo' => $user->staff_photo,
+            'notify_email' => (bool) $user->notify_email,
             'password' => '',
             'password_confirmation' => '',
         ]);
