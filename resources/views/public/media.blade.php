@@ -1,6 +1,7 @@
 @extends('layouts.public')
 
 @section('title', 'المركز الإعلامي — كفاءات')
+@section('meta_description', 'تابع آخر أخبار جمعية كفاءات وتصفّح مكتبة الصور من فعالياتنا وبرامجنا التدريبية والتطوعية.')
 
 @section('head')
 <style>
@@ -24,6 +25,9 @@
     }
     .media-tab-panel { display: none; }
     .media-tab-panel.active { display: block; }
+    /* Progressive enhancement: بدون جافاسكربت تظهر كل اللوحات */
+    .no-js .media-tab-panel { display: block; }
+    .no-js .media-tab-nav { display: none; }
 
     .news-card {
         transition: transform 0.25s cubic-bezier(.22,1,.36,1), box-shadow 0.25s cubic-bezier(.22,1,.36,1);
@@ -61,23 +65,32 @@
 </div>
 
 {{-- Tabs Navigation --}}
-<div class="mb-8 border-b border-gray-200">
-    <div class="flex gap-1">
+<div class="mb-8 border-b border-gray-200 media-tab-nav">
+    <div class="flex gap-1" role="tablist" aria-label="أقسام المركز الإعلامي">
         <button class="media-tab-btn active px-5 py-3 text-sm font-medium rounded-t-xl hover:bg-gray-50"
                 style="color:#253B5B"
-                onclick="switchMediaTab('news', this)">
+                role="tab"
+                id="media-tabbtn-news"
+                aria-selected="true"
+                aria-controls="media-tab-news"
+                data-tab="news">
             الأخبار
         </button>
         <button class="media-tab-btn px-5 py-3 text-sm font-medium rounded-t-xl hover:bg-gray-50"
                 style="color:#6B7280"
-                onclick="switchMediaTab('photos', this)">
+                role="tab"
+                id="media-tabbtn-photos"
+                aria-selected="false"
+                aria-controls="media-tab-photos"
+                tabindex="-1"
+                data-tab="photos">
             الصور
         </button>
     </div>
 </div>
 
 {{-- ── News Tab ── --}}
-<div id="media-tab-news" class="media-tab-panel active">
+<div id="media-tab-news" class="media-tab-panel active" role="tabpanel" aria-labelledby="media-tabbtn-news">
     @if($news->isEmpty())
     <div class="text-center py-20">
         <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:#EAF2FA">
@@ -95,6 +108,7 @@
             <div class="h-44 overflow-hidden bg-gray-100">
                 <img src="{{ $item->imagePublicUrl() }}"
                      alt="{{ $item->title }}"
+                     loading="lazy"
                      class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
             </div>
             <div class="p-5 flex flex-col flex-1">
@@ -134,7 +148,7 @@
 </div>
 
 {{-- ── Photos Tab ── --}}
-<div id="media-tab-photos" class="media-tab-panel">
+<div id="media-tab-photos" class="media-tab-panel" role="tabpanel" aria-labelledby="media-tabbtn-photos">
     @if($photos->isEmpty())
     <div class="text-center py-20">
         <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:#EAF2FA">
@@ -155,17 +169,21 @@
 
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             @foreach($albumPhotos as $photo)
-            <div class="relative rounded-xl overflow-hidden bg-gray-100 aspect-square">
+            <button type="button"
+                    class="relative rounded-xl overflow-hidden bg-gray-100 aspect-square block w-full text-right js-photo"
+                    data-src="{{ $photo->imagePublicUrl() }}"
+                    data-caption="{{ $photo->title }}"
+                    aria-label="عرض الصورة: {{ $photo->title }}">
                 <img src="{{ $photo->imagePublicUrl() }}"
                      alt="{{ $photo->title }}"
-                     class="photo-thumb w-full h-full object-cover"
-                     onclick="openLightbox('{{ $photo->imagePublicUrl() }}', '{{ e($photo->title) }}')" />
+                     loading="lazy"
+                     class="photo-thumb w-full h-full object-cover" />
                 @if($photo->caption)
-                <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                    <p class="text-white text-xs leading-tight truncate">{{ $photo->caption }}</p>
-                </div>
+                <span class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-2 block">
+                    <span class="text-white text-xs leading-tight truncate block">{{ $photo->caption }}</span>
+                </span>
                 @endif
-            </div>
+            </button>
             @endforeach
         </div>
     </div>
@@ -174,9 +192,9 @@
 </div>
 
 {{-- Lightbox --}}
-<div id="lb-overlay" class="hidden" onclick="closeLightbox()">
-    <button onclick="closeLightbox()" class="absolute top-4 left-4 text-white text-3xl font-bold leading-none hover:opacity-70 z-10" aria-label="إغلاق">×</button>
-    <div onclick="event.stopPropagation()" class="flex flex-col items-center gap-3">
+<div id="lb-overlay" class="hidden" role="dialog" aria-modal="true" aria-label="عارض الصور">
+    <button type="button" id="lb-close" class="absolute top-4 left-4 text-white text-3xl font-bold leading-none hover:opacity-70 z-10" aria-label="إغلاق">×</button>
+    <div class="flex flex-col items-center gap-3">
         <img id="lb-img" src="" alt="" />
         <p id="lb-caption" class="text-white text-sm opacity-80"></p>
     </div>
@@ -186,45 +204,74 @@
 
 @section('scripts')
 <script>
-function switchMediaTab(key, btn) {
-    document.querySelectorAll('.media-tab-panel').forEach(function(el) {
-        el.classList.remove('active');
-    });
-    document.querySelectorAll('.media-tab-btn').forEach(function(el) {
-        el.classList.remove('active');
-        el.style.color = '#6B7280';
-    });
-    var panel = document.getElementById('media-tab-' + key);
-    if (panel) panel.classList.add('active');
-    if (btn) {
-        btn.classList.add('active');
-        btn.style.color = '#253B5B';
+(function () {
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('.media-tab-btn'));
+
+    function switchMediaTab(key) {
+        document.querySelectorAll('.media-tab-panel').forEach(function (el) {
+            el.classList.remove('active');
+        });
+        tabs.forEach(function (el) {
+            var isActive = el.getAttribute('data-tab') === key;
+            el.classList.toggle('active', isActive);
+            el.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            el.setAttribute('tabindex', isActive ? '0' : '-1');
+            el.style.color = isActive ? '#253B5B' : '#6B7280';
+        });
+        var panel = document.getElementById('media-tab-' + key);
+        if (panel) panel.classList.add('active');
     }
-}
 
-function openLightbox(src, caption) {
-    document.getElementById('lb-img').src = src;
-    document.getElementById('lb-caption').textContent = caption || '';
-    document.getElementById('lb-overlay').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-}
+    tabs.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            switchMediaTab(btn.getAttribute('data-tab'));
+        });
+    });
 
-function closeLightbox() {
-    document.getElementById('lb-overlay').classList.add('hidden');
-    document.getElementById('lb-img').src = '';
-    document.body.style.overflow = '';
-}
+    // Lightbox
+    var overlay = document.getElementById('lb-overlay');
+    var lbImg = document.getElementById('lb-img');
+    var lbCaption = document.getElementById('lb-caption');
+    var lbClose = document.getElementById('lb-close');
+    var lastFocused = null;
 
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeLightbox();
-});
+    function openLightbox(src, caption) {
+        lastFocused = document.activeElement;
+        lbImg.src = src;
+        lbImg.alt = caption || '';
+        lbCaption.textContent = caption || '';
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        lbClose.focus();
+    }
 
-// Support URL hash tab switching
-(function() {
+    function closeLightbox() {
+        overlay.classList.add('hidden');
+        lbImg.src = '';
+        document.body.style.overflow = '';
+        if (lastFocused && typeof lastFocused.focus === 'function') {
+            lastFocused.focus();
+        }
+    }
+
+    document.querySelectorAll('.js-photo').forEach(function (el) {
+        el.addEventListener('click', function () {
+            openLightbox(el.getAttribute('data-src'), el.getAttribute('data-caption'));
+        });
+    });
+
+    lbClose.addEventListener('click', closeLightbox);
+    overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) closeLightbox();
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !overlay.classList.contains('hidden')) closeLightbox();
+    });
+
+    // Support URL hash tab switching
     var hash = window.location.hash.replace('#', '');
-    if (hash === 'photos') {
-        var btn = document.querySelector('[onclick*="photos"]');
-        if (btn) switchMediaTab('photos', btn);
+    if (hash === 'photos' || hash === 'news') {
+        switchMediaTab(hash);
     }
 })();
 </script>

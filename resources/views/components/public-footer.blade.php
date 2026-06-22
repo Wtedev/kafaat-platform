@@ -82,8 +82,8 @@
                     @endif
                     @endguest
                     <li><a href="{{ route('home') }}#faq" class="text-gray-400 transition-colors hover:text-white">الأسئلة الشائعة</a></li>
-                    <li><a href="#" class="text-gray-400 transition-colors hover:text-white">سياسة الخصوصية</a></li>
-                    <li><a href="#" class="text-gray-400 transition-colors hover:text-white">الشروط والأحكام</a></li>
+                    <li><a href="{{ route('public.privacy') }}" class="text-gray-400 transition-colors hover:text-white">سياسة الخصوصية</a></li>
+                    <li><a href="{{ route('public.terms') }}" class="text-gray-400 transition-colors hover:text-white">الشروط والأحكام</a></li>
                 </ul>
             </div>
 
@@ -182,8 +182,8 @@
         <div class="mt-14 flex flex-col items-center gap-4 border-t border-white/10 pt-8 text-center text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:text-right">
             <p class="leading-relaxed">© {{ date('Y') }} كفاءات. جميع الحقوق محفوظة.</p>
             <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:justify-end">
-                <a href="#" class="font-medium text-gray-400 transition-colors hover:text-white">سياسة الخصوصية</a>
-                <a href="#" class="font-medium text-gray-400 transition-colors hover:text-white">الشروط والأحكام</a>
+                <a href="{{ route('public.privacy') }}" class="font-medium text-gray-400 transition-colors hover:text-white">سياسة الخصوصية</a>
+                <a href="{{ route('public.terms') }}" class="font-medium text-gray-400 transition-colors hover:text-white">الشروط والأحكام</a>
             </div>
         </div>
     </div>

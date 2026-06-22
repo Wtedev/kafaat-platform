@@ -1,6 +1,7 @@
 @extends('layouts.public')
 
 @section('title', 'الحوكمة — كفاءات')
+@section('meta_description', 'نلتزم في جمعية كفاءات بأعلى معايير الحوكمة والشفافية. تصفّح وثائق الجمعية وتقاريرها التنفيذية والمالية وهيكلها التنظيمي.')
 
 @section('head')
 <style>
@@ -25,6 +26,11 @@
     }
     .gov-tab-panel { display: none; }
     .gov-tab-panel.active { display: block; }
+    /* Progressive enhancement: بدون جافاسكربت تظهر كل اللوحات بعناوينها */
+    .no-js .gov-tab-panel { display: block; margin-bottom: 2.5rem; }
+    .no-js .gov-tabs-nav { display: none; }
+    .no-js .gov-panel-heading { display: block; }
+    .gov-panel-heading { display: none; }
 
     .doc-card {
         transition: transform 0.25s cubic-bezier(.22,1,.36,1), box-shadow 0.25s cubic-bezier(.22,1,.36,1);
@@ -54,28 +60,24 @@
     </p>
 </div>
 
-{{-- Tabs Navigation --}}
+{{-- Tabs Navigation — مصدر التسميات الموحّد: GovernanceDocument::TYPES --}}
 @php
-$tabs = [
-    'board'                   => 'أعضاء مجلس الإدارة',
-    'organizational_structure'=> 'الهيكل التنظيمي',
-    'investment_decisions'    => 'القرارات الاستثمارية',
-    'general_assembly_minutes'=> 'محاضر الجمعية العمومية',
-    'surveys'                 => 'استطلاعات',
-    'executive_reports'       => 'التقارير التنفيذية',
-    'financial_reports'       => 'التقارير المالية',
-];
+$tabs = array_merge(['board' => 'أعضاء مجلس الإدارة'], \App\Models\GovernanceDocument::TYPES);
 @endphp
 
-<div class="mb-8 border-b border-gray-200">
+<div class="mb-8 border-b border-gray-200 gov-tabs-nav">
     <div class="overflow-x-auto">
-        <div class="flex gap-1 min-w-max pb-0.5" id="gov-tabs-nav">
+        <div class="flex gap-1 min-w-max pb-0.5" id="gov-tabs-nav" role="tablist" aria-label="أقسام الحوكمة">
             @foreach($tabs as $key => $label)
             <button
                 class="gov-tab-btn px-4 py-3 text-sm font-medium rounded-t-xl hover:bg-gray-50 {{ $loop->first ? 'active' : '' }}"
-                style="color:#6B7280"
-                data-tab="{{ $key }}"
-                onclick="switchGovTab('{{ $key }}', this)">
+                style="color:{{ $loop->first ? '#253B5B' : '#6B7280' }}"
+                role="tab"
+                id="gov-tabbtn-{{ $key }}"
+                aria-controls="tab-{{ $key }}"
+                aria-selected="{{ $loop->first ? 'true' : 'false' }}"
+                tabindex="{{ $loop->first ? '0' : '-1' }}"
+                data-tab="{{ $key }}">
                 {{ $label }}
             </button>
             @endforeach
@@ -86,7 +88,8 @@ $tabs = [
 {{-- Tab Panels --}}
 
 {{-- Board Members --}}
-<div id="tab-board" class="gov-tab-panel active">
+<div id="tab-board" class="gov-tab-panel active" role="tabpanel" aria-labelledby="gov-tabbtn-board">
+    <h2 class="gov-panel-heading text-xl font-bold mb-5" style="color:#111827">{{ $tabs['board'] }}</h2>
     @if($boardMembers->isEmpty())
     <div class="text-center py-20">
         <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:#EAF2FA">
@@ -124,8 +127,9 @@ $tabs = [
 </div>
 
 {{-- Document-based tabs --}}
-@foreach(['organizational_structure','investment_decisions','general_assembly_minutes','surveys','executive_reports','financial_reports'] as $type)
-<div id="tab-{{ $type }}" class="gov-tab-panel">
+@foreach(\App\Models\GovernanceDocument::TYPES as $type => $typeLabel)
+<div id="tab-{{ $type }}" class="gov-tab-panel" role="tabpanel" aria-labelledby="gov-tabbtn-{{ $type }}">
+    <h2 class="gov-panel-heading text-xl font-bold mb-5" style="color:#111827">{{ $typeLabel }}</h2>
     @php $docs = $documents[$type] ?? collect(); @endphp
     @if($docs->isEmpty())
     <div class="text-center py-20">
@@ -184,32 +188,47 @@ $tabs = [
 
 @section('scripts')
 <script>
-function switchGovTab(key, btn) {
-    // Hide all panels
-    document.querySelectorAll('.gov-tab-panel').forEach(function(el) {
-        el.classList.remove('active');
-    });
-    // Deactivate all tabs
-    document.querySelectorAll('.gov-tab-btn').forEach(function(el) {
-        el.classList.remove('active');
-        el.style.color = '#6B7280';
-    });
-    // Show selected panel
-    var panel = document.getElementById('tab-' + key);
-    if (panel) panel.classList.add('active');
-    // Activate selected tab
-    if (btn) {
-        btn.classList.add('active');
-        btn.style.color = '#253B5B';
-    }
-}
+(function () {
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('.gov-tab-btn'));
 
-// Support deep-linking via URL hash
-(function() {
+    function switchGovTab(key) {
+        document.querySelectorAll('.gov-tab-panel').forEach(function (el) {
+            el.classList.remove('active');
+        });
+        tabs.forEach(function (el) {
+            var isActive = el.getAttribute('data-tab') === key;
+            el.classList.toggle('active', isActive);
+            el.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            el.setAttribute('tabindex', isActive ? '0' : '-1');
+            el.style.color = isActive ? '#253B5B' : '#6B7280';
+        });
+        var panel = document.getElementById('tab-' + key);
+        if (panel) panel.classList.add('active');
+    }
+
+    tabs.forEach(function (btn, index) {
+        btn.addEventListener('click', function () {
+            switchGovTab(btn.getAttribute('data-tab'));
+        });
+        // التنقّل بالأسهم بين التبويبات (a11y)
+        btn.addEventListener('keydown', function (e) {
+            var dir = 0;
+            if (e.key === 'ArrowLeft') dir = 1;       // RTL: يسار = التالي
+            else if (e.key === 'ArrowRight') dir = -1; // RTL: يمين = السابق
+            else return;
+            e.preventDefault();
+            var next = tabs[(index + dir + tabs.length) % tabs.length];
+            if (next) {
+                switchGovTab(next.getAttribute('data-tab'));
+                next.focus();
+            }
+        });
+    });
+
+    // Support deep-linking via URL hash
     var hash = window.location.hash.replace('#', '');
-    if (hash) {
-        var btn = document.querySelector('[data-tab="' + hash + '"]');
-        if (btn) switchGovTab(hash, btn);
+    if (hash && document.getElementById('tab-' + hash)) {
+        switchGovTab(hash);
     }
 })();
 </script>

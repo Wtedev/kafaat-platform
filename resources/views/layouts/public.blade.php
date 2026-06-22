@@ -1,24 +1,18 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="no-js">
 <head>
+    <script>document.documentElement.classList.replace('no-js', 'js');</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>@yield('title', 'كفاءات')</title>
+    <meta name="description" content="@yield('meta_description', 'كفاءات منصة تدريب وتطوع متكاملة لبناء قدرات الشباب من خلال المسارات التدريبية والبرامج والفرص التطوعية والشهادات المعتمدة.')" />
+    <meta property="og:title" content="@yield('title', 'كفاءات')" />
+    <meta property="og:description" content="@yield('meta_description', 'كفاءات منصة تدريب وتطوع متكاملة لبناء قدرات الشباب.')" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="{{ url()->current() }}" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['IBM Plex Sans Arabic', 'Tajawal', 'sans-serif']
-                    }
-                }
-            }
-        }
-
-    </script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

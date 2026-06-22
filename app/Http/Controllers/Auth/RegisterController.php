@@ -8,6 +8,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
@@ -26,18 +27,21 @@ class RegisterController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role_type' => 'beneficiary',
-            'is_active' => true,
-        ]);
+        $user = DB::transaction(function () use ($validated): User {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role_type' => 'beneficiary',
+                'is_active' => true,
+            ]);
 
-        $user->assignRole('trainee');
+            $user->assignRole('trainee');
 
-        // Create empty profile
-        $user->profile()->create();
+            $user->profile()->create();
+
+            return $user;
+        });
 
         event(new Registered($user));
 
@@ -45,6 +49,6 @@ class RegisterController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->route('portal.dashboard');
+        return redirect()->route('verification.notice');
     }
 }

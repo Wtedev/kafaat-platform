@@ -15,7 +15,7 @@ class EnsureAdminOrStaff
         }
 
         if (! $request->user()->isAdminOrStaff()) {
-            abort(403, 'Access restricted to administrators and staff.');
+            abort(403, 'هذه الصفحة مخصصة للمسؤولين والموظفين فقط.');
         }
 
         return $next($request);

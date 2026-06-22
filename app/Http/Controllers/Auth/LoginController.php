@@ -55,6 +55,11 @@ class LoginController extends Controller
             return redirect('/admin');
         }
 
+        // توجيه المستفيد لتأكيد البريد إذا لم يتحقق بعد
+        if (! $user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice');
+        }
+
         return redirect()->route('portal.dashboard');
     }
 }

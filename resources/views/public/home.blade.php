@@ -11,20 +11,7 @@
     <title>كفاءات — منصة التدريب والتطوع والشهادات</title>
     <meta name="description" content="كفاءات منصة تدريب وتطوع متكاملة لبناء قدرات الشباب من خلال المسارات التدريبية والبرامج والفرص التطوعية والشهادات المعتمدة." />
 
-    {{-- CDN Tailwind Play (supports arbitrary values & JIT) --}}
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['IBM Plex Sans Arabic', 'Tajawal', 'sans-serif']
-                    }
-                }
-            }
-        }
-
-    </script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     {{-- Fonts: IBM Plex Sans Arabic (primary) + Tajawal (fallback) --}}
     <link rel="preconnect" href="https://fonts.googleapis.com" />

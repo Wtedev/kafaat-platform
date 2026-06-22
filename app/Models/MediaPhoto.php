@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Support\PublicDiskPath;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 
 class MediaPhoto extends Model
 {
@@ -32,6 +32,6 @@ class MediaPhoto extends Model
 
     public function imagePublicUrl(): string
     {
-        return Storage::disk('public')->url($this->image);
+        return PublicDiskPath::urlOrPlaceholder($this->image ?? null);
     }
 }

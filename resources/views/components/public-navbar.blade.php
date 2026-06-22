@@ -20,6 +20,18 @@ $hasMedia       = Route::has('public.media.index');
             {{-- Desktop Nav --}}
             <nav class="hidden lg:flex items-center gap-6 text-sm font-medium" style="color:#6B7280">
 
+                <a href="{{ route('home') }}"
+                   class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('home') ? 'font-semibold' : '' }}"
+                   @if(request()->routeIs('home')) style="color:#253B5B" @endif>
+                    الرئيسية
+                </a>
+
+                <a href="{{ route('impact.index') }}"
+                   class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('impact.index') ? 'font-semibold' : '' }}"
+                   @if(request()->routeIs('impact.index')) style="color:#253B5B" @endif>
+                    عام الأثر
+                </a>
+
                 <a href="{{ $aboutHref }}"
                    class="hover:text-[#253B5B] transition-colors">
                     عن كفاءات
@@ -91,6 +103,8 @@ $hasMedia       = Route::has('public.media.index');
     {{-- Mobile Menu --}}
     <div id="pub-mobile-nav" class="hidden lg:hidden border-t border-gray-100 bg-white shadow-lg">
         <nav class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
+            <a href="{{ route('home') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#EAF2FA] hover:text-[#253B5B] transition-colors text-right">الرئيسية</a>
+            <a href="{{ route('impact.index') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#EAF2FA] hover:text-[#253B5B] transition-colors text-right">عام الأثر</a>
             <a href="{{ $aboutHref }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#EAF2FA] hover:text-[#253B5B] transition-colors text-right">عن كفاءات</a>
             <a href="{{ route('public.programs.index') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#EAF2FA] hover:text-[#253B5B] transition-colors text-right">البرامج</a>
             @if($hasRegulations)

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\VolunteerHoursStatus;
 use App\Services\Rbac\RbacCatalog;
 use App\Services\Rbac\RbacService;
@@ -20,7 +20,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable;
@@ -123,7 +123,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function isAdmin(): bool
     {
-        return $this->role_type === 'admin';
+        return $this->role_type === 'admin' || $this->hasRole('admin');
     }
 
     /**
@@ -135,7 +135,7 @@ class User extends Authenticatable implements FilamentUser
             return true;
         }
 
-        $adminEmail = env('ADMIN_EMAIL');
+        $adminEmail = config('app.admin_email');
 
         return filled($adminEmail) && strcasecmp((string) $this->email, (string) $adminEmail) === 0;
     }
@@ -234,6 +234,11 @@ class User extends Authenticatable implements FilamentUser
     {
         if (! $this->is_active) {
             return false;
+        }
+
+        // role_type يكفي وحده لمنح الوصول، دون الحاجة لـ Spatie role
+        if (in_array($this->role_type, ['admin', 'staff'], true)) {
+            return true;
         }
 
         return $this->hasAnyRole([

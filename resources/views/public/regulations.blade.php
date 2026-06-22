@@ -1,6 +1,7 @@
 @extends('layouts.public')
 
 @section('title', 'اللوائح والأنظمة — كفاءات')
+@section('meta_description', 'تعرّف على اللوائح والأنظمة التي تحكم عمل جمعية كفاءات وتضمن الشفافية والمساءلة في جميع مستوياتها.')
 
 @section('head')
 <style>

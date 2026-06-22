@@ -14,7 +14,10 @@ use App\Policies\UserPolicy;
 use App\Services\Inbox\InboxNotificationService;
 use App\Services\News\NewsPublicationService;
 use App\Services\Rbac\RbacService;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -34,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureRateLimiting();
+
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Profile::class, ProfilePolicy::class);
         Gate::policy(InboxNotification::class, InboxNotificationPolicy::class);
@@ -56,6 +61,42 @@ class AppServiceProvider extends ServiceProvider
                 'portalInboxUnreadCount',
                 app(InboxNotificationService::class)->unreadCount(auth()->user()),
             );
+        });
+    }
+
+    private function configureRateLimiting(): void
+    {
+        // تسجيل الدخول: 5 محاولات لكل IP كل دقيقة
+        RateLimiter::for('login', function (Request $request): Limit {
+            return Limit::perMinute(5)
+                ->by($request->ip())
+                ->response(function () {
+                    return back()
+                        ->withInput()
+                        ->withErrors(['email' => 'لقد تجاوزت عدد المحاولات المسموح بها. حاول مجدداً بعد دقيقة.']);
+                });
+        });
+
+        // إنشاء الحساب: 3 محاولات لكل IP كل دقيقة
+        RateLimiter::for('register', function (Request $request): Limit {
+            return Limit::perMinute(3)
+                ->by($request->ip())
+                ->response(function () {
+                    return back()
+                        ->withInput()
+                        ->withErrors(['email' => 'لقد تجاوزت عدد طلبات إنشاء الحساب. حاول مجدداً بعد دقيقة.']);
+                });
+        });
+
+        // نسيت كلمة المرور: 5 طلبات لكل IP كل 5 دقائق
+        RateLimiter::for('forgot-password', function (Request $request): Limit {
+            return Limit::perMinutes(5, 5)
+                ->by($request->ip())
+                ->response(function () {
+                    return back()
+                        ->withInput()
+                        ->withErrors(['email' => 'لقد تجاوزت عدد الطلبات المسموح بها. حاول مجدداً بعد قليل.']);
+                });
         });
     }
 }

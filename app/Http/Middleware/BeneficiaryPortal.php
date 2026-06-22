@@ -15,7 +15,7 @@ class BeneficiaryPortal
         }
 
         if (! $request->user()->isPortalUser()) {
-            abort(403, 'Access restricted to beneficiaries.');
+            abort(403, 'هذه الصفحة مخصصة للمستفيدين فقط.');
         }
 
         return $next($request);

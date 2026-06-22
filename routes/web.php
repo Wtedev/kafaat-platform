@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Auth\EmailVerificationController;
+use App\Http\Controllers\Auth\EmailVerificationNoticeController;
+use App\Http\Controllers\Auth\EmailVerificationResendController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
@@ -32,18 +35,29 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
-    Route::post('/login', [LoginController::class, 'store']);
+    Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:login');
     Route::get('/register', [RegisterController::class, 'show'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store']);
+    Route::post('/register', [RegisterController::class, 'store'])->middleware('throttle:register');
 
     // Password Reset
     Route::get('/forgot-password', [ForgotPasswordController::class, 'show'])->name('password.request');
-    Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])->name('password.email');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])->name('password.email')->middleware('throttle:forgot-password');
     Route::get('/reset-password/{token}', [ResetPasswordController::class, 'show'])->name('password.reset');
     Route::post('/reset-password', [ResetPasswordController::class, 'store'])->name('password.store');
 });
 
 Route::post('/logout', LogoutController::class)->middleware('auth')->name('logout');
+
+// Email Verification
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', EmailVerificationNoticeController::class)->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', EmailVerificationController::class)
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
+    Route::post('/email/verification-notification', EmailVerificationResendController::class)
+        ->middleware('throttle:3,1')
+        ->name('verification.send');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/certificates/{certificate}/download', CertificateDownloadController::class)
@@ -87,9 +101,12 @@ Route::get('/governance', PublicGovernanceController::class)->name('public.gover
 
 Route::get('/media', PublicMediaController::class)->name('public.media.index');
 
+Route::view('/privacy', 'public.privacy')->name('public.privacy');
+Route::view('/terms', 'public.terms')->name('public.terms');
+
 // ─── Beneficiary Portal ───────────────────────────────────────────────────────
 
-Route::middleware(['auth', 'beneficiary'])
+Route::middleware(['auth', 'verified', 'beneficiary'])
     ->prefix('portal')
     ->name('portal.')
     ->group(function () {
