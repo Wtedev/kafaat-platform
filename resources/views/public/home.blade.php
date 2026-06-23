@@ -94,6 +94,87 @@
             box-shadow: 0 24px 48px rgba(37, 59, 91, 0.12);
         }
 
+        /* Hero work-area tabs */
+        .hero-tab {
+            flex: 1 1 auto;
+            min-width: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            padding: 0.55rem 0.65rem;
+            border-radius: 0.85rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #6B7280;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+            white-space: nowrap;
+        }
+
+        @media (min-width: 400px) {
+            .hero-tab {
+                font-size: 0.75rem;
+                padding: 0.6rem 0.75rem;
+            }
+        }
+
+        .hero-tab:hover:not(.hero-tab--active):not(.hero-tab--soon-active) {
+            color: #253B5B;
+            background: rgba(255, 255, 255, 0.65);
+        }
+
+        .hero-tab--active {
+            color: #253B5B;
+            background: #fff;
+            box-shadow: 0 4px 14px rgba(37, 59, 91, 0.1);
+        }
+
+        .hero-tab--soon-active {
+            color: #5b21b6;
+            background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);
+            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.12);
+        }
+
+        .hero-soon-badge {
+            font-size: 0.55rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.4rem;
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            color: #6d28d9;
+            line-height: 1.2;
+            animation: soon-pulse 2.4s ease-in-out infinite;
+        }
+
+        @keyframes soon-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.72; }
+        }
+
+        .hero-tab-panel {
+            display: none;
+            animation: hero-tab-in 0.35s cubic-bezier(.22, 1, .36, 1);
+        }
+
+        .hero-tab-panel--active {
+            display: block;
+        }
+
+        @keyframes hero-tab-in {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
     </style>
 </head>
 <body class="bg-[#F7FAFC] text-[#111827] antialiased">
@@ -173,46 +254,85 @@
                                 </div>
                             </div>
 
-                            <div class="flex items-center justify-between pb-4 border-b border-gray-100 px-1 py-0.5 rounded-xl border border-dashed border-gray-200 bg-slate-50/80">
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-violet-100 text-violet-700">قريباً</span>
-                                <div class="text-right min-w-0">
-                                    <p class="text-sm font-bold" style="color:#111827">تدريب سند</p>
-                                    <p class="text-xs mt-0.5" style="color:#6B7280">برنامج تأهيلي جديد</p>
-                                </div>
+                            {{-- تبويبات مجالات العمل --}}
+                            <div class="flex gap-1 p-1 rounded-2xl bg-slate-50/90 border border-gray-100" role="tablist" aria-label="مجالات عمل الجمعية">
+                                <button type="button" role="tab" id="hero-tab-sanad" aria-selected="true" aria-controls="hero-panel-sanad" data-hero-tab="sanad" class="hero-tab hero-tab--soon-active">
+                                    <span>تدريب سند</span>
+                                    <span class="hero-soon-badge">قريباً</span>
+                                </button>
+                                <button type="button" role="tab" id="hero-tab-paths" aria-selected="false" aria-controls="hero-panel-paths" data-hero-tab="paths" class="hero-tab">مسارات</button>
+                                <button type="button" role="tab" id="hero-tab-programs" aria-selected="false" aria-controls="hero-panel-programs" data-hero-tab="programs" class="hero-tab">البرامج</button>
+                                <button type="button" role="tab" id="hero-tab-volunteer" aria-selected="false" aria-controls="hero-panel-volunteer" data-hero-tab="volunteer" class="hero-tab">التطوع</button>
                             </div>
 
-                            <a href="{{ route('public.paths.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-[#c5ddef] hover:bg-[#F8FBFE] transition-all group">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white shadow-sm" style="background:#EAF2FA">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                            <div class="min-h-[11.5rem]">
+                                {{-- تدريب سند — قريباً --}}
+                                <div id="hero-panel-sanad" role="tabpanel" aria-labelledby="hero-tab-sanad" class="hero-tab-panel hero-tab-panel--active">
+                                    <div class="relative overflow-hidden rounded-2xl p-5 text-right border border-violet-100" style="background: linear-gradient(145deg, #faf5ff 0%, #f5f3ff 45%, #ede9fe 100%)">
+                                        <div class="absolute -top-8 -left-8 w-28 h-28 rounded-full opacity-40" style="background: radial-gradient(circle, #c4b5fd, transparent 70%)"></div>
+                                        <div class="relative flex items-start gap-4">
+                                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 bg-white/80 shadow-sm border border-violet-100">
+                                                <svg class="w-6 h-6 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center justify-end gap-2 mb-1.5">
+                                                    <span class="hero-soon-badge">قريباً</span>
+                                                    <h3 class="text-base font-bold text-violet-900">تدريب سند</h3>
+                                                </div>
+                                                <p class="text-sm leading-relaxed text-violet-800/80 mb-3">
+                                                    برنامج تأهيلي متخصّص يُطلَق قريباً لدعم الشباب في مساراتهم المهنية والمجتمعية.
+                                                </p>
+                                                <p class="inline-flex items-center gap-1.5 text-xs font-medium text-violet-700/70">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse"></span>
+                                                    نُجهّز التفاصيل — ترقّب الإعلان
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="flex-1 text-right min-w-0">
-                                    <p class="text-sm font-bold" style="color:#253B5B">مسارات التأهيل</p>
-                                    <p class="text-xs mt-0.5" style="color:#6B7280">رحلات تعليمية متكاملة</p>
-                                </div>
-                                <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity" style="color:#253B5B" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                            </a>
 
-                            <a href="{{ route('public.programs.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group" style="border-color:#dceaf7; background: linear-gradient(145deg, #F8FBFE 0%, #EAF2FA 100%)">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white shadow-sm">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                                {{-- مسارات التأهيل --}}
+                                <div id="hero-panel-paths" role="tabpanel" aria-labelledby="hero-tab-paths" class="hero-tab-panel" hidden>
+                                    <a href="{{ route('public.paths.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-[#c5ddef] hover:bg-[#F8FBFE] transition-all group h-full">
+                                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm" style="background:#EAF2FA">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                                        </div>
+                                        <div class="flex-1 text-right min-w-0">
+                                            <p class="text-sm font-bold" style="color:#253B5B">مسارات التأهيل</p>
+                                            <p class="text-xs mt-0.5 leading-relaxed" style="color:#6B7280">رحلات تعليمية متدرّجة تجمع عدة برامج في مسار تأهيل متكامل.</p>
+                                        </div>
+                                        <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" style="color:#253B5B" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    </a>
                                 </div>
-                                <div class="flex-1 text-right min-w-0">
-                                    <p class="text-sm font-bold" style="color:#253B5B">البرامج</p>
-                                    <p class="text-xs mt-0.5" style="color:#6B7280">دورات وورش ولقاءات</p>
-                                </div>
-                                <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity" style="color:#253B5B" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                            </a>
 
-                            <a href="{{ route('public.volunteering.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-green-200 hover:bg-green-50/50 transition-all group">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-green-50">
-                                    <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                {{-- البرامج --}}
+                                <div id="hero-panel-programs" role="tabpanel" aria-labelledby="hero-tab-programs" class="hero-tab-panel" hidden>
+                                    <a href="{{ route('public.programs.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group h-full" style="border-color:#dceaf7; background: linear-gradient(145deg, #F8FBFE 0%, #EAF2FA 100%)">
+                                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white shadow-sm">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                                        </div>
+                                        <div class="flex-1 text-right min-w-0">
+                                            <p class="text-sm font-bold" style="color:#253B5B">البرامج</p>
+                                            <p class="text-xs mt-0.5 leading-relaxed" style="color:#6B7280">دورات وورش ولقاءات تدريبية متنوّعة في مهارات ومجالات يحددها فريق الجمعية.</p>
+                                        </div>
+                                        <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" style="color:#253B5B" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    </a>
                                 </div>
-                                <div class="flex-1 text-right min-w-0">
-                                    <p class="text-sm font-bold" style="color:#111827">الفرص التطوعية</p>
-                                    <p class="text-xs mt-0.5" style="color:#6B7280">شارك في خدمة المجتمع</p>
+
+                                {{-- الفرص التطوعية --}}
+                                <div id="hero-panel-volunteer" role="tabpanel" aria-labelledby="hero-tab-volunteer" class="hero-tab-panel" hidden>
+                                    <a href="{{ route('public.volunteering.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-green-200 hover:bg-green-50/50 transition-all group h-full">
+                                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-green-50">
+                                            <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        </div>
+                                        <div class="flex-1 text-right min-w-0">
+                                            <p class="text-sm font-bold" style="color:#111827">الفرص التطوعية</p>
+                                            <p class="text-xs mt-0.5 leading-relaxed" style="color:#6B7280">فرص للمشاركة في العمل التطوعي وخدمة المجتمع ضمن مبادرات الجمعية.</p>
+                                        </div>
+                                        <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    </a>
                                 </div>
-                                <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                            </a>
+                            </div>
                         </div>
 
                         <div class="absolute -bottom-4 -left-4 bg-white rounded-2xl shadow-lg px-4 py-3 flex items-center gap-3 border border-gray-50">
@@ -340,8 +460,7 @@
     <section id="work" class="py-20 bg-[#F7FAFC] scroll-mt-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:#3CB878">ماذا نقدّم</p>
-                <h2 class="text-3xl sm:text-4xl font-bold mb-4" style="color:#111827">برامجنا وخدماتنا</h2>
+                <h2 class="text-3xl sm:text-4xl font-bold mb-4" style="color:#111827">ماذا نقدّم</h2>
                 <p class="text-lg leading-relaxed max-w-2xl mx-auto" style="color:#6B7280">
                     مسارات تأهيلية وبرامج تدريبية وفرص تطوعية تُسهم في بناء قدرات الشباب وتمكينهم من المشاركة المجتمعية.
                 </p>
@@ -712,6 +831,34 @@
     {{-- JavaScript                                                          --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <script>
+        // ── Hero work-area tabs ─────────────────────────────────────────
+        (function() {
+            var tabs = document.querySelectorAll('[data-hero-tab]');
+            var panels = document.querySelectorAll('.hero-tab-panel');
+            if (!tabs.length) return;
+
+            function activate(tabKey) {
+                tabs.forEach(function(tab) {
+                    var isActive = tab.getAttribute('data-hero-tab') === tabKey;
+                    var isSoon = tabKey === 'sanad';
+                    tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                    tab.classList.toggle('hero-tab--active', isActive && !isSoon);
+                    tab.classList.toggle('hero-tab--soon-active', isActive && isSoon);
+                });
+                panels.forEach(function(panel) {
+                    var isActive = panel.id === 'hero-panel-' + tabKey;
+                    panel.classList.toggle('hero-tab-panel--active', isActive);
+                    panel.hidden = !isActive;
+                });
+            }
+
+            tabs.forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    activate(tab.getAttribute('data-hero-tab'));
+                });
+            });
+        })();
+
         // ── FAQ accordion ───────────────────────────────────────────────
         function toggleFaq(idx) {
             var body = document.getElementById('faq-body-' + idx);
