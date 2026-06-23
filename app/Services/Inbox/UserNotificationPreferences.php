@@ -9,6 +9,22 @@ use App\Models\User;
 final class UserNotificationPreferences
 {
     /**
+     * تحويل قيمة نموذج (checkbox / hidden مكرر) إلى منطقي.
+     */
+    public static function parseBool(mixed $value): bool
+    {
+        if (is_array($value)) {
+            $value = end($value);
+        }
+
+        if ($value === null || $value === '') {
+            return false;
+        }
+
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
      * @return array<string, array{in_app: bool, email: bool}>
      */
     public function resolvedCategories(User $user): array
@@ -85,37 +101,29 @@ final class UserNotificationPreferences
             return false;
         }
 
-        if (! NotificationPreferenceCatalog::systemAllowsEmail($type)) {
-            return false;
-        }
-
-        return $this->wantsInApp($user, $type);
+        return NotificationPreferenceCatalog::systemAllowsEmail($type);
     }
 
     /**
      * @param  array<string, mixed>  $input  من نموذج الإعدادات (categories.*.in_app / email)
      * @return array{categories: array<string, array{in_app: bool, email: bool}>}
      */
-    public function normalizeFromRequest(array $input): array
+    public function normalizeFromRequest(array $input, bool $masterEmailEnabled = true): array
     {
         $categories = [];
         $raw = is_array($input['categories'] ?? null) ? $input['categories'] : [];
 
         foreach (NotificationPreferenceCategory::forBeneficiarySettings() as $category) {
             $row = is_array($raw[$category->value] ?? null) ? $raw[$category->value] : [];
-            $defaults = $category->defaultPreferences();
 
             $inApp = $category->canDisableInApp()
-                ? (bool) ($row['in_app'] ?? false)
+                ? self::parseBool($row['in_app'] ?? false)
                 : true;
 
-            $email = $category->supportsEmail()
-                ? (bool) ($row['email'] ?? false)
-                : false;
-
-            if (! $inApp) {
-                $email = false;
-            }
+            $email = $masterEmailEnabled
+                && $inApp
+                && $category->supportsEmail()
+                && self::parseBool($row['email'] ?? false);
 
             $categories[$category->value] = [
                 'in_app' => $inApp,

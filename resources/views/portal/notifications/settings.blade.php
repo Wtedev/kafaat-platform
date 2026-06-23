@@ -24,6 +24,12 @@
     @csrf
     @method('PATCH')
 
+    @if ($errors->any())
+    <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        تعذّر حفظ بعض الإعدادات. يُرجى مراجعة الحقول والمحاولة مرة أخرى.
+    </div>
+    @endif
+
     <div class="rounded-3xl border border-slate-200/70 bg-white px-5 py-4 shadow-sm">
         <p class="text-sm font-semibold text-gray-900">داخل المنصة</p>
         <p class="mt-1 text-xs text-gray-500">فعّل الفئات التي تريد رؤيتها في صندوق التنبيهات.</p>
@@ -47,7 +53,6 @@
                     @if ($category->canDisableInApp())
                     <label class="flex shrink-0 cursor-pointer items-center gap-2">
                         <span class="text-xs text-gray-500">داخل المنصة</span>
-                        <input type="hidden" name="categories[{{ $category->value }}][in_app]" value="0" />
                         <input type="checkbox" name="categories[{{ $category->value }}][in_app]" value="1" @checked($inAppChecked) class="notif-cat-in-app h-5 w-5 rounded border-slate-300 text-[#253B5B] focus:ring-[#253B5B]/30" data-category="{{ $category->value }}" />
                     </label>
                     @else
@@ -58,7 +63,6 @@
                 @if ($category->supportsEmail())
                 <label class="mt-3 flex cursor-pointer items-center justify-between gap-3 border-t border-slate-200/80 pt-3 notif-email-row" data-category="{{ $category->value }}">
                     <span class="text-xs text-gray-600">نسخة بريدية لهذه الفئة</span>
-                    <input type="hidden" name="categories[{{ $category->value }}][email]" value="0" />
                     <input type="checkbox" name="categories[{{ $category->value }}][email]" value="1" @checked($emailChecked) class="notif-cat-email h-4 w-4 rounded border-slate-300 text-[#253B5B] focus:ring-[#253B5B]/30" />
                 </label>
                 @endif
@@ -74,7 +78,6 @@
                 <p class="mt-1 text-xs text-gray-500">يُفعّل نسخة بريدية للتنبيهات المهمة (تسجيلاتك، البرامج والمسارات الجديدة عند نشرها، الأخبار، التطوع). لن يُرسل بريد لمن يُبقي الخيار معطّلاً.</p>
                 <p class="mt-1 text-xs text-gray-400">{{ $user->email }}</p>
             </div>
-            <input type="hidden" name="notify_email" value="0" />
             <input type="checkbox" id="notify_email" name="notify_email" value="1" @checked(old('notify_email', $user->notify_email)) class="mt-1 h-5 w-5 shrink-0 rounded border-slate-300 text-[#253B5B] focus:ring-[#253B5B]/30" />
         </label>
     </div>
@@ -101,7 +104,7 @@
             var inAppOn = !inApp || inApp.checked;
             var show = masterOn && inAppOn;
             row.classList.toggle('opacity-40', !show);
-            if (email) email.disabled = !show;
+            row.classList.toggle('pointer-events-none', !show);
         });
     }
 

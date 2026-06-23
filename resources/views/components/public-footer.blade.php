@@ -20,7 +20,7 @@
             <div class="text-center sm:text-right lg:col-span-4">
                 <a href="{{ route('home') }}" class="inline-block text-2xl font-bold tracking-tight text-white transition-colors hover:text-emerald-300">كفاءات</a>
                 <p class="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-gray-400 sm:mx-0 sm:max-w-none">
-                    منصة تدريب وتطوع متكاملة تسعى إلى بناء قدرات الشباب وتمكينهم من التميز في مساراتهم المهنية.
+                    الموقع الإلكتروني لجمعية كفاءات — نافذة للتعرّف على عمل الجمعية، ومنصة تدريبية للمستفيدين والمتطوعين.
                 </p>
                 <div class="mt-5 flex flex-wrap items-center justify-center gap-2.5 sm:justify-end">
                     @foreach($site['social'] ?? [] as $social)

@@ -39,18 +39,19 @@ class PortalInboxController extends Controller
 
     public function updateSettings(Request $request, UserNotificationPreferences $preferences): RedirectResponse
     {
-        $validated = $request->validate([
-            'notify_email' => ['nullable', 'boolean'],
+        $request->validate([
             'categories' => ['nullable', 'array'],
-            'categories.*.in_app' => ['nullable', 'boolean'],
-            'categories.*.email' => ['nullable', 'boolean'],
         ]);
 
-        $user = $request->user();
-        $normalized = $preferences->normalizeFromRequest($validated);
+        $wantsEmail = UserNotificationPreferences::parseBool($request->input('notify_email'));
+        $normalized = $preferences->normalizeFromRequest(
+            ['categories' => $request->input('categories', [])],
+            $wantsEmail,
+        );
 
+        $user = $request->user();
         $user->forceFill([
-            'notify_email' => (bool) ($validated['notify_email'] ?? false),
+            'notify_email' => $wantsEmail,
             'notification_settings' => $normalized,
             'notification_prefs_set_at' => now(),
         ])->save();

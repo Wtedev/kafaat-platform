@@ -8,8 +8,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>كفاءات — منصة التدريب والتطوع والشهادات</title>
-    <meta name="description" content="كفاءات منصة تدريب وتطوع متكاملة لبناء قدرات الشباب من خلال المسارات التدريبية والبرامج والفرص التطوعية والشهادات المعتمدة." />
+    <title>كفاءات — الموقع الإلكتروني لجمعية كفاءات</title>
+    <meta name="description" content="الموقع الإلكتروني لجمعية كفاءات: تعرّف على عمل الجمعية وأخبارها وبرامجها، وادخل إلى منصتها التدريبية للمستفيدين والتطوع والشهادات." />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -84,6 +84,16 @@
             transform: translateY(0);
         }
 
+        .vm-card {
+            transition: transform 0.35s cubic-bezier(.22, 1, .36, 1),
+                box-shadow 0.35s cubic-bezier(.22, 1, .36, 1);
+        }
+
+        .vm-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 24px 48px rgba(37, 59, 91, 0.12);
+        }
+
     </style>
 </head>
 <body class="bg-[#F7FAFC] text-[#111827] antialiased">
@@ -111,17 +121,17 @@
                     {{-- Pill badge --}}
                     <div class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-medium mb-6 border" style="background:#EAF2FA; color:#253B5B; border-color:#c5ddef">
                         <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#3CB878"></span>
-                        منصة التدريب والتطوع المعتمدة
+                        الموقع الإلكتروني لجمعية كفاءات
                     </div>
 
                     {{-- Headline --}}
                     <h1 class="text-4xl sm:text-5xl lg:text-[3.4rem] font-bold leading-snug mb-5" style="color:#111827">
-                        المنصة التدريبية لجمعية <span style="color:#253B5B">كفاءات</span>
+                        حضور رقمي يصنع أثراً مع <span style="color:#253B5B">كفاءات</span>
                     </h1>
 
                     {{-- Subtitle --}}
                     <p class="text-lg leading-relaxed mb-8 max-w-lg" style="color:#6B7280">
-                        نبني قدرات الشباب من خلال مسارات تدريبية متكاملة، وبرامج احترافية، وفرص تطوعية هادفة، وشهادات معتمدة تفتح أمامك آفاقاً جديدة.
+                        موقع إلكتروني يعرّف بجمعية كفاءات وبرامجها وأخبارها، ويضم منصة تدريبية متكاملة للمستفيدين — مسارات وبرامج وفرص تطوع وشهادات — في تجربة واحدة مترابطة.
                     </p>
 
                     {{-- CTA Buttons --}}
@@ -143,13 +153,13 @@
                         @endif
                         @endauth
                         <a href="{{ $homeOfferingsHref }}" class="px-7 py-3.5 rounded-2xl text-base font-semibold border-2 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#EAF2FA]" style="color:#253B5B; border-color:#c5ddef">
-                            استكشف المنصة
+                            تعرّف على الجمعية
                         </a>
                     </div>
 
                     {{-- Trust indicators --}}
                     <div class="flex flex-wrap gap-5 text-sm" style="color:#6B7280">
-                        @foreach(['+١٢٠٠ مستفيد', '+٦٥ برنامج', '+٨٠٠ شهادة'] as $trust)
+                        @foreach(['أخبار وفعاليات', 'منصة تدريبية للمستفيدين', 'برامج تطوع وأثر مجتمعي'] as $trust)
                         <div class="flex items-center gap-2">
                             <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#3CB878"></span>
                             {{ $trust }}
@@ -158,81 +168,65 @@
                     </div>
                 </div>
 
-                {{-- ── Dashboard Preview Card (second child = LEFT in RTL) ── --}}
+                {{-- ── Website hub preview (second child = LEFT in RTL) ── --}}
                 <div class="w-full lg:w-[46%] flex justify-center lg:justify-start">
                     <div class="relative w-full max-w-md">
 
-                        {{-- Glow backdrop --}}
                         <div class="absolute inset-6 rounded-3xl blur-2xl opacity-50" style="background:radial-gradient(ellipse,#c5ddef,transparent)"></div>
 
-                        {{-- Main card --}}
-                        <div class="relative bg-white rounded-3xl shadow-2xl p-7 space-y-5 border border-white">
+                        <div class="relative bg-white rounded-3xl shadow-2xl p-7 space-y-4 border border-white">
 
-                            {{-- Card header --}}
-                            <div class="flex items-center justify-between">
+                            <div class="flex items-center justify-between pb-4 border-b border-gray-100">
                                 <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:#EAF2FA">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/></svg>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-xs mb-0.5" style="color:#6B7280">أهلاً، أحمد!</p>
-                                    <p class="text-sm font-bold" style="color:#111827">لوحة تقدمك</p>
+                                    <p class="text-xs mb-0.5" style="color:#6B7280">بوابة الجمعية</p>
+                                    <p class="text-sm font-bold" style="color:#111827">كل ما يهمك في مكان واحد</p>
                                 </div>
                             </div>
 
-                            {{-- Mini stat tiles --}}
-                            <div class="grid grid-cols-3 gap-3">
-                                <div class="rounded-2xl p-3 text-center" style="background:#EAF2FA">
-                                    <div class="text-2xl font-bold" style="color:#253B5B">٥</div>
-                                    <div class="text-xs mt-0.5" style="color:#6B7280">مسارات</div>
+                            <a href="{{ route('public.news.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-[#c5ddef] hover:bg-[#F8FBFE] transition-all group">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-50">
+                                    <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
                                 </div>
-                                <div class="rounded-2xl p-3 text-center bg-green-50">
-                                    <div class="text-2xl font-bold text-green-600">٣</div>
-                                    <div class="text-xs mt-0.5 text-green-500">شهادات</div>
+                                <div class="flex-1 text-right min-w-0">
+                                    <p class="text-sm font-bold" style="color:#111827">الأخبار والفعاليات</p>
+                                    <p class="text-xs mt-0.5 truncate" style="color:#6B7280">آخر مستجدات الجمعية</p>
                                 </div>
-                                <div class="rounded-2xl p-3 text-center bg-amber-50">
-                                    <div class="text-2xl font-bold text-amber-500">١٢</div>
-                                    <div class="text-xs mt-0.5 text-amber-400">ساعة</div>
-                                </div>
-                            </div>
+                                <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity" style="color:#253B5B" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </a>
 
-                            {{-- Progress bars --}}
-                            <div class="space-y-4">
-                                <div>
-                                    <div class="flex items-center justify-between mb-1.5">
-                                        <span class="text-xs font-semibold" style="color:#3CB878">٧٥٪</span>
-                                        <span class="text-xs font-medium text-gray-600">البرنامج التدريبي المتقدم</span>
-                                    </div>
-                                    <div class="h-2 rounded-full overflow-hidden bg-gray-100">
-                                        <div class="h-full rounded-full" style="width:75%; background:linear-gradient(to left,#3CB878,#2da86e)"></div>
-                                    </div>
+                            <a href="{{ route('public.programs.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group" style="border-color:#dceaf7; background: linear-gradient(145deg, #F8FBFE 0%, #EAF2FA 100%)">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white shadow-sm">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                                 </div>
-                                <div>
-                                    <div class="flex items-center justify-between mb-1.5">
-                                        <span class="text-xs font-semibold text-blue-400">٤٠٪</span>
-                                        <span class="text-xs font-medium text-gray-600">مسار ريادة الأعمال</span>
-                                    </div>
-                                    <div class="h-2 rounded-full overflow-hidden bg-gray-100">
-                                        <div class="h-full rounded-full" style="width:40%; background:linear-gradient(to left,#60A5FA,#3B82F6)"></div>
-                                    </div>
+                                <div class="flex-1 text-right min-w-0">
+                                    <p class="text-sm font-bold" style="color:#253B5B">المنصة التدريبية</p>
+                                    <p class="text-xs mt-0.5" style="color:#6B7280">مسارات · برامج · شهادات</p>
                                 </div>
-                            </div>
+                                <span class="text-[10px] font-semibold px-2 py-1 rounded-lg text-white" style="background:#253B5B">للمستفيدين</span>
+                            </a>
 
-                            {{-- Badges --}}
-                            <div class="flex flex-wrap gap-2 pt-1">
-                                <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-green-100 text-green-700">✓ متقدم</span>
-                                <span class="px-3 py-1.5 rounded-xl text-xs font-medium" style="background:#EAF2FA; color:#253B5B">شهادة ممتازة</span>
-                                <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-amber-100 text-amber-600">نشط</span>
-                            </div>
+                            <a href="{{ route('public.volunteering.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-green-200 hover:bg-green-50/50 transition-all group">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-green-50">
+                                    <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                </div>
+                                <div class="flex-1 text-right min-w-0">
+                                    <p class="text-sm font-bold" style="color:#111827">التطوع والأثر</p>
+                                    <p class="text-xs mt-0.5" style="color:#6B7280">فرص تطوعية ومجتمعية</p>
+                                </div>
+                                <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </a>
                         </div>
 
-                        {{-- Floating notification --}}
                         <div class="absolute -bottom-4 -left-4 bg-white rounded-2xl shadow-lg px-4 py-3 flex items-center gap-3 border border-gray-50">
-                            <div class="w-8 h-8 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                            <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#EAF2FA">
+                                <svg class="w-4 h-4" style="color:#253B5B" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                             </div>
                             <div>
-                                <p class="text-xs font-semibold text-gray-800">شهادة جديدة!</p>
-                                <p class="text-xs" style="color:#6B7280">تم إصدارها للتو</p>
+                                <p class="text-xs font-semibold text-gray-800">نصنع الأثر</p>
+                                <p class="text-xs" style="color:#6B7280">بشباب ملهم ومتمكن</p>
                             </div>
                         </div>
                     </div>
@@ -251,57 +245,51 @@
 
             {{-- Heading --}}
             <div class="text-center mb-14">
-                <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:#3CB878">ما نقدّمه</p>
+                <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:#3CB878">من نحن</p>
                 <h2 class="text-3xl sm:text-4xl font-bold mb-4" style="color:#111827">نبذة عن كفاءات</h2>
                 <p class="text-lg leading-relaxed max-w-2xl mx-auto" style="color:#6B7280">
-                    كفاءات منصة تدريب وتطوع متكاملة تهدف إلى تمكين الشباب وتطوير مهاراتهم من خلال مسارات تعليمية احترافية وبرامج تدريبية معتمدة وفرص تطوعية توثّق الخبرة وتُحدث أثراً مجتمعياً حقيقياً.
+                    جمعية كفاءات تعمل على تمكين الشباب وبناء قدراتهم. هذا الموقع الإلكتروني نافذتكم للتعرّف على عمل الجمعية وأخبارها وبرامجها، والوصول إلى منصتها التدريبية المخصّصة للمستفيدين والمتطوعين.
                 </p>
             </div>
 
-            {{-- Feature Cards --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {{-- الرؤية والرسالة --}}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 max-w-5xl mx-auto">
 
-                {{-- Card: Learning Paths --}}
-                <a href="{{ route('public.paths.index') }}" class="group block bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 p-8 text-right">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 transition-transform group-hover:scale-110" style="background:#EAF2FA">
-                        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3 transition-colors" style="color:#111827">المسارات التدريبية</h3>
-                    <p class="text-sm leading-relaxed mb-5" style="color:#6B7280">سلاسل تعليمية منظمة تأخذك من الأساسيات إلى الاحترافية في مجالات متنوعة، مصممة لتناسب جميع المستويات.</p>
-                    <span class="inline-flex items-center gap-1.5 text-sm font-semibold" style="color:#253B5B">
-                        استكشف المسارات
-                        <svg class="w-4 h-4 rotate-180 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                    </span>
-                </a>
+                {{-- الرؤية --}}
+                <div class="vm-card relative overflow-hidden rounded-3xl p-8 sm:p-10 text-right border border-gray-100 bg-white shadow-sm">
+                    <div class="absolute top-0 left-0 w-full h-1 rounded-t-3xl" style="background: linear-gradient(to left, #253B5B, #3CB878)"></div>
+                    <div class="absolute -top-6 -left-4 text-[7rem] font-black leading-none select-none pointer-events-none" style="color:rgba(37,59,91,0.04)" aria-hidden="true">ر</div>
 
-                {{-- Card: Training Programs (highlighted) --}}
-                <a href="{{ route('public.programs.index') }}" class="group block rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 p-8 text-right" style="background: linear-gradient(145deg, #EAF2FA 0%, #F3F7FB 100%); border: 1px solid #dceaf7">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 bg-white shadow-sm transition-transform group-hover:scale-110">
-                        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    <div class="relative">
+                        <div class="flex items-center justify-end gap-3 mb-6">
+                            <span class="text-xs font-bold tracking-widest uppercase px-3 py-1.5 rounded-xl" style="background:#EAF2FA; color:#253B5B">رؤيتنا</span>
+                            <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm" style="background: linear-gradient(145deg, #EAF2FA, #DCE8F5)">
+                                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            </div>
+                        </div>
+                        <p class="text-xl sm:text-2xl font-bold leading-relaxed" style="color:#111827">
+                            نصنع الأثر بشباب ملهم ومتمكن
+                        </p>
                     </div>
-                    <h3 class="text-xl font-bold mb-3" style="color:#111827">البرامج التدريبية</h3>
-                    <p class="text-sm leading-relaxed mb-5" style="color:#6B7280">برامج تدريبية متخصصة بمحتوى عملي وتطبيقي تُصدر شهادات معتمدة عند إتمامها بنجاح.</p>
-                    <span class="inline-flex items-center gap-1.5 text-sm font-semibold" style="color:#253B5B">
-                        استكشف البرامج
-                        <svg class="w-4 h-4 rotate-180 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                    </span>
-                </a>
+                </div>
 
-                {{-- Card: Volunteering --}}
-                <a href="{{ route('public.volunteering.index') }}" class="group block bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 p-8 text-right">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 bg-green-50 transition-transform group-hover:scale-110">
-                        <svg class="w-7 h-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                {{-- الرسالة --}}
+                <div class="vm-card relative overflow-hidden rounded-3xl p-8 sm:p-10 text-right border border-gray-100 shadow-sm" style="background: linear-gradient(160deg, #ffffff 0%, #F8FBFE 55%, #EAF2FA 100%)">
+                    <div class="absolute top-0 left-0 w-full h-1 rounded-t-3xl" style="background: linear-gradient(to left, #3CB878, #60A5FA)"></div>
+                    <div class="absolute -top-6 -left-4 text-[7rem] font-black leading-none select-none pointer-events-none" style="color:rgba(60,184,120,0.06)" aria-hidden="true">م</div>
+
+                    <div class="relative">
+                        <div class="flex items-center justify-end gap-3 mb-6">
+                            <span class="text-xs font-bold tracking-widest uppercase px-3 py-1.5 rounded-xl bg-green-50 text-green-700">رسالتنا</span>
+                            <div class="w-14 h-14 rounded-2xl flex items-center justify-center bg-white shadow-sm">
+                                <svg class="w-7 h-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                            </div>
+                        </div>
+                        <p class="text-base sm:text-lg font-medium leading-loose" style="color:#374151">
+                            بناء كفاءات الشباب وتعزيز قدراتهم وتأهيلهم للمشاركة المجتمعية وفق عمل مؤسسي وشراكات تكاملية
+                        </p>
                     </div>
-                    <h3 class="text-xl font-bold mb-3" style="color:#111827">الفرص التطوعية</h3>
-                    <p class="text-sm leading-relaxed mb-5" style="color:#6B7280">انضم إلى مجتمع التطوع وأحدث فارقاً حقيقياً. ساعات تطوعك توثَّق وتُحتسب في سجلك المهني.</p>
-                    <span class="inline-flex items-center gap-1.5 text-sm font-semibold" style="color:#3CB878">
-                        تصفح الفرص
-                        <svg class="w-4 h-4 rotate-180 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                    </span>
-                </a>
+                </div>
 
             </div>
         </div>
@@ -360,13 +348,13 @@
 
                 {{-- ── Text (first child = RIGHT in RTL) ── --}}
                 <div class="w-full lg:w-1/2 text-right">
-                    <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:#3CB878">لماذا كفاءات</p>
-                    <h2 class="text-3xl sm:text-4xl font-bold mb-5" style="color:#111827">عن المنصة التدريبية</h2>
+                    <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:#3CB878">الموقع والمنصة</p>
+                    <h2 class="text-3xl sm:text-4xl font-bold mb-5" style="color:#111827">موقع إلكتروني ومنصة تدريبية</h2>
                     <p class="leading-relaxed mb-4" style="color:#6B7280">
-                        كفاءات منصة شاملة أُنشئت لتكون المرجع الأول للشباب الراغب في تطوير مهاراته والمساهمة في مجتمعه. نجمع في مكان واحد المسارات التعليمية المتدرجة والبرامج التدريبية المتخصصة وأوسع قاعدة للفرص التطوعية.
+                        يجمع الموقع في مكان واحد هوية الجمعية وأخبارها وبرامجها المجتمعية، مع منصة تدريبية رقمية يدخل إليها المستفيدون للتسجيل في المسارات والبرامج ومتابعة شهاداتهم وساعات تطوعهم.
                     </p>
                     <p class="leading-relaxed mb-8" style="color:#6B7280">
-                        كل خطوة تخطوها على منصتنا تُوثَّق وتتحول إلى سجل مهني احترافي يعززك أمام أصحاب العمل والمؤسسات الشريكة.
+                        للزائر: استكشف محتوى الجمعية. للمستفيد المسجّل: انتقل إلى المنصة التدريبية من القائمة أو بعد تسجيل الدخول.
                     </p>
                     <div class="flex flex-wrap gap-4">
                         <a href="{{ $homeOfferingsHref }}" class="px-7 py-3 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
@@ -399,10 +387,10 @@
                             <div class="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-5" style="background:#EAF2FA">
                             <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
                         </div>
-                            <h3 class="text-xl font-bold mb-2" style="color:#253B5B">منصة متكاملة</h3>
-                            <p class="text-sm mb-7" style="color:#6B7280">للتدريب والتطوع والشهادات</p>
+                            <h3 class="text-xl font-bold mb-2" style="color:#253B5B">محتوى الموقع</h3>
+                            <p class="text-sm mb-7" style="color:#6B7280">والمنصة التدريبية ضمنه</p>
                             <div class="space-y-3 text-right">
-                                @foreach(['مسارات تعليمية متدرجة','برامج تدريبية معتمدة','فرص تطوعية موثقة','شهادات رقمية قابلة للتحقق'] as $feat)
+                                @foreach(['أخبار وفعاليات الجمعية','منصة تدريبية للمستفيدين','فرص تطوع وأثر مجتمعي','شهادات رقمية قابلة للتحقق'] as $feat)
                                 <div class="flex items-center gap-3 justify-end">
                                     <span class="text-sm text-gray-700">{{ $feat }}</span>
                                     <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold" style="background:#DCFCE7; color:#3CB878">✓</div>
@@ -585,7 +573,7 @@
                         <div class="text-8xl font-black leading-none mb-1" style="color:rgba(255,255,255,0.12)">٢٠٢٥</div>
                         <h2 class="text-3xl font-bold text-white mb-3">التقرير السنوي</h2>
                         <p class="text-blue-200 leading-relaxed max-w-md">
-                            تقرير شامل يرصد إنجازات منصة كفاءات خلال عام ٢٠٢٥، من مسارات وبرامج وشهادات وأثر مجتمعي حقيقي.
+                            تقرير شامل يرصد إنجازات جمعية كفاءات خلال عام ٢٠٢٥، من برامجها وأثرها المجتمعي ومنصتها التدريبية.
                         </p>
                     </div>
 
@@ -670,10 +658,10 @@
 
             @php
             $faqs = [
-            ['q' => 'ما هي منصة كفاءات؟',
-            'a' => 'كفاءات منصة إلكترونية متكاملة تهدف إلى تمكين الشباب من خلال توفير مسارات تدريبية وبرامج تعليمية معتمدة وفرص تطوعية موثقة وشهادات رقمية قابلة للتحقق.'],
-            ['q' => 'كيف يمكنني التسجيل في مسار تدريبي؟',
-            'a' => 'أنشئ حساباً مجانياً على المنصة، ثم تصفح المسارات المتاحة وانقر على "التسجيل". سيصلك تأكيد التسجيل فور موافقة الإدارة.'],
+            ['q' => 'ما هو موقع كفاءات؟',
+            'a' => 'موقع كفاءات الإلكتروني هو النافذة الرسمية لجمعية كفاءات: يعرّف بعمل الجمعية وأخبارها وبرامجها، ويضم منصة تدريبية للمستفيدين للتسجيل في المسارات والبرامج ومتابعة الشهادات والتطوع.'],
+            ['q' => 'كيف أدخل المنصة التدريبية؟',
+            'a' => 'أنشئ حساباً أو سجّل دخولك، ثم اختر «منصة التدريب» من القائمة. ستجد فيها المسارات والبرامج المتاحة للتسجيل ومتابعة تقدمك.'],
             ['q' => 'هل المحتوى مجاني بالكامل؟',
             'a' => 'نعم، معظم المسارات والبرامج مجانية بالكامل. بعض البرامج المتخصصة قد تتطلب رسوماً رمزية تُحدد عند التسجيل.'],
             ['q' => 'كيف أحصل على شهادة إتمام؟',
@@ -681,7 +669,7 @@
             ['q' => 'ما الفرق بين المسار والبرنامج التدريبي؟',
             'a' => 'المسار عبارة عن سلسلة من الدورات المتدرجة تأخذك من مستوى إلى آخر في مجال محدد. البرنامج التدريبي عادةً أقصر وأكثر تخصصاً ويُركز على مهارة أو موضوع بعينه.'],
             ['q' => 'كيف أتقدم لفرصة تطوعية؟',
-            'a' => 'تصفح الفرص المتاحة في قسم التطوع، انقر على الفرصة التي تناسبك ثم انقر "التقدم". ستتلقى ردًا من فريق المنصة خلال ٣–٥ أيام عمل.'],
+            'a' => 'تصفح الفرص المتاحة في قسم التطوع على الموقع، انقر على الفرصة التي تناسبك ثم «التقدم». ستتلقى ردًا من فريق الجمعية خلال ٣–٥ أيام عمل.'],
             ];
             @endphp
 

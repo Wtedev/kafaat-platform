@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>@yield('title', 'كفاءات')</title>
-    <meta name="description" content="@yield('meta_description', 'كفاءات منصة تدريب وتطوع متكاملة لبناء قدرات الشباب من خلال المسارات التدريبية والبرامج والفرص التطوعية والشهادات المعتمدة.')" />
+    <meta name="description" content="@yield('meta_description', 'الموقع الإلكتروني لجمعية كفاءات: أخبار وبرامج الجمعية ومنصة تدريبية للمستفيدين والتطوع والشهادات.')" />
     <meta property="og:title" content="@yield('title', 'كفاءات')" />
-    <meta property="og:description" content="@yield('meta_description', 'كفاءات منصة تدريب وتطوع متكاملة لبناء قدرات الشباب.')" />
+    <meta property="og:description" content="@yield('meta_description', 'الموقع الإلكتروني لجمعية كفاءات — أخبار الجمعية ومنصتها التدريبية.')" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="{{ url()->current() }}" />
 

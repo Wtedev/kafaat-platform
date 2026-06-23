@@ -13,11 +13,7 @@ class NotificationPreferenceController extends Controller
      */
     public function acknowledge(Request $request, UserNotificationPreferences $preferences): RedirectResponse
     {
-        $validated = $request->validate([
-            'notify_email' => ['nullable', 'boolean'],
-        ]);
-
-        $wantsEmail = (bool) ($validated['notify_email'] ?? false);
+        $wantsEmail = UserNotificationPreferences::parseBool($request->input('notify_email'));
         $settings = $preferences->normalizeFromRequest([
             'categories' => [
                 'account' => [
@@ -28,8 +24,16 @@ class NotificationPreferenceController extends Controller
                     'in_app' => true,
                     'email' => $wantsEmail,
                 ],
+                'volunteering' => [
+                    'in_app' => true,
+                    'email' => $wantsEmail,
+                ],
+                'news' => [
+                    'in_app' => false,
+                    'email' => $wantsEmail,
+                ],
             ],
-        ]);
+        ], $wantsEmail);
 
         $request->user()->forceFill([
             'notify_email' => $wantsEmail,
