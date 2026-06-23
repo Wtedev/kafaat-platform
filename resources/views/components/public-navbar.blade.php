@@ -24,6 +24,11 @@ $hasMedia = Route::has('public.media.index');
                     الرئيسية
                 </a>
 
+                <span class="cursor-default select-none" aria-label="سند — قريباً">
+                    <span class="font-semibold" style="color:#7c3aed">سند</span>
+                    <span class="text-[10px] font-normal ms-1" style="color:#9CA3AF">قريباً</span>
+                </span>
+
                 <a href="{{ route('impact.index') }}" class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('impact.index') ? 'font-semibold' : '' }}" @if(request()->routeIs('impact.index')) style="color:#253B5B" @endif>
                     عام الأثر
                 </a>
@@ -35,11 +40,6 @@ $hasMedia = Route::has('public.media.index');
                 <a href="{{ route('public.programs.index') }}" class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('public.programs.*') ? 'font-semibold' : '' }}" @if(request()->routeIs('public.programs.*')) style="color:#253B5B" @endif>
                     البرامج
                 </a>
-
-                <span class="inline-flex items-baseline gap-1 cursor-default select-none" aria-label="سند — قريباً">
-                    <span class="font-semibold" style="color:#7c3aed">سند</span>
-                    <span class="text-[10px] font-normal" style="color:#9CA3AF">قريباً</span>
-                </span>
 
                 @if($hasRegulations)
                 <a href="{{ route('public.regulations.index') }}" class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('public.regulations.*') ? 'font-semibold' : '' }}" @if(request()->routeIs('public.regulations.*')) style="color:#253B5B" @endif>
@@ -94,14 +94,15 @@ $hasMedia = Route::has('public.media.index');
     <div id="pub-mobile-nav" class="hidden lg:hidden border-t border-gray-100 bg-white shadow-lg">
         <nav class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
             <a href="{{ route('home') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#EAF2FA] hover:text-[#253B5B] transition-colors text-right">الرئيسية</a>
+
+            <span class="block w-full px-4 py-2.5 rounded-xl text-sm font-medium text-right cursor-default select-none">
+                <span class="font-semibold" style="color:#7c3aed">سند</span>
+                <span class="text-[10px] font-normal ms-1" style="color:#9CA3AF">قريباً</span>
+            </span>
+
             <a href="{{ route('impact.index') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#EAF2FA] hover:text-[#253B5B] transition-colors text-right">عام الأثر</a>
             <a href="{{ $aboutHref }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#EAF2FA] hover:text-[#253B5B] transition-colors text-right">عن كفاءات</a>
             <a href="{{ route('public.programs.index') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#EAF2FA] hover:text-[#253B5B] transition-colors text-right">البرامج</a>
-
-            <span class="px-4 py-2.5 rounded-xl text-sm text-right inline-flex items-baseline justify-end gap-1 cursor-default select-none">
-                <span class="font-semibold" style="color:#7c3aed">سند</span>
-                <span class="text-[10px] font-normal" style="color:#9CA3AF">قريباً</span>
-            </span>
 
             @if($hasRegulations)
             <a href="{{ route('public.regulations.index') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#EAF2FA] hover:text-[#253B5B] transition-colors text-right">اللوائح والأنظمة</a>
