@@ -2,37 +2,25 @@
 
 namespace App\Support;
 
+use App\Services\Rbac\RbacCatalog;
+
 /**
  * أسماء أدوار الموظفين «الحساسة» التي لا يجوز لمديري المستفيدين تعيينها.
  */
 final class StaffRoleAssignment
 {
     /**
-     * أدوار Spatie التي تعتبر حسابات موظفين مميزين (لا يعيّنها مدير التدريب/التطوع).
-     *
      * @return list<string>
      */
     public static function privilegedStaffSpatieRoleNames(): array
     {
         return [
             'admin',
-            'training_manager',
-            'training_enablement_manager',
-            'programs_activities_manager',
-            'volunteering_manager',
-            'volunteer_manager',
-            'media_pr',
-            'public_relations',
-            'media',
-            'media_employee',
-            'pr_employee',
-            'staff',
+            ...RbacCatalog::staffRoleNames(),
         ];
     }
 
     /**
-     * أدوار المستفيدين التي يجوز لمديري التدريب/التطوع تعيينها فقط.
-     *
      * @return list<string>
      */
     public static function beneficiarySpatieRoleNames(): array

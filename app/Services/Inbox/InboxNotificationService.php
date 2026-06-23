@@ -15,6 +15,7 @@ use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Services\Rbac\RbacCatalog;
 use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
 use App\Notifications\InboxNotificationEmail;
@@ -527,17 +528,7 @@ class InboxNotificationService
                     ->orWhere('role_type', 'admin')
                     ->orWhereHas('roles', fn ($r) => $r->whereIn('name', [
                         'admin',
-                        'media_pr',
-                        'public_relations',
-                        'media',
-                        'media_employee',
-                        'pr_employee',
-                        'training_enablement_manager',
-                        'training_manager',
-                        'programs_activities_manager',
-                        'volunteering_manager',
-                        'volunteer_manager',
-                        'staff',
+                        ...RbacCatalog::staffRoleNames(),
                     ]));
             })->pluck('id')->all(),
 
@@ -799,17 +790,7 @@ class InboxNotificationService
                 $q->whereIn('role_type', ['staff', 'admin'])
                     ->orWhereHas('roles', fn ($r) => $r->whereIn('name', [
                         'admin',
-                        'media_pr',
-                        'public_relations',
-                        'media',
-                        'media_employee',
-                        'pr_employee',
-                        'training_enablement_manager',
-                        'training_manager',
-                        'programs_activities_manager',
-                        'volunteering_manager',
-                        'volunteer_manager',
-                        'staff',
+                        ...RbacCatalog::staffRoleNames(),
                     ]));
             })
             ->pluck('id')
@@ -827,12 +808,7 @@ class InboxNotificationService
             ->where('is_active', true)
             ->where(function ($q): void {
                 $q->where('role_type', 'admin')
-                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', [
-                        'admin',
-                        'training_manager',
-                        'training_enablement_manager',
-                        'programs_activities_manager',
-                    ]));
+                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', RbacCatalog::trainingDomainStaffRoleNames()));
             })
             ->pluck('id')
             ->unique()
@@ -847,14 +823,7 @@ class InboxNotificationService
     {
         return User::query()
             ->where('is_active', true)
-            ->whereHas('roles', fn ($r) => $r->whereIn('name', [
-                'admin',
-                'training_manager',
-                'training_enablement_manager',
-                'programs_activities_manager',
-                'volunteering_manager',
-                'volunteer_manager',
-            ]))
+            ->whereHas('roles', fn ($r) => $r->whereIn('name', RbacCatalog::volunteerDomainStaffRoleNames()))
             ->pluck('id')
             ->unique()
             ->values()

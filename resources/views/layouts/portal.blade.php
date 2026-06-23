@@ -35,13 +35,13 @@
         }
 
         nav[aria-label="قائمة بوابة المستفيد"] a[aria-current="page"] svg {
-            color: #253b5b;
+            color: #335483;
         }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-b from-slate-100/90 to-slate-50 text-slate-900 antialiased font-sans">
+<body class="min-h-screen bg-[#F7FAFC] text-[#111827] antialiased font-sans">
 
-    <header class="sticky top-0 z-40 border-b border-slate-200/50 bg-white/75 shadow-[0_1px_0_rgba(15,23,42,0.04)] backdrop-blur-md">
+    <header class="sticky top-0 z-40 border-b border-[#c5d4e4]/60 bg-white/90 shadow-[0_1px_0_rgba(51,84,131,0.06)] backdrop-blur-md">
         <div class="mx-auto flex h-14 max-w-7xl min-w-0 items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-6 lg:px-8">
             <div class="flex min-w-0 shrink items-center gap-1.5 sm:gap-3">
                 <button id="portal-sidebar-toggle" type="button" aria-controls="portal-sidebar" aria-expanded="false" aria-label="فتح القائمة" class="-me-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100/90 active:bg-slate-100 lg:hidden">
@@ -115,14 +115,14 @@
             $isCert = $rn === 'portal.certificates';
             $isProfile = str_starts_with($rn, 'portal.profile');
             $isCompetency = str_starts_with($rn, 'portal.competency');
-            $navIcon = 'h-[1.125rem] w-[1.125rem] shrink-0 text-slate-500 transition-colors group-hover:text-[#335483] sm:h-[1.15rem] sm:w-[1.15rem]';
-            $navActive = 'flex min-h-[2.75rem] items-center gap-3 rounded-2xl bg-white px-3 py-2.5 text-sm font-semibold text-[#335483] shadow-[0_2px_14px_-4px_rgba(51,84,131,0.18)] ring-1 ring-slate-200/70 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#335483]/30';
-            $navIdle = 'group flex min-h-[2.75rem] items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-white/70 hover:text-[#335483] hover:shadow-sm hover:ring-1 hover:ring-slate-200/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#335483]/20';
+            $navIcon = 'h-[1.125rem] w-[1.125rem] shrink-0 text-slate-500 transition-colors group-hover:text-brand sm:h-[1.15rem] sm:w-[1.15rem]';
+            $navActive = 'flex min-h-[2.75rem] items-center gap-3 rounded-2xl bg-white px-3 py-2.5 text-sm font-semibold text-brand shadow-[0_2px_14px_-4px_rgba(51,84,131,0.18)] ring-1 ring-[#c5d4e4]/70 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30';
+            $navIdle = 'group flex min-h-[2.75rem] items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-brand-light/80 hover:text-brand hover:shadow-sm hover:ring-1 hover:ring-[#c5d4e4]/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20';
             $navSectionSummary = 'flex w-full cursor-pointer list-none items-center justify-between gap-2 rounded-xl px-2 py-2 text-[10px] font-bold tracking-wide text-slate-400 transition-colors hover:text-slate-500';
         @endphp
 
-        <aside id="portal-sidebar" class="fixed right-0 top-14 z-30 h-[calc(100vh-3.5rem)] w-[18rem] translate-x-full overflow-y-auto border-l border-slate-200/60 bg-slate-50/95 shadow-[8px_0_32px_-8px_rgba(15,23,42,0.12)] backdrop-blur-md sm:top-16 sm:h-[calc(100vh-4rem)] lg:static lg:h-auto lg:w-[17.5rem] lg:translate-x-0 lg:shrink-0 lg:border-0 lg:bg-transparent lg:shadow-none lg:backdrop-blur-none">
-            <nav class="flex flex-col lg:sticky lg:top-16 lg:overflow-hidden lg:rounded-3xl lg:border lg:border-slate-200/50 lg:bg-white/85 lg:shadow-[0_8px_40px_-12px_rgba(15,23,42,0.12)] lg:ring-1 lg:ring-white/60" aria-label="قائمة بوابة المستفيد">
+        <aside id="portal-sidebar" class="fixed right-0 top-14 z-30 h-[calc(100vh-3.5rem)] w-[18rem] translate-x-full overflow-y-auto border-l border-[#c5d4e4]/50 bg-[#F7FAFC]/95 shadow-[8px_0_32px_-8px_rgba(51,84,131,0.12)] backdrop-blur-md sm:top-16 sm:h-[calc(100vh-4rem)] lg:static lg:h-auto lg:w-[17.5rem] lg:translate-x-0 lg:shrink-0 lg:border-0 lg:bg-transparent lg:shadow-none lg:backdrop-blur-none">
+            <nav class="flex flex-col lg:sticky lg:top-16 lg:overflow-hidden lg:rounded-3xl lg:border lg:border-[#c5d4e4]/50 lg:bg-white/90 lg:shadow-[0_8px_40px_-12px_rgba(51,84,131,0.12)] lg:ring-1 lg:ring-white/60" aria-label="قائمة بوابة المستفيد">
                 <div class="p-4 sm:p-5">
                     <x-portal.sidebar-identity />
                 </div>

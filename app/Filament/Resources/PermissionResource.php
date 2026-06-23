@@ -39,6 +39,11 @@ class PermissionResource extends Resource
         return false;
     }
 
+    public static function canViewAny(): bool
+    {
+        return false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);

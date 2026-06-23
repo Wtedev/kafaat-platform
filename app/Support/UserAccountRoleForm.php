@@ -22,11 +22,13 @@ final class UserAccountRoleForm
      * @var array<string, array{spatie: string, role_type: string}>
      */
     public const PLATFORM_ROLES = [
+        'technical_admin' => ['spatie' => 'technical_admin', 'role_type' => self::TYPE_STAFF],
+        'training_management' => ['spatie' => 'training_management', 'role_type' => self::TYPE_STAFF],
+        'volunteer_management' => ['spatie' => 'volunteer_management', 'role_type' => self::TYPE_STAFF],
+        'programs_management' => ['spatie' => 'programs_management', 'role_type' => self::TYPE_STAFF],
+        'media_management' => ['spatie' => 'media_management', 'role_type' => self::TYPE_STAFF],
         'public_relations' => ['spatie' => 'public_relations', 'role_type' => self::TYPE_STAFF],
-        'media' => ['spatie' => 'media', 'role_type' => self::TYPE_STAFF],
-        'training_enablement_manager' => ['spatie' => 'training_enablement_manager', 'role_type' => self::TYPE_STAFF],
-        'programs_activities_manager' => ['spatie' => 'programs_activities_manager', 'role_type' => self::TYPE_STAFF],
-        'volunteering_manager' => ['spatie' => 'volunteering_manager', 'role_type' => self::TYPE_STAFF],
+        'visual_identity' => ['spatie' => 'visual_identity', 'role_type' => self::TYPE_STAFF],
         'trainee' => ['spatie' => 'trainee', 'role_type' => self::TYPE_BENEFICIARY],
         'volunteer' => ['spatie' => 'volunteer', 'role_type' => self::TYPE_BENEFICIARY],
     ];
@@ -46,16 +48,9 @@ final class UserAccountRoleForm
 
     public static function platformRoleLabelAr(string $platformRole): string
     {
-        return match ($platformRole) {
-            'public_relations' => 'علاقات عامة',
-            'media' => 'إعلام',
-            'training_enablement_manager' => 'مسؤول التدريب',
-            'programs_activities_manager' => 'مسؤول البرامج والأنشطة',
-            'volunteering_manager' => 'مسؤول التطوع',
-            'trainee' => 'متدرب',
-            'volunteer' => 'متطوع',
-            default => RbacCatalog::roleArabicLabel($platformRole),
-        };
+        return RbacCatalog::roleArabicLabel(
+            self::PLATFORM_ROLES[$platformRole]['spatie'] ?? $platformRole
+        );
     }
 
     public static function actorCanManageAllPlatformRoles(?User $actor): bool
@@ -150,17 +145,15 @@ final class UserAccountRoleForm
             }
         }
 
-        $legacyMap = [
-            'media_pr' => 'media',
-            'media_employee' => 'media',
-            'pr_employee' => 'public_relations',
-            'training_manager' => 'training_enablement_manager',
-            'volunteer_manager' => 'volunteering_manager',
-        ];
+        foreach (RbacCatalog::legacyRoleMigrationMap() as $legacy => $platformSpatie) {
+            if (! in_array($legacy, $roleNames, true)) {
+                continue;
+            }
 
-        foreach ($legacyMap as $legacy => $platform) {
-            if (in_array($legacy, $roleNames, true)) {
-                return $platform;
+            foreach (self::PLATFORM_ROLES as $key => $config) {
+                if ($config['spatie'] === $platformSpatie) {
+                    return $key;
+                }
             }
         }
 
@@ -171,13 +164,10 @@ final class UserAccountRoleForm
         return 'trainee';
     }
 
-    /**
-     * تسمية عربية موحّدة للجدول (دور واحد بدل نوع حساب + دور).
-     */
     public static function tablePlatformRoleLabelAr(User $user): string
     {
         if ($user->role_type === 'admin' || $user->hasRole('admin')) {
-            return 'مسؤول النظام';
+            return RbacCatalog::roleArabicLabel('admin');
         }
 
         $platform = self::platformRoleFromUser($user);
@@ -204,17 +194,7 @@ final class UserAccountRoleForm
      */
     public static function staffSpatieRoleNames(): array
     {
-        return [
-            'public_relations',
-            'media',
-            'media_employee',
-            'pr_employee',
-            'training_enablement_manager',
-            'training_manager',
-            'programs_activities_manager',
-            'volunteering_manager',
-            'volunteer_manager',
-        ];
+        return RbacCatalog::staffRoleNames();
     }
 
     /**
@@ -294,19 +274,9 @@ final class UserAccountRoleForm
 
         $priority = [
             'admin',
-            'media_pr',
-            'public_relations',
-            'media',
-            'media_employee',
-            'pr_employee',
-            'training_enablement_manager',
-            'training_manager',
-            'programs_activities_manager',
-            'volunteering_manager',
-            'volunteer_manager',
-            'staff',
+            ...RbacCatalog::staffRoleNames(),
+            ...array_keys(RbacCatalog::legacyRoleMigrationMap()),
             ...self::beneficiarySpatieRoleNames(),
-            'beneficiary',
         ];
 
         foreach ($priority as $name) {

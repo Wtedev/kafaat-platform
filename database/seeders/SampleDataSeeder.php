@@ -13,7 +13,7 @@ class SampleDataSeeder extends Seeder
     public function run(): void
     {
         $admin = User::where('email', 'admin@example.com')->first();
-        $volunteeringManager = User::role('volunteering_manager')->first();
+        $volunteeringManager = User::role('volunteer_management')->first();
 
         if ($admin === null) {
             $this->command?->warn('SampleDataSeeder: admin not found — skipping volunteer seeding.');

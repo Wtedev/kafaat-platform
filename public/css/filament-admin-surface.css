@@ -1,15 +1,19 @@
 /**
- * لوحة الإدارة — مظهر داكن مستوحى من لوحات حديثة (فحمي + نعناع).
+ * لوحة الإدارة — مظهر داكن متناسق مع هوية كفاءات (#335483 / #1a9399).
  * يُحمَّل من AdminPanelProvider دون الحاجة إلى Vite.
  */
 
 :root {
-    --admin-canvas: #121212;
-    --admin-surface: #1a1a1a;
-    --admin-surface-elevated: #1e1e1e;
-    --admin-border: rgba(255, 255, 255, 0.08);
-    --admin-muted: #9ca3af;
-    --admin-heading: #fafafa;
+    --admin-canvas: #0f1729;
+    --admin-surface: #162033;
+    --admin-surface-elevated: #1a2740;
+    --admin-border: rgba(197, 212, 228, 0.12);
+    --admin-muted: #94a3b8;
+    --admin-heading: #f8fafc;
+    --admin-brand: #335483;
+    --admin-brand-light: rgba(51, 84, 131, 0.18);
+    --admin-accent: #1a9399;
+    --admin-accent-light: rgba(26, 147, 153, 0.16);
     --admin-sidebar-avatar-size: 64px;
 }
 
@@ -31,7 +35,7 @@ html.fi .fi-body {
 
 /* ——— الشريط الجانبي ——— */
 html.fi.dark .fi-sidebar {
-    background-color: #161616 !important;
+    background-color: #131d30 !important;
     border-color: var(--admin-border) !important;
     box-shadow: none !important;
 }
@@ -49,12 +53,12 @@ html.fi.dark .fi-sidebar-item-btn {
 }
 
 html.fi.dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
-    background-color: rgba(74, 222, 128, 0.14) !important;
+    background-color: var(--admin-accent-light) !important;
 }
 
 html.fi.dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-label,
 html.fi.dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-icon {
-    color: #86efac !important;
+    color: #7dd3d8 !important;
 }
 
 html.fi.dark .fi-sidebar-item-has-url > .fi-sidebar-item-btn:hover {
@@ -187,8 +191,8 @@ html.fi .fi-sidebar .fi-admin-sidebar-staff-avatar-fallback {
 /* بطاقة المستخدم (الملف الشخصي) في الشريط — مثل بطاقات لوحات حديثة */
 html.fi.dark .fi-admin-sidebar-staff-card {
     contain: inline-size !important;
-    background-color: #27272a !important;
-    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    background-color: #1a2740 !important;
+    border: 1px solid var(--admin-border) !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35) !important;
 }
 
@@ -257,7 +261,7 @@ html.fi:not(.dark) .admin-sidebar-profile-avatar {
 
 /* ——— الشريط العلوي ——— */
 html.fi.dark .fi-topbar {
-    background-color: rgba(22, 22, 22, 0.92) !important;
+    background-color: rgba(19, 29, 48, 0.92) !important;
     border-color: var(--admin-border) !important;
     backdrop-filter: blur(10px);
     box-shadow: none !important;
@@ -302,7 +306,7 @@ html.fi.dark .fi-section {
 }
 
 html.fi.dark .fi-section-has-header .fi-section-header {
-    border-inline-start: 4px solid #335483;
+    border-inline-start: 4px solid var(--admin-brand);
     padding-inline-start: 1rem;
     margin-inline-start: -1px;
 }
@@ -348,7 +352,7 @@ html.fi.dark .fi-btn {
 }
 
 html.fi.dark .fi-btn-color-primary {
-    box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.25);
+    box-shadow: 0 0 0 1px rgba(26, 147, 153, 0.35);
 }
 
 html.fi.dark .fi-btn-color-gray.fi-btn-outlined,
@@ -401,8 +405,8 @@ html.fi.dark .fi-tabs-item {
 }
 
 html.fi.dark .fi-tabs-item.fi-active {
-    background-color: rgba(74, 222, 128, 0.1) !important;
-    color: #86efac !important;
+    background-color: var(--admin-accent-light) !important;
+    color: #7dd3d8 !important;
 }
 
 /* ——— ويدجات لوحة التحكم ——— */
@@ -451,8 +455,8 @@ html.fi:not(.dark) .news-edit-card {
 }
 
 html.fi.dark .news-edit-card--active {
-    border-color: rgba(74, 222, 128, 0.45);
-    box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.12);
+    border-color: rgba(26, 147, 153, 0.45);
+    box-shadow: 0 0 0 1px rgba(26, 147, 153, 0.12);
 }
 
 html.fi .news-edit-card-header {
@@ -688,13 +692,13 @@ html.fi .news-edit-metadata-card .news-edit-field-card-row {
 }
 
 html.fi.dark .news-edit-strip--active {
-    background-color: rgba(74, 222, 128, 0.06);
-    border-bottom-color: rgba(74, 222, 128, 0.35) !important;
+    background-color: var(--admin-accent-light);
+    border-bottom-color: rgba(26, 147, 153, 0.35) !important;
 }
 
 html.fi:not(.dark) .news-edit-strip--active {
-    background-color: rgba(74, 222, 128, 0.08);
-    border-bottom-color: rgba(22, 163, 74, 0.35) !important;
+    background-color: rgba(26, 147, 153, 0.08);
+    border-bottom-color: rgba(26, 147, 153, 0.35) !important;
 }
 
 html.fi.dark .news-edit-row {

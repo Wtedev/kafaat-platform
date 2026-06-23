@@ -11,8 +11,6 @@ final class RbacCatalog
     public const GUARD_WEB = 'web';
 
     /**
-     * Domain-level permission keys (underscore style) — extend here; seeder syncs to DB.
-     *
      * @return list<string>
      */
     public static function domainPermissionNames(): array
@@ -33,6 +31,9 @@ final class RbacCatalog
             'manage_roles',
             'assign_beneficiary_roles',
             'edit_profile_badges',
+            'manage_visual_identity',
+            'manage_banners',
+            'manage_brand_settings',
         ];
     }
 
@@ -71,29 +72,39 @@ final class RbacCatalog
     }
 
     /**
-     * Arabic labels for Spatie roles (Filament / display).
+     * أدوار الموظفين القابلة للتعيين من واجهة المستخدمين (بدون admin).
      *
+     * @return list<string>
+     */
+    public static function staffRoleNames(): array
+    {
+        return [
+            'technical_admin',
+            'training_management',
+            'volunteer_management',
+            'programs_management',
+            'media_management',
+            'public_relations',
+            'visual_identity',
+        ];
+    }
+
+    /**
      * @return array<string, string>
      */
     public static function roleLabelsAr(): array
     {
         return [
             'admin' => 'مسؤول النظام',
-            'media_pr' => 'الإعلام والعلاقات العامة',
-            'public_relations' => 'علاقات عامة',
-            'media' => 'إعلام',
-            'media_employee' => 'موظف الإعلام',
-            'pr_employee' => 'موظف العلاقات العامة',
-            'training_enablement_manager' => 'مسؤول التدريب والتمكين',
-            'training_manager' => 'مسؤول التدريب',
-            'programs_activities_manager' => 'مسؤول البرامج والأنشطة',
-            'volunteering_manager' => 'مسؤول التطوع',
-            'volunteer_manager' => 'مسؤول التطوع',
+            'technical_admin' => 'المسؤول التقني',
+            'training_management' => 'إدارة التدريب',
+            'volunteer_management' => 'إدارة التطوع',
+            'programs_management' => 'إدارة البرامج',
+            'media_management' => 'إدارة الإعلام',
+            'public_relations' => 'إدارة العلاقات العامة',
+            'visual_identity' => 'إدارة الهوية البصرية',
             'trainee' => 'متدرب',
             'volunteer' => 'متطوع',
-            // Legacy roles (may still exist in DB until cleaned up)
-            'staff' => 'موظف',
-            'beneficiary' => 'مستفيد',
         ];
     }
 
@@ -103,8 +114,6 @@ final class RbacCatalog
     }
 
     /**
-     * Arabic labels for permissions (إدارة الصلاحيات UI).
-     *
      * @return array<string, string>
      */
     public static function permissionLabelsAr(): array
@@ -125,6 +134,9 @@ final class RbacCatalog
             'manage_volunteers' => 'إدارة المتطوعين',
             'view_notifications' => 'عرض التنبيهات',
             'send_notifications' => 'إرسال التنبيهات',
+            'manage_visual_identity' => 'إدارة الهوية البصرية',
+            'manage_banners' => 'إدارة البنرات',
+            'manage_brand_settings' => 'تخصيص الألوان والتصميم',
             'users.view' => 'عرض المستخدمين',
             'users.create' => 'إنشاء مستخدمين',
             'users.update' => 'تعديل المستخدمين',
@@ -191,18 +203,57 @@ final class RbacCatalog
     {
         return [
             'admin',
-            'media_pr',
-            'public_relations',
-            'media',
-            'media_employee',
-            'pr_employee',
-            'training_enablement_manager',
-            'training_manager',
-            'programs_activities_manager',
-            'volunteering_manager',
-            'volunteer_manager',
+            ...self::staffRoleNames(),
             'trainee',
             'volunteer',
+        ];
+    }
+
+    /**
+     * Map legacy Spatie role names to the new catalog (for migrations / display).
+     *
+     * @return array<string, string>
+     */
+    public static function legacyRoleMigrationMap(): array
+    {
+        return [
+            'media_pr' => 'media_management',
+            'media' => 'media_management',
+            'media_employee' => 'media_management',
+            'pr_employee' => 'public_relations',
+            'training_enablement_manager' => 'training_management',
+            'training_manager' => 'training_management',
+            'programs_activities_manager' => 'training_management',
+            'volunteering_manager' => 'volunteer_management',
+            'volunteer_manager' => 'volunteer_management',
+            'staff' => 'programs_management',
+            'beneficiary' => 'trainee',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function trainingDomainStaffRoleNames(): array
+    {
+        return [
+            'admin',
+            'technical_admin',
+            'training_management',
+            'programs_management',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function volunteerDomainStaffRoleNames(): array
+    {
+        return [
+            'admin',
+            'technical_admin',
+            'training_management',
+            'volunteer_management',
         ];
     }
 
@@ -215,47 +266,50 @@ final class RbacCatalog
     {
         $all = self::allPermissionNames();
 
-        $training = array_values(array_unique(array_merge(
+        $staffShared = [
+            'view_notifications', 'send_notifications', 'emails.send', 'statistics.view',
+            'assign_beneficiary_roles', 'edit_profile_badges',
+        ];
+
+        $pathsPrograms = array_values(array_unique(array_merge(
             array_values(array_filter($all, fn (string $p) => str_starts_with($p, 'paths.')
                 || str_starts_with($p, 'courses.')
                 || str_starts_with($p, 'programs.')
                 || str_starts_with($p, 'registrations.')
                 || str_starts_with($p, 'progress.')
-                || str_starts_with($p, 'certificates.')
                 || in_array($p, [
-                    'users.view', 'users.create', 'users.update', 'users.activate',
-                    'emails.send', 'statistics.view',
-                    'view_news', 'manage_programs', 'approve_registrations', 'issue_certificates',
-                    'view_notifications', 'send_notifications',
+                    'certificates.view', 'certificates.issue', 'certificates.download',
+                    'approve_registrations', 'issue_certificates', 'manage_programs',
                 ], true))),
-            ['assign_beneficiary_roles', 'edit_profile_badges'],
+            ['users.view', 'users.create', 'users.update', 'users.activate'],
+            $staffShared,
         )));
 
         $volunteering = array_values(array_unique(array_merge(
             array_values(array_filter($all, fn (string $p) => str_starts_with($p, 'volunteering.')
                 || str_starts_with($p, 'volunteer_hours.')
-                || str_starts_with($p, 'registrations.')
                 || in_array($p, [
+                    'registrations.view', 'registrations.approve', 'registrations.reject',
                     'certificates.view', 'certificates.download',
-                    'statistics.view', 'emails.send',
                     'manage_volunteers', 'approve_registrations',
-                    'view_notifications', 'send_notifications',
                 ], true))),
-            ['assign_beneficiary_roles', 'edit_profile_badges'],
+            ['users.view', 'users.create', 'users.update', 'users.activate'],
+            $staffShared,
         )));
 
-        $media = [
-            'view_news', 'manage_news', 'manage_media', 'view_notifications', 'emails.send', 'statistics.view',
-        ];
+        $media = array_values(array_unique([
+            'view_news', 'manage_news', 'manage_media',
+            'view_notifications', 'emails.send', 'statistics.view',
+        ]));
 
-        $prOnly = [
+        $publicRelations = array_values(array_unique([
             'manage_partners', 'manage_regulations', 'manage_governance',
             'view_notifications', 'emails.send', 'statistics.view',
+        ]));
+
+        $visualIdentityExtras = [
+            'manage_visual_identity', 'manage_banners', 'manage_brand_settings',
         ];
-
-        $mediaPrLegacy = array_values(array_unique([...$media, ...$prOnly]));
-
-        $programsActivities = array_values(array_unique(array_merge($training, $volunteering)));
 
         $portalRead = [
             'paths.view', 'courses.view', 'programs.view', 'volunteering.view',
@@ -267,16 +321,13 @@ final class RbacCatalog
 
         return [
             'admin' => $all,
-            'media_pr' => $mediaPrLegacy,
-            'public_relations' => $prOnly,
-            'media' => $media,
-            'media_employee' => $media,
-            'pr_employee' => $prOnly,
-            'training_enablement_manager' => $training,
-            'training_manager' => $training,
-            'programs_activities_manager' => $programsActivities,
-            'volunteering_manager' => $volunteering,
-            'volunteer_manager' => $volunteering,
+            'technical_admin' => $all,
+            'training_management' => array_values(array_unique([...$pathsPrograms, ...$volunteering])),
+            'volunteer_management' => $volunteering,
+            'programs_management' => $pathsPrograms,
+            'media_management' => $media,
+            'public_relations' => $publicRelations,
+            'visual_identity' => array_values(array_unique([...$all, ...$visualIdentityExtras])),
             'trainee' => $portalRead,
             'volunteer' => $portalRead,
         ];

@@ -20,9 +20,9 @@ class EmployeeSeeder extends Seeder
         $rows = [
             ['name' => 'حسام التويجري', 'email' => 'husam.altuwaijri@kafaat.org.sa', 'role' => 'public_relations'],
             ['name' => 'عبدالله السعوي', 'email' => 'abdullah.alsuwayyi@kafaat.org.sa', 'role' => 'media'],
-            ['name' => 'آمنة البطي', 'email' => 'amna.albatti@kafaat.org.sa', 'role' => 'training_enablement_manager'],
-            ['name' => 'وجدان الصمعاني', 'email' => 'wejdan.alsumani@kafaat.org.sa', 'role' => 'programs_activities_manager'],
-            ['name' => 'مالك القصير', 'email' => 'malik.alqasir@kafaat.org.sa', 'role' => 'programs_activities_manager'],
+            ['name' => 'آمنة البطي', 'email' => 'amna.albatti@kafaat.org.sa', 'role' => 'training_management'],
+            ['name' => 'وجدان الصمعاني', 'email' => 'wejdan.alsumani@kafaat.org.sa', 'role' => 'programs_management'],
+            ['name' => 'مالك القصير', 'email' => 'malik.alqasir@kafaat.org.sa', 'role' => 'programs_management'],
             ['name' => 'إيمان المطيري', 'email' => 'eman.almutairi@kafaat.org.sa', 'role' => 'volunteer_manager'],
         ];
 

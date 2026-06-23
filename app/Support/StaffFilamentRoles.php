@@ -6,24 +6,21 @@ use App\Models\User;
 
 /**
  * Spatie role names for Filament / assignment visibility (training vs volunteering coordinators).
- * New seed roles map here so policies and scopes stay aligned without duplicating long role lists.
  */
 final class StaffFilamentRoles
 {
-    /** Roles that use legacy "coordinator" scoping via {@see TrainingProgram::$assigned_to}. */
+    /** Roles scoped to assigned training programs (operational coordinator). */
     public const TRAINING_COORDINATOR = [
-        'training_manager',
-        'training_enablement_manager',
+        'programs_management',
     ];
 
-    /** Roles that use {@see VolunteerOpportunity::$assigned_to} / volunteer team assignee scoping. */
+    /** Roles scoped to assigned volunteer opportunities / teams. */
     public const VOLUNTEERING_COORDINATOR = [
-        'volunteering_manager',
-        'volunteer_manager',
+        'volunteer_management',
     ];
 
     /** Full training + volunteering access (no per-row assignee filter in list scopes). */
-    public const CROSS_PROGRAMS_ACTIVITIES = 'programs_activities_manager';
+    public const CROSS_PROGRAMS_ACTIVITIES = 'training_management';
 
     public static function isProgramsActivitiesManager(?User $user): bool
     {
@@ -46,9 +43,8 @@ final class StaffFilamentRoles
     public static function assignableTrainingCoordinatorRoleNames(): array
     {
         return [
-            'training_manager',
-            'training_enablement_manager',
-            'programs_activities_manager',
+            'programs_management',
+            'training_management',
         ];
     }
 
@@ -58,9 +54,8 @@ final class StaffFilamentRoles
     public static function assignableVolunteeringCoordinatorRoleNames(): array
     {
         return [
-            'volunteering_manager',
-            'volunteer_manager',
-            'programs_activities_manager',
+            'volunteer_management',
+            'training_management',
         ];
     }
 }

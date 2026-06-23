@@ -58,7 +58,7 @@ class AdminPanelProvider extends PanelProvider
                 }
 
                 $fonts = asset('css/shamel-fonts.css');
-                $href = asset('css/filament-admin-surface.css').'?v=21';
+                $href = asset('css/filament-admin-surface.css').'?v=22';
 
                 return '<link rel="stylesheet" href="'.e($fonts).'"><link rel="stylesheet" href="'.e($href).'">';
             },

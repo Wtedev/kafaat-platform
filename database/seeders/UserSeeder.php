@@ -41,13 +41,13 @@ class UserSeeder extends Seeder
         }
 
         $staff = [
-            ['name' => 'آمنة البطي', 'email' => 'amna.albatti@kafaat.org.sa', 'role' => 'training_manager'],
-            ['name' => 'وجدان الصمعاني', 'email' => 'wajdan.alsumani@kafaat.org.sa', 'role' => 'training_manager'],
-            ['name' => 'مالك القصير', 'email' => 'malik.alqasir@kafaat.org.sa', 'role' => 'training_manager'],
-            ['name' => 'إيمان المطيري', 'email' => 'eman.almutairi@kafaat.org.sa', 'role' => 'volunteering_manager'],
-            ['name' => 'حسام التويجري', 'email' => 'husam.altuwaijri@kafaat.org.sa', 'role' => 'pr_employee'],
-            ['name' => 'فيصل الحميضان', 'email' => 'faisal.alhumaidan@kafaat.org.sa', 'role' => 'media_employee'],
-            ['name' => 'عبدالله السعوي', 'email' => 'abdullah.alsuwi@kafaat.org.sa', 'role' => 'media_employee'],
+            ['name' => 'آمنة البطي', 'email' => 'amna.albatti@kafaat.org.sa', 'role' => 'training_management'],
+            ['name' => 'وجدان الصمعاني', 'email' => 'wajdan.alsumani@kafaat.org.sa', 'role' => 'programs_management'],
+            ['name' => 'مالك القصير', 'email' => 'malik.alqasir@kafaat.org.sa', 'role' => 'programs_management'],
+            ['name' => 'إيمان المطيري', 'email' => 'eman.almutairi@kafaat.org.sa', 'role' => 'volunteer_management'],
+            ['name' => 'حسام التويجري', 'email' => 'husam.altuwaijri@kafaat.org.sa', 'role' => 'public_relations'],
+            ['name' => 'فيصل الحميضان', 'email' => 'faisal.alhumaidan@kafaat.org.sa', 'role' => 'media_management'],
+            ['name' => 'عبدالله السعوي', 'email' => 'abdullah.alsuwi@kafaat.org.sa', 'role' => 'media_management'],
         ];
 
         foreach ($staff as $row) {

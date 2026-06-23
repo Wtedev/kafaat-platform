@@ -176,19 +176,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             return true;
         }
 
-        return $this->hasAnyRole([
-            'media_pr',
-            'public_relations',
-            'media',
-            'media_employee',
-            'pr_employee',
-            'training_enablement_manager',
-            'training_manager',
-            'programs_activities_manager',
-            'volunteering_manager',
-            'volunteer_manager',
-            'staff',
-        ]);
+        return $this->hasAnyRole(RbacCatalog::staffRoleNames());
     }
 
     /**
@@ -273,17 +261,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
         return $this->hasAnyRole([
             'admin',
-            'media_pr',
-            'public_relations',
-            'media',
-            'media_employee',
-            'pr_employee',
-            'training_enablement_manager',
-            'training_manager',
-            'programs_activities_manager',
-            'volunteering_manager',
-            'volunteer_manager',
-            'staff',
+            ...RbacCatalog::staffRoleNames(),
         ]);
     }
 
@@ -308,17 +286,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
                 $q->whereIn('role_type', ['admin', 'staff'])
                     ->orWhereHas('roles', fn ($r) => $r->whereIn('name', [
                         'admin',
-                        'media_pr',
-                        'public_relations',
-                        'media',
-                        'media_employee',
-                        'pr_employee',
-                        'training_enablement_manager',
-                        'training_manager',
-                        'programs_activities_manager',
-                        'volunteering_manager',
-                        'volunteer_manager',
-                        'staff',
+                        ...RbacCatalog::staffRoleNames(),
                     ]));
             });
     }

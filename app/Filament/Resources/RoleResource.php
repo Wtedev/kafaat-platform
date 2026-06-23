@@ -35,11 +35,14 @@ class RoleResource extends Resource
         return ['roles.view'];
     }
 
+    public static function canViewAny(): bool
+    {
+        return false;
+    }
+
     public static function shouldRegisterNavigation(): bool
     {
-        $user = auth()->user();
-
-        return $user?->isAdmin() === true && static::canViewAny();
+        return false;
     }
 
     public static function form(Schema $schema): Schema

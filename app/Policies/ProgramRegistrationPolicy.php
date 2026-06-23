@@ -28,7 +28,7 @@ class ProgramRegistrationPolicy
             return false;
         }
 
-        if ($user->hasRole('volunteering_manager')) {
+        if ($user->hasRole('volunteer_management')) {
             return false;
         }
 

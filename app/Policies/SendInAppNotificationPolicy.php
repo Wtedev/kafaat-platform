@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\VolunteerTeam;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\StaffFilamentRoles;
+use App\Services\Rbac\RbacCatalog;
 use Illuminate\Database\Eloquent\Builder;
 
 class SendInAppNotificationPolicy
@@ -141,7 +142,8 @@ class SendInAppNotificationPolicy
             return $q->where(function (Builder $sub): void {
                 $sub->whereIn('role_type', ['staff', 'admin', 'trainee', 'beneficiary', 'volunteer'])
                     ->orWhereHas('roles', fn (Builder $r) => $r->whereIn('name', [
-                        'admin', 'media_pr', 'media_employee', 'pr_employee', 'training_manager', 'volunteering_manager', 'staff',
+                        'admin',
+                        ...RbacCatalog::staffRoleNames(),
                         'trainee', 'volunteer',
                     ]));
             });

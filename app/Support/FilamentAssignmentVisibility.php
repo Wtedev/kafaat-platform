@@ -21,7 +21,7 @@ final class FilamentAssignmentVisibility
     {
         return $user !== null && (
             $user->isAdmin()
-            || $user->hasRole('admin')
+            || $user->hasAnyRole(['admin', 'technical_admin', 'visual_identity'])
             || $user->can('manage_roles')
         );
     }
