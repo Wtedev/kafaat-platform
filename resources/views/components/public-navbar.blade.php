@@ -4,10 +4,10 @@
     Self-contained: includes inline <script> for hamburger toggle + scroll shadow.
 --}}
 @php
-$aboutHref      = request()->routeIs('home') ? '#about'    : route('home') . '#about';
-$hasGovernance  = Route::has('public.governance.index');
+$aboutHref = request()->routeIs('home') ? '#about' : route('home') . '#about';
+$hasGovernance = Route::has('public.governance.index');
 $hasRegulations = Route::has('public.regulations.index');
-$hasMedia       = Route::has('public.media.index');
+$hasMedia = Route::has('public.media.index');
 @endphp
 
 <header id="pub-nav" class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100 shadow-sm transition-shadow duration-200">
@@ -20,55 +20,45 @@ $hasMedia       = Route::has('public.media.index');
             {{-- Desktop Nav --}}
             <nav class="hidden lg:flex items-center gap-6 text-sm font-medium" style="color:#6B7280">
 
-                <a href="{{ route('home') }}"
-                   class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('home') ? 'font-semibold' : '' }}"
-                   @if(request()->routeIs('home')) style="color:#253B5B" @endif>
+                <a href="{{ route('home') }}" class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('home') ? 'font-semibold' : '' }}" @if(request()->routeIs('home')) style="color:#253B5B" @endif>
                     الرئيسية
                 </a>
 
-                <a href="{{ route('impact.index') }}"
-                   class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('impact.index') ? 'font-semibold' : '' }}"
-                   @if(request()->routeIs('impact.index')) style="color:#253B5B" @endif>
+                <a href="{{ route('impact.index') }}" class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('impact.index') ? 'font-semibold' : '' }}" @if(request()->routeIs('impact.index')) style="color:#253B5B" @endif>
                     عام الأثر
                 </a>
 
-                <a href="{{ $aboutHref }}"
-                   class="hover:text-[#253B5B] transition-colors">
+                <a href="{{ $aboutHref }}" class="hover:text-[#253B5B] transition-colors">
                     عن كفاءات
                 </a>
 
-                <a href="{{ route('public.programs.index') }}"
-                   class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('public.programs.*') ? 'font-semibold' : '' }}"
-                   @if(request()->routeIs('public.programs.*')) style="color:#253B5B" @endif>
+                <a href="{{ route('public.programs.index') }}" class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('public.programs.*') ? 'font-semibold' : '' }}" @if(request()->routeIs('public.programs.*')) style="color:#253B5B" @endif>
                     البرامج
                 </a>
 
+                <span class="inline-flex items-baseline gap-1 cursor-default select-none" aria-label="سند — قريباً">
+                    <span class="font-semibold" style="color:#7c3aed">سند</span>
+                    <span class="text-[10px] font-normal" style="color:#9CA3AF">قريباً</span>
+                </span>
+
                 @if($hasRegulations)
-                <a href="{{ route('public.regulations.index') }}"
-                   class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('public.regulations.*') ? 'font-semibold' : '' }}"
-                   @if(request()->routeIs('public.regulations.*')) style="color:#253B5B" @endif>
+                <a href="{{ route('public.regulations.index') }}" class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('public.regulations.*') ? 'font-semibold' : '' }}" @if(request()->routeIs('public.regulations.*')) style="color:#253B5B" @endif>
                     اللوائح والأنظمة
                 </a>
                 @endif
 
                 @if($hasGovernance)
-                <a href="{{ route('public.governance.index') }}"
-                   class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('public.governance.*') ? 'font-semibold' : '' }}"
-                   @if(request()->routeIs('public.governance.*')) style="color:#253B5B" @endif>
+                <a href="{{ route('public.governance.index') }}" class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('public.governance.*') ? 'font-semibold' : '' }}" @if(request()->routeIs('public.governance.*')) style="color:#253B5B" @endif>
                     الحوكمة
                 </a>
                 @endif
 
-                <a href="{{ route('public.volunteering.index') }}"
-                   class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('public.volunteering.*') ? 'font-semibold' : '' }}"
-                   @if(request()->routeIs('public.volunteering.*')) style="color:#253B5B" @endif>
+                <a href="{{ route('public.volunteering.index') }}" class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('public.volunteering.*') ? 'font-semibold' : '' }}" @if(request()->routeIs('public.volunteering.*')) style="color:#253B5B" @endif>
                     الفرص التطوعية
                 </a>
 
                 @if($hasMedia)
-                <a href="{{ route('public.media.index') }}"
-                   class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('public.media.*') ? 'font-semibold' : '' }}"
-                   @if(request()->routeIs('public.media.*')) style="color:#253B5B" @endif>
+                <a href="{{ route('public.media.index') }}" class="hover:text-[#253B5B] transition-colors {{ request()->routeIs('public.media.*') ? 'font-semibold' : '' }}" @if(request()->routeIs('public.media.*')) style="color:#253B5B" @endif>
                     المركز الإعلامي
                 </a>
                 @endif
@@ -107,6 +97,12 @@ $hasMedia       = Route::has('public.media.index');
             <a href="{{ route('impact.index') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#EAF2FA] hover:text-[#253B5B] transition-colors text-right">عام الأثر</a>
             <a href="{{ $aboutHref }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#EAF2FA] hover:text-[#253B5B] transition-colors text-right">عن كفاءات</a>
             <a href="{{ route('public.programs.index') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#EAF2FA] hover:text-[#253B5B] transition-colors text-right">البرامج</a>
+
+            <span class="px-4 py-2.5 rounded-xl text-sm text-right inline-flex items-baseline justify-end gap-1 cursor-default select-none">
+                <span class="font-semibold" style="color:#7c3aed">سند</span>
+                <span class="text-[10px] font-normal" style="color:#9CA3AF">قريباً</span>
+            </span>
+
             @if($hasRegulations)
             <a href="{{ route('public.regulations.index') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#EAF2FA] hover:text-[#253B5B] transition-colors text-right">اللوائح والأنظمة</a>
             @endif
