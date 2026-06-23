@@ -5,7 +5,7 @@
 {{-- Page header --}}
 <div class="mb-8">
     <h1 class="text-3xl font-bold" style="color:#111827">الأخبار والفعاليات</h1>
-    <p class="mt-2 text-sm" style="color:#6B7280">آخر التحديثات والأخبار من منصة كفاءات.</p>
+    <p class="mt-2 text-sm" style="color:#6B7280">آخر أخبار وفعاليات جمعية كفاءات.</p>
 </div>
 
 @php

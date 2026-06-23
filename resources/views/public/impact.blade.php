@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>عام الأثر — كفاءات</title>
-    <meta name="description" content="عام الأثر هو التحول من قياس الجهد إلى قياس الأثر الحقيقي. تعرف على الركائز الاستراتيجية الأربع لمنصة كفاءات." />
+    <meta name="description" content="عام الأثر — مبادرة جمعية كفاءات الاستراتيجية لقياس الأثر وبناء نتائج مستدامة في برامجها التدريبية والتطوعية." />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -412,31 +412,17 @@
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center reveal-fade">
             <h2 class="text-2xl sm:text-3xl font-bold mb-4" style="color:#111827">هل أنت مستعد لتكون جزءاً من الأثر؟</h2>
             <p class="mb-8 text-base leading-relaxed" style="color:#6B7280">
-                انضم إلى آلاف المستفيدين الذين يصنعون أثراً حقيقياً من خلال مسارات كفاءات التدريبية والتطوعية.
+                انضم إلى برامجنا التدريبية وفرصنا التطوعية، وكن جزءاً من أثر الجمعية في المجتمع.
             </p>
             <div class="flex flex-wrap items-center justify-center gap-4">
-                @auth
-                @if(auth()->user()->canAccessFilamentAdmin())
-                <a href="{{ url('/admin') }}" class="px-8 py-4 rounded-2xl text-base font-semibold text-white shadow-md hover:shadow-lg
+                <a href="{{ route('public.programs.index') }}" class="px-8 py-4 rounded-2xl text-base font-semibold text-white shadow-md hover:shadow-lg
                           transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
-                    اصنع أثراً
+                    استكشف البرامج
                 </a>
-                @else
-                <a href="{{ route('portal.dashboard') }}" class="px-8 py-4 rounded-2xl text-base font-semibold text-white shadow-md hover:shadow-lg
-                          transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
-                    منصة التدريب
-                </a>
-                @endif
-                @else
-                <a href="{{ route('register') }}" class="px-8 py-4 rounded-2xl text-base font-semibold text-white shadow-md hover:shadow-lg
-                          transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
-                    ابدأ رحلتك
-                </a>
-                <a href="{{ route('public.paths.index') }}" class="px-8 py-4 rounded-2xl text-base font-semibold border-2 bg-white
+                <a href="{{ route('public.volunteering.index') }}" class="px-8 py-4 rounded-2xl text-base font-semibold border-2 bg-white
                           hover:bg-[#EAF2FA] transition-all duration-200 hover:-translate-y-0.5" style="color:#253B5B; border-color:#c5ddef">
-                    استكشف المسارات
+                    الفرص التطوعية
                 </a>
-                @endauth
             </div>
         </div>
     </section>

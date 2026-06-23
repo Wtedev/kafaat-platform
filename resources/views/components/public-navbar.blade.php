@@ -81,7 +81,7 @@ $hasMedia       = Route::has('public.media.index');
                 @if(auth()->user()->canAccessFilamentAdmin())
                 <a href="{{ url('/admin') }}" class="px-5 py-2 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200" style="background:#253B5B">لوحة الإدارة</a>
                 @else
-                <a href="{{ route('portal.dashboard') }}" class="px-5 py-2 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200" style="background:#253B5B">منصة التدريب</a>
+                <a href="{{ route('portal.dashboard') }}" class="px-5 py-2 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200" style="background:#253B5B">حسابي</a>
                 @endif
                 @else
                 <a href="{{ route('login') }}" class="px-5 py-2 rounded-2xl text-sm font-medium transition-colors hover:bg-[#EAF2FA]" style="color:#253B5B">تسجيل الدخول</a>
@@ -122,7 +122,7 @@ $hasMedia       = Route::has('public.media.index');
             @if(auth()->user()->canAccessFilamentAdmin())
             <a href="{{ url('/admin') }}" class="mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-white text-center" style="background:#253B5B">لوحة الإدارة</a>
             @else
-            <a href="{{ route('portal.dashboard') }}" class="mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-white text-center" style="background:#253B5B">منصة التدريب</a>
+            <a href="{{ route('portal.dashboard') }}" class="mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-white text-center" style="background:#253B5B">حسابي</a>
             @endif
             @else
             <div class="mt-3 flex gap-2">

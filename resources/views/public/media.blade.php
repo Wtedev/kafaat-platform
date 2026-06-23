@@ -1,7 +1,7 @@
 @extends('layouts.public')
 
 @section('title', 'المركز الإعلامي — كفاءات')
-@section('meta_description', 'تابع آخر أخبار جمعية كفاءات وتصفّح مكتبة الصور من فعالياتنا وبرامجنا التدريبية والتطوعية.')
+@section('meta_description', 'تابع آخر أخبار جمعية كفاءات وتصفّح مكتبة الصور من فعالياتنا وبرامجنا.')
 
 @section('head')
 <style>

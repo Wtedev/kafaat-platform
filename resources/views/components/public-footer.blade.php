@@ -20,7 +20,7 @@
             <div class="text-center sm:text-right lg:col-span-4">
                 <a href="{{ route('home') }}" class="inline-block text-2xl font-bold tracking-tight text-white transition-colors hover:text-emerald-300">كفاءات</a>
                 <p class="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-gray-400 sm:mx-0 sm:max-w-none">
-                    الموقع الإلكتروني لجمعية كفاءات — نافذة للتعرّف على عمل الجمعية، ومنصة تدريبية للمستفيدين والمتطوعين.
+                    جمعية كفاءات لبناء قدرات الشباب — نُمكّن الشباب عبر التدريب والتطوع والعمل المؤسسي في خدمة المجتمع.
                 </p>
                 <div class="mt-5 flex flex-wrap items-center justify-center gap-2.5 sm:justify-end">
                     @foreach($site['social'] ?? [] as $social)
@@ -69,7 +69,7 @@
 
             {{-- Platform --}}
             <div class="text-center sm:text-right lg:col-span-3">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-400/90">المنصة</h4>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-400/90">للمستفيدين</h4>
                 <ul class="mt-4 space-y-2.5 text-sm">
                     @guest
                     <li><a href="{{ route('login') }}" class="text-gray-400 transition-colors hover:text-white">تسجيل الدخول</a></li>
@@ -78,7 +78,7 @@
                     @if(auth()->user()->canAccessFilamentAdmin())
                     <li><a href="{{ url('/admin') }}" class="text-gray-400 transition-colors hover:text-white">لوحة الإدارة</a></li>
                     @else
-                    <li><a href="{{ route('portal.dashboard') }}" class="text-gray-400 transition-colors hover:text-white">منصة التدريب</a></li>
+                    <li><a href="{{ route('portal.dashboard') }}" class="text-gray-400 transition-colors hover:text-white">حسابي</a></li>
                     @endif
                     @endguest
                     <li><a href="{{ route('home') }}#faq" class="text-gray-400 transition-colors hover:text-white">الأسئلة الشائعة</a></li>

@@ -8,8 +8,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>كفاءات — الموقع الإلكتروني لجمعية كفاءات</title>
-    <meta name="description" content="الموقع الإلكتروني لجمعية كفاءات: تعرّف على عمل الجمعية وأخبارها وبرامجها، وادخل إلى منصتها التدريبية للمستفيدين والتطوع والشهادات." />
+    <title>جمعية كفاءات — بناء قدرات الشباب</title>
+    <meta name="description" content="جمعية كفاءات لبناء قدرات الشباب: تعرّف على رسالتنا ورؤيتنا، برامجنا التدريبية، فرص التطوع، وأخبارنا وفعالياتنا." />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -99,7 +99,7 @@
 <body class="bg-[#F7FAFC] text-[#111827] antialiased">
 
     @php
-        $homeOfferingsHref = request()->routeIs('home') ? '#offerings' : route('home') . '#offerings';
+        $homeAboutHref = request()->routeIs('home') ? '#about' : route('home') . '#about';
     @endphp
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
@@ -121,45 +121,32 @@
                     {{-- Pill badge --}}
                     <div class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-medium mb-6 border" style="background:#EAF2FA; color:#253B5B; border-color:#c5ddef">
                         <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#3CB878"></span>
-                        الموقع الإلكتروني لجمعية كفاءات
+                        جمعية كفاءات لبناء قدرات الشباب
                     </div>
 
                     {{-- Headline --}}
                     <h1 class="text-4xl sm:text-5xl lg:text-[3.4rem] font-bold leading-snug mb-5" style="color:#111827">
-                        حضور رقمي يصنع أثراً مع <span style="color:#253B5B">كفاءات</span>
+                        نُمكّن الشباب… و<span style="color:#253B5B">نصنع الأثر</span>
                     </h1>
 
                     {{-- Subtitle --}}
                     <p class="text-lg leading-relaxed mb-8 max-w-lg" style="color:#6B7280">
-                        موقع إلكتروني يعرّف بجمعية كفاءات وبرامجها وأخبارها، ويضم منصة تدريبية متكاملة للمستفيدين — مسارات وبرامج وفرص تطوع وشهادات — في تجربة واحدة مترابطة.
+                        جمعية أهلية تعمل على تأهيل الشباب وبناء مهاراتهم، وتوسيع مشاركتهم المجتمعية عبر برامج تدريبية وفرص تطوعية وشراكات مؤسسية في خدمة المجتمع.
                     </p>
 
                     {{-- CTA Buttons --}}
                     <div class="flex flex-wrap gap-4 mb-10">
-                        @guest
-                        <a href="{{ route('register') }}" class="px-7 py-3.5 rounded-2xl text-base font-semibold text-white shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5" style="background: linear-gradient(135deg, #253B5B 0%, #2e4a73 100%)">
-                            ابدأ رحلتك
+                        <a href="{{ route('public.programs.index') }}" class="px-7 py-3.5 rounded-2xl text-base font-semibold text-white shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5" style="background: linear-gradient(135deg, #253B5B 0%, #2e4a73 100%)">
+                            استكشف برامجنا
                         </a>
-                        @endguest
-                        @auth
-                        @if(auth()->user()->canAccessFilamentAdmin())
-                        <a href="{{ url('/admin') }}" class="px-7 py-3.5 rounded-2xl text-base font-semibold text-white shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5" style="background: linear-gradient(135deg, #253B5B 0%, #2e4a73 100%)">
-                            اصنع أثراً
-                        </a>
-                        @else
-                        <a href="{{ route('portal.dashboard') }}" class="px-7 py-3.5 rounded-2xl text-base font-semibold text-white shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5" style="background: linear-gradient(135deg, #253B5B 0%, #2e4a73 100%)">
-                            منصة التدريب
-                        </a>
-                        @endif
-                        @endauth
-                        <a href="{{ $homeOfferingsHref }}" class="px-7 py-3.5 rounded-2xl text-base font-semibold border-2 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#EAF2FA]" style="color:#253B5B; border-color:#c5ddef">
-                            تعرّف على الجمعية
+                        <a href="{{ $homeAboutHref }}" class="px-7 py-3.5 rounded-2xl text-base font-semibold border-2 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#EAF2FA]" style="color:#253B5B; border-color:#c5ddef">
+                            عن الجمعية
                         </a>
                     </div>
 
                     {{-- Trust indicators --}}
                     <div class="flex flex-wrap gap-5 text-sm" style="color:#6B7280">
-                        @foreach(['أخبار وفعاليات', 'منصة تدريبية للمستفيدين', 'برامج تطوع وأثر مجتمعي'] as $trust)
+                        @foreach(['برامج تأهيل وتدريب', 'فرص تطوع مجتمعي', 'شراكات وأثر مستدام'] as $trust)
                         <div class="flex items-center gap-2">
                             <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#3CB878"></span>
                             {{ $trust }}
@@ -168,7 +155,7 @@
                     </div>
                 </div>
 
-                {{-- ── Website hub preview (second child = LEFT in RTL) ── --}}
+                {{-- ── مجالات عمل الجمعية (second child = LEFT in RTL) ── --}}
                 <div class="w-full lg:w-[46%] flex justify-center lg:justify-start">
                     <div class="relative w-full max-w-md">
 
@@ -178,45 +165,45 @@
 
                             <div class="flex items-center justify-between pb-4 border-b border-gray-100">
                                 <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:#EAF2FA">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/></svg>
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-xs mb-0.5" style="color:#6B7280">بوابة الجمعية</p>
-                                    <p class="text-sm font-bold" style="color:#111827">كل ما يهمك في مكان واحد</p>
+                                    <p class="text-xs mb-0.5" style="color:#6B7280">مجالات عملنا</p>
+                                    <p class="text-sm font-bold" style="color:#111827">في خدمة الشباب والمجتمع</p>
                                 </div>
                             </div>
-
-                            <a href="{{ route('public.news.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-[#c5ddef] hover:bg-[#F8FBFE] transition-all group">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-50">
-                                    <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
-                                </div>
-                                <div class="flex-1 text-right min-w-0">
-                                    <p class="text-sm font-bold" style="color:#111827">الأخبار والفعاليات</p>
-                                    <p class="text-xs mt-0.5 truncate" style="color:#6B7280">آخر مستجدات الجمعية</p>
-                                </div>
-                                <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity" style="color:#253B5B" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                            </a>
 
                             <a href="{{ route('public.programs.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group" style="border-color:#dceaf7; background: linear-gradient(145deg, #F8FBFE 0%, #EAF2FA 100%)">
                                 <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white shadow-sm">
                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                                 </div>
                                 <div class="flex-1 text-right min-w-0">
-                                    <p class="text-sm font-bold" style="color:#253B5B">المنصة التدريبية</p>
-                                    <p class="text-xs mt-0.5" style="color:#6B7280">مسارات · برامج · شهادات</p>
+                                    <p class="text-sm font-bold" style="color:#253B5B">التدريب وبناء المهارات</p>
+                                    <p class="text-xs mt-0.5" style="color:#6B7280">مسارات وبرامج تأهيلية للشباب</p>
                                 </div>
-                                <span class="text-[10px] font-semibold px-2 py-1 rounded-lg text-white" style="background:#253B5B">للمستفيدين</span>
+                                <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity" style="color:#253B5B" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </a>
 
                             <a href="{{ route('public.volunteering.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-green-200 hover:bg-green-50/50 transition-all group">
                                 <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-green-50">
-                                    <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                                 </div>
                                 <div class="flex-1 text-right min-w-0">
-                                    <p class="text-sm font-bold" style="color:#111827">التطوع والأثر</p>
-                                    <p class="text-xs mt-0.5" style="color:#6B7280">فرص تطوعية ومجتمعية</p>
+                                    <p class="text-sm font-bold" style="color:#111827">العمل التطوعي</p>
+                                    <p class="text-xs mt-0.5" style="color:#6B7280">فرص تطوعية وأثر مجتمعي</p>
                                 </div>
                                 <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </a>
+
+                            <a href="{{ route('impact.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-[#c5ddef] hover:bg-[#F8FBFE] transition-all group">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-50">
+                                    <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                                </div>
+                                <div class="flex-1 text-right min-w-0">
+                                    <p class="text-sm font-bold" style="color:#111827">الأثر والتنمية</p>
+                                    <p class="text-xs mt-0.5 truncate" style="color:#6B7280">قياس الأثر وبناء القدرات المستدامة</p>
+                                </div>
+                                <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity" style="color:#253B5B" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </a>
                         </div>
 
@@ -225,8 +212,8 @@
                                 <svg class="w-4 h-4" style="color:#253B5B" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                             </div>
                             <div>
-                                <p class="text-xs font-semibold text-gray-800">نصنع الأثر</p>
-                                <p class="text-xs" style="color:#6B7280">بشباب ملهم ومتمكن</p>
+                                <p class="text-xs font-semibold text-gray-800">منذ تأسيسنا</p>
+                                <p class="text-xs" style="color:#6B7280">نخدم الشباب والمجتمع</p>
                             </div>
                         </div>
                     </div>
@@ -240,15 +227,15 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 3. INTRO / VALUE SECTION                                            --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section id="offerings" class="py-20 bg-white scroll-mt-24">
+    <section id="about" class="py-20 bg-white scroll-mt-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- Heading --}}
             <div class="text-center mb-14">
                 <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:#3CB878">من نحن</p>
-                <h2 class="text-3xl sm:text-4xl font-bold mb-4" style="color:#111827">نبذة عن كفاءات</h2>
+                <h2 class="text-3xl sm:text-4xl font-bold mb-4" style="color:#111827">جمعية كفاءات</h2>
                 <p class="text-lg leading-relaxed max-w-2xl mx-auto" style="color:#6B7280">
-                    جمعية كفاءات تعمل على تمكين الشباب وبناء قدراتهم. هذا الموقع الإلكتروني نافذتكم للتعرّف على عمل الجمعية وأخبارها وبرامجها، والوصول إلى منصتها التدريبية المخصّصة للمستفيدين والمتطوعين.
+                    جمعية أهلية غير ربحية تُعنى ببناء قدرات الشباب وتأهيلهم للمشاركة الفاعلة في المجتمع، عبر برامج تدريبية نوعية وفرص تطوعية وشراكات مؤسسية محلية.
                 </p>
             </div>
 
@@ -340,72 +327,42 @@
 
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 5. ABOUT PLATFORM SECTION                                           --}}
+    {{-- 5. WORK AREAS SECTION                                               --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section id="about" class="py-20 bg-white">
+    <section id="work" class="py-20 bg-[#F7FAFC] scroll-mt-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col lg:flex-row items-center gap-16">
+            <div class="text-center mb-12">
+                <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:#3CB878">ماذا نقدّم</p>
+                <h2 class="text-3xl sm:text-4xl font-bold mb-4" style="color:#111827">مجالات عمل الجمعية</h2>
+                <p class="text-lg leading-relaxed max-w-2xl mx-auto" style="color:#6B7280">
+                    نعمل على محاور متكاملة تُسهم في تأهيل الشباب وتمكينهم من صناعة أثر حقيقي في مجتمعاتهم.
+                </p>
+            </div>
 
-                {{-- ── Text (first child = RIGHT in RTL) ── --}}
-                <div class="w-full lg:w-1/2 text-right">
-                    <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:#3CB878">الموقع والمنصة</p>
-                    <h2 class="text-3xl sm:text-4xl font-bold mb-5" style="color:#111827">موقع إلكتروني ومنصة تدريبية</h2>
-                    <p class="leading-relaxed mb-4" style="color:#6B7280">
-                        يجمع الموقع في مكان واحد هوية الجمعية وأخبارها وبرامجها المجتمعية، مع منصة تدريبية رقمية يدخل إليها المستفيدون للتسجيل في المسارات والبرامج ومتابعة شهاداتهم وساعات تطوعهم.
-                    </p>
-                    <p class="leading-relaxed mb-8" style="color:#6B7280">
-                        للزائر: استكشف محتوى الجمعية. للمستفيد المسجّل: انتقل إلى المنصة التدريبية من القائمة أو بعد تسجيل الدخول.
-                    </p>
-                    <div class="flex flex-wrap gap-4">
-                        <a href="{{ $homeOfferingsHref }}" class="px-7 py-3 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
-                            اعرف أكثر
-                        </a>
-                        @guest
-                        <a href="{{ route('register') }}" class="px-7 py-3 rounded-2xl text-sm font-semibold border-2 transition-all duration-200 hover:bg-[#EAF2FA] hover:-translate-y-0.5" style="color:#253B5B; border-color:#c5ddef">
-                            انضم مجاناً
-                        </a>
-                        @else
-                        @if(auth()->user()->canAccessFilamentAdmin())
-                        <a href="{{ url('/admin') }}" class="px-7 py-3 rounded-2xl text-sm font-semibold border-2 transition-all duration-200 hover:bg-[#EAF2FA] hover:-translate-y-0.5" style="color:#253B5B; border-color:#c5ddef">
-                            اصنع أثراً
-                        </a>
-                        @else
-                        <a href="{{ route('portal.dashboard') }}" class="px-7 py-3 rounded-2xl text-sm font-semibold border-2 transition-all duration-200 hover:bg-[#EAF2FA] hover:-translate-y-0.5" style="color:#253B5B; border-color:#c5ddef">
-                            منصة التدريب
-                        </a>
-                        @endif
-                        @endguest
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                @php
+                $workAreas = [
+                    ['title' => 'التدريب والتأهيل', 'desc' => 'مسارات وبرامج تُنمّي مهارات الشباب ومعارفهم العملية.', 'href' => route('public.programs.index'), 'color' => '#253B5B'],
+                    ['title' => 'العمل التطوعي', 'desc' => 'فرص تطوعية تُسهم في خدمة المجتمع وصقل خبرات المتطوعين.', 'href' => route('public.volunteering.index'), 'color' => '#16a34a'],
+                    ['title' => 'الأثر والتنمية', 'desc' => 'مبادرات وبرامج تُقاس نتائجها وتُوثَّق لضمان استدامة الأثر.', 'href' => route('impact.index'), 'color' => '#d97706'],
+                    ['title' => 'الأخبار والفعاليات', 'desc' => 'متابعة نشاطات الجمعية وفعالياتها وإنجازاتها الميدانية.', 'href' => route('public.news.index'), 'color' => '#2563eb'],
+                ];
+                @endphp
+                @foreach($workAreas as $area)
+                <a href="{{ $area['href'] }}" class="vm-card block rounded-3xl border border-gray-100 bg-white p-6 text-right shadow-sm hover:shadow-md transition-all">
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-4" style="background:#EAF2FA">
+                        <span class="w-3 h-3 rounded-full" style="background:{{ $area['color'] }}"></span>
                     </div>
-                </div>
-
-                {{-- ── Visual (second child = LEFT in RTL) ── --}}
-                <div class="w-full lg:w-1/2 flex justify-center">
-                    <div class="relative w-full max-w-sm">
-                        <div class="absolute -top-5 -right-5 w-28 h-28 rounded-3xl opacity-50" style="background:#EAF2FA"></div>
-                        <div class="absolute -bottom-5 -left-5 w-20 h-20 rounded-2xl opacity-40 bg-green-100"></div>
-                        <div class="relative bg-white rounded-3xl shadow-xl border border-gray-50 p-9 text-center">
-                            <div class="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-5" style="background:#EAF2FA">
-                            <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
-                        </div>
-                            <h3 class="text-xl font-bold mb-2" style="color:#253B5B">محتوى الموقع</h3>
-                            <p class="text-sm mb-7" style="color:#6B7280">والمنصة التدريبية ضمنه</p>
-                            <div class="space-y-3 text-right">
-                                @foreach(['أخبار وفعاليات الجمعية','منصة تدريبية للمستفيدين','فرص تطوع وأثر مجتمعي','شهادات رقمية قابلة للتحقق'] as $feat)
-                                <div class="flex items-center gap-3 justify-end">
-                                    <span class="text-sm text-gray-700">{{ $feat }}</span>
-                                    <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold" style="background:#DCFCE7; color:#3CB878">✓</div>
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+                    <h3 class="text-lg font-bold mb-2" style="color:#111827">{{ $area['title'] }}</h3>
+                    <p class="text-sm leading-relaxed" style="color:#6B7280">{{ $area['desc'] }}</p>
+                </a>
+                @endforeach
             </div>
         </div>
     </section>
 
 
+    {{-- removed old "about platform" section --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 7. NEWS & EVENTS SECTION                                            --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
@@ -573,7 +530,7 @@
                         <div class="text-8xl font-black leading-none mb-1" style="color:rgba(255,255,255,0.12)">٢٠٢٥</div>
                         <h2 class="text-3xl font-bold text-white mb-3">التقرير السنوي</h2>
                         <p class="text-blue-200 leading-relaxed max-w-md">
-                            تقرير شامل يرصد إنجازات جمعية كفاءات خلال عام ٢٠٢٥، من برامجها وأثرها المجتمعي ومنصتها التدريبية.
+                            تقرير شامل يرصد إنجازات جمعية كفاءات خلال عام ٢٠٢٥: برامجها التدريبية، عملها التطوعي، وأثرها المجتمعي.
                         </p>
                     </div>
 
@@ -601,7 +558,7 @@
 
             <div class="text-center mb-12">
                 <h2 class="text-2xl sm:text-3xl font-bold" style="color:#111827">شركاؤنا</h2>
-                <p class="mt-3 text-sm max-w-xl mx-auto" style="color:#6B7280">مؤسسات وشركات نفتخر بشراكتها معنا في بناء القدرات.</p>
+            <p class="mx-auto mt-3 max-w-xl text-sm" style="color:#6B7280">مؤسسات وشركات نفتخر بشراكتها معنا في بناء قدرات الشباب.</p>
             </div>
 
             @if ($partners->isEmpty())
@@ -658,18 +615,18 @@
 
             @php
             $faqs = [
-            ['q' => 'ما هو موقع كفاءات؟',
-            'a' => 'موقع كفاءات الإلكتروني هو النافذة الرسمية لجمعية كفاءات: يعرّف بعمل الجمعية وأخبارها وبرامجها، ويضم منصة تدريبية للمستفيدين للتسجيل في المسارات والبرامج ومتابعة الشهادات والتطوع.'],
-            ['q' => 'كيف أدخل المنصة التدريبية؟',
-            'a' => 'أنشئ حساباً أو سجّل دخولك، ثم اختر «منصة التدريب» من القائمة. ستجد فيها المسارات والبرامج المتاحة للتسجيل ومتابعة تقدمك.'],
-            ['q' => 'هل المحتوى مجاني بالكامل؟',
-            'a' => 'نعم، معظم المسارات والبرامج مجانية بالكامل. بعض البرامج المتخصصة قد تتطلب رسوماً رمزية تُحدد عند التسجيل.'],
-            ['q' => 'كيف أحصل على شهادة إتمام؟',
-            'a' => 'عند إتمام برنامج أو مسار بنسبة حضور وأداء تتجاوز الحد المطلوب تُصدر شهادة رقمية تلقائياً تجدها في ملفك الشخصي ويمكنك تحميلها أو مشاركتها.'],
-            ['q' => 'ما الفرق بين المسار والبرنامج التدريبي؟',
-            'a' => 'المسار عبارة عن سلسلة من الدورات المتدرجة تأخذك من مستوى إلى آخر في مجال محدد. البرنامج التدريبي عادةً أقصر وأكثر تخصصاً ويُركز على مهارة أو موضوع بعينه.'],
-            ['q' => 'كيف أتقدم لفرصة تطوعية؟',
-            'a' => 'تصفح الفرص المتاحة في قسم التطوع على الموقع، انقر على الفرصة التي تناسبك ثم «التقدم». ستتلقى ردًا من فريق الجمعية خلال ٣–٥ أيام عمل.'],
+            ['q' => 'ما هي جمعية كفاءات؟',
+            'a' => 'جمعية أهلية غير ربحية تُعنى ببناء قدرات الشباب وتأهيلهم للمشاركة المجتمعية، عبر برامج تدريبية وفرص تطوعية وشراكات مؤسسية.'],
+            ['q' => 'من يستفيد من برامج الجمعية؟',
+            'a' => 'تستهدف الجمعية الشباب والشابات الراغبين في تنمية مهاراتهم والمشاركة في العمل التطوعي والمجتمعي، وفق شروط كل برنامج أو فرصة.'],
+            ['q' => 'كيف أشارك في التطوع؟',
+            'a' => 'تصفّح قسم «الفرص التطوعية»، اختر الفرصة المناسبة لك، وقدّم طلب التسجيل. سيتواصل معك فريق الجمعية بعد مراجعة الطلب.'],
+            ['q' => 'كيف أسجّل في برنامج تدريبي؟',
+            'a' => 'من صفحة «البرامج» اختر البرنامج أو المسار المناسب، ثم اتبع خطوات التسجيل. بعض البرامج تتطلب إنشاء حساب ومتابعة حالة الطلب.'],
+            ['q' => 'أين مقر الجمعية؟',
+            'a' => 'مقرّنا في بريدة — القصيم. تجد العنوان التفصيلي وساعات العمل وخريطة الموقع في أسفل الصفحة ضمن «تواصل معنا».'],
+            ['q' => 'كيف أتابع أخبار الجمعية؟',
+            'a' => 'من قسم «الأخبار والفعاليات» في الموقع، أو عبر حسابات الجمعية على منصات التواصل الاجتماعي المذكورة في التذييل.'],
             ];
             @endphp
 

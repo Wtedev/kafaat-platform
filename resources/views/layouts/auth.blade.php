@@ -36,7 +36,7 @@
         {{-- Logo --}}
         <div class="text-center mb-8">
             <a href="{{ route('home') }}" class="text-3xl font-bold tracking-tight" style="color:#253B5B">كفاءات</a>
-            <p class="text-sm mt-1.5" style="color:#6B7280">منصة التدريب والتطوع</p>
+            <p class="text-sm mt-1.5" style="color:#6B7280">جمعية كفاءات لبناء قدرات الشباب</p>
         </div>
 
         {{-- Card --}}
