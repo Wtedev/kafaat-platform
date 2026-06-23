@@ -52,7 +52,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
                     @csrf @method('PATCH')
                     <input type="hidden" name="section" value="bio" />
                     <textarea name="bio" rows="4" class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm">{{ old('bio', $p?->bio) }}</textarea>
-                    <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#253B5B">{{ $cvLocale === 'en' ? 'Save' : 'حفظ' }}</button></div>
+                    <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#335483">{{ $cvLocale === 'en' ? 'Save' : 'حفظ' }}</button></div>
                 </form>
             </x-portal.cv-edit-dropdown>
         </div>
@@ -64,7 +64,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
     <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No professional summary yet. Add a short bio via Edit.' : 'لا توجد نبذة مهنية بعد. أضف نبذة موجزة من «'.$tEdit.'».' }}</p>
     @endif
     @else
-    <p class="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
+    <p class="mb-3 rounded-lg bg-[#fef6e6] px-3 py-2 text-xs text-brand">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
     @endif
 </section>
 
@@ -100,21 +100,21 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
                                     @endforeach
                                 </select>
                             </td>
-                            <td class="py-2"><button type="button" class="cv-remove-row text-xs text-red-600 hover:underline">حذف</button></td>
+                            <td class="py-2"><button type="button" class="cv-remove-row text-xs text-brand-danger hover:underline">حذف</button></td>
                         </tr>
                         @endforeach
                     </tbody>
                 </table>
-                <button type="button" id="add-skill-row" class="text-xs font-semibold text-[#253B5B] hover:underline">+ إضافة مهارة</button>
+                <button type="button" id="add-skill-row" class="text-xs font-semibold text-[#335483] hover:underline">+ إضافة مهارة</button>
                 <script type="text/template" id="skill-tpl">
                     <tr data-cv-row class="border-t border-gray-100">
                         <td class="py-2 pe-2"><input type="text" name="skill_items[__IDX__][skill_name]" class="w-full rounded-lg border border-gray-300 px-2 py-1.5" /></td>
                         <td class="py-2 pe-2"><select name="skill_items[__IDX__][level]" class="w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5">@foreach (CvFormOptions::SKILL_LEVELS as $lv)<option value="{{ $lv }}">{{ $lv }}</option>@endforeach</select></td>
                         <td class="py-2 pe-2"><select name="skill_items[__IDX__][category]" class="w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5"><option value="">—</option>@foreach (CvFormOptions::SKILL_CATEGORIES as $c)<option value="{{ $c }}">{{ $c }}</option>@endforeach</select></td>
-                        <td class="py-2"><button type="button" class="cv-remove-row text-xs text-red-600 hover:underline">حذف</button></td>
+                        <td class="py-2"><button type="button" class="cv-remove-row text-xs text-brand-danger hover:underline">حذف</button></td>
                     </tr>
                 </script>
-                <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#253B5B">{{ $cvLocale === 'en' ? 'Save' : 'حفظ المهارات' }}</button></div>
+                <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#335483">{{ $cvLocale === 'en' ? 'Save' : 'حفظ المهارات' }}</button></div>
             </form>
             </x-portal.cv-edit-dropdown>
         </div>
@@ -125,7 +125,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
         @foreach ($p->cvSkillsStructured() as $s)
         <span class="inline-flex flex-col rounded-xl bg-[#F0F4F8] px-3 py-2 text-right ring-1 ring-gray-100">
             <span class="text-sm font-semibold text-gray-900">{{ $s['skill_name'] }}</span>
-            <span class="text-xs text-[#253B5B]">{{ \App\Services\Portal\CvFormOptions::skillLevelLabel($s['level'] ?? '', $cvLocale) }}@if(!empty($s['category'])) · {{ $s['category'] }}@endif</span>
+            <span class="text-xs text-[#335483]">{{ \App\Services\Portal\CvFormOptions::skillLevelLabel($s['level'] ?? '', $cvLocale) }}@if(!empty($s['category'])) · {{ $s['category'] }}@endif</span>
         </span>
         @endforeach
     </div>
@@ -133,7 +133,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
     <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No skills yet. Add skills, levels, and categories via Edit.' : 'لم تُسجَّل مهارات بعد. استخدم «'.$tEdit.'» لإضافة المهارات والمستوى والتصنيف.' }}</p>
     @endif
     @else
-    <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
+    <p class="mb-4 rounded-lg bg-[#fef6e6] px-3 py-2 text-xs text-brand">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
     @endif
 </section>
 
@@ -156,7 +156,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
                     <div data-cv-row class="rounded-xl border border-gray-200 bg-white p-3">
                         <div class="mb-2 flex justify-between gap-2">
                             <span class="text-xs font-bold text-gray-400">#{{ $i + 1 }}</span>
-                            <button type="button" class="cv-remove-row text-xs text-red-600 hover:underline">حذف</button>
+                            <button type="button" class="cv-remove-row text-xs text-brand-danger hover:underline">حذف</button>
                         </div>
                         <div class="grid gap-3 sm:grid-cols-2">
                             <div>
@@ -188,10 +188,10 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
                     </div>
                     @endforeach
                 </div>
-                <button type="button" id="add-lang-row" class="text-xs font-semibold text-[#253B5B] hover:underline">+ إضافة لغة</button>
+                <button type="button" id="add-lang-row" class="text-xs font-semibold text-[#335483] hover:underline">+ إضافة لغة</button>
                 <script type="text/template" id="lang-tpl">
                     <div data-cv-row class="rounded-xl border border-gray-200 bg-white p-3">
-                        <div class="mb-2 flex justify-between gap-2"><span class="text-xs font-bold text-gray-400">جديد</span><button type="button" class="cv-remove-row text-xs text-red-600 hover:underline">حذف</button></div>
+                        <div class="mb-2 flex justify-between gap-2"><span class="text-xs font-bold text-gray-400">جديد</span><button type="button" class="cv-remove-row text-xs text-brand-danger hover:underline">حذف</button></div>
                         <div class="grid gap-3 sm:grid-cols-2">
                             <div><label class="text-xs text-gray-500">اللغة</label><select name="language_items[__IDX__][language_code]" class="lang-code-select mt-0.5 w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm">@foreach (CvLanguagePresets::CODES as $c)<option value="{{ $c }}">{{ CvLanguagePresets::label($c, $cvLocale === 'en' ? 'en' : 'ar') }}</option>@endforeach</select></div>
                             <div><label class="text-xs text-gray-500">المستوى</label><select name="language_items[__IDX__][level]" class="mt-0.5 w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm">@foreach (CvFormOptions::LANGUAGE_LEVELS as $lv)<option value="{{ $lv }}">{{ \App\Services\Portal\CvFormOptions::languageLevelLabel($lv, $cvLocale) }}</option>@endforeach</select></div>
@@ -200,7 +200,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
                         </div>
                     </div>
                 </script>
-                <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#253B5B">{{ $cvLocale === 'en' ? 'Save' : 'حفظ اللغات' }}</button></div>
+                <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#335483">{{ $cvLocale === 'en' ? 'Save' : 'حفظ اللغات' }}</button></div>
             </form>
             </x-portal.cv-edit-dropdown>
         </div>
@@ -210,7 +210,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
     <ul class="mb-4 space-y-2 text-right">
         @foreach ($p->cvLanguagesStructured() as $lng)
         <li class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-[#F8FAFC] px-4 py-2 ring-1 ring-gray-100">
-            <span class="font-semibold @if($lng['highlight_english']) text-[#253B5B] @endif">{{ $lng['language_name'] }}</span>
+            <span class="font-semibold @if($lng['highlight_english']) text-[#335483] @endif">{{ $lng['language_name'] }}</span>
             <span class="text-sm text-gray-600">{{ \App\Services\Portal\CvFormOptions::languageLevelLabel($lng['level'] ?? '', $cvLocale) }}</span>
         </li>
         @endforeach
@@ -219,7 +219,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
     <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No languages yet. Add languages and proficiency via Edit.' : 'لم تُضف لغات بعد. أضف اللغات ومستوى الإتقان من «'.$tEdit.'».' }}</p>
     @endif
     @else
-    <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
+    <p class="mb-4 rounded-lg bg-[#fef6e6] px-3 py-2 text-xs text-brand">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
     @endif
 </section>
 </div>
@@ -247,20 +247,20 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
                                     @endforeach
                                 </select>
                             </td>
-                            <td class="py-2"><button type="button" class="cv-remove-row text-xs text-red-600 hover:underline">حذف</button></td>
+                            <td class="py-2"><button type="button" class="cv-remove-row text-xs text-brand-danger hover:underline">حذف</button></td>
                         </tr>
                         @endforeach
                     </tbody>
                 </table>
-                <button type="button" id="add-tool-row" class="text-xs font-semibold text-[#253B5B] hover:underline">+ إضافة أداة</button>
+                <button type="button" id="add-tool-row" class="text-xs font-semibold text-[#335483] hover:underline">+ إضافة أداة</button>
                 <script type="text/template" id="tool-tpl">
                     <tr data-cv-row class="border-t border-gray-100">
                         <td class="py-2 pe-2"><input type="text" name="tool_items[__IDX__][tool_name]" class="w-full rounded-lg border border-gray-300 px-2 py-1.5" /></td>
                         <td class="py-2 pe-2"><select name="tool_items[__IDX__][level]" class="w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5">@foreach (CvFormOptions::SKILL_LEVELS as $lv)<option value="{{ $lv }}">{{ $lv }}</option>@endforeach</select></td>
-                        <td class="py-2"><button type="button" class="cv-remove-row text-xs text-red-600 hover:underline">حذف</button></td>
+                        <td class="py-2"><button type="button" class="cv-remove-row text-xs text-brand-danger hover:underline">حذف</button></td>
                     </tr>
                 </script>
-                <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#253B5B">{{ $cvLocale === 'en' ? 'Save' : 'حفظ' }}</button></div>
+                <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#335483">{{ $cvLocale === 'en' ? 'Save' : 'حفظ' }}</button></div>
             </form>
             </x-portal.cv-edit-dropdown>
         </div>
@@ -276,7 +276,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
     <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No tools yet. List software you use via Edit.' : 'لا توجد أدوات مضافة بعد. سجّل الأدوات التي تستخدمها من «'.$tEdit.'».' }}</p>
     @endif
     @else
-    <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
+    <p class="mb-4 rounded-lg bg-[#fef6e6] px-3 py-2 text-xs text-brand">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
     @endif
 </section>
 
@@ -296,7 +296,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
                     <div data-cv-row class="rounded-xl border border-gray-200 bg-white p-4">
                         <div class="mb-2 flex justify-between gap-2">
                             <span class="text-xs font-bold text-gray-400">سجل {{ $i + 1 }}</span>
-                            <button type="button" class="cv-remove-row text-xs text-red-600 hover:underline">حذف السجل</button>
+                            <button type="button" class="cv-remove-row text-xs text-brand-danger hover:underline">حذف السجل</button>
                         </div>
                         <div class="grid gap-3 sm:grid-cols-2">
                             <div class="sm:col-span-2"><label class="text-xs text-gray-500">المؤسسة</label><input type="text" name="education_items[{{ $i }}][institution]" value="{{ $row['institution'] ?? '' }}" class="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" /></div>
@@ -313,10 +313,10 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
                     </div>
                     @endforeach
                 </div>
-                <button type="button" id="add-edu-row" class="text-xs font-semibold text-[#253B5B] hover:underline">+ إضافة سجل تعليم</button>
+                <button type="button" id="add-edu-row" class="text-xs font-semibold text-[#335483] hover:underline">+ إضافة سجل تعليم</button>
                 <script type="text/template" id="edu-tpl">
                     <div data-cv-row class="rounded-xl border border-gray-200 bg-white p-4">
-                        <div class="mb-2 flex justify-between gap-2"><span class="text-xs font-bold text-gray-400">سجل جديد</span><button type="button" class="cv-remove-row text-xs text-red-600 hover:underline">حذف السجل</button></div>
+                        <div class="mb-2 flex justify-between gap-2"><span class="text-xs font-bold text-gray-400">سجل جديد</span><button type="button" class="cv-remove-row text-xs text-brand-danger hover:underline">حذف السجل</button></div>
                         <div class="grid gap-3 sm:grid-cols-2">
                             <div class="sm:col-span-2"><label class="text-xs text-gray-500">المؤسسة</label><input type="text" name="education_items[__IDX__][institution]" class="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" /></div>
                             <div><label class="text-xs text-gray-500">الدرجة / البرنامج</label><input type="text" name="education_items[__IDX__][degree_or_program]" class="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" /></div>
@@ -327,14 +327,14 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
                         </div>
                     </div>
                 </script>
-                <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#253B5B">{{ $cvLocale === 'en' ? 'Save' : 'حفظ التعليم' }}</button></div>
+                <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#335483">{{ $cvLocale === 'en' ? 'Save' : 'حفظ التعليم' }}</button></div>
             </form>
             </x-portal.cv-edit-dropdown>
         </div>
     </div>
     @if ($p?->cvSectionVisible('education'))
     @if (count($p?->cvEducationStructured() ?? []) > 0)
-    <div class="mb-4 space-y-3 border-r-2 border-[#253B5B] pr-4">
+    <div class="mb-4 space-y-3 border-r-2 border-[#335483] pr-4">
         @foreach ($p->cvEducationStructured() as $ed)
         <div class="rounded-xl bg-white ring-1 ring-gray-100">
             <p class="font-semibold text-gray-900">{{ $ed['institution'] }}</p>
@@ -349,7 +349,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
     <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No education entries yet. Add your qualifications via Edit.' : 'لا توجد بيانات تعليمية بعد. أضف مؤهلاتك من «'.$tEdit.'».' }}</p>
     @endif
     @else
-    <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
+    <p class="mb-4 rounded-lg bg-[#fef6e6] px-3 py-2 text-xs text-brand">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
     @endif
 </section>
 
@@ -370,7 +370,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
                         $em = CvFormOptions::normalizeEmployment((string) ($row['employment_type'] ?? 'participation'));
                     @endphp
                     <div data-cv-row class="rounded-xl border border-gray-200 bg-white p-4">
-                        <div class="mb-2 flex justify-between"><button type="button" class="cv-remove-row text-xs text-red-600 hover:underline">حذف</button></div>
+                        <div class="mb-2 flex justify-between"><button type="button" class="cv-remove-row text-xs text-brand-danger hover:underline">حذف</button></div>
                         <div class="grid gap-3 sm:grid-cols-2">
                             <div class="sm:col-span-2"><label class="text-xs text-gray-500">المسمى / العنوان</label><input type="text" name="experience_items[{{ $i }}][title]" value="{{ $row['title'] ?? '' }}" class="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" /></div>
                             <div class="sm:col-span-2"><label class="text-xs text-gray-500">الجهة / المنظمة</label><input type="text" name="experience_items[{{ $i }}][organization]" value="{{ $row['organization'] ?? '' }}" class="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" /></div>
@@ -402,10 +402,10 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
                     </div>
                     @endforeach
                 </div>
-                <button type="button" id="add-exp-row" class="text-xs font-semibold text-[#253B5B] hover:underline">+ إضافة خبرة</button>
+                <button type="button" id="add-exp-row" class="text-xs font-semibold text-[#335483] hover:underline">+ إضافة خبرة</button>
                 <script type="text/template" id="exp-tpl">
                     <div data-cv-row class="rounded-xl border border-gray-200 bg-white p-4">
-                        <div class="mb-2 flex justify-between"><button type="button" class="cv-remove-row text-xs text-red-600 hover:underline">حذف</button></div>
+                        <div class="mb-2 flex justify-between"><button type="button" class="cv-remove-row text-xs text-brand-danger hover:underline">حذف</button></div>
                         <div class="grid gap-3 sm:grid-cols-2">
                             <div class="sm:col-span-2"><label class="text-xs text-gray-500">المسمى / العنوان</label><input type="text" name="experience_items[__IDX__][title]" class="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" /></div>
                             <div class="sm:col-span-2"><label class="text-xs text-gray-500">الجهة / المنظمة</label><input type="text" name="experience_items[__IDX__][organization]" class="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" /></div>
@@ -418,14 +418,14 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
                         </div>
                     </div>
                 </script>
-                <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#253B5B">{{ $cvLocale === 'en' ? 'Save' : 'حفظ الخبرات' }}</button></div>
+                <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#335483">{{ $cvLocale === 'en' ? 'Save' : 'حفظ الخبرات' }}</button></div>
             </form>
             </x-portal.cv-edit-dropdown>
         </div>
     </div>
     @if ($p?->cvSectionVisible('experience'))
     @if (count($mergedTimeline) > 0)
-    <div class="mb-4 space-y-4 border-r-2 border-emerald-600/40 pr-4">
+    <div class="mb-4 space-y-4 border-r-2 border-brand-secondary/40 pr-4">
         @foreach ($mergedTimeline as $ex)
         <div class="rounded-xl bg-[#F8FAFC] p-4 ring-1 ring-gray-100">
             <p class="font-bold text-gray-900">{{ $ex['title'] }} @if(filled($ex['organization']))<span class="font-normal text-gray-600">— {{ $ex['organization'] }}</span>@endif</p>
@@ -445,7 +445,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
     <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No roles or volunteering to show yet. Add experience via Edit or complete volunteering on the platform.' : 'لا توجد خبرات أو تطوع يظهر هنا بعد. أضف خبراتك من «'.$tEdit.'» أو أكمل تطوعاً على المنصة.' }}</p>
     @endif
     @else
-    <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
+    <p class="mb-4 rounded-lg bg-[#fef6e6] px-3 py-2 text-xs text-brand">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
     @endif
 </section>
 </div>
@@ -463,7 +463,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
                 <div id="ext-rows" class="space-y-4">
                     @foreach ($extItems as $i => $row)
                     <div data-cv-row class="rounded-xl border border-gray-200 bg-white p-4">
-                        <div class="mb-2 flex justify-between"><button type="button" class="cv-remove-row text-xs text-red-600 hover:underline">{{ $cvLocale === 'en' ? 'Remove' : 'حذف' }}</button></div>
+                        <div class="mb-2 flex justify-between"><button type="button" class="cv-remove-row text-xs text-brand-danger hover:underline">{{ $cvLocale === 'en' ? 'Remove' : 'حذف' }}</button></div>
                         <div class="grid gap-3 sm:grid-cols-2">
                             <div class="sm:col-span-2"><label class="text-xs text-gray-500">{{ $cvLocale === 'en' ? 'Course or certificate title' : 'عنوان الدورة / الشهادة' }}</label><input type="text" name="external_course_items[{{ $i }}][title]" value="{{ $row['title'] ?? '' }}" class="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" /></div>
                             <div><label class="text-xs text-gray-500">{{ $cvLocale === 'en' ? 'Provider' : 'الجهة المقدّمة' }}</label><input type="text" name="external_course_items[{{ $i }}][provider]" value="{{ $row['provider'] ?? '' }}" class="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" /></div>
@@ -474,10 +474,10 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
                     </div>
                     @endforeach
                 </div>
-                <button type="button" id="add-ext-row" class="text-xs font-semibold text-[#253B5B] hover:underline">{{ $cvLocale === 'en' ? '+ Add course' : '+ إضافة دورة' }}</button>
+                <button type="button" id="add-ext-row" class="text-xs font-semibold text-[#335483] hover:underline">{{ $cvLocale === 'en' ? '+ Add course' : '+ إضافة دورة' }}</button>
                 <script type="text/template" id="ext-tpl">
                     <div data-cv-row class="rounded-xl border border-gray-200 bg-white p-4">
-                        <div class="mb-2 flex justify-between"><button type="button" class="cv-remove-row text-xs text-red-600 hover:underline">{{ $cvLocale === 'en' ? 'Remove' : 'حذف' }}</button></div>
+                        <div class="mb-2 flex justify-between"><button type="button" class="cv-remove-row text-xs text-brand-danger hover:underline">{{ $cvLocale === 'en' ? 'Remove' : 'حذف' }}</button></div>
                         <div class="grid gap-3 sm:grid-cols-2">
                             <div class="sm:col-span-2"><label class="text-xs text-gray-500">{{ $cvLocale === 'en' ? 'Course or certificate title' : 'عنوان الدورة / الشهادة' }}</label><input type="text" name="external_course_items[__IDX__][title]" class="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" /></div>
                             <div><label class="text-xs text-gray-500">{{ $cvLocale === 'en' ? 'Provider' : 'الجهة المقدّمة' }}</label><input type="text" name="external_course_items[__IDX__][provider]" class="mt-0.5 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm" /></div>
@@ -487,7 +487,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
                         </div>
                     </div>
                 </script>
-                <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#253B5B">{{ $cvLocale === 'en' ? 'Save' : 'حفظ' }}</button></div>
+                <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#335483">{{ $cvLocale === 'en' ? 'Save' : 'حفظ' }}</button></div>
             </form>
             </x-portal.cv-edit-dropdown>
         </div>
@@ -502,7 +502,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
             @if (($c['source'] ?? '') === 'platform_program')
             <span class="mt-1 inline-block rounded bg-white px-2 py-0.5 text-[10px] font-bold text-slate-600 ring-1 ring-gray-100">{{ $cvLocale === 'en' ? 'Platform' : 'من المنصة' }}</span>
             @endif
-            @if (filled($c['certificate_url']))<a href="{{ $c['certificate_url'] }}" target="_blank" rel="noopener noreferrer" class="mt-1 inline-block text-xs font-semibold text-[#253B5B] hover:underline">{{ $cvLocale === 'en' ? 'Certificate link' : 'رابط الشهادة' }}</a>@endif
+            @if (filled($c['certificate_url']))<a href="{{ $c['certificate_url'] }}" target="_blank" rel="noopener noreferrer" class="mt-1 inline-block text-xs font-semibold text-[#335483] hover:underline">{{ $cvLocale === 'en' ? 'Certificate link' : 'رابط الشهادة' }}</a>@endif
             @if (filled($c['description']))<p class="mt-2 text-xs text-gray-700">{{ $c['description'] }}</p>@endif
         </div>
         @endforeach
@@ -511,7 +511,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
     <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No courses yet. Add external training via Edit; platform certificates appear when you complete programs.' : 'لا توجد دورات أو شهادات بعد. أضف دوراتك من «'.$tEdit.'»؛ وتظهر شهادات برامج المنصة عند إكمالها.' }}</p>
     @endif
     @else
-    <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
+    <p class="mb-4 rounded-lg bg-[#fef6e6] px-3 py-2 text-xs text-brand">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
     @endif
 </section>
 
@@ -540,21 +540,21 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
                                     @endforeach
                                 </select>
                             </td>
-                            <td class="py-2"><button type="button" class="cv-remove-row text-xs text-red-600 hover:underline">{{ $cvLocale === 'en' ? 'Remove' : 'حذف' }}</button></td>
+                            <td class="py-2"><button type="button" class="cv-remove-row text-xs text-brand-danger hover:underline">{{ $cvLocale === 'en' ? 'Remove' : 'حذف' }}</button></td>
                         </tr>
                         @endforeach
                     </tbody>
                 </table>
-                <button type="button" id="add-link-row" class="text-xs font-semibold text-[#253B5B] hover:underline">{{ $cvLocale === 'en' ? '+ Add link' : '+ إضافة رابط' }}</button>
+                <button type="button" id="add-link-row" class="text-xs font-semibold text-[#335483] hover:underline">{{ $cvLocale === 'en' ? '+ Add link' : '+ إضافة رابط' }}</button>
                 <script type="text/template" id="link-tpl">
                     <tr data-cv-row class="border-t border-gray-100">
                         <td class="py-2 pe-2"><input type="text" name="link_items[__IDX__][label]" class="w-full rounded-lg border border-gray-300 px-2 py-1.5" /></td>
                         <td class="py-2 pe-2"><input type="text" name="link_items[__IDX__][url]" class="w-full rounded-lg border border-gray-300 px-2 py-1.5" dir="ltr" /></td>
                         <td class="py-2 pe-2"><select name="link_items[__IDX__][type]" class="w-full rounded-lg border border-gray-300 bg-white px-2 py-1.5"><option value="">—</option>@foreach (CvFormOptions::LINK_TYPES as $lt)<option value="{{ $lt }}">{{ $linkTypeLabels[$lt] ?? $lt }}</option>@endforeach</select></td>
-                        <td class="py-2"><button type="button" class="cv-remove-row text-xs text-red-600 hover:underline">{{ $cvLocale === 'en' ? 'Remove' : 'حذف' }}</button></td>
+                        <td class="py-2"><button type="button" class="cv-remove-row text-xs text-brand-danger hover:underline">{{ $cvLocale === 'en' ? 'Remove' : 'حذف' }}</button></td>
                     </tr>
                 </script>
-                <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#253B5B">{{ $cvLocale === 'en' ? 'Save' : 'حفظ الروابط' }}</button></div>
+                <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#335483">{{ $cvLocale === 'en' ? 'Save' : 'حفظ الروابط' }}</button></div>
             </form>
             </x-portal.cv-edit-dropdown>
         </div>
@@ -564,7 +564,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
     <ul class="mb-4 space-y-2 text-right">
         @foreach ($p->cvLinksList() as $link)
         <li>
-            <a href="{{ $link['url'] }}" target="_blank" rel="noopener noreferrer" class="text-sm font-semibold text-[#253B5B] hover:underline">{{ $link['label'] }}</a>
+            <a href="{{ $link['url'] }}" target="_blank" rel="noopener noreferrer" class="text-sm font-semibold text-[#335483] hover:underline">{{ $link['label'] }}</a>
             @if (!empty($link['type']))<span class="me-2 text-xs text-gray-400">({{ $linkTypeLabels[$link['type']] ?? $link['type'] }})</span>@endif
         </li>
         @endforeach
@@ -573,7 +573,7 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
     <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No links yet. Add portfolio, LinkedIn, or other links via Edit.' : 'لا توجد روابط بعد. أضف روابط مثل لينكدإن أو معرض أعمالك من «'.$tEdit.'».' }}</p>
     @endif
     @else
-    <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
+    <p class="mb-4 rounded-lg bg-[#fef6e6] px-3 py-2 text-xs text-brand">{{ $cvLocale === 'en' ? 'This section is hidden from your exported CV. Use the eye icon to show it again.' : 'هذا القسم مخفي من ملف السيرة عند التصدير. يمكنك إظهاره من أيقونة العين.' }}</p>
     @endif
 </section>
 
@@ -585,13 +585,13 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
         <form method="POST" action="{{ route('portal.competency.update') }}" enctype="multipart/form-data" class="space-y-3">
             @csrf @method('PATCH')
             <input type="hidden" name="section" value="cv_attachment" />
-            <input type="file" name="cv" required accept=".pdf,.doc,.docx" class="w-full text-sm file:me-3 file:rounded-lg file:border-0 file:bg-[#EAF2FA] file:px-4 file:py-2 file:font-semibold file:text-[#253B5B]" />
-            <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#253B5B">{{ $cvLocale === 'en' ? 'Upload' : 'رفع' }}</button></div>
+            <input type="file" name="cv" required accept=".pdf,.doc,.docx" class="w-full text-sm file:me-3 file:rounded-lg file:border-0 file:bg-[#e9eff6] file:px-4 file:py-2 file:font-semibold file:text-[#335483]" />
+            <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#335483">{{ $cvLocale === 'en' ? 'Upload' : 'رفع' }}</button></div>
         </form>
         </x-portal.cv-edit-dropdown>
     </div>
     @if ($p?->cvPublicUrl())
-    <p class="mb-3 text-sm"><a href="{{ $p->cvPublicUrl() }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-[#253B5B] hover:underline">{{ $cvLocale === 'en' ? 'Download current file' : 'تحميل الملف الحالي' }}</a></p>
+    <p class="mb-3 text-sm"><a href="{{ $p->cvPublicUrl() }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-[#335483] hover:underline">{{ $cvLocale === 'en' ? 'Download current file' : 'تحميل الملف الحالي' }}</a></p>
     @else
     <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No CV file uploaded yet. Upload a PDF or Word file via Edit.' : 'لم يُرفع ملف سيرة ذاتية بعد. يمكنك رفع PDF أو Word من «'.$tEdit.'».' }}</p>
     @endif

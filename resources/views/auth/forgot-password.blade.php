@@ -6,7 +6,7 @@
 <p class="text-sm text-gray-500 text-center mb-6">أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين.</p>
 
 @if (session('status'))
-<div class="mb-5 rounded-xl bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm text-center">
+<div class="mb-5 rounded-xl {{ config('brand.classes.alert_success') }} px-4 py-3 text-sm text-center">
     {{ session('status') }}
 </div>
 @endif
@@ -15,7 +15,7 @@
     @csrf
 
     @if ($errors->any())
-    <div class="mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
+    <div class="mb-4 rounded-xl {{ config('brand.classes.alert_danger') }} px-4 py-3 text-sm">
         {{ $errors->first() }}
     </div>
     @endif
@@ -23,19 +23,19 @@
     <div class="space-y-4">
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">البريد الإلكتروني</label>
-            <input type="email" name="email" value="{{ old('email') }}" required autofocus class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400
-                       @error('email') border-red-400 @enderror" />
+            <input type="email" name="email" value="{{ old('email') }}" required autofocus class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/25
+                       @error('email') border-brand-danger @enderror" />
         </div>
     </div>
 
-    <button type="submit" class="mt-6 w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition">
+    <button type="submit" class="mt-6 w-full py-3 rounded-xl bg-brand text-white font-semibold text-sm hover:opacity-95 transition">
         إرسال رابط إعادة التعيين
     </button>
 </form>
 
 <p class="mt-6 text-center text-sm text-gray-500">
     تذكّرت كلمة المرور؟
-    <a href="{{ route('login') }}" class="text-indigo-600 font-medium hover:underline">تسجيل الدخول</a>
+    <a href="{{ route('login') }}" class="text-brand font-medium hover:underline">تسجيل الدخول</a>
 </p>
 
 @endsection

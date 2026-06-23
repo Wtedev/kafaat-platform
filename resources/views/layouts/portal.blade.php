@@ -8,24 +8,14 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet" />
-
     <style>
-        *,
-        *::before,
-        *::after {
-            font-family: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif;
-        }
-
         html {
             scroll-behavior: smooth;
         }
 
         button:focus-visible,
         a:focus-visible {
-            outline: 2px solid #253B5B;
+            outline: 2px solid #335483;
             outline-offset: 3px;
             border-radius: 8px;
         }
@@ -49,7 +39,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-b from-slate-100/90 to-slate-50 text-slate-900 antialiased">
+<body class="min-h-screen bg-gradient-to-b from-slate-100/90 to-slate-50 text-slate-900 antialiased font-sans">
 
     <header class="sticky top-0 z-40 border-b border-slate-200/50 bg-white/75 shadow-[0_1px_0_rgba(15,23,42,0.04)] backdrop-blur-md">
         <div class="mx-auto flex h-14 max-w-7xl min-w-0 items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-6 lg:px-8">
@@ -59,21 +49,23 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
-                <a href="{{ route('home') }}" class="min-w-0 truncate text-base font-bold tracking-tight sm:text-xl" style="color:#253B5B">كفاءات</a>
+                <a href="{{ route('home') }}" class="flex min-w-0 items-center" aria-label="كفاءات — الرئيسية">
+                    <img src="{{ asset(config('brand.logos.kafaat')) }}" alt="كفاءات" class="h-9 w-auto" width="119" height="36" />
+                </a>
             </div>
 
             <div class="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-2 lg:gap-2.5">
                 @php $portalHeaderNotifActive = (request()->route()?->getName() ?? '') === 'portal.notifications'; @endphp
                 <a
                     href="{{ route('portal.notifications') }}"
-                    class="inline-flex h-11 min-w-[2.75rem] shrink-0 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#253B5B]/25 sm:h-auto sm:min-w-0 sm:justify-start sm:gap-2 sm:rounded-2xl sm:px-3.5 sm:py-2 {{ $portalHeaderNotifActive ? 'bg-white text-[#253B5B] shadow-[0_2px_12px_-2px_rgba(37,59,91,0.15)] ring-1 ring-slate-200/70' : 'text-slate-600 hover:bg-white/80 hover:text-[#253B5B] hover:shadow-sm hover:ring-1 hover:ring-slate-200/50' }}"
+                    class="inline-flex h-11 min-w-[2.75rem] shrink-0 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#335483]/25 sm:h-auto sm:min-w-0 sm:justify-start sm:gap-2 sm:rounded-2xl sm:px-3.5 sm:py-2 {{ $portalHeaderNotifActive ? 'bg-white text-[#335483] shadow-[0_2px_12px_-2px_rgba(51,84,131,0.15)] ring-1 ring-slate-200/70' : 'text-slate-600 hover:bg-white/80 hover:text-[#335483] hover:shadow-sm hover:ring-1 hover:ring-slate-200/50' }}"
                     aria-label="التنبيهات"
                     @if ($portalHeaderNotifActive) aria-current="page" @endif
                 >
                     <span class="relative inline-flex shrink-0">
                         <svg class="h-[1.35rem] w-[1.35rem] sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                         @if (($portalInboxUnreadCount ?? 0) > 0)
-                        <span class="absolute -end-0.5 -top-0.5 flex h-3.5 min-w-[0.875rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[8px] font-bold leading-none text-white ring-2 ring-white sm:-end-1 sm:-top-1 sm:h-4 sm:min-w-[1rem] sm:px-1 sm:text-[9px]">{{ $portalInboxUnreadCount > 99 ? '99+' : $portalInboxUnreadCount }}</span>
+                        <span class="absolute -end-0.5 -top-0.5 flex h-3.5 min-w-[0.875rem] items-center justify-center rounded-full bg-brand-danger px-0.5 text-[8px] font-bold leading-none text-white ring-2 ring-white sm:-end-1 sm:-top-1 sm:h-4 sm:min-w-[1rem] sm:px-1 sm:text-[9px]">{{ $portalInboxUnreadCount > 99 ? '99+' : $portalInboxUnreadCount }}</span>
                         @endif
                     </span>
                     <span class="hidden sm:inline">التنبيهات</span>
@@ -81,7 +73,7 @@
                 @php $portalNotifSettingsActive = (request()->route()?->getName() ?? '') === 'portal.notifications.settings'; @endphp
                 <a
                     href="{{ route('portal.notifications.settings') }}"
-                    class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#253B5B]/25 sm:h-auto sm:rounded-2xl sm:px-2.5 sm:py-2 {{ $portalNotifSettingsActive ? 'bg-white text-[#253B5B] shadow-[0_2px_12px_-2px_rgba(37,59,91,0.15)] ring-1 ring-slate-200/70' : 'text-slate-500 hover:bg-white/80 hover:text-[#253B5B] hover:shadow-sm hover:ring-1 hover:ring-slate-200/50' }}"
+                    class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#335483]/25 sm:h-auto sm:rounded-2xl sm:px-2.5 sm:py-2 {{ $portalNotifSettingsActive ? 'bg-white text-[#335483] shadow-[0_2px_12px_-2px_rgba(51,84,131,0.15)] ring-1 ring-slate-200/70' : 'text-slate-500 hover:bg-white/80 hover:text-[#335483] hover:shadow-sm hover:ring-1 hover:ring-slate-200/50' }}"
                     aria-label="إعدادات التنبيهات"
                     @if ($portalNotifSettingsActive) aria-current="page" @endif
                 >
@@ -89,14 +81,14 @@
                 </a>
                 <x-portal.external-nav />
                 <div class="hidden min-w-0 items-center gap-2 sm:flex lg:hidden">
-                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white" style="background:#253B5B">
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white" style="background:#335483">
                         {{ \App\Models\Profile::initialsFromName(auth()->user()->name) }}
                     </div>
                     <span class="max-w-[8rem] truncate text-xs font-medium text-gray-800 sm:max-w-[10rem] sm:text-sm">{{ auth()->user()->name }}</span>
                 </div>
                 <form method="POST" action="{{ route('logout') }}" class="shrink-0">
                     @csrf
-                    <button type="submit" class="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200/80 bg-white/60 text-red-600/90 shadow-sm transition-all hover:border-red-100 hover:bg-red-50/80 hover:shadow sm:h-auto sm:w-auto sm:rounded-2xl sm:px-3.5 sm:py-2 sm:text-sm sm:font-medium" aria-label="تسجيل الخروج">
+                    <button type="submit" class="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200/80 bg-white/60 text-brand-danger/90 shadow-sm transition-all hover:border-[#f5c4c0] hover:bg-[#fdeeed]/80 hover:shadow sm:h-auto sm:w-auto sm:rounded-2xl sm:px-3.5 sm:py-2 sm:text-sm sm:font-medium" aria-label="تسجيل الخروج">
                         <svg class="h-[1.35rem] w-[1.35rem] sm:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
@@ -123,9 +115,9 @@
             $isCert = $rn === 'portal.certificates';
             $isProfile = str_starts_with($rn, 'portal.profile');
             $isCompetency = str_starts_with($rn, 'portal.competency');
-            $navIcon = 'h-[1.125rem] w-[1.125rem] shrink-0 text-slate-500 transition-colors group-hover:text-[#253B5B] sm:h-[1.15rem] sm:w-[1.15rem]';
-            $navActive = 'flex min-h-[2.75rem] items-center gap-3 rounded-2xl bg-white px-3 py-2.5 text-sm font-semibold text-[#253B5B] shadow-[0_2px_14px_-4px_rgba(37,59,91,0.18)] ring-1 ring-slate-200/70 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#253B5B]/30';
-            $navIdle = 'group flex min-h-[2.75rem] items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-white/70 hover:text-[#253B5B] hover:shadow-sm hover:ring-1 hover:ring-slate-200/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#253B5B]/20';
+            $navIcon = 'h-[1.125rem] w-[1.125rem] shrink-0 text-slate-500 transition-colors group-hover:text-[#335483] sm:h-[1.15rem] sm:w-[1.15rem]';
+            $navActive = 'flex min-h-[2.75rem] items-center gap-3 rounded-2xl bg-white px-3 py-2.5 text-sm font-semibold text-[#335483] shadow-[0_2px_14px_-4px_rgba(51,84,131,0.18)] ring-1 ring-slate-200/70 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#335483]/30';
+            $navIdle = 'group flex min-h-[2.75rem] items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-white/70 hover:text-[#335483] hover:shadow-sm hover:ring-1 hover:ring-slate-200/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#335483]/20';
             $navSectionSummary = 'flex w-full cursor-pointer list-none items-center justify-between gap-2 rounded-xl px-2 py-2 text-[10px] font-bold tracking-wide text-slate-400 transition-colors hover:text-slate-500';
         @endphp
 
@@ -198,13 +190,13 @@
 
         <main class="min-w-0 flex-1">
             @if (session('success'))
-            <div class="mb-4 rounded-3xl border border-emerald-200/60 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-900 shadow-[0_2px_16px_-6px_rgba(5,150,105,0.15)] backdrop-blur-sm">
+            <div class="mb-4 rounded-3xl border border-[#b8e0e2] bg-[#e6f5f6]/90 px-4 py-3 text-sm text-brand-secondary shadow-[0_2px_16px_-6px_rgba(26,147,153,0.12)] backdrop-blur-sm">
                 {{ session('success') }}
             </div>
             @endif
 
             @if (session('error'))
-            <div class="mb-4 rounded-3xl border border-red-200/60 bg-red-50/90 px-4 py-3 text-sm text-red-900 shadow-[0_2px_16px_-6px_rgba(220,38,38,0.12)] backdrop-blur-sm">
+            <div class="mb-4 rounded-3xl border border-[#f5c4c0]/60 bg-[#fdeeed]/90 px-4 py-3 text-sm text-brand-danger shadow-[0_2px_16px_-6px_rgba(236,96,86,0.12)] backdrop-blur-sm">
                 {{ session('error') }}
             </div>
             @endif

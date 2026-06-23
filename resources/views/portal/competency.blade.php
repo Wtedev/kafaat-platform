@@ -11,7 +11,7 @@
 
 <div class="mx-auto max-w-4xl">
     @if ($errors->any())
-    <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+    <div class="mb-5 rounded-2xl {{ config('brand.classes.alert_danger') }}">
         <ul class="list-inside list-disc space-y-1 text-right">
             @foreach ($errors->all() as $error)
             <li>{{ $error }}</li>
@@ -34,7 +34,7 @@
             </div>
         </div>
         @unless ($platVis)
-        <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'Hidden from your exported CV. Toggle the eye to include it again.' : 'هذا القسم مخفي في ملف السيرة والتصدير. استخدم أيقونة العين لإظهاره.' }}</p>
+        <p class="mb-4 rounded-lg bg-[#fef6e6] px-3 py-2 text-xs text-brand">{{ $cvLocale === 'en' ? 'Hidden from your exported CV. Toggle the eye to include it again.' : 'هذا القسم مخفي في ملف السيرة والتصدير. استخدم أيقونة العين لإظهاره.' }}</p>
         @endunless
         @if ($platVis)
         @php $platEmpty = 'rounded-lg border border-dashed border-gray-200 bg-slate-50/70 px-4 py-4 text-sm text-gray-500'; @endphp
@@ -53,7 +53,7 @@
             </div>
             <div class="rounded-xl border border-gray-50 bg-[#F8FAFC] p-4">
                 <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ $cvL['volunteer_hours'] ?? 'ساعات التطوع' }}</p>
-                <p class="mt-2 text-2xl font-bold tabular-nums" style="color:#253B5B">{{ number_format($approvedVolunteerHours, 1) }}</p>
+                <p class="mt-2 text-2xl font-bold tabular-nums" style="color:#335483">{{ number_format($approvedVolunteerHours, 1) }}</p>
                 @if ($approvedVolunteerHours <= 0)
                 <p class="mt-2 text-sm text-gray-500">{{ $cvLocale === 'en' ? 'No approved volunteer hours yet.' : 'لا ساعات تطوع معتمدة بعد.' }}</p>
                 @endif
@@ -67,7 +67,7 @@
                 <li class="flex flex-wrap items-center justify-between gap-2">
                     <span class="text-gray-900">{{ \App\Services\Portal\CompetencyProfilePresenter::certificateTitle($cert) }}</span>
                     @if ($cert->downloadUrl())
-                    <a href="{{ $cert->downloadUrl() }}" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-[#253B5B] hover:underline">PDF</a>
+                    <a href="{{ $cert->downloadUrl() }}" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-[#335483] hover:underline">PDF</a>
                     @endif
                 </li>
                 @endforeach
@@ -89,11 +89,11 @@
             @include('portal.competency.partials.cv-visibility-toggle', ['visible' => $recVis, 'toggle' => 'recommendations', 'cvLocale' => $cvLocale])
         </div>
         @unless ($recVis)
-        <p class="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{{ $cvLocale === 'en' ? 'Hidden from your exported CV.' : 'مخفي من ملف السيرة والتصدير.' }}</p>
+        <p class="mb-4 rounded-lg bg-[#fef6e6] px-3 py-2 text-xs text-brand">{{ $cvLocale === 'en' ? 'Hidden from your exported CV.' : 'مخفي من ملف السيرة والتصدير.' }}</p>
         @endunless
         @if ($recVis)
         @forelse ($recommendations as $rec)
-        <blockquote class="mb-4 border-r-4 border-[#253B5B] pr-4 last:mb-0">
+        <blockquote class="mb-4 border-r-4 border-[#335483] pr-4 last:mb-0">
             <p class="text-right text-sm leading-relaxed text-gray-700">«{{ $rec->body }}»</p>
             <footer class="mt-3 text-right text-xs text-gray-500">
                 <span class="font-semibold text-gray-800">{{ $rec->author_name }}</span>

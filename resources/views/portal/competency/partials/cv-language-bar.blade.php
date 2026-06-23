@@ -9,7 +9,7 @@ $loc = $cvLocale ?? 'ar';
         <input type="hidden" name="section" value="cv_display" />
         <label for="competency_cv_language" class="text-sm font-semibold text-gray-900">{{ $loc === 'en' ? 'My CV language' : 'لغة سيرتي الذاتية' }}</label>
         <div class="flex shrink-0 items-center sm:justify-end">
-            <select id="competency_cv_language" name="cv_language" class="h-9 min-w-[9.5rem] rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 shadow-sm focus:border-[#253B5B] focus:outline-none focus:ring-2 focus:ring-[#253B5B]/20" onchange="this.form.submit()">
+            <select id="competency_cv_language" name="cv_language" class="h-9 min-w-[9.5rem] rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 shadow-sm focus:border-[#335483] focus:outline-none focus:ring-2 focus:ring-[#335483]/20" onchange="this.form.submit()">
                 <option value="ar" @selected(old('cv_language', $p?->cv_language ?? 'ar') === 'ar')>{{ $loc === 'en' ? 'Arabic' : 'العربية' }}</option>
                 <option value="en" @selected(old('cv_language', $p?->cv_language ?? 'ar') === 'en')>English</option>
             </select>

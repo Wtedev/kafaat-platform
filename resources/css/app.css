@@ -1,3 +1,19 @@
+@font-face {
+    font-family: 'FF Shamel';
+    src: url('/fonts/shamel/FFShamelFamily-SansOneBook.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'FF Shamel';
+    src: url('/fonts/shamel/FFShamelFamily-SansOneBold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -6,8 +22,20 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'IBM Plex Sans Arabic', 'Tajawal', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    --font-sans: 'FF Shamel', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
         'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* هوية كفاءات */
+    --color-brand: #335483;
+    --color-brand-dark: #243a55;
+    --color-brand-light: #e9eff6;
+    --color-brand-border: #c5d4e4;
+    --color-brand-secondary: #1a9399;
+    --color-brand-accent: #fbbb2e;
+    --color-brand-danger: #ec6056;
+    --color-brand-sanad: #4f53a3;
+    --color-brand-impact: #00616f;
+    --color-brand-impact-dark: #004a54;
 
     /*
      | طبقة توافق Tailwind v3 → v4
@@ -34,5 +62,27 @@
     ::before,
     ::backdrop {
         border-color: var(--color-gray-200, currentColor);
+    }
+
+    :root {
+        --brand-primary: #335483;
+        --brand-primary-dark: #243a55;
+        --brand-primary-light: #e9eff6;
+        --brand-primary-border: #c5d4e4;
+        --brand-secondary: #1a9399;
+        --brand-accent: #fbbb2e;
+        --brand-danger: #ec6056;
+        --brand-sanad: #4f53a3;
+        --brand-impact: #00616f;
+        --brand-impact-dark: #004a54;
+    }
+
+    button:focus-visible,
+    a:focus-visible {
+        outline-color: var(--brand-primary);
+    }
+
+    html {
+        font-family: var(--font-sans);
     }
 }

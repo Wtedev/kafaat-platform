@@ -8,35 +8,27 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet" />
-
     <style>
-        *,
-        *::before,
-        *::after {
-            font-family: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif;
-        }
-
         button:focus-visible,
         a:focus-visible,
         input:focus-visible {
-            outline: 2px solid #253B5B;
+            outline: 2px solid #335483;
             outline-offset: 3px;
             border-radius: 8px;
         }
 
     </style>
 </head>
-<body class="min-h-screen antialiased flex items-center justify-center py-12 px-4" style="background: linear-gradient(150deg, #EEF5FB 0%, #F3F7FB 55%, #EAF2FA 100%)">
+<body class="min-h-screen antialiased font-sans flex items-center justify-center py-12 px-4" style="background: linear-gradient(150deg, #EEF5FB 0%, #F3F7FB 55%, #e9eff6 100%)">
 
     <div class="w-full max-w-md">
 
         {{-- Logo --}}
         <div class="text-center mb-8">
-            <a href="{{ route('home') }}" class="text-3xl font-bold tracking-tight" style="color:#253B5B">كفاءات</a>
-            <p class="text-sm mt-1.5" style="color:#6B7280">جمعية كفاءات لبناء قدرات الشباب</p>
+            <a href="{{ route('home') }}" class="inline-flex justify-center" aria-label="كفاءات — الرئيسية">
+                <img src="{{ asset(config('brand.logos.kafaat')) }}" alt="كفاءات" class="h-14 w-auto mx-auto" width="185" height="56" />
+            </a>
+            <p class="text-sm mt-3" style="color:#6B7280">جمعية كفاءات لبناء قدرات الشباب</p>
         </div>
 
         {{-- Card --}}

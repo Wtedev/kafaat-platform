@@ -25,7 +25,7 @@ html.fi:not(.dark) .fi-body {
 }
 
 html.fi .fi-body {
-    font-family: 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif !important;
+    font-family: 'FF Shamel', ui-sans-serif, system-ui, sans-serif !important;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -302,7 +302,7 @@ html.fi.dark .fi-section {
 }
 
 html.fi.dark .fi-section-has-header .fi-section-header {
-    border-inline-start: 4px solid #4ade80;
+    border-inline-start: 4px solid #335483;
     padding-inline-start: 1rem;
     margin-inline-start: -1px;
 }

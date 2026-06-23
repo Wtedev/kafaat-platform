@@ -264,10 +264,10 @@ final class PortalDashboardComposer
     private static function registrationUxMeta(RegistrationStatus $status): array
     {
         return match ($status) {
-            RegistrationStatus::Pending => ['مسجل', 'indigo'],
-            RegistrationStatus::Approved => ['قيد التقدم', 'blue'],
-            RegistrationStatus::Completed => ['مكتمل', 'emerald'],
-            RegistrationStatus::Rejected, RegistrationStatus::Cancelled => ['غير مسجل', 'slate'],
+            RegistrationStatus::Pending => ['مسجل', 'accent'],
+            RegistrationStatus::Approved => ['قيد التقدم', 'primary'],
+            RegistrationStatus::Completed => ['مكتمل', 'secondary'],
+            RegistrationStatus::Rejected, RegistrationStatus::Cancelled => ['غير مسجل', 'muted'],
         };
     }
 
@@ -328,9 +328,9 @@ final class PortalDashboardComposer
             $ctaUrl = route('public.volunteering.show', $opp->slug);
         } else {
             [$stateLabel, $stateTone] = match ($reg->status) {
-                RegistrationStatus::Completed => ['مكتمل', 'emerald'],
-                RegistrationStatus::Pending, RegistrationStatus::Approved => ['مسجل', 'indigo'],
-                default => ['غير مسجل', 'slate'],
+                RegistrationStatus::Completed => ['مكتمل', 'secondary'],
+                RegistrationStatus::Pending, RegistrationStatus::Approved => ['مسجل', 'primary'],
+                default => ['غير مسجل', 'muted'],
             };
             $ctaLabel = $reg->status === RegistrationStatus::Completed ? 'عرض' : 'متابعة';
             $ctaUrl = route('public.volunteering.show', $opp->slug);

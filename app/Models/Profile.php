@@ -128,13 +128,13 @@ class Profile extends Model
         $style = $this->resolvedIconicSkillStyle();
 
         return match ($style) {
-            'amber' => 'from-amber-50/95 via-amber-50/35 to-orange-50/70',
-            'emerald' => 'from-emerald-50/95 via-emerald-50/30 to-teal-50/65',
-            'sky' => 'from-sky-50/95 via-sky-50/35 to-cyan-50/60',
-            'rose' => 'from-rose-50/95 via-rose-50/35 to-pink-50/60',
-            'violet' => 'from-violet-50/95 via-violet-50/35 to-fuchsia-50/55',
-            'brand' => 'from-[#f0f6fc] via-white to-[#e8f0f9]',
-            default => 'from-amber-50/95 via-amber-50/35 to-orange-50/70',
+            'amber' => 'from-[#fef6e6]/95 via-[#fef6e6]/35 to-[#fef6e6]/70',
+            'emerald' => 'from-[#e6f5f6]/95 via-[#e6f5f6]/30 to-[#e6f5f6]/65',
+            'sky' => 'from-[#e9eff6]/95 via-[#e9eff6]/35 to-[#e9eff6]/60',
+            'rose' => 'from-[#fdeeed]/95 via-[#fdeeed]/35 to-[#fdeeed]/60',
+            'violet' => 'from-[#e9eff6]/95 via-[#e9eff6]/35 to-[#e9eff6]/55',
+            'brand' => 'from-[#e9eff6] via-white to-[#e9eff6]',
+            default => 'from-[#fef6e6]/95 via-[#fef6e6]/35 to-[#fef6e6]/70',
         };
     }
 
@@ -148,13 +148,13 @@ class Profile extends Model
         $style = $this->resolvedIconicSkillStyle();
 
         return match ($style) {
-            'amber' => 'text-amber-900 ring-1 ring-amber-200/70',
-            'emerald' => 'text-emerald-900 ring-1 ring-emerald-200/70',
-            'sky' => 'text-sky-900 ring-1 ring-sky-200/70',
-            'rose' => 'text-rose-900 ring-1 ring-rose-200/70',
-            'violet' => 'text-violet-900 ring-1 ring-violet-200/70',
-            'brand' => 'text-[#253B5B] ring-1 ring-[#c5ddef]/90',
-            default => 'text-amber-900 ring-1 ring-amber-200/70',
+            'amber' => 'text-brand ring-1 ring-[#f5dfa8]/70',
+            'emerald' => 'text-brand-secondary ring-1 ring-[#b8e0e2]/70',
+            'sky' => 'text-brand ring-1 ring-brand-border/90',
+            'rose' => 'text-brand-danger ring-1 ring-[#f5c4c0]/70',
+            'violet' => 'text-brand ring-1 ring-brand-border/90',
+            'brand' => 'text-brand ring-1 ring-brand-border/90',
+            default => 'text-brand ring-1 ring-[#f5dfa8]/70',
         };
     }
 
@@ -165,8 +165,8 @@ class Profile extends Model
     {
         return match ($badge) {
             'مستفيد' => 'bg-slate-100 text-slate-800 ring-1 ring-slate-200',
-            'متدرب' => 'bg-[#EAF2FA] text-[#253B5B] ring-1 ring-[#c5ddef]',
-            'متطوع' => 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200',
+            'متدرب' => 'bg-[#e9eff6] text-[#335483] ring-1 ring-[#c5d4e4]',
+            'متطوع' => 'bg-[#e6f5f6] text-brand-secondary ring-1 ring-[#b8e0e2]',
             default => 'bg-gray-100 text-gray-800 ring-1 ring-gray-200',
         };
     }

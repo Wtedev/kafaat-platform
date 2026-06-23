@@ -14,24 +14,14 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet" />
-
     <style>
-        *,
-        *::before,
-        *::after {
-            font-family: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif;
-        }
-
         html {
             scroll-behavior: smooth;
         }
 
         button:focus-visible,
         a:focus-visible {
-            outline: 2px solid #253B5B;
+            outline: 2px solid #335483;
             outline-offset: 3px;
             border-radius: 8px;
         }
@@ -40,7 +30,7 @@
 
     @yield('head')
 </head>
-<body class="bg-[#F7FAFC] text-[#111827] antialiased">
+<body class="bg-[#F7FAFC] text-[#111827] antialiased font-sans">
 
     {{-- ── Navbar ──────────────────────────────────────────────────────── --}}
     <x-public-navbar />
@@ -48,12 +38,12 @@
     @if (session('success') || session('error'))
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
         @if (session('success'))
-        <div class="rounded-2xl border px-4 py-3 text-sm mb-2" style="background:#ECFDF5; border-color:#A7F3D0; color:#065F46">
+        <div class="rounded-2xl border px-4 py-3 text-sm mb-2 {{ config('brand.classes.alert_success') }}">
             {{ session('success') }}
         </div>
         @endif
         @if (session('error'))
-        <div class="rounded-2xl border px-4 py-3 text-sm" style="background:#FEF2F2; border-color:#FECACA; color:#991B1B">
+        <div class="rounded-2xl border px-4 py-3 text-sm {{ config('brand.classes.alert_danger') }}">
             {{ session('error') }}
         </div>
         @endif

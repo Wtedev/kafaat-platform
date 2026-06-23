@@ -5,7 +5,6 @@ namespace App\Providers\Filament;
 use App\Filament\Widgets\LatestInAppNotificationsWidget;
 use App\Filament\Widgets\PlatformStatsWidget;
 use Filament\Enums\ThemeMode;
-use Filament\FontProviders\BunnyFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -58,9 +57,10 @@ class AdminPanelProvider extends PanelProvider
                     return '';
                 }
 
-                $href = asset('css/filament-admin-surface.css').'?v=20';
+                $fonts = asset('css/shamel-fonts.css');
+                $href = asset('css/filament-admin-surface.css').'?v=21';
 
-                return '<link rel="stylesheet" href="'.e($href).'">';
+                return '<link rel="stylesheet" href="'.e($fonts).'"><link rel="stylesheet" href="'.e($href).'">';
             },
         );
 
@@ -88,20 +88,18 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName('كفاءات — لوحة الإدارة')
+            ->brandName('كفاءات')
+            ->brandLogo(asset('images/brand/kafaat-logo-white.svg'))
+            ->brandLogoHeight('2.25rem')
             ->bootUsing(fn () => app()->setLocale('ar'))
-            ->font(
-                'IBM Plex Sans Arabic',
-                'https://fonts.bunny.net/css?family=ibm-plex-sans-arabic:300,400,500,600,700&display=swap',
-                BunnyFontProvider::class,
-            )
+            ->font('FF Shamel')
             ->defaultThemeMode(ThemeMode::Dark)
             ->colors([
-                'primary' => Color::hex('#4ade80'),
+                'primary' => Color::hex('#335483'),
                 'gray' => Color::Zinc,
-                'danger' => Color::hex('#f87171'),
-                'warning' => Color::hex('#eab308'),
-                'success' => Color::hex('#4ade80'),
+                'danger' => Color::hex('#ec6056'),
+                'warning' => Color::hex('#fbbb2e'),
+                'success' => Color::hex('#1a9399'),
             ])
             ->globalSearch(false)
             ->maxContentWidth(Width::SevenExtraLarge)

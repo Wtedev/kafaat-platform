@@ -574,7 +574,7 @@ class NewsResource extends Resource
 
             $base = 'news-edit-row rounded-2xl border p-4 sm:p-5 transition-[box-shadow,border-color,background-color] duration-200';
             $state = $active
-                ? ' ring-1 ring-emerald-500/40 border-emerald-500/35 bg-emerald-500/[0.07] dark:ring-emerald-400/30'
+                ? ' ring-1 ring-[#b8e0e2]/40 border-[#b8e0e2]/35 bg-[#1a9399]/[0.07] dark:ring-[#b8e0e2]/30'
                 : ' border-zinc-200/90 bg-white/90 hover:border-zinc-300 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-white/18';
 
             return ['class' => $base.$state];

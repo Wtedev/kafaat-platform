@@ -8,13 +8,7 @@ RegistrationStatus::Rejected->value => 'مرفوض',
 RegistrationStatus::Cancelled->value => 'ملغي',
 RegistrationStatus::Completed->value => 'مكتمل',
 ];
-$statusColors = [
-RegistrationStatus::Pending->value => 'bg-yellow-100 text-yellow-700',
-RegistrationStatus::Approved->value => 'bg-green-100 text-green-700',
-RegistrationStatus::Rejected->value => 'bg-red-100 text-red-700',
-RegistrationStatus::Cancelled->value => 'bg-gray-100 text-gray-600',
-RegistrationStatus::Completed->value => 'bg-blue-100 text-blue-700',
-];
+$statusColors = RegistrationStatus::badgeClasses();
 $sv = $registration->status->value;
 @endphp
 
@@ -23,7 +17,7 @@ $sv = $registration->status->value;
 @section('content')
 
 <div class="mb-6">
-    <a href="{{ route('portal.programs') }}" class="inline-flex items-center gap-1.5 text-sm font-medium hover:opacity-80" style="color:#253B5B">
+    <a href="{{ route('portal.programs') }}" class="inline-flex items-center gap-1.5 text-sm font-medium hover:opacity-80" style="color:#335483">
         ← البرامج واللقاءات
     </a>
 </div>

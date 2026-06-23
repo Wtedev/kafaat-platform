@@ -18,7 +18,9 @@
 
             {{-- Brand --}}
             <div class="text-center sm:text-right lg:col-span-4">
-                <a href="{{ route('home') }}" class="inline-block text-2xl font-bold tracking-tight text-white transition-colors hover:text-emerald-300">كفاءات</a>
+                <a href="{{ route('home') }}" class="inline-block transition-opacity hover:opacity-90" aria-label="كفاءات — الرئيسية">
+                    <img src="{{ asset(config('brand.logos.kafaat_white')) }}" alt="كفاءات" class="h-10 w-auto" width="132" height="40" />
+                </a>
                 <p class="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-gray-400 sm:mx-0 sm:max-w-none">
                     جمعية كفاءات لبناء قدرات الشباب — نُمكّن الشباب عبر التدريب والتطوع والعمل المؤسسي في خدمة المجتمع.
                 </p>
@@ -28,7 +30,7 @@
                             href="{{ $social['url'] }}"
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-gray-300 transition-all duration-200 hover:-translate-y-0.5 hover:bg-emerald-500/20 hover:text-white hover:shadow-lg hover:shadow-emerald-900/20"
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-gray-300 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1a9399]/20 hover:text-white hover:shadow-lg hover:shadow-[#1a9399]/20"
                             aria-label="{{ $social['label'] }}"
                         >
                             @switch($social['key'] ?? '')
@@ -57,7 +59,7 @@
 
             {{-- Quick links --}}
             <div class="text-center sm:text-right lg:col-span-2">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-400/90">روابط</h4>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[#1a9399]">روابط</h4>
                 <ul class="mt-4 space-y-2.5 text-sm">
                     <li><a href="{{ route('home') }}" class="text-gray-400 transition-colors hover:text-white">الرئيسية</a></li>
                     <li><a href="{{ route('impact.index') }}" class="text-gray-400 transition-colors hover:text-white">عام الأثر</a></li>
@@ -69,7 +71,7 @@
 
             {{-- Platform --}}
             <div class="text-center sm:text-right lg:col-span-3">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-400/90">للمستفيدين</h4>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[#1a9399]">للمستفيدين</h4>
                 <ul class="mt-4 space-y-2.5 text-sm">
                     @guest
                     <li><a href="{{ route('login') }}" class="text-gray-400 transition-colors hover:text-white">تسجيل الدخول</a></li>
@@ -89,18 +91,18 @@
 
             {{-- Contact --}}
             <div class="text-center sm:text-right lg:col-span-3">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-400/90">تواصل معنا</h4>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[#1a9399]">تواصل معنا</h4>
                 <ul class="mt-4 space-y-3 text-sm">
                     <li class="flex flex-wrap items-center justify-center gap-2 sm:flex-nowrap sm:justify-end">
                         <a href="mailto:{{ $site['contact_email'] }}" class="min-w-0 break-all font-medium text-gray-200 transition-colors hover:text-white" dir="ltr">{{ $site['contact_email'] }}</a>
                         <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5" aria-hidden="true">
-                            <svg class="h-4 w-4 text-emerald-400/90" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                            <svg class="h-4 w-4 text-[#1a9399]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                         </span>
                     </li>
                     <li class="flex flex-wrap items-center justify-center gap-2 sm:flex-nowrap sm:justify-end">
                         <a href="tel:{{ $telHref }}" class="min-w-0 font-medium text-gray-200 transition-colors hover:text-white" dir="ltr">{{ $site['contact_phone_display'] ?? $site['contact_phone_local'] }}</a>
                         <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5" aria-hidden="true">
-                            <svg class="h-4 w-4 text-emerald-400/90" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                            <svg class="h-4 w-4 text-[#1a9399]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                         </span>
                     </li>
                 </ul>
@@ -110,7 +112,7 @@
         {{-- Location + map --}}
         <div class="mt-14 border-t border-white/10 pt-14 sm:mt-16 sm:pt-16">
             <div class="mb-8 text-center sm:mb-10 sm:text-right">
-                <p class="text-sm font-semibold uppercase tracking-widest text-emerald-400/90">موقع الجمعية</p>
+                <p class="text-sm font-semibold uppercase tracking-widest text-[#1a9399]">موقع الجمعية</p>
                 <h3 class="mt-2 text-2xl font-bold text-white sm:text-3xl">زيارة مقرّ كفاءات</h3>
                 <p class="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-gray-400 sm:mx-0">العنوان وساعات الاستقبال، وخريطة تفاعلية لتحديد الموقع.</p>
             </div>
@@ -132,7 +134,7 @@
                         href="{{ $mapsLink }}"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="mt-4 inline-flex items-center justify-center gap-2 self-center rounded-2xl border border-emerald-500/30 bg-emerald-500/15 px-5 py-2.5 text-sm font-semibold text-emerald-100 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-400/50 hover:bg-emerald-500/25 sm:self-end"
+                        class="mt-4 inline-flex items-center justify-center gap-2 self-center rounded-2xl border border-[#1a9399]/30 bg-[#1a9399]/15 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#1a9399]/50 hover:bg-[#1a9399]/25 sm:self-end"
                     >
                         <svg class="h-4 w-4 shrink-0 opacity-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -145,7 +147,7 @@
                     <div class="rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm sm:p-7">
                         <div class="flex items-start justify-center gap-3 sm:justify-end">
                             <div class="min-w-0 flex-1 text-center sm:text-right">
-                                <p class="text-xs font-bold uppercase tracking-wider text-emerald-400/90">العنوان</p>
+                                <p class="text-xs font-bold uppercase tracking-wider text-[#1a9399]">العنوان</p>
                                 <p class="mt-2 text-base font-bold leading-snug text-white">جمعية كفاءات لبناء قدرات الشباب</p>
                                 <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-gray-400">
                                     @foreach($site['address_lines'] ?? [] as $line)
@@ -154,7 +156,7 @@
                                 </ul>
                             </div>
                             <div class="hidden h-12 w-12 shrink-0 rounded-2xl border border-white/10 bg-white/5 sm:flex sm:items-center sm:justify-center" aria-hidden="true">
-                                <svg class="h-6 w-6 text-emerald-400/90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg class="h-6 w-6 text-[#1a9399]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
@@ -163,7 +165,7 @@
                     </div>
 
                     <div class="rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.07] to-white/[0.02] p-6 shadow-inner sm:p-7">
-                        <p class="text-xs font-bold uppercase tracking-wider text-emerald-400/90">{{ $site['working_hours']['title'] ?? 'ساعات العمل' }}</p>
+                        <p class="text-xs font-bold uppercase tracking-wider text-[#1a9399]">{{ $site['working_hours']['title'] ?? 'ساعات العمل' }}</p>
                         <p class="mt-2 text-sm font-semibold text-gray-200">{{ $site['working_hours']['days'] ?? '' }}</p>
                         <ul class="mt-4 divide-y divide-white/10">
                             @foreach($site['working_hours']['shifts'] ?? [] as $shift)
@@ -191,7 +193,7 @@
     @once
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <style>
-        .kafaat-footer-leaflet.leaflet-container { font-family: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif; background: #0b1220; }
+        .kafaat-footer-leaflet.leaflet-container { font-family: 'FF Shamel', sans-serif; background: #0b1220; }
         .kafaat-footer-leaflet .leaflet-control-attribution {
             background: rgba(15, 23, 42, 0.92);
             color: #94a3b8;

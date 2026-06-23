@@ -10,7 +10,7 @@
         transition: color 0.2s, background 0.2s;
     }
     .media-tab-btn.active {
-        color: #253B5B;
+        color: #335483;
         font-weight: 700;
     }
     .media-tab-btn.active::after {
@@ -21,7 +21,7 @@
         left: 0;
         height: 3px;
         border-radius: 9999px;
-        background: #253B5B;
+        background: #335483;
     }
     .media-tab-panel { display: none; }
     .media-tab-panel.active { display: block; }
@@ -34,7 +34,7 @@
     }
     .news-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 16px 40px rgba(37,59,91,0.10);
+        box-shadow: 0 16px 40px rgba(51,84,131,0.10);
     }
     .photo-thumb {
         transition: transform 0.3s ease;
@@ -57,7 +57,7 @@
 
 {{-- Page Header --}}
 <div class="text-right mb-8">
-    <p class="text-sm font-semibold uppercase tracking-widest mb-2" style="color:#3CB878">أخبار وصور</p>
+    <p class="text-sm font-semibold uppercase tracking-widest mb-2" style="color:#1a9399">أخبار وصور</p>
     <h1 class="text-3xl sm:text-4xl font-bold mb-3" style="color:#111827">المركز الإعلامي</h1>
     <p class="text-base leading-relaxed max-w-2xl" style="color:#6B7280">
         تابع آخر أخبار الجمعية وتصفّح مكتبة الصور من فعالياتنا وبرامجنا.
@@ -68,7 +68,7 @@
 <div class="mb-8 border-b border-gray-200 media-tab-nav">
     <div class="flex gap-1" role="tablist" aria-label="أقسام المركز الإعلامي">
         <button class="media-tab-btn active px-5 py-3 text-sm font-medium rounded-t-xl hover:bg-gray-50"
-                style="color:#253B5B"
+                style="color:#335483"
                 role="tab"
                 id="media-tabbtn-news"
                 aria-selected="true"
@@ -93,8 +93,8 @@
 <div id="media-tab-news" class="media-tab-panel active" role="tabpanel" aria-labelledby="media-tabbtn-news">
     @if($news->isEmpty())
     <div class="text-center py-20">
-        <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:#EAF2FA">
-            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+        <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:#e9eff6">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
         </div>
         <h3 class="text-lg font-semibold mb-1" style="color:#374151">لا توجد أخبار منشورة حالياً</h3>
         <p class="text-sm" style="color:#9CA3AF">تابعنا قريباً لمزيد من الأخبار.</p>
@@ -114,7 +114,7 @@
             <div class="p-5 flex flex-col flex-1">
                 {{-- Category badge --}}
                 @if($item->category)
-                <span class="text-xs font-semibold mb-2 inline-block" style="color:#3CB878">{{ $item->category }}</span>
+                <span class="text-xs font-semibold mb-2 inline-block" style="color:#1a9399">{{ $item->category }}</span>
                 @endif
 
                 <h3 class="text-base font-bold leading-snug mb-2 flex-1" style="color:#111827">{{ Str::limit($item->title, 80) }}</h3>
@@ -124,7 +124,7 @@
                 @endif
 
                 <div class="flex items-center justify-between mt-auto pt-2 border-t border-gray-100">
-                    <span class="text-xs font-semibold flex items-center gap-1" style="color:#253B5B">
+                    <span class="text-xs font-semibold flex items-center gap-1" style="color:#335483">
                         اقرأ المزيد
                         <svg class="w-3.5 h-3.5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
@@ -151,8 +151,8 @@
 <div id="media-tab-photos" class="media-tab-panel" role="tabpanel" aria-labelledby="media-tabbtn-photos">
     @if($photos->isEmpty())
     <div class="text-center py-20">
-        <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:#EAF2FA">
-            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:#e9eff6">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         </div>
         <h3 class="text-lg font-semibold mb-1" style="color:#374151">لا توجد صور منشورة حالياً</h3>
         <p class="text-sm" style="color:#9CA3AF">سيتم إضافة الصور قريباً.</p>
@@ -162,9 +162,9 @@
     <div class="mb-10">
         {{-- Album heading --}}
         <div class="flex items-center gap-3 mb-5">
-            <div class="w-1 h-6 rounded-full" style="background:#253B5B"></div>
+            <div class="w-1 h-6 rounded-full" style="background:#335483"></div>
             <h2 class="text-lg font-bold" style="color:#111827">{{ $album }}</h2>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background:#EAF2FA; color:#253B5B">{{ $albumPhotos->count() }} صورة</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background:#e9eff6; color:#335483">{{ $albumPhotos->count() }} صورة</span>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
@@ -216,7 +216,7 @@
             el.classList.toggle('active', isActive);
             el.setAttribute('aria-selected', isActive ? 'true' : 'false');
             el.setAttribute('tabindex', isActive ? '0' : '-1');
-            el.style.color = isActive ? '#253B5B' : '#6B7280';
+            el.style.color = isActive ? '#335483' : '#6B7280';
         });
         var panel = document.getElementById('media-tab-' + key);
         if (panel) panel.classList.add('active');

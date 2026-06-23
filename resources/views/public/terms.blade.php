@@ -8,7 +8,7 @@
 <div class="max-w-3xl mx-auto text-right">
 
     <div class="mb-10">
-        <p class="text-sm font-semibold uppercase tracking-widest mb-2" style="color:#3CB878">الاستخدام والالتزامات</p>
+        <p class="text-sm font-semibold uppercase tracking-widest mb-2" style="color:#1a9399">الاستخدام والالتزامات</p>
         <h1 class="text-3xl sm:text-4xl font-bold mb-3" style="color:#111827">الشروط والأحكام</h1>
         <p class="text-sm" style="color:#9CA3AF">آخر تحديث: {{ now()->translatedFormat('F Y') }}</p>
     </div>

@@ -10,7 +10,7 @@
     @method('PATCH')
     <input type="hidden" name="section" value="visibility" />
     <input type="hidden" name="toggle" value="{{ $toggle }}" />
-    <button type="submit" class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#253B5B]/25" title="{{ $label }}" aria-label="{{ $label }}">
+    <button type="submit" class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#335483]/25" title="{{ $label }}" aria-label="{{ $label }}">
         @if ($visible)
         @include('portal.competency.partials.icon-eye')
         @else

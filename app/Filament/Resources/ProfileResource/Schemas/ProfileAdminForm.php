@@ -161,7 +161,7 @@ final class ProfileAdminForm
                             'emerald' => 'أخضر',
                             'sky' => 'أزرق',
                             'rose' => 'وردي',
-                            'violet' => 'بنفسجي',
+                            'violet' => 'أزرق غامق',
                             'brand' => 'لون الهوية',
                         ])
                         ->default('amber')

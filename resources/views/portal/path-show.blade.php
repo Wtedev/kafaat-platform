@@ -8,13 +8,7 @@ RegistrationStatus::Rejected->value => 'مرفوض',
 RegistrationStatus::Cancelled->value => 'ملغي',
 RegistrationStatus::Completed->value => 'مكتمل',
 ];
-$statusColors = [
-RegistrationStatus::Pending->value => 'bg-yellow-100 text-yellow-700',
-RegistrationStatus::Approved->value => 'bg-green-100 text-green-700',
-RegistrationStatus::Rejected->value => 'bg-red-100 text-red-700',
-RegistrationStatus::Cancelled->value => 'bg-gray-100 text-gray-600',
-RegistrationStatus::Completed->value => 'bg-blue-100 text-blue-700',
-];
+$statusColors = RegistrationStatus::badgeClasses();
 
 $pathSv = $registration->status->value;
 @endphp
@@ -24,7 +18,7 @@ $pathSv = $registration->status->value;
 @section('content')
 
 <div class="mb-6">
-    <a href="{{ route('portal.paths') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800">
+    <a href="{{ route('portal.paths') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:opacity-80">
         ← مساراتي
     </a>
 </div>
@@ -41,7 +35,7 @@ $pathSv = $registration->status->value;
 </div>
 
 @if (! $registration->canAccessPathPrograms())
-<div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+<div class="mb-6 rounded-xl border border-[#f5dfa8] bg-[#fef6e6] px-4 py-3 text-sm text-brand">
     بانتظار قبول تسجيلك في المسار لعرض تفاصيل التقدّم والبرامج بشكل كامل.
 </div>
 @endif
@@ -75,14 +69,14 @@ $pathSv = $registration->status->value;
                 @if ($registration->canAccessPathPrograms())
                 <div class="mt-3 flex items-center gap-2">
                     <div class="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden max-w-xs">
-                        <div class="h-2 rounded-full bg-indigo-500 transition-all" style="width: {{ min(100, max(0, $pct)) }}%"></div>
+                        <div class="h-2 rounded-full bg-brand transition-all" style="width: {{ min(100, max(0, $pct)) }}%"></div>
                     </div>
                     <span class="text-xs text-gray-500">{{ number_format($pct, 0) }}%</span>
                 </div>
                 @endif
             </div>
             <div class="flex-shrink-0">
-                <a href="{{ route('public.programs.show', $program) }}" class="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#253B5B">
+                <a href="{{ route('public.programs.show', $program) }}" class="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">
                     عرض البرنامج
                 </a>
             </div>

@@ -8,13 +8,7 @@ RegistrationStatus::Rejected->value => 'مرفوض',
 RegistrationStatus::Cancelled->value => 'ملغي',
 RegistrationStatus::Completed->value => 'مكتمل',
 ];
-$statusColors = [
-RegistrationStatus::Pending->value => 'bg-yellow-100 text-yellow-700',
-RegistrationStatus::Approved->value => 'bg-green-100 text-green-700',
-RegistrationStatus::Rejected->value => 'bg-red-100 text-red-700',
-RegistrationStatus::Cancelled->value => 'bg-gray-100 text-gray-600',
-RegistrationStatus::Completed->value => 'bg-blue-100 text-blue-700',
-];
+$statusColors = RegistrationStatus::badgeClasses();
 
 $canRegisterPath = auth()->check()
 && auth()->user()->isPortalUser()
@@ -28,7 +22,7 @@ $alreadyRegisteredPath = $userRegistration !== null;
 @section('content')
 
 <div class="mb-4">
-    <a href="{{ route('public.paths.index') }}" class="inline-flex items-center gap-1.5 text-sm font-medium hover:opacity-70 transition-opacity" style="color:#253B5B">
+    <a href="{{ route('public.paths.index') }}" class="inline-flex items-center gap-1.5 text-sm font-medium hover:opacity-70 transition-opacity" style="color:#335483">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
         المسارات التدريبية
@@ -79,7 +73,7 @@ $alreadyRegisteredPath = $userRegistration !== null;
             <div class="flex min-w-0 flex-1 flex-col justify-between gap-3 sm:flex-row sm:items-start">
                 <div class="min-w-0 flex-1">
                     <div class="mb-1 flex flex-wrap items-center gap-2">
-                        <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold" style="background:#EAF2FA; color:#253B5B">
+                        <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold" style="background:#e9eff6; color:#335483">
                             {{ $program->program_kind->label() }}
                         </span>
                         @if ($userProgReg)
@@ -113,13 +107,13 @@ $alreadyRegisteredPath = $userRegistration !== null;
     <form method="POST" action="{{ route('public.paths.register', $learningPath->slug) }}">
         @csrf
         <button type="submit" class="px-6 py-3 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md
-                       transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
+                       transition-all duration-200 hover:-translate-y-0.5" style="background:#335483">
             سجّل في المسار
         </button>
     </form>
     @elseif (! auth()->check())
     <a href="{{ route('login') }}" class="inline-block px-6 py-3 rounded-2xl text-sm font-semibold text-white shadow-sm
-              hover:shadow-md transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
+              hover:shadow-md transition-all duration-200 hover:-translate-y-0.5" style="background:#335483">
         سجّل الدخول للتسجيل
     </a>
     @else

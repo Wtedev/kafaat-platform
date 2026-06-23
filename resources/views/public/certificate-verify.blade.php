@@ -3,18 +3,18 @@
 @section('content')
 
 <div class="text-center mb-6">
-    <div class="inline-flex items-center justify-center w-14 h-14 rounded-full {{ $certificate ? 'bg-green-100' : 'bg-red-100' }} mb-4">
+    <div class="inline-flex items-center justify-center w-14 h-14 rounded-full {{ $certificate ? 'bg-[#e6f5f6]' : 'bg-[#fdeeed]' }} mb-4">
         @if($certificate)
-        <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-7 h-7 text-brand-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         @else
-        <svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-7 h-7 text-brand-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         @endif
     </div>
-    <h1 class="text-xl font-bold {{ $certificate ? 'text-green-700' : 'text-red-600' }}">
+    <h1 class="text-xl font-bold {{ $certificate ? 'text-brand-secondary' : 'text-brand-danger' }}">
         {{ $certificate ? 'شهادة صحيحة ✓' : 'الشهادة غير صالحة' }}
     </h1>
 </div>
@@ -60,7 +60,7 @@ default => 'الموضوع',
 @endif
 
 <div class="mt-6 text-center">
-    <a href="{{ route('home') }}" class="text-sm text-indigo-600 hover:underline">← العودة للرئيسية</a>
+    <a href="{{ route('home') }}" class="text-sm text-brand hover:underline">← العودة للرئيسية</a>
 </div>
 
 @endsection

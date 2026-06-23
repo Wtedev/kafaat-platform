@@ -10,7 +10,7 @@
         justify-content: center;
         padding: 1rem;
         box-sizing: border-box;
-        font-family: 'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif;
+        font-family: 'FF Shamel', system-ui, sans-serif;
     }
     #notif-prefs-modal *, #notif-prefs-modal *::before, #notif-prefs-modal *::after {
         box-sizing: border-box;
@@ -48,8 +48,8 @@
         width: 3.5rem;
         height: 3.5rem;
         border-radius: 1rem;
-        background: #EAF2FA;
-        color: #253B5B;
+        background: #e9eff6;
+        color: #335483;
     }
     #notif-prefs-modal .npm-icon svg {
         width: 1.75rem;
@@ -99,7 +99,7 @@
         font-family: inherit;
     }
     #notif-prefs-modal .npm-btn-primary {
-        background: #253B5B;
+        background: #335483;
         color: #fff;
     }
     #notif-prefs-modal .npm-btn-primary:hover {
@@ -118,7 +118,7 @@
         padding-top: 0.25rem;
         text-align: center;
         font-size: 0.6875rem;
-        color: #253B5B;
+        color: #335483;
         text-decoration: none;
     }
     #notif-prefs-modal .npm-link:hover {

@@ -8,8 +8,8 @@ $user = auth()->user();
 $showAdmin = $user && $user->isAdmin();
 $showMainSite = $user && $user->isBeneficiary();
 $linkClass = $variant === 'sidebar'
-    ? 'flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-gray-600 ring-1 ring-gray-200/90 bg-white/90 transition-colors hover:bg-gray-50 hover:text-[#253B5B]'
-    : 'inline-flex min-h-[2.75rem] min-w-[2.75rem] shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 p-2 text-sm font-medium text-slate-600 shadow-sm transition-all hover:border-slate-200 hover:bg-white hover:text-[#253B5B] hover:shadow-md sm:min-h-0 sm:min-w-0 sm:rounded-2xl sm:px-3.5 sm:py-2';
+    ? 'flex w-full items-center justify-start gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-gray-600 ring-1 ring-gray-200/90 bg-white/90 transition-colors hover:bg-gray-50 hover:text-[#335483]'
+    : 'inline-flex min-h-[2.75rem] min-w-[2.75rem] shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200/70 bg-white/70 p-2 text-sm font-medium text-slate-600 shadow-sm transition-all hover:border-slate-200 hover:bg-white hover:text-[#335483] hover:shadow-md sm:min-h-0 sm:min-w-0 sm:rounded-2xl sm:px-3.5 sm:py-2';
 @endphp
 
 @if ($showAdmin || $showMainSite)

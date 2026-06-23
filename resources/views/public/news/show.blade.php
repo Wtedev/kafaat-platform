@@ -4,7 +4,7 @@
 
 {{-- Breadcrumb back --}}
 <div class="mb-6">
-    <a href="{{ route('public.news.index') }}" class="inline-flex items-center gap-1.5 text-sm font-medium hover:opacity-70 transition-opacity" style="color:#253B5B">
+    <a href="{{ route('public.news.index') }}" class="inline-flex items-center gap-1.5 text-sm font-medium hover:opacity-70 transition-opacity" style="color:#335483">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
         الأخبار والفعاليات
@@ -17,7 +17,7 @@
     {{-- Category + date --}}
     <div class="flex items-center gap-3 mb-4 flex-row-reverse justify-end">
         @if ($news->category)
-        <span class="text-xs font-medium px-3 py-1.5 rounded-xl" style="background:#EAF2FA; color:#253B5B">{{ $news->category }}</span>
+        <x-news-category-badge :category="$news->category" size="md" />
         @endif
         @if ($news->published_at)
         <span class="text-xs" style="color:#6B7280">{{ $news->published_at->format('Y/m/d') }}</span>
@@ -38,8 +38,8 @@
         <img src="{{ $news->imagePublicUrl() }}" alt="{{ $news->title }}" class="w-full object-cover" style="max-height:420px">
     </div>
     @else
-    <div class="rounded-2xl h-56 flex items-center justify-center mb-8" style="background: linear-gradient(135deg, #EAF2FA, #DCE8F5)">
-        <svg class="w-20 h-20 opacity-25" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:#253B5B">
+    <div class="rounded-2xl h-56 flex items-center justify-center mb-8" style="background: linear-gradient(135deg, #e9eff6, #DCE8F5)">
+        <svg class="w-20 h-20 opacity-25" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:#335483">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
     </div>
     @endif
@@ -50,7 +50,7 @@
             $body = (string) ($news->content ?? '');
             $isRichHtml = $body !== '' && preg_match('/<[a-z][\s\S]*>/i', $body);
         @endphp
-        <div class="news-article-body prose prose-lg max-w-none leading-relaxed text-right {{ $isRichHtml ? '' : 'whitespace-pre-line' }}" style="color:#374151; font-family: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif; direction: rtl">
+        <div class="news-article-body prose prose-lg max-w-none leading-relaxed text-right font-sans {{ $isRichHtml ? '' : 'whitespace-pre-line' }}" style="color:#374151; direction: rtl">
             @if ($isRichHtml)
                 {{-- تنقية HTML لمنع XSS المخزّن (وسوم مسموحة فقط) --}}
                 {!! clean($body) !!}
@@ -63,7 +63,7 @@
     {{-- Back link --}}
     <div class="mt-8">
         <a href="{{ route('public.news.index') }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-semibold text-white shadow-sm
-                  hover:shadow-md transition-all duration-200 hover:-translate-y-0.5" style="background:#253B5B">
+                  hover:shadow-md transition-all duration-200 hover:-translate-y-0.5" style="background:#335483">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
             العودة إلى الأخبار

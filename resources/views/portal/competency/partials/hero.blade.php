@@ -8,7 +8,7 @@ $editProfileLabel = $loc === 'en' ? 'Edit profile' : 'تعديل الملف ال
 $editProfileAria = $loc === 'en' ? 'Edit your profile: photo, name, city, title, email, and phone' : 'تعديل الملف الشخصي: الصورة والاسم والمدينة والمسمى والبريد والجوال';
 @endphp
 <header class="relative mb-8 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
-    <div class="absolute inset-0 opacity-[0.07]" style="background: linear-gradient(135deg, #253B5B 0%, #3CB878 100%);"></div>
+    <div class="absolute inset-0 opacity-[0.07]" style="background: linear-gradient(135deg, #335483 0%, #1a9399 100%);"></div>
     <div class="relative px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-9">
         <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
                 <div class="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-5">
@@ -29,7 +29,7 @@ $editProfileAria = $loc === 'en' ? 'Edit your profile: photo, name, city, title,
                                 <p class="mt-1.5 text-sm text-gray-400">{{ $loc === 'en' ? 'No city yet' : 'لم تُضف المدينة بعد' }}</p>
                                 @endif
                                 @if ($jobTitle !== '')
-                                <p class="mt-1.5 text-base font-semibold text-[#253B5B] sm:text-lg">{{ $jobTitle }}</p>
+                                <p class="mt-1.5 text-base font-semibold text-[#335483] sm:text-lg">{{ $jobTitle }}</p>
                                 @else
                                 <p class="mt-1.5 text-sm text-gray-400">{{ $loc === 'en' ? 'No title yet' : 'لم يُضف المسمى بعد' }}</p>
                                 @endif
@@ -46,7 +46,7 @@ $editProfileAria = $loc === 'en' ? 'Edit your profile: photo, name, city, title,
                             </div>
                             <a
                                 href="{{ route('portal.profile') }}"
-                                class="inline-flex shrink-0 items-center justify-center gap-2 self-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#253B5B] shadow-sm transition hover:border-[#253B5B]/30 hover:bg-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#253B5B]/25 sm:self-start"
+                                class="inline-flex shrink-0 items-center justify-center gap-2 self-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#335483] shadow-sm transition hover:border-[#335483]/30 hover:bg-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#335483]/25 sm:self-start"
                                 aria-label="{{ $editProfileAria }}"
                             >
                                 <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
@@ -56,7 +56,7 @@ $editProfileAria = $loc === 'en' ? 'Edit your profile: photo, name, city, title,
                     </div>
                 </div>
                 <div class="flex w-full shrink-0 flex-col gap-2 lg:max-w-[220px] lg:pt-1">
-                    <a href="{{ route('portal.competency.export-pdf') }}" target="_blank" rel="noopener noreferrer" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3.5 text-sm font-semibold text-white shadow-md transition hover:opacity-95" style="background:#253B5B">
+                    <a href="{{ route('portal.competency.export-pdf') }}" target="_blank" rel="noopener noreferrer" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3.5 text-sm font-semibold text-white shadow-md transition hover:opacity-95" style="background:#335483">
                         <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         {{ $loc === 'en' ? 'Export CV (PDF)' : 'تصدير كفاءتي كسيرة ذاتية' }}
                     </a>

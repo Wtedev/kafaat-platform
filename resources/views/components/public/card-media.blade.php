@@ -16,15 +16,8 @@
 ])
 
 @php
-    $catalogBgs = [
-        'linear-gradient(135deg, #EAF2FA, #DCE8F5)',
-        'linear-gradient(135deg, #ECFDF5, #D1FAE5)',
-        'linear-gradient(135deg, #FFF7ED, #FED7AA)',
-        'linear-gradient(135deg, #F5F3FF, #DDD6FE)',
-        'linear-gradient(135deg, #FFF1F2, #FFE4E6)',
-        'linear-gradient(135deg, #F0FDF4, #BBF7D0)',
-    ];
-    $heroBg = 'linear-gradient(135deg, #EAF2FA, #DCE8F5)';
+    $catalogBgs = config('brand.image_gradients');
+    $heroBg = 'linear-gradient(135deg, #e9eff6, #DCE8F5)';
 
     $ctx = strtolower((string) $mediaContext);
     $pk = '';
@@ -127,7 +120,7 @@
 @else
     @if ($variant === 'hero')
         <div class="{{ $heightWrap }}" style="background: {{ $bgStyle }}">
-            <svg class="{{ $iconWrap }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.25" style="color:#253B5B" aria-hidden="true">
+            <svg class="{{ $iconWrap }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.25" style="color:#335483" aria-hidden="true">
                 @foreach ($iconPaths as $d)
                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $d }}" />
                 @endforeach
@@ -136,7 +129,7 @@
     @elseif ($variant === 'thumb')
         <div class="h-20 w-20 shrink-0 overflow-hidden rounded-lg ring-1 ring-gray-100">
             <div class="{{ $heightWrap }}" style="background: {{ $bgStyle }}">
-                <svg class="{{ $iconWrap }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.25" style="color:#253B5B" aria-hidden="true">
+                <svg class="{{ $iconWrap }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.25" style="color:#335483" aria-hidden="true">
                     @foreach ($iconPaths as $d)
                         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $d }}" />
                     @endforeach
@@ -145,7 +138,7 @@
         </div>
     @else
         <div class="{{ $heightWrap }}" style="background: {{ $bgStyle }}">
-            <svg class="{{ $iconWrap }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.25" style="color:#253B5B" aria-hidden="true">
+            <svg class="{{ $iconWrap }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.25" style="color:#335483" aria-hidden="true">
                 @foreach ($iconPaths as $d)
                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $d }}" />
                 @endforeach

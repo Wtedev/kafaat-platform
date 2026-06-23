@@ -9,7 +9,7 @@ $canRejectPath = \App\Filament\Support\InboxNotificationRecordActions::canReject
 $canApproveVolunteer = \App\Filament\Support\InboxNotificationRecordActions::canApproveVolunteerRegistration($n);
 $canRejectVolunteer = \App\Filament\Support\InboxNotificationRecordActions::canRejectVolunteerRegistration($n);
 @endphp
-<li class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm @if($n->read_at === null) ring-1 ring-sky-200/60 @endif">
+<li class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm @if($n->read_at === null) ring-1 ring-[#b8e0e2]/60 @endif">
     <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="min-w-0 flex-1 text-right">
             <div class="flex flex-wrap items-center justify-end gap-2">
@@ -17,7 +17,7 @@ $canRejectVolunteer = \App\Filament\Support\InboxNotificationRecordActions::canR
                     {{ $n->type->arabicLabel() }}
                 </span>
                 @if ($n->read_at === null)
-                <span class="inline-flex rounded-lg bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-800 ring-1 ring-sky-200">جديد</span>
+                <span class="inline-flex rounded-lg bg-[#e6f5f6] px-2 py-0.5 text-[10px] font-bold text-brand-secondary ring-1 ring-[#b8e0e2]">جديد</span>
                 @endif
             </div>
             <h2 class="mt-2 text-base font-bold text-gray-900">{{ $n->title }}</h2>
@@ -40,7 +40,7 @@ $canRejectVolunteer = \App\Filament\Support\InboxNotificationRecordActions::canR
             <form method="POST" action="{{ route('portal.notifications.registration-action', $n) }}" class="w-full sm:w-auto" onsubmit="return confirm('تأكيد قبول التسجيل في البرنامج؟');">
                 @csrf
                 <input type="hidden" name="intent" value="approve_program">
-                <button type="submit" class="w-full rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:w-auto">
+                <button type="submit" class="w-full rounded-lg bg-brand-secondary px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:opacity-95 sm:w-auto">
                     قبول (برنامج)
                 </button>
             </form>
@@ -50,7 +50,7 @@ $canRejectVolunteer = \App\Filament\Support\InboxNotificationRecordActions::canR
                 @csrf
                 <input type="hidden" name="intent" value="reject_program">
                 <textarea name="rejected_reason" rows="2" placeholder="سبب الرفض (اختياري)" class="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-800 placeholder:text-gray-400"></textarea>
-                <button type="submit" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-700 ring-1 ring-red-200 transition hover:bg-red-50">
+                <button type="submit" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-brand-danger ring-1 ring-[#f5c4c0] transition hover:bg-[#fdeeed]">
                     رفض (برنامج)
                 </button>
             </form>
@@ -60,7 +60,7 @@ $canRejectVolunteer = \App\Filament\Support\InboxNotificationRecordActions::canR
             <form method="POST" action="{{ route('portal.notifications.registration-action', $n) }}" class="w-full sm:w-auto" onsubmit="return confirm('تأكيد قبول التسجيل في المسار؟');">
                 @csrf
                 <input type="hidden" name="intent" value="approve_path">
-                <button type="submit" class="w-full rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:w-auto">
+                <button type="submit" class="w-full rounded-lg bg-brand-secondary px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:opacity-95 sm:w-auto">
                     قبول (مسار)
                 </button>
             </form>
@@ -70,7 +70,7 @@ $canRejectVolunteer = \App\Filament\Support\InboxNotificationRecordActions::canR
                 @csrf
                 <input type="hidden" name="intent" value="reject_path">
                 <textarea name="rejected_reason" rows="2" placeholder="سبب الرفض (اختياري)" class="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-800 placeholder:text-gray-400"></textarea>
-                <button type="submit" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-700 ring-1 ring-red-200 transition hover:bg-red-50">
+                <button type="submit" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-brand-danger ring-1 ring-[#f5c4c0] transition hover:bg-[#fdeeed]">
                     رفض (مسار)
                 </button>
             </form>
@@ -80,7 +80,7 @@ $canRejectVolunteer = \App\Filament\Support\InboxNotificationRecordActions::canR
             <form method="POST" action="{{ route('portal.notifications.registration-action', $n) }}" class="w-full sm:w-auto" onsubmit="return confirm('تأكيد قبول التسجيل التطوعي؟');">
                 @csrf
                 <input type="hidden" name="intent" value="approve_volunteer">
-                <button type="submit" class="w-full rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:w-auto">
+                <button type="submit" class="w-full rounded-lg bg-brand-secondary px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:opacity-95 sm:w-auto">
                     قبول (تطوع)
                 </button>
             </form>
@@ -90,7 +90,7 @@ $canRejectVolunteer = \App\Filament\Support\InboxNotificationRecordActions::canR
                 @csrf
                 <input type="hidden" name="intent" value="reject_volunteer">
                 <textarea name="rejected_reason" rows="2" placeholder="سبب الرفض (اختياري)" class="w-full rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-800 placeholder:text-gray-400"></textarea>
-                <button type="submit" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-700 ring-1 ring-red-200 transition hover:bg-red-50">
+                <button type="submit" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-brand-danger ring-1 ring-[#f5c4c0] transition hover:bg-[#fdeeed]">
                     رفض (تطوع)
                 </button>
             </form>

@@ -1,13 +1,7 @@
 @php
 use App\Enums\RegistrationStatus;
 
-$statusColors = [
-RegistrationStatus::Pending->value => 'bg-yellow-100 text-yellow-700',
-RegistrationStatus::Approved->value => 'bg-green-100 text-green-700',
-RegistrationStatus::Rejected->value => 'bg-red-100 text-red-700',
-RegistrationStatus::Cancelled->value => 'bg-gray-100 text-gray-600',
-RegistrationStatus::Completed->value => 'bg-blue-100 text-blue-700',
-];
+$statusColors = RegistrationStatus::badgeClasses();
 
 $statusLabels = [
 RegistrationStatus::Pending->value => 'قيد المراجعة',
@@ -28,7 +22,7 @@ RegistrationStatus::Completed->value => 'مكتمل',
     title="لا توجد برامج مسجّلة"
     description="لم تسجّل في أي برنامج تدريبي بعد. تصفّح البرامج المنشورة وسجّل عند توفر مقعد."
 >
-    <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#253B5B">استكشف البرامج</a>
+    <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">استكشف البرامج</a>
     <a href="{{ route('portal.paths') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">مساراتي</a>
 </x-portal.empty-state>
 @else
@@ -77,9 +71,9 @@ RegistrationStatus::Completed->value => 'مكتمل',
                     @endphp
                     @if ($showElig && $reg->attendance_percentage !== null)
                     @if ($attOk && $scoreOk)
-                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">مؤهل ✓</span>
+                    <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ config('brand.classes.badge_secondary') }}">مؤهل ✓</span>
                     @else
-                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">غير مؤهل</span>
+                    <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ config('brand.classes.badge_danger') }}">غير مؤهل</span>
                     @endif
                     @else
                     <span class="text-xs text-gray-400">—</span>
@@ -88,11 +82,11 @@ RegistrationStatus::Completed->value => 'مكتمل',
                 <td class="px-5 py-4 text-center">
                     @if ($reg->certificate)
                     @if ($reg->certificate->downloadUrl())
-                    <a href="{{ $reg->certificate->downloadUrl() }}" target="_blank" rel="noopener noreferrer" class="inline-block px-3 py-1 rounded-lg text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition">
+                    <a href="{{ $reg->certificate->downloadUrl() }}" target="_blank" rel="noopener noreferrer" class="inline-block px-3 py-1 rounded-lg text-xs font-medium bg-brand text-white hover:opacity-95 transition">
                         تحميل
                     </a>
                     @else
-                    <span class="text-xs text-blue-600 font-medium">صادرة</span>
+                    <span class="text-xs text-brand font-medium">صادرة</span>
                     @endif
                     @else
                     <span class="text-xs text-gray-400">—</span>

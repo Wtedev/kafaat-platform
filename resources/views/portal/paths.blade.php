@@ -1,13 +1,7 @@
 @php
 use App\Enums\RegistrationStatus;
 
-$statusColors = [
-RegistrationStatus::Pending->value => 'bg-yellow-100 text-yellow-700',
-RegistrationStatus::Approved->value => 'bg-green-100 text-green-700',
-RegistrationStatus::Rejected->value => 'bg-red-100 text-red-700',
-RegistrationStatus::Cancelled->value => 'bg-gray-100 text-gray-600',
-RegistrationStatus::Completed->value => 'bg-blue-100 text-blue-700',
-];
+$statusColors = RegistrationStatus::badgeClasses();
 
 $statusLabels = [
 RegistrationStatus::Pending->value => 'قيد المراجعة',
@@ -24,7 +18,7 @@ RegistrationStatus::Completed->value => 'مكتمل',
 <h1 class="mb-6 text-2xl font-bold text-gray-900">مساراتي</h1>
 
 @if (session('error'))
-<div class="mb-4 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+<div class="mb-4 {{ config('brand.classes.alert_danger') }} rounded-xl px-4 py-3 text-sm">
     {{ session('error') }}
 </div>
 @endif
@@ -34,7 +28,7 @@ RegistrationStatus::Completed->value => 'مكتمل',
     title="لا توجد مسارات مسجّلة"
     description="لم تسجّل في أي مسار بعد. يمكنك استكشاف المسارات المتاحة أو البرامج التدريبية والانضمام من الموقع العام."
 >
-    <a href="{{ route('public.paths.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#253B5B">استكشف المسارات</a>
+    <a href="{{ route('public.paths.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">استكشف المسارات</a>
     <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">استكشف البرامج</a>
 </x-portal.empty-state>
 @else
@@ -77,9 +71,9 @@ RegistrationStatus::Completed->value => 'مكتمل',
                 <div class="mt-3 flex items-center gap-2">
                     <div class="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
                         <div class="h-2 rounded-full transition-all duration-300
-                            @if ($sv === RegistrationStatus::Completed->value) bg-blue-500
-                            @elseif ($pct >= 75) bg-green-500
-                            @else bg-indigo-500 @endif" style="width: {{ $pct }}%"></div>
+                            @if ($sv === RegistrationStatus::Completed->value) bg-brand
+                            @elseif ($pct >= 75) bg-brand-secondary
+                            @else bg-brand-accent @endif" style="width: {{ $pct }}%"></div>
                     </div>
                     <span class="text-xs text-gray-500 w-12 text-left">{{ number_format($pct, 0) }}%</span>
                 </div>
@@ -89,20 +83,20 @@ RegistrationStatus::Completed->value => 'مكتمل',
             <div class="flex-shrink-0">
                 @if ($canAccess && $path)
                 @if ($sv === RegistrationStatus::Completed->value)
-                <a href="{{ route('portal.paths.show', $path) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition">
+                <a href="{{ route('portal.paths.show', $path) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand text-white text-sm font-medium hover:opacity-95 transition">
                     ✓ تم الإكمال — عرض البرامج
                 </a>
                 @else
-                <a href="{{ route('portal.paths.show', $path) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition">
+                <a href="{{ route('portal.paths.show', $path) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand text-white text-sm font-medium hover:opacity-95 transition">
                     عرض البرامج ←
                 </a>
                 @endif
                 @elseif ($sv === RegistrationStatus::Pending->value)
-                <span class="inline-flex items-center px-4 py-2 rounded-xl bg-yellow-50 text-yellow-700 text-sm font-medium border border-yellow-200">
+                <span class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium border {{ config('brand.classes.badge_accent') }}">
                     بانتظار القبول
                 </span>
                 @elseif ($sv === RegistrationStatus::Rejected->value)
-                <span class="inline-flex items-center px-4 py-2 rounded-xl bg-red-50 text-red-600 text-sm font-medium border border-red-200">
+                <span class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium border {{ config('brand.classes.badge_danger') }}">
                     مرفوض
                 </span>
                 @elseif ($sv === RegistrationStatus::Cancelled->value)

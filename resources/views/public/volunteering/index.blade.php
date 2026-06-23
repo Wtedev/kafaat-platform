@@ -27,7 +27,7 @@
         />
 
         <div class="p-5">
-        <h3 class="font-semibold mb-2 group-hover:text-[#253B5B] transition-colors" style="color:#111827">{{ $opp->title }}</h3>
+        <h3 class="font-semibold mb-2 group-hover:text-[#335483] transition-colors" style="color:#111827">{{ $opp->title }}</h3>
         <p class="text-sm line-clamp-3" style="color:#6B7280">{{ $opp->description }}</p>
         <div class="mt-3 flex flex-wrap gap-3 text-xs" style="color:#6B7280">
             @if ($opp->hours_expected)
@@ -52,7 +52,7 @@
             </span>
             @endif
         </div>
-        <div class="mt-4 text-xs font-semibold flex items-center gap-1.5 justify-end" style="color:#253B5B">
+        <div class="mt-4 text-xs font-semibold flex items-center gap-1.5 justify-end" style="color:#335483">
             قدّم طلبك
             <svg class="w-3.5 h-3.5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>

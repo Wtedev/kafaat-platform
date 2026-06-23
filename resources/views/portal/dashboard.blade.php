@@ -19,19 +19,19 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
     <div class="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
             <p class="text-xs font-medium text-gray-500">مسارات وبرامج مسجّلة</p>
-            <p class="mt-2 text-2xl font-bold tabular-nums sm:text-3xl" style="color:#253B5B">{{ $programsRegistered }}</p>
+            <p class="mt-2 text-2xl font-bold tabular-nums sm:text-3xl" style="color:#335483">{{ $programsRegistered }}</p>
         </div>
         <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
             <p class="text-xs font-medium text-gray-500">مكتملة</p>
-            <p class="mt-2 text-2xl font-bold tabular-nums text-emerald-600 sm:text-3xl">{{ $programsCompleted }}</p>
+            <p class="mt-2 text-2xl font-bold tabular-nums text-brand-secondary sm:text-3xl">{{ $programsCompleted }}</p>
         </div>
         <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
             <p class="text-xs font-medium text-gray-500">ساعات تطوع معتمدة</p>
-            <p class="mt-2 text-2xl font-bold tabular-nums text-sky-600 sm:text-3xl">{{ number_format($approvedHours, 1) }}</p>
+            <p class="mt-2 text-2xl font-bold tabular-nums text-brand sm:text-3xl">{{ number_format($approvedHours, 1) }}</p>
         </div>
         <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
             <p class="text-xs font-medium text-gray-500">الشهادات</p>
-            <p class="mt-2 text-2xl font-bold tabular-nums text-violet-600 sm:text-3xl">{{ $certificatesCount }}</p>
+            <p class="mt-2 text-2xl font-bold tabular-nums text-brand-accent sm:text-3xl">{{ $certificatesCount }}</p>
         </div>
     </div>
 </section>
@@ -58,7 +58,7 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
         title="لا توجد مسارات أو برامج مستقلة لعرضها"
         description="لم يظهر عندك أي تسجيل في مسار أو برنامج مستقل، أو اقتراحات بعد. استكشف المسارات والبرامج غير المرتبطة بمسار من الموقع العام."
     >
-        <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#253B5B">استكشف البرامج</a>
+        <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">استكشف البرامج</a>
         <a href="{{ route('public.paths.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">استكشف المسارات</a>
     </x-portal.empty-state>
     @else
@@ -76,7 +76,7 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
             <h2 id="vol-heading" class="text-base font-bold text-gray-900 sm:text-lg">الفرص التطوعية</h2>
             <p class="mt-0.5 text-xs text-gray-500 sm:text-sm">فرص منشورة وحالتك في كل منها</p>
         </div>
-        <a href="{{ route('portal.volunteering') }}" class="shrink-0 text-xs font-semibold underline-offset-2 hover:underline" style="color:#253B5B">عرض الكل</a>
+        <a href="{{ route('portal.volunteering') }}" class="shrink-0 text-xs font-semibold underline-offset-2 hover:underline" style="color:#335483">عرض الكل</a>
     </div>
 
     @if (! $hasVolunteering)
@@ -84,7 +84,7 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
         title="لا توجد فرص تطوعية منشورة"
         description="لا تتوفر حالياً فرص في لوحة التحكم. يمكنك تصفّح صفحة الفرص على الموقع العام أو إكمال ملفك ليصلك إشعار لاحقاً."
     >
-        <a href="{{ route('public.volunteering.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#253B5B">استكشف الفرص التطوعية</a>
+        <a href="{{ route('public.volunteering.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">استكشف الفرص التطوعية</a>
         <a href="{{ route('portal.competency') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">طوّر صفحة الكفاءة</a>
     </x-portal.empty-state>
     @else
@@ -104,15 +104,16 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
                 @endif
                 @php
                 $vt = [
-                    'emerald' => 'bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200/80',
-                    'indigo' => 'bg-indigo-50 text-indigo-900 ring-1 ring-indigo-200/80',
-                    'slate' => 'bg-slate-100 text-slate-800 ring-1 ring-slate-200/80',
+                    'primary' => config('brand.classes.tone_primary'),
+                    'secondary' => config('brand.classes.tone_secondary'),
+                    'accent' => config('brand.classes.tone_accent'),
+                    'muted' => config('brand.classes.tone_muted'),
                 ];
                 @endphp
-                <span class="rounded-lg px-2 py-1 font-semibold {{ $vt[$row['state_tone']] ?? $vt['slate'] }}">{{ $row['state_label'] }}</span>
+                <span class="rounded-lg px-2 py-1 font-semibold {{ $vt[$row['state_tone']] ?? $vt['muted'] }}">{{ $row['state_label'] }}</span>
             </div>
             <div class="mt-4 flex justify-end">
-                <a href="{{ $row['cta_url'] }}" class="text-sm font-semibold hover:underline" style="color:#253B5B">{{ $row['cta_label'] }}</a>
+                <a href="{{ $row['cta_url'] }}" class="text-sm font-semibold hover:underline" style="color:#335483">{{ $row['cta_label'] }}</a>
             </div>
             </div>
         </article>

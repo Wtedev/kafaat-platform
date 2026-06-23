@@ -27,7 +27,7 @@
         />
 
         <div class="p-5">
-            <h3 class="mb-2 font-semibold transition-colors group-hover:text-[#253B5B]" style="color:#111827">{{ $path->title }}</h3>
+            <h3 class="mb-2 font-semibold transition-colors group-hover:text-[#335483]" style="color:#111827">{{ $path->title }}</h3>
             <p class="line-clamp-3 text-sm" style="color:#6B7280">{{ $path->description }}</p>
             @if ($path->capacity)
             <p class="mt-3 flex items-center justify-end gap-1.5 text-xs" style="color:#6B7280">
@@ -36,7 +36,7 @@
                 {{ $path->capacity }}
             </p>
             @endif
-            <div class="mt-4 flex items-center justify-end gap-1.5 text-xs font-semibold" style="color:#253B5B">
+            <div class="mt-4 flex items-center justify-end gap-1.5 text-xs font-semibold" style="color:#335483">
                 عرض المسار
                 <svg class="h-3.5 w-3.5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>

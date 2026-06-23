@@ -41,8 +41,8 @@ class EditNews extends BaseEditRecord
         $indexUrl = NewsResource::getUrl('index');
 
         $badgeClasses = match ($record->publicationStatusLabel()) {
-            'منشور' => 'bg-emerald-600 text-white ring-1 ring-emerald-500/40',
-            'مجدول' => 'bg-amber-500/25 text-amber-100 ring-1 ring-amber-500/35',
+            'منشور' => 'bg-brand-secondary text-white ring-1 ring-[#b8e0e2]/40',
+            'مجدول' => 'bg-[#fbbb2e]/25 text-white ring-1 ring-[#f5dfa8]/35',
             default => 'bg-zinc-600/50 text-zinc-100 ring-1 ring-white/12',
         };
 
@@ -268,14 +268,10 @@ class EditNews extends BaseEditRecord
             ->textColors([
                 'أسود' => '#18181b',
                 'رمادي' => '#71717a',
-                'أحمر' => '#dc2626',
-                'برتقالي' => '#ea580c',
-                'ذهبي' => '#ca8a04',
-                'أخضر' => '#16a34a',
-                'تركواز' => '#0d9488',
-                'أزرق' => '#2563eb',
-                'بنفسجي' => '#7c3aed',
-                'وردي' => '#db2777',
+                'أزرق غامق' => '#335483',
+                'تركواز' => '#1a9399',
+                'أصفر' => '#fbbb2e',
+                'أحمر' => '#ec6056',
             ])
             ->extraInputAttributes([
                 'dir' => 'rtl',

@@ -3,8 +3,8 @@
 @section('content')
 
 <div class="text-center mb-6">
-    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style="background:#EAF2FA">
-        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="#253B5B">
+    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style="background:#e9eff6">
+        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="#335483">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                   d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
         </svg>
@@ -18,13 +18,13 @@
 </p>
 
 @if (session('status'))
-<div class="mb-4 rounded-xl bg-green-50 border border-green-200 text-green-700 px-4 py-3 text-sm text-center">
+<div class="mb-4 rounded-xl {{ config('brand.classes.alert_success') }} px-4 py-3 text-sm text-center">
     {{ session('status') }}
 </div>
 @endif
 
 @error('code')
-<div class="mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm text-center">
+<div class="mb-4 rounded-xl {{ config('brand.classes.alert_danger') }} px-4 py-3 text-sm text-center">
     {{ $message }}
 </div>
 @enderror
@@ -42,10 +42,10 @@
            required
            autofocus
            placeholder="000000"
-           class="w-full mb-4 py-3 rounded-xl border border-gray-200 text-center text-2xl font-bold tracking-[0.5em] text-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+           class="w-full mb-4 py-3 rounded-xl border border-gray-200 text-center text-2xl font-bold tracking-[0.5em] text-gray-900 focus:border-brand focus:ring-2 focus:ring-brand/20 outline-none"
            dir="ltr">
     <button type="submit"
-            class="w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition">
+            class="w-full py-3 rounded-xl bg-brand text-white font-semibold text-sm hover:opacity-95 transition">
         تأكيد الرمز
     </button>
 </form>
