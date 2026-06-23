@@ -71,25 +71,29 @@ class InboxNotificationService
 
     public function dispatch(NotificationMessage $message, iterable $recipientUserIds): void
     {
-        $ids = collect($recipientUserIds)->filter(fn ($id) => $id !== null && $id !== '')->map(fn ($id) => (int) $id)->unique()->values();
+        $ids = collect($recipientUserIds)
+            ->filter(fn ($id) => $id !== null && $id !== '')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
 
-        if ($ids->isEmpty()) {
+        if ($ids === []) {
             return;
         }
 
-        $eligibleIds = $this->filterRecipientsForInApp($message->type, $ids->all());
-        if ($eligibleIds === []) {
-            return;
-        }
+        $inAppIds = $this->filterRecipientsForInApp($message->type, $ids);
 
-        $rows = $message->toRows($eligibleIds);
+        if ($inAppIds !== []) {
+            $rows = $message->toRows($inAppIds);
 
-        foreach (array_chunk($rows, 250) as $chunk) {
-            DB::table((new InboxNotification)->getTable())->insert($chunk);
+            foreach (array_chunk($rows, 250) as $chunk) {
+                DB::table((new InboxNotification)->getTable())->insert($chunk);
+            }
         }
 
         if ($message->emailable && NotificationPreferenceCatalog::systemAllowsEmail($message->type)) {
-            $this->dispatchEmails($message, $eligibleIds);
+            $this->dispatchEmails($message, $ids);
         }
     }
 

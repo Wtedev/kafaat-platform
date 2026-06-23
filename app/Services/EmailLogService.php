@@ -25,7 +25,11 @@ class EmailLogService
         ?User $sentBy = null,
     ): void {
         try {
-            $recipient->notify($notification);
+            if ($notification instanceof \Illuminate\Contracts\Queue\ShouldQueue) {
+                $recipient->notifyNow($notification);
+            } else {
+                $recipient->notify($notification);
+            }
 
             EmailLog::create([
                 'recipient_email' => $recipient->email,

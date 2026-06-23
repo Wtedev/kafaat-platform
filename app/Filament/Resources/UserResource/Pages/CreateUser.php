@@ -85,9 +85,5 @@ class CreateUser extends BaseCreateRecord
         if ($this->record->hasRole('volunteer')) {
             VolunteerTeam::ensureMember($this->record);
         }
-
-        if (! $this->record->hasVerifiedEmail()) {
-            $this->record->sendEmailVerificationNotification();
-        }
     }
 }
