@@ -8,7 +8,7 @@
     $branchStaff = static function (array $dept): array {
         $out = [];
         foreach ($dept['sub_units'] ?? [] as $unit) {
-            $out[] = ['name' => $unit['name'], 'title' => $unit['title'], 'kind' => 'unit'];
+            $out[] = ['name' => $unit['name'], 'title' => $unit['title'], 'kind' => 'member'];
         }
         foreach ($dept['members'] ?? [] as $member) {
             $out[] = ['name' => $member['name'], 'title' => $member['title'] ?? null, 'kind' => 'member'];
@@ -44,7 +44,7 @@
                             @endphp
                             <li class="oc-node oc-node--branch {{ $subDepts !== [] ? 'oc-node--has-subdepts' : '' }}">
                                 <div class="oc-branch-head">
-                                    <span class="oc-dept-pill {{ $isGroupOnly ? 'oc-dept-pill--group' : '' }}">{{ $dept['name'] }}</span>
+                                    <span class="oc-dept-pill">{{ $dept['name'] }}</span>
 
                                     @if(! $isGroupOnly && isset($dept['manager']))
                                         <div class="oc-card oc-card--manager">
@@ -99,11 +99,11 @@
                                     <ul class="oc-level oc-level--staff">
                                         @foreach($staff as $child)
                                             <li class="oc-node oc-node--leaf">
-                                                <div class="oc-card oc-card--staff {{ $child['kind'] === 'unit' ? 'oc-card--unit' : '' }}">
+                                                <div class="oc-card oc-card--staff">
                                                     <div class="oc-avatar oc-avatar--staff" aria-hidden="true">{{ OrganizationalStructureCatalog::initials($child['name']) }}</div>
                                                     <p class="oc-card__name oc-card__name--xs">{{ $child['name'] }}</p>
                                                     @if(filled($child['title']))
-                                                        <p class="oc-card__role {{ $child['kind'] === 'unit' ? 'oc-card__role--unit' : 'oc-card__role--member' }}">{{ $child['title'] }}</p>
+                                                        <p class="oc-card__role oc-card__role--member">{{ $child['title'] }}</p>
                                                     @endif
                                                 </div>
                                             </li>

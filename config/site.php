@@ -11,6 +11,12 @@ return [
     |
     */
 
+    'legal_name' => env('SITE_LEGAL_NAME', 'جمعية كفاءات لبناء قدرات الشباب'),
+
+    'website_url' => env('SITE_WEBSITE_URL', 'https://kafaat.org.sa'),
+
+    'brand_summary' => 'جمعية أهلية غير ربحية تُعنى ببناء قدرات الشباب وتأهيلهم للمشاركة الفاعلة في المجتمع، عبر برامج تدريبية نوعية وفرص تطوعية وشراكات مؤسسية محلية.',
+
     'contact_email' => env('SITE_CONTACT_EMAIL', 'info@kafaat.org.sa'),
 
     /** National mobile, digits only (e.g. 05xxxxxxxx) */
@@ -69,17 +75,25 @@ return [
         'zoom' => (int) env('SITE_MAPS_ZOOM', '16'),
     ],
 
+    'location' => [
+        'section_label' => 'موقع الجمعية',
+        'heading' => 'مقرّ جمعية كفاءات',
+        'subtitle' => 'نلتقي بكم في بريدة — حي المنتزة الغربي، طريق الملك عبدالعزيز. يُرجى مراجعة ساعات الاستقبال قبل الزيارة.',
+        'directions_label' => 'فتح الموقع في خرائط جوجل',
+    ],
+
     'working_hours' => [
-        'title' => 'ساعات العمل',
+        'title' => 'ساعات الاستقبال',
         'days' => 'الأحد — الخميس',
+        'note' => 'قد تختلف المواعيد في المناسبات والعطل الرسمية.',
         'shifts' => [
             [
                 'title' => 'الإدارة النسائية',
-                'hours' => '8 صباحًا — 2 مساءً',
+                'hours' => '8:00 ص — 2:00 م',
             ],
             [
                 'title' => 'الإدارة الرجالية',
-                'hours' => '12 ظهرًا — 7 مساءً',
+                'hours' => '12:00 م — 7:00 م',
             ],
         ],
     ],

@@ -10,6 +10,9 @@
     $mapLat = (float) ($maps['lat'] ?? 26.3676773);
     $mapLng = (float) ($maps['lng'] ?? 43.9288304);
     $mapZoom = (int) ($maps['zoom'] ?? 16);
+    $aboutHref = request()->routeIs('home') ? '#about' : route('home') . '#about';
+    $legalName = $site['legal_name'] ?? 'جمعية كفاءات لبناء قدرات الشباب';
+    $location = $site['location'] ?? [];
 @endphp
 <footer class="relative min-w-0 overflow-x-hidden border-t border-white/10 bg-gradient-to-b from-[#111827] via-[#0f172a] to-[#0b1220] text-white antialiased">
     <div class="mx-auto max-w-7xl px-4 pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] pt-12 sm:px-6 sm:pb-10 sm:pt-16 lg:px-8">
@@ -22,7 +25,7 @@
                     <img src="{{ asset(config('brand.logos.kafaat_white')) }}" alt="كفاءات" class="h-10 w-auto" width="132" height="40" />
                 </a>
                 <p class="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-gray-400 sm:mx-0 sm:max-w-none">
-                    جمعية كفاءات لبناء قدرات الشباب — نُمكّن الشباب عبر التدريب والتطوع والعمل المؤسسي في خدمة المجتمع.
+                    {{ $site['brand_summary'] ?? '' }}
                 </p>
                 <div class="mt-5 flex flex-wrap items-center justify-center gap-2.5 sm:justify-end">
                     @foreach($site['social'] ?? [] as $social)
@@ -59,19 +62,25 @@
 
             {{-- Quick links --}}
             <div class="text-center sm:text-right lg:col-span-2">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-[#1a9399]">روابط</h4>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[#1a9399]">روابط سريعة</h4>
                 <ul class="mt-4 space-y-2.5 text-sm">
                     <li><a href="{{ route('home') }}" class="text-gray-400 transition-colors hover:text-white">الرئيسية</a></li>
-                    <li><a href="{{ route('home') }}#about" class="text-gray-400 transition-colors hover:text-white">عن كفاءات</a></li>
-                    <li><a href="{{ route('public.paths.index') }}" class="text-gray-400 transition-colors hover:text-white">المسارات التدريبية</a></li>
-                    <li><a href="{{ route('public.programs.index') }}" class="text-gray-400 transition-colors hover:text-white">البرامج التدريبية</a></li>
+                    <li><a href="{{ $aboutHref }}" class="text-gray-400 transition-colors hover:text-white">عن كفاءات</a></li>
+                    <li><a href="{{ route('public.paths.index') }}" class="text-gray-400 transition-colors hover:text-white">المسارات</a></li>
+                    <li><a href="{{ route('public.programs.index') }}" class="text-gray-400 transition-colors hover:text-white">البرامج</a></li>
                     <li><a href="{{ route('public.volunteering.index') }}" class="text-gray-400 transition-colors hover:text-white">الفرص التطوعية</a></li>
+                    @if(Route::has('public.governance.index'))
+                    <li><a href="{{ route('public.governance.index') }}" class="text-gray-400 transition-colors hover:text-white">الحوكمة</a></li>
+                    @endif
+                    @if(Route::has('public.media.index'))
+                    <li><a href="{{ route('public.media.index') }}" class="text-gray-400 transition-colors hover:text-white">المركز الإعلامي</a></li>
+                    @endif
                 </ul>
             </div>
 
             {{-- Platform --}}
             <div class="text-center sm:text-right lg:col-span-3">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-[#1a9399]">للمستفيدين</h4>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-[#1a9399]">المنصة والخدمات</h4>
                 <ul class="mt-4 space-y-2.5 text-sm">
                     @guest
                     <li><a href="{{ route('login') }}" class="text-gray-400 transition-colors hover:text-white">تسجيل الدخول</a></li>
@@ -83,6 +92,12 @@
                     <li><a href="{{ route('portal.dashboard') }}" class="text-gray-400 transition-colors hover:text-white">حسابي</a></li>
                     @endif
                     @endguest
+                    @if(Route::has('public.regulations.index'))
+                    <li><a href="{{ route('public.regulations.index') }}" class="text-gray-400 transition-colors hover:text-white">اللوائح والأنظمة</a></li>
+                    @endif
+                    @if(Route::has('public.news.index'))
+                    <li><a href="{{ route('public.news.index') }}" class="text-gray-400 transition-colors hover:text-white">الأخبار</a></li>
+                    @endif
                     <li><a href="{{ route('home') }}#faq" class="text-gray-400 transition-colors hover:text-white">الأسئلة الشائعة</a></li>
                     <li><a href="{{ route('public.privacy') }}" class="text-gray-400 transition-colors hover:text-white">سياسة الخصوصية</a></li>
                     <li><a href="{{ route('public.terms') }}" class="text-gray-400 transition-colors hover:text-white">الشروط والأحكام</a></li>
@@ -105,6 +120,14 @@
                             <svg class="h-4 w-4 text-[#1a9399]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                         </span>
                     </li>
+                    @if(filled($site['website_url'] ?? null))
+                    <li class="flex flex-wrap items-center justify-center gap-2 sm:flex-nowrap sm:justify-end">
+                        <a href="{{ $site['website_url'] }}" class="min-w-0 font-medium text-gray-200 transition-colors hover:text-white" dir="ltr">{{ parse_url($site['website_url'], PHP_URL_HOST) ?: $site['website_url'] }}</a>
+                        <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5" aria-hidden="true">
+                            <svg class="h-4 w-4 text-[#1a9399]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+                        </span>
+                    </li>
+                    @endif
                 </ul>
             </div>
         </div>
@@ -112,9 +135,9 @@
         {{-- Location + map --}}
         <div class="mt-14 border-t border-white/10 pt-14 sm:mt-16 sm:pt-16">
             <div class="mb-8 text-center sm:mb-10 sm:text-right">
-                <p class="text-sm font-semibold uppercase tracking-widest text-[#1a9399]">موقع الجمعية</p>
-                <h3 class="mt-2 text-2xl font-bold text-white sm:text-3xl">زيارة مقرّ كفاءات</h3>
-                <p class="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-gray-400 sm:mx-0">العنوان وساعات الاستقبال، وخريطة تفاعلية لتحديد الموقع.</p>
+                <p class="text-sm font-semibold uppercase tracking-widest text-[#1a9399]">{{ $location['section_label'] ?? 'موقع الجمعية' }}</p>
+                <h3 class="mt-2 text-2xl font-bold text-white sm:text-3xl">{{ $location['heading'] ?? 'مقرّ جمعية كفاءات' }}</h3>
+                <p class="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-gray-400 sm:mx-0">{{ $location['subtitle'] ?? '' }}</p>
             </div>
 
             <div class="grid items-stretch gap-8 lg:grid-cols-12 lg:gap-10">
@@ -139,7 +162,7 @@
                         <svg class="h-4 w-4 shrink-0 opacity-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                         </svg>
-                        التوجيه عبر Google Maps
+                        {{ $location['directions_label'] ?? 'فتح الموقع في خرائط جوجل' }}
                     </a>
                 </div>
 
@@ -148,7 +171,7 @@
                         <div class="flex items-start justify-center gap-3 sm:justify-end">
                             <div class="min-w-0 flex-1 text-center sm:text-right">
                                 <p class="text-xs font-bold uppercase tracking-wider text-[#1a9399]">العنوان</p>
-                                <p class="mt-2 text-base font-bold leading-snug text-white">جمعية كفاءات لبناء قدرات الشباب</p>
+                                <p class="mt-2 text-base font-bold leading-snug text-white">{{ $legalName }}</p>
                                 <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-gray-400">
                                     @foreach($site['address_lines'] ?? [] as $line)
                                         <li>{{ $line }}</li>
@@ -167,6 +190,9 @@
                     <div class="rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.07] to-white/[0.02] p-6 shadow-inner sm:p-7">
                         <p class="text-xs font-bold uppercase tracking-wider text-[#1a9399]">{{ $site['working_hours']['title'] ?? 'ساعات العمل' }}</p>
                         <p class="mt-2 text-sm font-semibold text-gray-200">{{ $site['working_hours']['days'] ?? '' }}</p>
+                        @if(filled($site['working_hours']['note'] ?? null))
+                        <p class="mt-2 text-xs leading-relaxed text-gray-500">{{ $site['working_hours']['note'] }}</p>
+                        @endif
                         <ul class="mt-4 divide-y divide-white/10">
                             @foreach($site['working_hours']['shifts'] ?? [] as $shift)
                                 <li class="flex flex-col gap-0.5 py-3.5 first:pt-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
@@ -182,7 +208,7 @@
 
         {{-- Bottom bar --}}
         <div class="mt-14 flex flex-col items-center gap-4 border-t border-white/10 pt-8 text-center text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:text-right">
-            <p class="leading-relaxed">© {{ date('Y') }} كفاءات. جميع الحقوق محفوظة.</p>
+            <p class="leading-relaxed">© {{ date('Y') }} {{ $legalName }}. جميع الحقوق محفوظة.</p>
             <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:justify-end">
                 <a href="{{ route('public.privacy') }}" class="font-medium text-gray-400 transition-colors hover:text-white">سياسة الخصوصية</a>
                 <a href="{{ route('public.terms') }}" class="font-medium text-gray-400 transition-colors hover:text-white">الشروط والأحكام</a>
