@@ -173,37 +173,45 @@
                                 </div>
                             </div>
 
+                            <div class="flex items-center justify-between pb-4 border-b border-gray-100 px-1 py-0.5 rounded-xl border border-dashed border-gray-200 bg-slate-50/80">
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-violet-100 text-violet-700">قريباً</span>
+                                <div class="text-right min-w-0">
+                                    <p class="text-sm font-bold" style="color:#111827">تدريب سند</p>
+                                    <p class="text-xs mt-0.5" style="color:#6B7280">برنامج تأهيلي جديد</p>
+                                </div>
+                            </div>
+
+                            <a href="{{ route('public.paths.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-[#c5ddef] hover:bg-[#F8FBFE] transition-all group">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white shadow-sm" style="background:#EAF2FA">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                                </div>
+                                <div class="flex-1 text-right min-w-0">
+                                    <p class="text-sm font-bold" style="color:#253B5B">مسارات التأهيل</p>
+                                    <p class="text-xs mt-0.5" style="color:#6B7280">رحلات تعليمية متكاملة</p>
+                                </div>
+                                <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity" style="color:#253B5B" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </a>
+
                             <a href="{{ route('public.programs.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group" style="border-color:#dceaf7; background: linear-gradient(145deg, #F8FBFE 0%, #EAF2FA 100%)">
                                 <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white shadow-sm">
                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#253B5B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                                 </div>
                                 <div class="flex-1 text-right min-w-0">
-                                    <p class="text-sm font-bold" style="color:#253B5B">التدريب وبناء المهارات</p>
-                                    <p class="text-xs mt-0.5" style="color:#6B7280">مسارات وبرامج تأهيلية للشباب</p>
+                                    <p class="text-sm font-bold" style="color:#253B5B">البرامج</p>
+                                    <p class="text-xs mt-0.5" style="color:#6B7280">دورات وورش ولقاءات</p>
                                 </div>
                                 <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity" style="color:#253B5B" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </a>
 
                             <a href="{{ route('public.volunteering.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-green-200 hover:bg-green-50/50 transition-all group">
                                 <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-green-50">
-                                    <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                                    <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 </div>
                                 <div class="flex-1 text-right min-w-0">
-                                    <p class="text-sm font-bold" style="color:#111827">العمل التطوعي</p>
-                                    <p class="text-xs mt-0.5" style="color:#6B7280">فرص تطوعية وأثر مجتمعي</p>
+                                    <p class="text-sm font-bold" style="color:#111827">الفرص التطوعية</p>
+                                    <p class="text-xs mt-0.5" style="color:#6B7280">شارك في خدمة المجتمع</p>
                                 </div>
                                 <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                            </a>
-
-                            <a href="{{ route('impact.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-[#c5ddef] hover:bg-[#F8FBFE] transition-all group">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-50">
-                                    <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                                </div>
-                                <div class="flex-1 text-right min-w-0">
-                                    <p class="text-sm font-bold" style="color:#111827">الأثر والتنمية</p>
-                                    <p class="text-xs mt-0.5 truncate" style="color:#6B7280">قياس الأثر وبناء القدرات المستدامة</p>
-                                </div>
-                                <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity" style="color:#253B5B" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </a>
                         </div>
 
@@ -333,29 +341,70 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
                 <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:#3CB878">ماذا نقدّم</p>
-                <h2 class="text-3xl sm:text-4xl font-bold mb-4" style="color:#111827">مجالات عمل الجمعية</h2>
+                <h2 class="text-3xl sm:text-4xl font-bold mb-4" style="color:#111827">برامجنا وخدماتنا</h2>
                 <p class="text-lg leading-relaxed max-w-2xl mx-auto" style="color:#6B7280">
-                    نعمل على محاور متكاملة تُسهم في تأهيل الشباب وتمكينهم من صناعة أثر حقيقي في مجتمعاتهم.
+                    مسارات تأهيلية وبرامج تدريبية وفرص تطوعية تُسهم في بناء قدرات الشباب وتمكينهم من المشاركة المجتمعية.
                 </p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 @php
                 $workAreas = [
-                    ['title' => 'التدريب والتأهيل', 'desc' => 'مسارات وبرامج تُنمّي مهارات الشباب ومعارفهم العملية.', 'href' => route('public.programs.index'), 'color' => '#253B5B'],
-                    ['title' => 'العمل التطوعي', 'desc' => 'فرص تطوعية تُسهم في خدمة المجتمع وصقل خبرات المتطوعين.', 'href' => route('public.volunteering.index'), 'color' => '#16a34a'],
-                    ['title' => 'الأثر والتنمية', 'desc' => 'مبادرات وبرامج تُقاس نتائجها وتُوثَّق لضمان استدامة الأثر.', 'href' => route('impact.index'), 'color' => '#d97706'],
-                    ['title' => 'الأخبار والفعاليات', 'desc' => 'متابعة نشاطات الجمعية وفعالياتها وإنجازاتها الميدانية.', 'href' => route('public.news.index'), 'color' => '#2563eb'],
+                    [
+                        'title' => 'تدريب سند',
+                        'badge' => 'قريباً',
+                        'desc' => 'برنامج تأهيلي متخصّص يُطلَق قريباً لدعم الشباب في مساراتهم المهنية والمجتمعية.',
+                        'href' => null,
+                        'color' => '#7c3aed',
+                        'soon' => true,
+                    ],
+                    [
+                        'title' => 'مسارات التأهيل',
+                        'badge' => null,
+                        'desc' => 'مسارات تعليمية متدرّجة تجمع عدة برامج في رحلة تأهيل متكاملة للمستفيد.',
+                        'href' => route('public.paths.index'),
+                        'color' => '#253B5B',
+                        'soon' => false,
+                    ],
+                    [
+                        'title' => 'البرامج',
+                        'badge' => null,
+                        'desc' => 'دورات وورش ولقاءات تدريبية متنوّعة في مهارات ومجالات يحددها فريق الجمعية.',
+                        'href' => route('public.programs.index'),
+                        'color' => '#0ea5e9',
+                        'soon' => false,
+                    ],
+                    [
+                        'title' => 'الفرص التطوعية',
+                        'badge' => null,
+                        'desc' => 'فرص للمشاركة في العمل التطوعي وخدمة المجتمع ضمن مبادرات الجمعية المعتمدة.',
+                        'href' => route('public.volunteering.index'),
+                        'color' => '#16a34a',
+                        'soon' => false,
+                    ],
                 ];
                 @endphp
                 @foreach($workAreas as $area)
+                @if ($area['href'] && ! ($area['soon'] ?? false))
                 <a href="{{ $area['href'] }}" class="vm-card block rounded-3xl border border-gray-100 bg-white p-6 text-right shadow-sm hover:shadow-md transition-all">
-                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-4" style="background:#EAF2FA">
-                        <span class="w-3 h-3 rounded-full" style="background:{{ $area['color'] }}"></span>
+                @else
+                <div class="vm-card block rounded-3xl border border-dashed border-gray-200 bg-white/80 p-6 text-right shadow-sm opacity-90">
+                @endif
+                    <div class="flex items-center justify-end gap-2 mb-4">
+                        @if (! empty($area['badge']))
+                        <span class="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-lg bg-violet-50 text-violet-700">{{ $area['badge'] }}</span>
+                        @endif
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center" style="background:#EAF2FA">
+                            <span class="w-3 h-3 rounded-full" style="background:{{ $area['color'] }}"></span>
+                        </div>
                     </div>
                     <h3 class="text-lg font-bold mb-2" style="color:#111827">{{ $area['title'] }}</h3>
                     <p class="text-sm leading-relaxed" style="color:#6B7280">{{ $area['desc'] }}</p>
+                @if ($area['href'] && ! ($area['soon'] ?? false))
                 </a>
+                @else
+                </div>
+                @endif
                 @endforeach
             </div>
         </div>
