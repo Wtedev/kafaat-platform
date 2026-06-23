@@ -72,8 +72,6 @@ Route::middleware(['auth', 'otp.verified'])->group(function () {
 // ─── Public website ───────────────────────────────────────────────────────────
 
 Route::get('/', HomeController::class)->name('home');
-Route::view('/impact', 'public.impact')->name('impact.index');
-
 // Certificate verification (public, no auth required)
 Route::get('/certificates/verify/{code}', CertificateVerificationController::class)->name('certificates.verify');
 

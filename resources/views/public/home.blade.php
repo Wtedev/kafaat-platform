@@ -78,6 +78,15 @@
                 box-shadow 0.35s cubic-bezier(.22, 1, .36, 1);
         }
 
+        .news-slider-track {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .news-slider-track::-webkit-scrollbar {
+            display: none;
+        }
+
         .vm-card:hover {
             transform: translateY(-6px);
             box-shadow: 0 24px 48px rgba(37, 59, 91, 0.12);
@@ -163,44 +172,45 @@
                                 </div>
                             </div>
 
-                            <a href="{{ route('public.paths.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-[#c5d4e4] hover:bg-[#f5f8fb] transition-all group">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white shadow-sm" style="background:#e9eff6">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#335483">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
-                                </div>
-                                <div class="flex-1 text-right min-w-0">
-                                    <p class="text-sm font-bold" style="color:#335483">مسارات التأهيل</p>
-                                    <p class="text-xs mt-0.5" style="color:#6B7280">رحلات تعليمية متكاملة</p>
-                                </div>
-                                <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity" style="color:#335483" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                            </a>
+                            @php
+                            $heroAreas = [
+                                [
+                                    'title' => 'مسارات التأهيل',
+                                    'desc' => 'رحلات تعليمية متكاملة',
+                                    'href' => route('public.paths.index'),
+                                    'color' => '#1a9399',
+                                    'bg' => '#e6f5f6',
+                                ],
+                                [
+                                    'title' => 'البرامج',
+                                    'desc' => 'دورات وورش ولقاءات',
+                                    'href' => route('public.programs.index'),
+                                    'color' => '#fbbb2e',
+                                    'bg' => '#fef6e6',
+                                ],
+                                [
+                                    'title' => 'الفرص التطوعية',
+                                    'desc' => 'شارك في خدمة المجتمع',
+                                    'href' => route('public.volunteering.index'),
+                                    'color' => '#ec6056',
+                                    'bg' => '#fdeeed',
+                                ],
+                            ];
+                            @endphp
 
-                            <a href="{{ route('public.programs.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group" style="border-color:#dceaf7; background: linear-gradient(145deg, #f5f8fb 0%, #e9eff6 100%)">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white shadow-sm">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#335483">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                            @foreach($heroAreas as $area)
+                            <a href="{{ $area['href'] }}" class="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 transition-all hover:border-[#c5d4e4] hover:shadow-sm group">
+                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style="background:{{ $area['bg'] }}">
+                                    <span class="h-3 w-3 rounded-full" style="background:{{ $area['color'] }}"></span>
                                 </div>
-                                <div class="flex-1 text-right min-w-0">
-                                    <p class="text-sm font-bold" style="color:#335483">البرامج</p>
-                                    <p class="text-xs mt-0.5" style="color:#6B7280">دورات وورش ولقاءات</p>
+                                <div class="min-w-0 flex-1 text-right">
+                                    <p class="text-sm font-bold" style="color:#111827">{{ $area['title'] }}</p>
+                                    <p class="mt-0.5 text-xs" style="color:#6B7280">{{ $area['desc'] }}</p>
                                 </div>
-                                <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity" style="color:#335483" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg class="h-4 w-4 rotate-180 opacity-30 transition-opacity group-hover:opacity-70" style="color:{{ $area['color'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                             </a>
-
-                            <a href="{{ route('public.volunteering.index') }}" class="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-[#f5dfa8] hover:bg-[#fef6e6]/50 transition-all group">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#fef6e6]">
-                                    <svg class="w-5 h-5 text-brand-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                </div>
-                                <div class="flex-1 text-right min-w-0">
-                                    <p class="text-sm font-bold" style="color:#111827">الفرص التطوعية</p>
-                                    <p class="text-xs mt-0.5" style="color:#6B7280">شارك في خدمة المجتمع</p>
-                                </div>
-                                <svg class="w-4 h-4 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity text-brand-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                            </a>
+                            @endforeach
                         </div>
 
                         <div class="absolute -bottom-4 -left-4 bg-white rounded-2xl shadow-lg px-4 py-3 flex items-center gap-3 border border-gray-50">
@@ -332,8 +342,8 @@
     <section id="work" class="py-20 bg-[#F7FAFC] scroll-mt-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:#1a9399">ماذا نقدّم</p>
-                <h2 class="text-3xl sm:text-4xl font-bold mb-4" style="color:#111827">برامجنا وخدماتنا</h2>
+                <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:#1a9399">أنشطة كفاءات</p>
+                <h2 class="text-3xl sm:text-4xl font-bold mb-4" style="color:#111827">ماذا نقدم</h2>
                 <p class="text-lg leading-relaxed max-w-2xl mx-auto" style="color:#6B7280">
                     مسارات تأهيلية وبرامج تدريبية وفرص تطوعية تُسهم في بناء قدرات الشباب وتمكينهم من المشاركة المجتمعية.
                 </p>
@@ -414,148 +424,75 @@
     <section id="news" class="scroll-mt-24 py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <div class="flex items-end justify-between mb-10">
-                <a href="{{ route('public.news.index') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline" style="color:#335483">
-                    عرض كل الأخبار
-                    <svg class="w-4 h-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                </a>
+            <div class="mb-10 flex flex-row items-end justify-between gap-4">
                 <div class="text-right">
-                    <p class="text-sm font-semibold mb-1" style="color:#1a9399">آخر التحديثات</p>
+                    <p class="mb-1 text-sm font-semibold" style="color:#1a9399">آخر التحديثات</p>
                     <h2 class="text-2xl font-bold" style="color:#111827">الأخبار والفعاليات</h2>
                 </div>
+                <a href="{{ route('public.news.index') }}" class="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold hover:underline" style="color:#335483">
+                    عرض كل الأخبار
+                    <svg class="h-4 w-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                </a>
             </div>
 
             @php
-            $newsBgs = [
-            'linear-gradient(135deg, #e9eff6, #DCE8F5)',
-            'linear-gradient(135deg, #e6f5f6, #c5e8ea)',
-            'linear-gradient(135deg, #fef6e6, #f5dfa8)',
-            ];
+            $newsBgs = config('brand.image_gradients');
             @endphp
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                @forelse ($news as $i => $item)
-                <a href="{{ route('public.news.show', $item->slug) }}" class="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden block">
-                    @if ($item->image)
-                    <div class="h-48 overflow-hidden">
-                        <img src="{{ $item->imagePublicUrl() }}" alt="{{ $item->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                    </div>
-                    @else
-                    <div class="h-48 flex items-center justify-center" style="background: {{ $newsBgs[$i % 3] }}">
-                        <svg class="w-12 h-12 opacity-25" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:#335483">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
-                    </div>
-                    @endif
-                    <div class="p-6 text-right">
-                        <div class="flex items-center justify-between mb-3">
-                            @if ($item->published_at)
-                            <span class="text-xs" style="color:#6B7280">{{ $item->published_at->format('Y/m/d') }}</span>
-                            @else
-                            <span></span>
-                            @endif
-                            @if ($item->category)
-                            <x-news-category-badge :category="$item->category" />
+            @if ($news->isEmpty())
+            <div class="bg-white rounded-3xl border border-dashed border-gray-200 p-10 text-center" style="color:#6B7280">
+                لا توجد أخبار منشورة حالياً.
+            </div>
+            @else
+            <div class="relative">
+                <button type="button" id="news-slider-prev" class="absolute top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-[#335483] shadow-md transition hover:bg-[#e9eff6] end-0 sm:flex" aria-label="الأحدث">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+                <button type="button" id="news-slider-next" class="absolute top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-[#335483] shadow-md transition hover:bg-[#e9eff6] start-0 sm:flex" aria-label="الأقدم">
+                    <svg class="h-5 w-5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+
+                <div id="news-slider" dir="rtl" class="news-slider-track flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-2 pe-1 ps-1 sm:pe-12 sm:ps-12">
+                    @foreach ($news as $i => $item)
+                    <a href="{{ route('public.news.show', $item->slug) }}" data-news-card class="group block w-[min(100%,320px)] shrink-0 snap-start overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-[320px]">
+                        @if ($item->image)
+                        <div class="h-48 overflow-hidden">
+                            <img src="{{ $item->imagePublicUrl() }}" alt="{{ $item->title }}" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy">
+                        </div>
+                        @else
+                        <div class="flex h-48 items-center justify-center" style="background: {{ $newsBgs[$i % count($newsBgs)] }}">
+                            <svg class="h-12 w-12 opacity-25" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:#335483">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+                        </div>
+                        @endif
+                        <div class="p-6 text-right">
+                            <div class="mb-3 flex items-center justify-between gap-2">
+                                @if ($item->category)
+                                <x-news-category-badge :category="$item->category" />
+                                @else
+                                <span></span>
+                                @endif
+                                @if ($item->published_at)
+                                <span class="text-xs shrink-0" style="color:#6B7280">{{ $item->published_at->format('Y/m/d') }}</span>
+                                @endif
+                            </div>
+                            <h3 class="mb-2 line-clamp-2 text-base font-bold transition-colors group-hover:text-[#335483]" style="color:#111827">{{ $item->title }}</h3>
+                            @if ($item->excerpt)
+                            <p class="line-clamp-3 text-sm" style="color:#6B7280">{{ $item->excerpt }}</p>
                             @endif
                         </div>
-                        <h3 class="font-bold text-base mb-2 line-clamp-2 group-hover:text-[#335483] transition-colors" style="color:#111827">{{ $item->title }}</h3>
-                        @if ($item->excerpt)
-                        <p class="text-sm line-clamp-3" style="color:#6B7280">{{ $item->excerpt }}</p>
-                        @endif
-                    </div>
-                </a>
-                @empty
-                <div class="col-span-3 bg-white rounded-3xl border border-dashed border-gray-200 p-10 text-center" style="color:#6B7280">
-                    لا توجد أخبار منشورة حالياً.
-                </div>
-                @endforelse
-            </div>
-        </div>
-    </section>
-
-
-    {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 7.5. IMPACT YEAR — عام الأثر (Strategic Premium Section)           --}}
-    {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section id="impact-year" class="scroll-mt-24">
-
-        {{-- ─── Hero Block ────────────────────────────────────────────────── --}}
-        <div class="relative overflow-hidden" style="background: linear-gradient(135deg, #002a30 0%, #004a54 40%, #00616f 100%)">
-
-            {{-- Decorative abstract shapes (Saudi geometric identity) --}}
-            <div class="absolute inset-0 overflow-hidden pointer-events-none">
-                <div class="absolute top-0 right-0 w-[700px] h-[700px] rounded-full" style="background: radial-gradient(circle, rgba(0,97,111,0.12) 0%, transparent 65%);
-                            transform: translate(30%, -30%)"></div>
-                <div class="absolute bottom-0 left-0 w-[600px] h-[600px] rounded-full" style="background: radial-gradient(circle, rgba(59,130,246,0.10) 0%, transparent 65%);
-                            transform: translate(-30%, 30%)"></div>
-                <svg class="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <pattern id="impact-grid" width="60" height="60" patternUnits="userSpaceOnUse">
-                            <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
-                        </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#impact-grid)" />
-                </svg>
-                <svg class="absolute top-12 left-16 opacity-[0.07]" width="110" height="127" viewBox="0 0 120 138">
-                    <polygon points="60,0 120,34.5 120,103.5 60,138 0,103.5 0,34.5" fill="none" stroke="#00616f" stroke-width="1.5" />
-                </svg>
-                <svg class="absolute top-24 left-28 opacity-[0.04]" width="68" height="79" viewBox="0 0 120 138">
-                    <polygon points="60,0 120,34.5 120,103.5 60,138 0,103.5 0,34.5" fill="none" stroke="#00616f" stroke-width="1.5" />
-                </svg>
-                <svg class="absolute bottom-16 right-24 opacity-[0.05]" width="90" height="104" viewBox="0 0 120 138">
-                    <polygon points="60,0 120,34.5 120,103.5 60,138 0,103.5 0,34.5" fill="none" stroke="#007a88" stroke-width="1.5" />
-                </svg>
-            </div>
-
-            {{-- Hero content --}}
-            <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 text-center">
-
-                {{-- Pill label --}}
-                <div class="reveal-fade inline-flex items-center gap-2.5 px-5 py-2 rounded-2xl border mb-8" style="background:rgba(0,97,111,0.12); border-color:rgba(0,97,111,0.30); color:#00616f">
-                    <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#00616f; animation:pulse 2s infinite"></span>
-                    <span class="text-sm font-semibold tracking-wide">المبادرة الاستراتيجية ٢٠٢٦</span>
-                </div>
-
-                {{-- Main title --}}
-                <div class="reveal-fade mb-5" style="transition-delay:0.08s">
-                    <img
-                        src="{{ asset(config('brand.logos.impact_year')) }}"
-                        alt="عام الأثر"
-                        class="mx-auto h-14 sm:h-16 md:h-20 w-auto"
-                    />
-                </div>
-
-                {{-- Sub-headline --}}
-                <p class="reveal-fade text-2xl sm:text-3xl font-light mb-6 max-w-2xl mx-auto leading-relaxed" style="color:rgba(255,255,255,0.75); transition-delay:0.16s">
-                    نقيس ما نصنعه… ونبني أثراً مستداماً
-                </p>
-
-                {{-- Transformation pillars --}}
-                <div class="reveal-fade flex flex-col sm:flex-row items-center justify-center gap-3 mb-12 text-sm" style="color:rgba(255,255,255,0.45); transition-delay:0.24s">
-                    <span>من تنفيذ المبادرات إلى استدامة نتائجها</span>
-                    <span class="hidden sm:block w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:rgba(255,255,255,0.2)"></span>
-                    <span>من قياس الجهد إلى قياس الأثر الحقيقي</span>
-                    <span class="hidden sm:block w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:rgba(255,255,255,0.2)"></span>
-                    <span>من أنشطة متفرقة إلى منظومة متكاملة</span>
-                </div>
-
-                {{-- CTA --}}
-                <div class="reveal-fade" style="transition-delay:0.32s">
-                    <a href="{{ route('impact.index') }}" class="inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-semibold text-white
-                              text-base shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl" style="background: linear-gradient(135deg, #00616f 0%, #004a54 100%)">
-                        استكشف أثر كفاءات
-                        <svg class="w-5 h-5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
                     </a>
+                    @endforeach
                 </div>
-
             </div>
+            @endif
         </div>
-        {{-- / Hero Block --}}
-
     </section>
-    {{-- / عام الأثر --}}
 
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
@@ -580,14 +517,13 @@
                         </p>
                     </div>
 
-                    {{-- Download block (left in RTL) — يوجّه لصفحة عام الأثر إلى حين توفر ملف التقرير --}}
                     <div class="flex-shrink-0">
-                        <a href="{{ route('impact.index') }}" class="w-40 h-40 rounded-3xl flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-white/20 transition-colors text-white no-underline" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2)" aria-label="صفحة عام الأثر — التقرير السنوي قيد الإعداد">
+                        <div class="w-40 h-40 rounded-3xl flex flex-col items-center justify-center gap-3 text-white" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2)" aria-label="التقرير السنوي — قريباً">
                             <svg class="w-10 h-10 text-white opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                             </svg>
-                            <span class="text-white text-sm font-semibold">تحميل التقرير</span>
-                        </a>
+                            <span class="text-white text-sm font-semibold">قريباً</span>
+                        </div>
                     </div>
 
                 </div>
@@ -729,6 +665,111 @@
                 icon.classList.add('open');
             }
         }
+
+        // ── News slider (يمين → يسار) ─────────────────────────────────
+        (function() {
+            var track = document.getElementById('news-slider');
+            if (!track) return;
+
+            var cards = Array.from(track.querySelectorAll('[data-news-card]'));
+            if (cards.length === 0) return;
+
+            var prevBtn = document.getElementById('news-slider-prev');
+            var nextBtn = document.getElementById('news-slider-next');
+            var index = 0;
+            var timer = null;
+
+            function canScroll() {
+                return track.scrollWidth > track.clientWidth + 4;
+            }
+
+            function toggleControls() {
+                var show = canScroll() && cards.length > 1;
+                [prevBtn, nextBtn].forEach(function(btn) {
+                    if (!btn) return;
+                    btn.style.visibility = show ? 'visible' : 'hidden';
+                    btn.style.pointerEvents = show ? 'auto' : 'none';
+                });
+            }
+
+            function scrollToIndex(nextIndex) {
+                index = ((nextIndex % cards.length) + cards.length) % cards.length;
+                cards[index].scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                    inline: 'start',
+                });
+            }
+
+            function syncIndexFromScroll() {
+                if (!canScroll()) {
+                    index = 0;
+                    return;
+                }
+                var trackRect = track.getBoundingClientRect();
+                var trackCenter = trackRect.right - track.clientWidth / 2;
+                var closest = 0;
+                var closestDist = Infinity;
+                cards.forEach(function(card, i) {
+                    var rect = card.getBoundingClientRect();
+                    var cardCenter = rect.right - rect.width / 2;
+                    var dist = Math.abs(cardCenter - trackCenter);
+                    if (dist < closestDist) {
+                        closestDist = dist;
+                        closest = i;
+                    }
+                });
+                index = closest;
+            }
+
+            function advance() {
+                if (!canScroll()) return;
+                scrollToIndex(index >= cards.length - 1 ? 0 : index + 1);
+            }
+
+            function startAuto() {
+                stopAuto();
+                if (canScroll() && cards.length > 1) {
+                    timer = setInterval(advance, 5000);
+                }
+            }
+
+            function stopAuto() {
+                if (timer) {
+                    clearInterval(timer);
+                    timer = null;
+                }
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function() {
+                    scrollToIndex(index - 1);
+                    startAuto();
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function() {
+                    scrollToIndex(index + 1);
+                    startAuto();
+                });
+            }
+
+            track.addEventListener('scroll', syncIndexFromScroll, { passive: true });
+            track.addEventListener('mouseenter', stopAuto);
+            track.addEventListener('mouseleave', startAuto);
+            track.addEventListener('focusin', stopAuto);
+            track.addEventListener('focusout', startAuto);
+            window.addEventListener('resize', function() {
+                toggleControls();
+                if (!canScroll()) stopAuto();
+                else startAuto();
+            });
+
+            track.scrollLeft = 0;
+            toggleControls();
+            startAuto();
+        })();
 
         // ── Scroll reveal (IntersectionObserver) ───────────────────────
         (function() {

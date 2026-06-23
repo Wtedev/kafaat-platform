@@ -1,7 +1,6 @@
 {{--
     resources/views/components/public-navbar.blade.php
     Shared public navbar — used on the standalone homepage AND all public layout pages.
-    Self-contained: includes inline <script> for hamburger toggle + scroll shadow.
 --}}
 @php
 $aboutHref = request()->routeIs('home') ? '#about' : route('home') . '#about';
@@ -9,14 +8,97 @@ $hasGovernance = Route::has('public.governance.index');
 $hasRegulations = Route::has('public.regulations.index');
 $hasMedia = Route::has('public.media.index');
 $brand = config('brand');
+$govTabs = $hasGovernance
+    ? array_merge(['board' => 'أعضاء مجلس الإدارة'], \App\Models\GovernanceDocument::TYPES)
+    : [];
+$govActive = request()->routeIs('public.governance.*');
 @endphp
+
+<style>
+    .pub-nav-link {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        transition: color 0.22s ease, transform 0.22s ease;
+    }
+
+    .pub-nav-link:hover {
+        color: #335483 !important;
+        transform: translateY(-2px);
+    }
+
+    .pub-nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: -6px;
+        right: 0;
+        left: 0;
+        height: 2px;
+        border-radius: 9999px;
+        background: #335483;
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform 0.25s ease;
+    }
+
+    .pub-nav-link:hover::after,
+    .pub-nav-link.is-active::after {
+        transform: scaleX(1);
+    }
+
+    .pub-nav-link.is-active {
+        color: #335483 !important;
+        font-weight: 600;
+    }
+
+    .pub-nav-dropdown:hover .pub-nav-dropdown-panel,
+    .pub-nav-dropdown:focus-within .pub-nav-dropdown-panel {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .pub-nav-dropdown-panel {
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(6px);
+        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+    }
+
+    .pub-nav-dropdown-item {
+        transition: background 0.18s ease, color 0.18s ease, padding-inline-start 0.18s ease;
+    }
+
+    .pub-nav-dropdown-item:hover {
+        background: #e9eff6;
+        color: #335483;
+        padding-inline-start: 1.25rem;
+    }
+
+    @keyframes sanad-point {
+        0%, 100% { transform: translateX(0); opacity: 0.65; }
+        50% { transform: translateX(-4px); opacity: 1; }
+    }
+
+    .sanad-pointer {
+        animation: sanad-point 1.15s ease-in-out infinite;
+    }
+
+    .pub-nav-mobile-link {
+        transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    }
+
+    .pub-nav-mobile-link:hover {
+        transform: translateX(-3px);
+    }
+</style>
 
 <header id="pub-nav" class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100 shadow-sm transition-shadow duration-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16 gap-6">
 
             {{-- Logo --}}
-            <a href="{{ route('home') }}" class="flex-shrink-0 flex items-center" aria-label="كفاءات — الرئيسية">
+            <a href="{{ route('home') }}" class="flex-shrink-0 flex items-center transition-transform duration-200 hover:-translate-y-0.5" aria-label="كفاءات — الرئيسية">
                 <img
                     src="{{ asset($brand['logos']['kafaat']) }}"
                     alt="كفاءات"
@@ -27,47 +109,60 @@ $brand = config('brand');
             </a>
 
             {{-- Desktop Nav --}}
-            <nav class="hidden lg:flex items-center gap-6 text-sm font-medium" style="color:#6B7280">
+            <nav class="hidden lg:flex items-center gap-5 xl:gap-6 text-sm font-medium" style="color:#6B7280">
 
-                <a href="{{ route('home') }}" class="hover:text-[#335483] transition-colors {{ request()->routeIs('home') ? 'font-semibold' : '' }}" @if(request()->routeIs('home')) style="color:#335483" @endif>
-                    الرئيسية
-                </a>
-
-                <span class="cursor-default select-none" aria-label="سند — قريباً">
-                    <span class="font-semibold" style="color:{{ $brand['sanad'] }}">سند</span>
-                    <span class="text-[10px] font-normal ms-1" style="color:#9CA3AF">قريباً</span>
-                </span>
-
-                <a href="{{ route('impact.index') }}" class="transition-colors hover:text-brand-impact {{ request()->routeIs('impact.index') ? 'font-semibold text-brand-impact' : '' }}">
-                    عام الأثر
-                </a>
-
-                <a href="{{ $aboutHref }}" class="hover:text-[#335483] transition-colors">
+                <a href="{{ $aboutHref }}" class="pub-nav-link {{ request()->routeIs('home') && !request()->has('page') ? '' : '' }}">
                     عن كفاءات
                 </a>
 
-                <a href="{{ route('public.programs.index') }}" class="hover:text-[#335483] transition-colors {{ request()->routeIs('public.programs.*') ? 'font-semibold' : '' }}" @if(request()->routeIs('public.programs.*')) style="color:#335483" @endif>
+                <span class="inline-flex items-center gap-1 cursor-default select-none" aria-label="سند — قريباً">
+                    <span class="font-medium text-gray-400">سند</span>
+                    <span class="inline-flex items-center gap-0.5 ms-0.5">
+                        <svg class="sanad-pointer w-3 h-3 shrink-0" style="color:{{ $brand['sanad'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        <span class="text-[10px] font-semibold" style="color:{{ $brand['sanad'] }}">قريباً</span>
+                    </span>
+                </span>
+
+                <a href="{{ route('public.programs.index') }}" class="pub-nav-link {{ request()->routeIs('public.programs.*') ? 'is-active' : '' }}">
                     البرامج
                 </a>
 
+                <a href="{{ route('public.volunteering.index') }}" class="pub-nav-link {{ request()->routeIs('public.volunteering.*') ? 'is-active' : '' }}">
+                    الفرص التطوعية
+                </a>
+
+                @if($hasGovernance)
+                <div class="pub-nav-dropdown group relative">
+                    <button type="button" class="pub-nav-link gap-1 {{ $govActive ? 'is-active' : '' }}" aria-haspopup="true">
+                        الحوكمة
+                        <svg class="w-3.5 h-3.5 opacity-60 transition-transform duration-200 group-hover:rotate-180 group-focus-within:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div class="pub-nav-dropdown-panel absolute top-full start-0 z-50 mt-3 min-w-[15rem] rounded-2xl border border-gray-100 bg-white py-2 shadow-xl">
+                        <a href="{{ route('public.governance.index') }}" class="pub-nav-dropdown-item block px-4 py-2.5 text-sm font-semibold text-[#335483]">
+                            نظرة عامة
+                        </a>
+                        <div class="my-1 border-t border-gray-100"></div>
+                        @foreach($govTabs as $key => $label)
+                        <a href="{{ route('public.governance.index') }}#{{ $key }}" class="pub-nav-dropdown-item block px-4 py-2 text-sm text-gray-600">
+                            {{ $label }}
+                        </a>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
                 @if($hasRegulations)
-                <a href="{{ route('public.regulations.index') }}" class="hover:text-[#335483] transition-colors {{ request()->routeIs('public.regulations.*') ? 'font-semibold' : '' }}" @if(request()->routeIs('public.regulations.*')) style="color:#335483" @endif>
+                <a href="{{ route('public.regulations.index') }}" class="pub-nav-link {{ request()->routeIs('public.regulations.*') ? 'is-active' : '' }}">
                     اللوائح والأنظمة
                 </a>
                 @endif
 
-                @if($hasGovernance)
-                <a href="{{ route('public.governance.index') }}" class="hover:text-[#335483] transition-colors {{ request()->routeIs('public.governance.*') ? 'font-semibold' : '' }}" @if(request()->routeIs('public.governance.*')) style="color:#335483" @endif>
-                    الحوكمة
-                </a>
-                @endif
-
-                <a href="{{ route('public.volunteering.index') }}" class="hover:text-[#335483] transition-colors {{ request()->routeIs('public.volunteering.*') ? 'font-semibold' : '' }}" @if(request()->routeIs('public.volunteering.*')) style="color:#335483" @endif>
-                    الفرص التطوعية
-                </a>
-
                 @if($hasMedia)
-                <a href="{{ route('public.media.index') }}" class="hover:text-[#335483] transition-colors {{ request()->routeIs('public.media.*') ? 'font-semibold' : '' }}" @if(request()->routeIs('public.media.*')) style="color:#335483" @endif>
+                <a href="{{ route('public.media.index') }}" class="pub-nav-link {{ request()->routeIs('public.media.*') ? 'is-active' : '' }}">
                     المركز الإعلامي
                 </a>
                 @endif
@@ -78,13 +173,13 @@ $brand = config('brand');
             <div class="hidden lg:flex items-center gap-3 flex-shrink-0">
                 @auth
                 @if(auth()->user()->canAccessFilamentAdmin())
-                <a href="{{ url('/admin') }}" class="px-5 py-2 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200" style="background:#335483">لوحة الإدارة</a>
+                <a href="{{ url('/admin') }}" class="px-5 py-2 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" style="background:#335483">لوحة الإدارة</a>
                 @else
-                <a href="{{ route('portal.dashboard') }}" class="px-5 py-2 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200" style="background:#335483">حسابي</a>
+                <a href="{{ route('portal.dashboard') }}" class="px-5 py-2 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" style="background:#335483">حسابي</a>
                 @endif
                 @else
-                <a href="{{ route('login') }}" class="px-5 py-2 rounded-2xl text-sm font-medium transition-colors hover:bg-[#e9eff6]" style="color:#335483">تسجيل الدخول</a>
-                <a href="{{ route('register') }}" class="px-5 py-2 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200" style="background:#335483">إنشاء حساب</a>
+                <a href="{{ route('login') }}" class="px-5 py-2 rounded-2xl text-sm font-medium transition-all duration-200 hover:bg-[#e9eff6] hover:-translate-y-0.5" style="color:#335483">تسجيل الدخول</a>
+                <a href="{{ route('register') }}" class="px-5 py-2 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" style="background:#335483">إنشاء حساب</a>
                 @endauth
             </div>
 
@@ -102,26 +197,42 @@ $brand = config('brand');
     {{-- Mobile Menu --}}
     <div id="pub-mobile-nav" class="hidden lg:hidden border-t border-gray-100 bg-white shadow-lg">
         <nav class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
-            <a href="{{ route('home') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] transition-colors text-right">الرئيسية</a>
+            <a href="{{ $aboutHref }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">عن كفاءات</a>
 
             <span class="block w-full px-4 py-2.5 rounded-xl text-sm font-medium text-right cursor-default select-none">
-                <span class="font-semibold" style="color:{{ $brand['sanad'] }}">سند</span>
-                <span class="text-[10px] font-normal ms-1" style="color:#9CA3AF">قريباً</span>
+                <span class="text-gray-400">سند</span>
+                <span class="inline-flex items-center gap-0.5 ms-1">
+                    <svg class="sanad-pointer w-3 h-3 shrink-0" style="color:{{ $brand['sanad'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    <span class="text-[10px] font-semibold" style="color:{{ $brand['sanad'] }}">قريباً</span>
+                </span>
             </span>
 
-            <a href="{{ route('impact.index') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-brand-impact transition-colors text-right {{ request()->routeIs('impact.index') ? 'font-semibold text-brand-impact' : '' }}">عام الأثر</a>
-            <a href="{{ $aboutHref }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] transition-colors text-right">عن كفاءات</a>
-            <a href="{{ route('public.programs.index') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] transition-colors text-right">البرامج</a>
+            <a href="{{ route('public.programs.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">البرامج</a>
+            <a href="{{ route('public.volunteering.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">الفرص التطوعية</a>
+
+            @if($hasGovernance)
+            <details class="group rounded-xl">
+                <summary class="pub-nav-mobile-link flex cursor-pointer list-none items-center justify-between px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right [&::-webkit-details-marker]:hidden">
+                    <span>الحوكمة</span>
+                    <svg class="w-4 h-4 opacity-50 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="mt-1 space-y-0.5 pe-2">
+                    <a href="{{ route('public.governance.index') }}" class="pub-nav-mobile-link block rounded-lg px-6 py-2 text-sm font-semibold text-[#335483] hover:bg-[#e9eff6] text-right">نظرة عامة</a>
+                    @foreach($govTabs as $key => $label)
+                    <a href="{{ route('public.governance.index') }}#{{ $key }}" class="pub-nav-mobile-link block rounded-lg px-6 py-2 text-sm text-gray-600 hover:bg-[#e9eff6] hover:text-[#335483] text-right">{{ $label }}</a>
+                    @endforeach
+                </div>
+            </details>
+            @endif
 
             @if($hasRegulations)
-            <a href="{{ route('public.regulations.index') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] transition-colors text-right">اللوائح والأنظمة</a>
+            <a href="{{ route('public.regulations.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">اللوائح والأنظمة</a>
             @endif
-            @if($hasGovernance)
-            <a href="{{ route('public.governance.index') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] transition-colors text-right">الحوكمة</a>
-            @endif
-            <a href="{{ route('public.volunteering.index') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] transition-colors text-right">الفرص التطوعية</a>
+
             @if($hasMedia)
-            <a href="{{ route('public.media.index') }}" class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] transition-colors text-right">المركز الإعلامي</a>
+            <a href="{{ route('public.media.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">المركز الإعلامي</a>
             @endif
 
             @auth
@@ -165,5 +276,4 @@ $brand = config('brand');
             });
         }
     })();
-
 </script>

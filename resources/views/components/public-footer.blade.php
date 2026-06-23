@@ -62,7 +62,7 @@
                 <h4 class="text-xs font-bold uppercase tracking-wider text-[#1a9399]">روابط</h4>
                 <ul class="mt-4 space-y-2.5 text-sm">
                     <li><a href="{{ route('home') }}" class="text-gray-400 transition-colors hover:text-white">الرئيسية</a></li>
-                    <li><a href="{{ route('impact.index') }}" class="text-gray-400 transition-colors hover:text-white">عام الأثر</a></li>
+                    <li><a href="{{ route('home') }}#about" class="text-gray-400 transition-colors hover:text-white">عن كفاءات</a></li>
                     <li><a href="{{ route('public.paths.index') }}" class="text-gray-400 transition-colors hover:text-white">المسارات التدريبية</a></li>
                     <li><a href="{{ route('public.programs.index') }}" class="text-gray-400 transition-colors hover:text-white">البرامج التدريبية</a></li>
                     <li><a href="{{ route('public.volunteering.index') }}" class="text-gray-400 transition-colors hover:text-white">الفرص التطوعية</a></li>

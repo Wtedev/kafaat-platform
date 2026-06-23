@@ -34,8 +34,6 @@
     --color-brand-accent: #fbbb2e;
     --color-brand-danger: #ec6056;
     --color-brand-sanad: #4f53a3;
-    --color-brand-impact: #00616f;
-    --color-brand-impact-dark: #004a54;
 
     /*
      | طبقة توافق Tailwind v3 → v4
@@ -73,8 +71,6 @@
         --brand-accent: #fbbb2e;
         --brand-danger: #ec6056;
         --brand-sanad: #4f53a3;
-        --brand-impact: #00616f;
-        --brand-impact-dark: #004a54;
     }
 
     button:focus-visible,

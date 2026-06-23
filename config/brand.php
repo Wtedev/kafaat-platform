@@ -11,8 +11,6 @@ return [
     'accent' => '#fbbb2e',
     'danger' => '#ec6056',
     'sanad' => '#4f53a3',
-    'impact' => '#00616f',
-    'impact_dark' => '#004a54',
 
     'secondary_light' => '#e6f5f6',
     'secondary_border' => '#b8e0e2',
@@ -22,8 +20,6 @@ return [
     'accent_border' => '#f5dfa8',
     'sanad_light' => '#ededf7',
     'sanad_border' => '#c8cae8',
-    'impact_light' => '#e6f2f3',
-    'impact_border' => '#b3d4d8',
 
     'font' => 'FF Shamel',
     'font_path' => 'fonts/shamel',
@@ -38,7 +34,6 @@ return [
         'badge_accent' => 'bg-[#fef6e6] text-brand ring-1 ring-[#f5dfa8]',
         'badge_danger' => 'bg-[#fdeeed] text-brand-danger ring-1 ring-[#f5c4c0]',
         'badge_sanad' => 'bg-[#ededf7] text-brand-sanad ring-1 ring-[#c8cae8]',
-        'badge_impact' => 'bg-[#e6f2f3] text-brand-impact ring-1 ring-[#b3d4d8]',
         'tone_primary' => 'bg-brand-light text-brand ring-1 ring-brand-border',
         'tone_secondary' => 'bg-[#e6f5f6] text-brand-secondary ring-1 ring-[#b8e0e2]',
         'tone_accent' => 'bg-[#fef6e6] text-brand ring-1 ring-[#f5dfa8]',
@@ -67,7 +62,6 @@ return [
         'kafaat' => 'images/brand/kafaat-logo.svg',
         'kafaat_mark' => 'images/brand/kafaat-mark.svg',
         'kafaat_white' => 'images/brand/kafaat-logo-white.svg',
-        'impact_year' => 'images/brand/impact-year-logo.svg',
     ],
 
 ];

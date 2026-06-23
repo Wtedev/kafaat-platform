@@ -13,7 +13,7 @@ class HomeController extends Controller
     {
         $news = News::published()
             ->latest('published_at')
-            ->take(3)
+            ->take(9)
             ->get();
 
         $partners = Partner::active()
