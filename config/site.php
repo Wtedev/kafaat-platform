@@ -17,6 +17,13 @@ return [
 
     'brand_summary' => 'جمعية أهلية غير ربحية تُعنى ببناء قدرات الشباب وتأهيلهم للمشاركة الفاعلة في المجتمع، عبر برامج تدريبية نوعية وفرص تطوعية وشراكات مؤسسية محلية.',
 
+    'license_notice' => env('SITE_LICENSE_NOTICE', 'تتبع وزارة الموارد البشرية والتنمية الاجتماعية بترخيص رقم 864'),
+
+    'license' => [
+        'authority' => env('SITE_LICENSE_AUTHORITY', 'وزارة الموارد البشرية والتنمية الاجتماعية'),
+        'number' => env('SITE_LICENSE_NUMBER', '864'),
+    ],
+
     'contact_email' => env('SITE_CONTACT_EMAIL', 'info@kafaat.org.sa'),
 
     /** National mobile, digits only (e.g. 05xxxxxxxx) */

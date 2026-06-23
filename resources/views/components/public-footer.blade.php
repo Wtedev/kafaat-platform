@@ -13,6 +13,10 @@
     $aboutHref = request()->routeIs('home') ? '#about' : route('home') . '#about';
     $legalName = $site['legal_name'] ?? 'جمعية كفاءات لبناء قدرات الشباب';
     $location = $site['location'] ?? [];
+    $license = $site['license'] ?? [];
+    $licenseAuthority = $license['authority'] ?? null;
+    $licenseNumber = $license['number'] ?? null;
+    $hasLicense = filled($licenseAuthority) && filled($licenseNumber);
 @endphp
 <footer class="relative min-w-0 overflow-x-hidden border-t border-white/10 bg-gradient-to-b from-[#111827] via-[#0f172a] to-[#0b1220] text-white antialiased">
     <div class="mx-auto max-w-7xl px-4 pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] pt-12 sm:px-6 sm:pb-10 sm:pt-16 lg:px-8">
@@ -207,11 +211,35 @@
         </div>
 
         {{-- Bottom bar --}}
-        <div class="mt-14 flex flex-col items-center gap-4 border-t border-white/10 pt-8 text-center text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:text-right">
-            <p class="leading-relaxed">© {{ date('Y') }} {{ $legalName }}. جميع الحقوق محفوظة.</p>
-            <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:justify-end">
-                <a href="{{ route('public.privacy') }}" class="font-medium text-gray-400 transition-colors hover:text-white">سياسة الخصوصية</a>
-                <a href="{{ route('public.terms') }}" class="font-medium text-gray-400 transition-colors hover:text-white">الشروط والأحكام</a>
+        <div class="mt-14 border-t border-white/10 pt-8">
+            @if($hasLicense)
+            <div class="mb-8 flex justify-center sm:justify-end">
+                <div class="flex w-full max-w-xl items-center gap-3 rounded-2xl border border-white/10 bg-gradient-to-l from-white/[0.06] to-white/[0.02] p-3.5 shadow-inner sm:gap-4 sm:p-4">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#1a9399]/25 bg-[#1a9399]/10 text-[#1a9399]" aria-hidden="true">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                        </svg>
+                    </span>
+                    <div class="min-w-0 flex-1 text-right">
+                        <p class="text-[11px] font-semibold uppercase tracking-wider text-[#1a9399]">جهة الإشراف</p>
+                        <p class="mt-0.5 text-sm leading-snug text-gray-200">تتبع {{ $licenseAuthority }}</p>
+                    </div>
+                    <div class="shrink-0 rounded-xl border border-[#1a9399]/20 bg-[#1a9399]/10 px-3 py-2 text-center">
+                        <p class="text-[10px] font-semibold uppercase tracking-wider text-[#1a9399]">الترخيص</p>
+                        <p class="mt-0.5 text-base font-bold tabular-nums text-white" dir="ltr">{{ $licenseNumber }}</p>
+                    </div>
+                </div>
+            </div>
+            @elseif(filled($site['license_notice'] ?? null))
+            <p class="mb-8 text-center text-sm leading-relaxed text-gray-400 sm:text-right">{{ $site['license_notice'] }}</p>
+            @endif
+
+            <div class="flex flex-col items-center gap-4 text-center text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:text-right">
+                <p class="leading-relaxed">© {{ date('Y') }} {{ $legalName }}. جميع الحقوق محفوظة.</p>
+                <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:justify-end">
+                    <a href="{{ route('public.privacy') }}" class="font-medium text-gray-400 transition-colors hover:text-white">سياسة الخصوصية</a>
+                    <a href="{{ route('public.terms') }}" class="font-medium text-gray-400 transition-colors hover:text-white">الشروط والأحكام</a>
+                </div>
             </div>
         </div>
     </div>
