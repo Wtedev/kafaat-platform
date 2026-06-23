@@ -29,7 +29,7 @@ class CreateTrainingProgram extends BaseCreateRecord
         $linked = (bool) ($data['is_linked_to_path'] ?? false);
         $unlimited = (bool) ($data['capacity_unlimited'] ?? false);
 
-        unset($data['is_linked_to_path'], $data['capacity_unlimited']);
+        unset($data['is_linked_to_path'], $data['capacity_unlimited'], $data['editors']);
 
         if ($unlimited) {
             $data['capacity'] = null;

@@ -19,6 +19,7 @@ use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -282,9 +283,9 @@ class TrainingProgramResource extends Resource
                     ])
                         ->columnSpanFull(),
 
-                    TextEntry::make('registration_status_display')
+                    Placeholder::make('registration_status_display')
                         ->label('حالة التسجيل (حالية)')
-                        ->getStateUsing(fn (?TrainingProgram $record): string => ($record !== null && $record->exists)
+                        ->content(fn (?TrainingProgram $record): string => ($record !== null && $record->exists)
                             ? $record->registrationWindowStatusLabel()
                             : '—')
                         ->visible(fn (?TrainingProgram $record): bool => $record !== null && $record->exists)
@@ -318,13 +319,14 @@ class TrainingProgramResource extends Resource
                 ]),
 
             Section::make('فريق العمل')
-                ->description('المسؤول يُعيَّن تلقائياً لمن ينشئ البرنامج. أضف موظفين للمشاركة في التحرير.')
-                ->visible(fn (Get $get, ?TrainingProgram $record): bool => ! (bool) $get('is_linked_to_path') && ($record === null || $record->exists))
+                ->description('المسؤول يُعيَّن تلقائياً لمن ينشئ البرنامج. أضف موظفين للمشاركة في التحرير من صفحة التعديل.')
+                ->hiddenOn('create')
+                ->visible(fn (Get $get): bool => ! (bool) $get('is_linked_to_path'))
                 ->schema([
-                    TextEntry::make('owner_display')
+                    Placeholder::make('owner_display')
                         ->label('المسؤول')
                         ->visible(fn (): bool => ! $adminBypass())
-                        ->getStateUsing(function (?TrainingProgram $record): string {
+                        ->content(function (?TrainingProgram $record): string {
                             if ($record?->owner !== null) {
                                 return $record->owner->name;
                             }
@@ -333,7 +335,7 @@ class TrainingProgramResource extends Resource
                                 return $record->creator->name;
                             }
 
-                            return auth()->user()?->name ?? '—';
+                            return '—';
                         }),
 
                     Select::make('owner_id')
