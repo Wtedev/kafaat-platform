@@ -18,8 +18,8 @@
     };
 @endphp
 
-<div class="oc-shell" dir="rtl">
-    <p class="oc-shell__hint">مرّر أفقياً لاستكشاف الهيكل الكامل · {{ count($departments) }} إدارات رئيسية</p>
+<div class="oc-shell" dir="rtl" lang="ar">
+    <p class="oc-shell__hint">مرّر أفقياً لاستكشاف الهيكل · {{ count($departments) }} إدارات ترتبط بالمدير التنفيذي</p>
 
     <div class="oc-scroll" tabindex="0" aria-label="منطقة تمرير الهيكل التنظيمي">
         <div class="oc-tree" aria-label="الهيكل التنظيمي لجمعية كفاءات">
@@ -32,7 +32,7 @@
                         <p class="oc-card__role">{{ $ceo['title'] }}</p>
                     </div>
 
-                    <div class="oc-trunk" aria-hidden="true"></div>
+                    <div class="oc-trunk oc-trunk--ceo" aria-hidden="true"></div>
 
                     <ul class="oc-level oc-level--departments">
                         @foreach($departments as $dept)
@@ -40,6 +40,7 @@
                                 $staff = $branchStaff($dept);
                                 $subDepts = $dept['sub_departments'] ?? [];
                                 $isGroupOnly = ! empty($dept['group_only']);
+                                $hasBelow = $subDepts !== [] || $staff !== [];
                             @endphp
                             <li class="oc-node oc-node--branch {{ $subDepts !== [] ? 'oc-node--has-subdepts' : '' }}">
                                 <div class="oc-branch-head">
@@ -54,12 +55,18 @@
                                     @endif
                                 </div>
 
-                                @if($subDepts !== [])
+                                @if($hasBelow)
                                     <div class="oc-staff-trunk" aria-hidden="true"></div>
+                                @endif
+
+                                @if($subDepts !== [])
                                     <ul class="oc-level oc-level--subdepts">
                                         @foreach($subDepts as $sub)
                                             @php $subStaff = $branchStaff($sub); @endphp
                                             <li class="oc-node oc-node--subdept">
+                                                @if(! $loop->first)
+                                                    <div class="oc-subdept-link" aria-hidden="true"></div>
+                                                @endif
                                                 <div class="oc-subdept-block">
                                                     <span class="oc-dept-pill oc-dept-pill--sub">{{ $sub['name'] }}</span>
                                                     <div class="oc-card oc-card--manager oc-card--sub-manager">
@@ -89,7 +96,6 @@
                                         @endforeach
                                     </ul>
                                 @elseif($staff !== [])
-                                    <div class="oc-staff-trunk" aria-hidden="true"></div>
                                     <ul class="oc-level oc-level--staff">
                                         @foreach($staff as $child)
                                             <li class="oc-node oc-node--leaf">
@@ -122,7 +128,7 @@
         --oc-line-strong: #94a8c4;
         --oc-text: #111827;
         --oc-muted: #6b7280;
-        --oc-card-w: 10.75rem;
+        --oc-card-w: 12.25rem;
         --oc-gap-v: 1.5rem;
         margin-block: 0.25rem 0.5rem;
     }
@@ -138,11 +144,12 @@
     .oc-scroll {
         overflow-x: auto;
         overflow-y: visible;
-        padding: 0.5rem 0.5rem 1.5rem;
+        padding: 0.5rem 0.75rem 1.75rem;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: thin;
         scrollbar-color: var(--oc-line-strong) transparent;
         border-radius: 1rem;
+        background: linear-gradient(180deg, rgba(247, 250, 252, 0.65), transparent 2.5rem);
     }
 
     .oc-scroll:focus-visible {
@@ -158,10 +165,11 @@
     }
 
     .oc-tree {
-        display: inline-block;
-        min-width: max(100%, 58rem);
+        display: block;
         width: max-content;
+        min-width: 100%;
         margin-inline: auto;
+        padding-inline: 0.5rem;
     }
 
     .oc-level {
@@ -184,25 +192,30 @@
 
     .oc-trunk {
         width: 2px;
-        height: var(--oc-gap-v);
         background: var(--oc-line-strong);
         flex-shrink: 0;
     }
 
+    .oc-trunk--ceo {
+        height: var(--oc-gap-v);
+    }
+
     .oc-level--departments {
         flex-wrap: nowrap;
+        align-items: flex-start;
         justify-content: center;
         gap: 0;
         padding-top: 0;
-        position: relative;
+        width: max-content;
+        min-width: calc(var(--oc-card-w) * 8 + 4rem);
     }
 
     .oc-level--departments::before {
         content: '';
         position: absolute;
         top: 0;
-        right: 5%;
-        left: 5%;
+        right: calc((var(--oc-card-w) + 0.8rem) / 2);
+        left: calc((var(--oc-card-w) + 0.8rem) / 2);
         height: 2px;
         background: var(--oc-line-strong);
     }
@@ -210,14 +223,15 @@
     .oc-level--departments > .oc-node--branch {
         position: relative;
         text-align: center;
-        padding: var(--oc-gap-v) 0.5rem 0;
+        padding: var(--oc-gap-v) 0.4rem 0;
         flex: 0 0 auto;
-        min-width: var(--oc-card-w);
-        max-width: 13.5rem;
+        width: calc(var(--oc-card-w) + 0.8rem);
+        max-width: none;
+        box-sizing: border-box;
     }
 
     .oc-node--has-subdepts {
-        max-width: 14.5rem;
+        width: calc(var(--oc-card-w) + 1.25rem);
     }
 
     .oc-level--departments > .oc-node--branch::before {
@@ -240,20 +254,19 @@
 
     .oc-staff-trunk {
         width: 2px;
-        height: 1rem;
-        margin: 0.35rem auto 0;
+        height: 0.85rem;
+        margin: 0.25rem auto 0;
         background: var(--oc-line);
     }
 
     .oc-staff-trunk--short {
-        height: 0.65rem;
-        margin-top: 0.25rem;
+        height: 0.6rem;
     }
 
     .oc-level--subdepts {
         flex-direction: column;
         align-items: center;
-        gap: 0.85rem;
+        gap: 0;
         padding: 0;
         width: 100%;
     }
@@ -261,6 +274,16 @@
     .oc-node--subdept {
         width: 100%;
         padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .oc-subdept-link {
+        width: 2px;
+        height: 0.65rem;
+        margin: 0.35rem auto 0.15rem;
+        background: var(--oc-line);
     }
 
     .oc-subdept-block {
@@ -268,17 +291,20 @@
         flex-direction: column;
         align-items: center;
         gap: 0.55rem;
-        padding: 0.65rem 0.35rem;
+        width: 100%;
+        padding: 0.7rem 0.4rem;
         border-radius: 1rem;
         background: #f8fafc;
         border: 1px dashed #d1dce8;
+        box-sizing: border-box;
     }
 
     .oc-level--staff {
         flex-direction: column;
         align-items: center;
-        gap: 0.65rem;
+        gap: 0.55rem;
         padding: 0;
+        width: 100%;
     }
 
     .oc-node--leaf {
@@ -289,8 +315,7 @@
     .oc-dept-pill {
         display: block;
         width: 100%;
-        max-width: 11.5rem;
-        padding: 0.42rem 0.7rem;
+        padding: 0.45rem 0.65rem;
         border-radius: 9999px;
         font-size: 0.68rem;
         font-weight: 800;
@@ -300,58 +325,66 @@
         border: 1px solid #c5d4e4;
         box-shadow: 0 2px 8px -4px rgba(51, 84, 131, 0.2);
         text-wrap: balance;
+        overflow-wrap: anywhere;
     }
 
     .oc-dept-pill--group {
-        max-width: 12.5rem;
-        font-size: 0.72rem;
+        font-size: 0.71rem;
         background: linear-gradient(135deg, #e9eff6, #dce8f5);
         border-color: #94a8c4;
     }
 
     .oc-dept-pill--sub {
-        max-width: 100%;
-        font-size: 0.64rem;
+        font-size: 0.63rem;
         background: #fff;
         border-style: solid;
         border-color: #c5d4e4;
         box-shadow: none;
+        line-height: 1.55;
     }
 
     .oc-card {
         position: relative;
         z-index: 1;
-        width: var(--oc-card-w);
+        width: 100%;
+        max-width: var(--oc-card-w);
         margin-inline: auto;
-        padding: 0.85rem 0.65rem 0.75rem;
+        padding: 0.85rem 0.6rem 0.75rem;
         border-radius: 1rem;
         background: #fff;
         border: 1px solid #e5e7eb;
         box-shadow: 0 6px 20px -10px rgba(51, 84, 131, 0.18);
-        transition: transform 0.22s cubic-bezier(.22, 1, .36, 1), box-shadow 0.22s ease;
+        box-sizing: border-box;
+    }
+
+    @media (hover: hover) {
+        .oc-card {
+            transition: transform 0.22s cubic-bezier(.22, 1, .36, 1), box-shadow 0.22s ease;
+        }
+
+        .oc-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 32px -12px rgba(51, 84, 131, 0.22);
+        }
+
+        .oc-card--ceo:hover {
+            transform: translateY(-4px);
+        }
     }
 
     .oc-card--sub-manager {
-        width: 9.75rem;
-        padding: 0.7rem 0.55rem 0.6rem;
+        max-width: 11.5rem;
+        padding: 0.65rem 0.5rem 0.6rem;
         box-shadow: 0 4px 14px -8px rgba(51, 84, 131, 0.15);
     }
 
-    .oc-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 14px 32px -12px rgba(51, 84, 131, 0.22);
-    }
-
     .oc-card--ceo {
-        width: min(100%, 15.5rem);
+        width: min(100%, 16rem);
+        max-width: 16rem;
         padding: 1.25rem 1rem 1.1rem;
         border-color: #c5d4e4;
         background: linear-gradient(160deg, #ffffff 0%, #f0f5fa 100%);
         box-shadow: 0 16px 40px -14px rgba(51, 84, 131, 0.28);
-    }
-
-    .oc-card--ceo:hover {
-        transform: translateY(-4px);
     }
 
     .oc-card--manager {
@@ -360,8 +393,8 @@
     }
 
     .oc-card--staff {
-        width: 9.5rem;
-        padding: 0.65rem 0.5rem 0.55rem;
+        max-width: 11rem;
+        padding: 0.6rem 0.45rem 0.55rem;
         border-radius: 0.85rem;
         background: #fafbfc;
     }
@@ -386,7 +419,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 0.55rem;
+        margin: 0 auto 0.5rem;
         border-radius: 9999px;
         font-weight: 800;
         color: #fff;
@@ -404,38 +437,39 @@
     .oc-avatar--manager {
         width: 2.35rem;
         height: 2.35rem;
-        font-size: 0.72rem;
+        font-size: 0.7rem;
         background: var(--oc-brand);
     }
 
     .oc-card--sub-manager .oc-avatar--manager {
-        width: 2.1rem;
-        height: 2.1rem;
-        font-size: 0.68rem;
-    }
-
-    .oc-avatar--staff {
         width: 2rem;
         height: 2rem;
         font-size: 0.65rem;
+    }
+
+    .oc-avatar--staff {
+        width: 1.9rem;
+        height: 1.9rem;
+        font-size: 0.62rem;
         background: var(--oc-teal);
     }
 
     .oc-card__name {
-        font-size: 0.82rem;
+        font-size: 0.8rem;
         font-weight: 800;
-        line-height: 1.45;
+        line-height: 1.5;
         color: var(--oc-text);
         overflow-wrap: anywhere;
         text-wrap: balance;
+        margin: 0;
     }
 
-    .oc-card__name--sm { font-size: 0.78rem; }
-    .oc-card__name--xs { font-size: 0.72rem; }
+    .oc-card__name--sm { font-size: 0.74rem; }
+    .oc-card__name--xs { font-size: 0.7rem; }
 
     .oc-card__role {
-        margin-top: 0.2rem;
-        font-size: 0.68rem;
+        margin: 0.2rem 0 0;
+        font-size: 0.66rem;
         font-weight: 600;
         color: var(--oc-teal);
         line-height: 1.4;
@@ -452,15 +486,10 @@
         font-weight: 600;
     }
 
-    @media (min-width: 1280px) {
-        .oc-tree {
-            min-width: max(100%, 68rem);
-        }
-    }
-
     @media print {
         .oc-shell__hint { display: none; }
-        .oc-scroll { overflow: visible; }
+        .oc-scroll { overflow: visible; background: none; }
         .oc-card:hover { transform: none; }
+        .oc-level--departments { min-width: 100%; flex-wrap: wrap; }
     }
 </style>
