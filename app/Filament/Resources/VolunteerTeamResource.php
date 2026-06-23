@@ -10,10 +10,6 @@ use App\Filament\Resources\VolunteerTeamResource\RelationManagers\TeamNotificati
 use App\Models\VolunteerTeam;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\StaffFilamentRoles;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -39,11 +35,22 @@ class VolunteerTeamResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    protected static ?string $navigationLabel = 'الفرق التطوعية';
+    protected static ?string $navigationLabel = 'الفريق التطوعي';
 
-    protected static ?string $modelLabel = 'فريق تطوعي';
+    protected static ?string $modelLabel = 'الفريق التطوعي';
 
-    protected static ?string $pluralModelLabel = 'الفرق التطوعية';
+    protected static ?string $pluralModelLabel = 'الفريق التطوعي';
+
+    public static function getNavigationUrl(): string
+    {
+        $team = VolunteerTeam::canonical();
+
+        if ($team !== null) {
+            return static::getUrl('view', ['record' => $team]);
+        }
+
+        return static::getUrl('index');
+    }
 
     protected static function requiredNavigationPermissions(): array
     {
@@ -64,7 +71,9 @@ class VolunteerTeamResource extends Resource
                     ->label('المعرّف في الرابط')
                     ->required()
                     ->maxLength(255)
-                    ->alphaDash(),
+                    ->alphaDash()
+                    ->visible(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
+                    ->disabled(fn (?VolunteerTeam $record): bool => $record !== null && $record->exists),
 
                 Select::make('assigned_to')
                     ->label('مسؤول الفريق')
@@ -125,12 +134,6 @@ class VolunteerTeamResource extends Resource
             ])
             ->actions([
                 static::makeTableEditAction(),
-                DeleteAction::make(),
-            ])
-            ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->forFilamentAssignmentAccess(auth()->user()))
             ->defaultSort('created_at', 'desc');
@@ -157,5 +160,19 @@ class VolunteerTeamResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->forFilamentAssignmentAccess(auth()->user());
+    }
+
+    public static function canCreate(): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null
+            && FilamentAssignmentVisibility::bypasses($user)
+            && VolunteerTeam::canonical() === null;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return false;
     }
 }

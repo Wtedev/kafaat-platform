@@ -5,6 +5,7 @@ namespace App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\Pages\BaseEditRecord;
 use App\Filament\Resources\UserResource;
 use App\Models\User;
+use App\Models\VolunteerTeam;
 use App\Support\UserAccountRoleForm;
 use Filament\Actions\DeleteAction;
 use Illuminate\Validation\ValidationException;
@@ -154,6 +155,10 @@ class EditUser extends BaseEditRecord
 
         if ($this->pendingRoleType !== null && (string) $record->role_type !== $this->pendingRoleType) {
             $record->update(['role_type' => $this->pendingRoleType]);
+        }
+
+        if ($record->hasRole('volunteer')) {
+            VolunteerTeam::ensureMember($record);
         }
     }
 }

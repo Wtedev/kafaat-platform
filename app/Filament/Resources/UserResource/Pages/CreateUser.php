@@ -4,7 +4,9 @@ namespace App\Filament\Resources\UserResource\Pages;
 
 use App\Filament\Resources\Pages\BaseCreateRecord;
 use App\Filament\Resources\UserResource;
+use App\Models\VolunteerTeam;
 use App\Support\UserAccountRoleForm;
+use App\Support\UserDirectoryTabs;
 use Illuminate\Validation\ValidationException;
 
 class CreateUser extends BaseCreateRecord
@@ -12,6 +14,34 @@ class CreateUser extends BaseCreateRecord
     protected static string $resource = UserResource::class;
 
     protected ?string $pendingPlatformRole = null;
+
+    public function mount(): void
+    {
+        parent::mount();
+
+        $tab = (string) request()->query('directory_tab', '');
+        if (! UserDirectoryTabs::isValidTab($tab)) {
+            return;
+        }
+
+        if (! UserDirectoryTabs::actorCanViewTab(auth()->user(), $tab)) {
+            return;
+        }
+
+        $defaultRole = UserDirectoryTabs::defaultPlatformRoleForTab($tab);
+        if ($defaultRole === null) {
+            return;
+        }
+
+        $options = UserAccountRoleForm::platformRoleOptionsForActor(auth()->user());
+        if (! array_key_exists($defaultRole, $options)) {
+            return;
+        }
+
+        $this->form->fill([
+            'platform_role' => $defaultRole,
+        ]);
+    }
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
@@ -50,6 +80,10 @@ class CreateUser extends BaseCreateRecord
             if ($this->record->role_type !== 'beneficiary') {
                 $this->record->update(['role_type' => 'beneficiary']);
             }
+        }
+
+        if ($this->record->hasRole('volunteer')) {
+            VolunteerTeam::ensureMember($this->record);
         }
 
         if (! $this->record->hasVerifiedEmail()) {

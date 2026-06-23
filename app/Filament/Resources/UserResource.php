@@ -7,6 +7,7 @@ use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
 use App\Support\UserAccountRoleForm;
+use App\Support\UserDirectoryTabs;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -19,7 +20,6 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -47,11 +47,7 @@ class UserResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        if (auth()->user()?->can('roles.view')) {
-            return 'إدارة المستخدمين';
-        }
-
-        return 'المستفيدين';
+        return 'المستخدمون';
     }
 
     protected static function requiredNavigationPermissions(): array
@@ -65,12 +61,21 @@ class UserResource extends Resource
 
         $viewer = auth()->user();
 
-        // من لا يملك إدارة الأدوار يرى المستفيدين فقط (حماية بيانات الموظفين).
         if ($viewer !== null && ! $viewer->hasPermission('manage_roles')) {
-            $query->where(function (Builder $q): void {
-                $q->whereIn('role_type', ['beneficiary', 'trainee', 'volunteer'])
-                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['trainee', 'volunteer']));
-            });
+            $visibleTabs = UserDirectoryTabs::visibleTabKeysFor($viewer);
+
+            if ($visibleTabs === [UserDirectoryTabs::TAB_VOLUNTEERS]) {
+                UserDirectoryTabs::applyTabScope($query, UserDirectoryTabs::TAB_VOLUNTEERS);
+            } elseif ($visibleTabs === [UserDirectoryTabs::TAB_TRAINEES] || $visibleTabs === []) {
+                UserDirectoryTabs::applyTabScope($query, UserDirectoryTabs::TAB_TRAINEES);
+            } else {
+                $query->where(function (Builder $q): void {
+                    UserDirectoryTabs::applyTabScope($q, UserDirectoryTabs::TAB_TRAINEES);
+                    $q->orWhere(function (Builder $inner): void {
+                        UserDirectoryTabs::applyTabScope($inner, UserDirectoryTabs::TAB_VOLUNTEERS);
+                    });
+                });
+            }
         }
 
         return $query;
@@ -204,14 +209,6 @@ class UserResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('role_type')
-                    ->label('تصنيف الحساب')
-                    ->options([
-                        'admin' => 'مسؤول النظام',
-                        'staff' => 'موظف',
-                        'beneficiary' => 'مستفيد',
-                    ]),
-
                 TernaryFilter::make('is_active')
                     ->label('نشط'),
 

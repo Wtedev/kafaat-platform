@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\User;
 use App\Services\Rbac\RbacCatalog;
+use App\Support\BeneficiaryRoleManagement;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -101,14 +102,20 @@ final class UserAccountRoleForm
             return self::platformRoleSelectOptionsAr();
         }
 
-        if (self::actorCanAssignBeneficiaryRoles($actor)) {
-            return [
-                'trainee' => self::platformRoleLabelAr('trainee'),
-                'volunteer' => self::platformRoleLabelAr('volunteer'),
-            ];
+        $allowedSpatie = BeneficiaryRoleManagement::allowedSpatieRoleNamesForManager($actor);
+        if ($allowedSpatie === []) {
+            return [];
         }
 
-        return [];
+        $options = [];
+        foreach (array_keys(self::PLATFORM_ROLES) as $key) {
+            $spatie = self::PLATFORM_ROLES[$key]['spatie'];
+            if (in_array($spatie, $allowedSpatie, true)) {
+                $options[$key] = self::platformRoleLabelAr($key);
+            }
+        }
+
+        return $options;
     }
 
     /**
@@ -357,8 +364,10 @@ final class UserAccountRoleForm
             return;
         }
 
-        if (self::actorCanAssignBeneficiaryRoles($actor)
-            && in_array($platformRole, ['trainee', 'volunteer'], true)) {
+        $allowedSpatie = BeneficiaryRoleManagement::allowedSpatieRoleNamesForManager($actor);
+        $resolved = self::PLATFORM_ROLES[$platformRole]['spatie'] ?? null;
+
+        if ($resolved !== null && in_array($resolved, $allowedSpatie, true)) {
             return;
         }
 

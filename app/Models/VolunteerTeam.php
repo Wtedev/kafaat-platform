@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\TeamMember;
+use App\Models\User;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\StaffFilamentRoles;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,6 +16,8 @@ use Illuminate\Support\Str;
 
 class VolunteerTeam extends Model
 {
+    public const CANONICAL_SLUG = 'fariq-kafaat-altatawui';
+
     protected $fillable = [
         'name',
         'slug',
@@ -84,5 +88,30 @@ class VolunteerTeam extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public static function canonical(): ?self
+    {
+        return static::query()
+            ->where('slug', self::CANONICAL_SLUG)
+            ->first()
+            ?? static::query()->orderBy('id')->first();
+    }
+
+    public static function ensureMember(User $user): void
+    {
+        if (! $user->hasRole('volunteer')) {
+            return;
+        }
+
+        $team = self::canonical();
+        if ($team === null) {
+            return;
+        }
+
+        TeamMember::firstOrCreate([
+            'volunteer_team_id' => $team->id,
+            'user_id' => $user->id,
+        ]);
     }
 }
