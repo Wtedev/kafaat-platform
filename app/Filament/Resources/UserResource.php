@@ -16,7 +16,6 @@ use Filament\Forms\Components\Toggle;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -36,7 +35,7 @@ class UserResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'إدارة الوصول';
+    protected static string|\UnitEnum|null $navigationGroup = 'المستخدمون';
 
     protected static ?string $modelLabel = 'مستخدم';
 
@@ -66,7 +65,7 @@ class UserResource extends Resource
 
         $viewer = auth()->user();
 
-        // من لا يملك إدارة الأدوار يرى المستفيدين فقط، لا الموظفين/المسؤولين (حماية PII).
+        // من لا يملك إدارة الأدوار يرى المستفيدين فقط (حماية بيانات الموظفين).
         if ($viewer !== null && ! $viewer->hasPermission('manage_roles')) {
             $query->where(function (Builder $q): void {
                 $q->whereIn('role_type', ['beneficiary', 'trainee', 'volunteer'])
@@ -114,42 +113,29 @@ class UserResource extends Resource
                             ->label('نشط'),
                     ]),
 
-                Section::make('الأدوار والصلاحيات')
-                    ->description('تعيين نوع الحساب والدور — يتطلب صلاحية إدارة أدوار المستخدمين.')
+                Section::make('الدور في المنصة')
+                    ->description('اختر دوراً واحداً يحدد صلاحيات الدخول وما يظهر للمستخدم.')
                     ->visible(function (LivewireComponent $livewire): bool {
                         $actor = auth()->user();
-                        if (! $actor?->can('manage_roles')) {
-                            return false;
-                        }
                         if ($livewire instanceof EditRecord) {
                             $record = $livewire->getRecord();
 
-                            return $record instanceof User && ! $record->isProtectedAdminUser();
+                            return $record instanceof User
+                                && UserAccountRoleForm::canActorEditRoleSection($actor, $record);
                         }
 
-                        return true;
+                        return UserAccountRoleForm::canActorEditRoleSection($actor);
                     })
                     ->schema([
-                        Select::make('role_type')
-                            ->label('نوع الحساب')
-                            ->options(UserAccountRoleForm::accountTypeOptionsAr())
-                            ->required()
-                            ->live()
-                            ->afterStateUpdated(function (callable $set): void {
-                                $set('assigned_role', null);
-                            }),
-
-                        Select::make('assigned_role')
+                        Select::make('platform_role')
                             ->label('الدور')
-                            ->options(function (Get $get): array {
-                                return match ($get('role_type')) {
-                                    UserAccountRoleForm::TYPE_STAFF => UserAccountRoleForm::staffRoleSelectOptionsAr(),
-                                    UserAccountRoleForm::TYPE_BENEFICIARY => UserAccountRoleForm::beneficiaryRoleSelectOptionsAr(),
-                                    default => [],
-                                };
-                            })
-                            ->visible(fn (Get $get): bool => filled($get('role_type')))
-                            ->required(fn (Get $get): bool => filled($get('role_type')))
+                            ->options(fn (): array => UserAccountRoleForm::platformRoleOptionsForActor(auth()->user()))
+                            ->required()
+                            ->native(false)
+                            ->searchable()
+                            ->helperText(fn (): string => UserAccountRoleForm::actorCanManageAllPlatformRoles(auth()->user())
+                                ? 'موظفون يدخلون لوحة الإدارة؛ المتدرب والمتطوع يدخلون بوابة المستفيد.'
+                                : 'يمكنك تعيين متدرب أو متطوع فقط.')
                             ->dehydrated(true),
                     ]),
             ]);
@@ -169,13 +155,9 @@ class UserResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('account_type_display')
-                    ->label('نوع الحساب')
-                    ->getStateUsing(fn (User $record): string => UserAccountRoleForm::tableAccountTypeLabelAr($record)),
-
-                TextColumn::make('primary_role_display')
-                    ->label('الدور')
-                    ->getStateUsing(fn (User $record): string => UserAccountRoleForm::tablePrimaryRoleLabelAr($record)),
+                TextColumn::make('platform_role_display')
+                    ->label('الدور في المنصة')
+                    ->getStateUsing(fn (User $record): string => UserAccountRoleForm::tablePlatformRoleLabelAr($record)),
 
                 TextColumn::make('phone')
                     ->label('الجوال')
@@ -223,13 +205,11 @@ class UserResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('role_type')
-                    ->label('نوع الحساب')
+                    ->label('تصنيف الحساب')
                     ->options([
-                        'admin' => 'مدير النظام',
+                        'admin' => 'مسؤول النظام',
                         'staff' => 'موظف',
                         'beneficiary' => 'مستفيد',
-                        'trainee' => 'متدرب (قديم)',
-                        'volunteer' => 'متطوع (قديم)',
                     ]),
 
                 TernaryFilter::make('is_active')

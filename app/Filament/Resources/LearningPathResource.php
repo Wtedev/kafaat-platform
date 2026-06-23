@@ -165,7 +165,8 @@ class LearningPathResource extends Resource
                         ->helperText('يُرسل للمستفيدين المهتمين بالمسارات الجديدة (حسب تفضيلاتهم).'),
                 ]),
 
-            Section::make('المسؤولية')
+            Section::make('فريق العمل')
+                ->description('المسؤول يُعيَّن تلقائياً لمن ينشئ المسار.')
                 ->visible(fn (?LearningPath $record): bool => $record !== null && $record->exists)
                 ->schema([
                     TextEntry::make('owner_readonly')
@@ -184,14 +185,14 @@ class LearningPathResource extends Resource
                         }),
 
                     Select::make('owner_id')
-                        ->label('المسؤول (المالك)')
+                        ->label('المسؤول')
                         ->relationship('owner', 'name')
                         ->searchable()
                         ->preload()
                         ->nullable()
                         ->visible($adminBypass)
                         ->dehydrated($adminBypass)
-                        ->helperText('للمشرفين فقط: تعيين أو تغيير مالك المسار.'),
+                        ->helperText('لمدير النظام فقط.'),
                 ]),
         ];
     }

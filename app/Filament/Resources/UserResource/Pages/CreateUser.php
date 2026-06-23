@@ -11,52 +11,40 @@ class CreateUser extends BaseCreateRecord
 {
     protected static string $resource = UserResource::class;
 
-    protected ?string $pendingAssignedRoleForSync = null;
+    protected ?string $pendingPlatformRole = null;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $this->pendingAssignedRoleForSync = null;
-
+        $this->pendingPlatformRole = null;
         $actor = auth()->user();
-        if (! ($actor?->can('manage_roles') ?? false)) {
-            if (array_key_exists('assigned_role', $data) && filled($data['assigned_role'])) {
-                throw ValidationException::withMessages([
-                    'data.assigned_role' => 'تعيين الدور متاح لمن يملك صلاحية إدارة الأدوار فقط.',
-                ]);
-            }
 
-            unset($data['assigned_role'], $data['role_type']);
+        if (! UserAccountRoleForm::canActorEditRoleSection($actor)) {
+            unset($data['platform_role']);
 
             return $data;
         }
 
-        $accountType = (string) ($data['role_type'] ?? '');
-        $assigned = (string) ($data['assigned_role'] ?? '');
-
-        if (! in_array($accountType, [UserAccountRoleForm::TYPE_STAFF, UserAccountRoleForm::TYPE_BENEFICIARY], true)) {
+        $platformRole = (string) ($data['platform_role'] ?? '');
+        if ($platformRole === '') {
             throw ValidationException::withMessages([
-                'data.role_type' => 'نوع الحساب غير صالح.',
+                'data.platform_role' => 'يرجى اختيار الدور.',
             ]);
         }
 
-        if ($assigned === '') {
-            throw ValidationException::withMessages([
-                'data.assigned_role' => 'يرجى اختيار الدور.',
-            ]);
-        }
+        UserAccountRoleForm::assertActorMayAssign($actor, $platformRole);
+        $resolved = UserAccountRoleForm::resolvePlatformRole($platformRole);
 
-        UserAccountRoleForm::assertValidCombination($accountType, $assigned);
-
-        $this->pendingAssignedRoleForSync = $assigned;
-        unset($data['assigned_role']);
+        $this->pendingPlatformRole = $resolved['spatie'];
+        $data['role_type'] = $resolved['role_type'];
+        unset($data['platform_role']);
 
         return $data;
     }
 
     protected function afterCreate(): void
     {
-        if (($this->pendingAssignedRoleForSync ?? '') !== '') {
-            $this->record->syncRoles([$this->pendingAssignedRoleForSync]);
+        if (($this->pendingPlatformRole ?? '') !== '') {
+            $this->record->syncRoles([$this->pendingPlatformRole]);
         } else {
             $this->record->syncRoles(['trainee']);
             if ($this->record->role_type !== 'beneficiary') {

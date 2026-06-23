@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\ProfileResource\Schemas;
 
-use App\Enums\MembershipType;
 use App\Models\Profile;
+use App\Support\UserAccountRoleForm;
 use App\Support\Exports\BeneficiaryProfileExportColumns;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
@@ -42,9 +42,11 @@ final class ProfileAdminForm
                         ->label('رقم الجوال')
                         ->content(fn (?Profile $record): string => filled($record?->user?->phone) ? (string) $record->user->phone : '—'),
 
-                    Placeholder::make('account_role_type')
-                        ->label('تصنيف الحساب')
-                        ->content(fn (?Profile $record): string => (string) (BeneficiaryProfileExportColumns::resolve($record ?? new Profile, 'user_role_type') ?? '—')),
+                    Placeholder::make('account_platform_role')
+                        ->label('الدور في المنصة')
+                        ->content(fn (?Profile $record): string => $record?->user
+                            ? UserAccountRoleForm::tablePlatformRoleLabelAr($record->user)
+                            : '—'),
 
                     Placeholder::make('account_is_active')
                         ->label('حالة الحساب')
@@ -104,26 +106,15 @@ final class ProfileAdminForm
                         ->nullable(),
                 ]),
 
-            Section::make('العضوية والتميّز')
+            Section::make('التميّز')
+                ->description('شارات العضوية تُشتق من دور المستخدم في المنصة.')
                 ->columns(2)
                 ->schema([
-                    Select::make('membership_type')
-                        ->label('نوع العضوية')
-                        ->options([
-                            MembershipType::Beneficiary->value => 'مستفيد',
-                            MembershipType::Trainee->value => 'متدرب',
-                            MembershipType::Volunteer->value => 'متطوع',
-                        ])
-                        ->default(MembershipType::Beneficiary->value)
-                        ->required()
-                        ->native(false)
-                        ->visible(fn (): bool => (bool) auth()->user()?->can('roles.view'))
-                        ->disabled(fn (): bool => ! auth()->user()?->can('roles.view')),
-
                     Placeholder::make('membership_type_display')
                         ->label('نوع العضوية')
-                        ->content(fn (?Profile $record): string => (string) (BeneficiaryProfileExportColumns::resolve($record ?? new Profile, 'membership_type') ?? '—'))
-                        ->visible(fn (): bool => ! auth()->user()?->can('roles.view')),
+                        ->content(fn (?Profile $record): string => $record?->user
+                            ? UserAccountRoleForm::tablePlatformRoleLabelAr($record->user)
+                            : (string) (BeneficiaryProfileExportColumns::resolve($record ?? new Profile, 'membership_type') ?? '—')),
 
                     self::membershipBadgesFields($invalidMessage),
 

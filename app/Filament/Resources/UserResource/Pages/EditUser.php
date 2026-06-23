@@ -29,11 +29,11 @@ class EditUser extends BaseEditRecord
 
     protected ?string $lockedRoleType = null;
 
-    protected ?string $lockedAssignedRole = null;
+    protected ?string $lockedPlatformRole = null;
 
-    protected ?string $lockedFormAccountType = null;
+    protected ?string $pendingPlatformRole = null;
 
-    protected ?string $pendingAssignedRoleForSync = null;
+    protected ?string $pendingRoleType = null;
 
     public function mount(int|string $record): void
     {
@@ -45,8 +45,7 @@ class EditUser extends BaseEditRecord
         $this->lockedRoleType = $user->role_type;
 
         if (! $user->isProtectedAdminUser()) {
-            $this->lockedAssignedRole = UserAccountRoleForm::resolvedSpatieRoleFromUser($user);
-            $this->lockedFormAccountType = UserAccountRoleForm::formAccountTypeFromUser($user);
+            $this->lockedPlatformRole = UserAccountRoleForm::platformRoleFromUser($user);
         }
     }
 
@@ -63,74 +62,62 @@ class EditUser extends BaseEditRecord
         /** @var User $user */
         $user = $this->record;
 
-        if (! auth()->user()?->can('manage_roles') || $user->isProtectedAdminUser()) {
-            unset($data['assigned_role'], $data['role_type']);
+        if (! UserAccountRoleForm::canActorEditRoleSection(auth()->user(), $user)) {
+            unset($data['platform_role']);
 
             return $data;
         }
 
-        $data['role_type'] = UserAccountRoleForm::formAccountTypeFromUser($user);
-        $data['assigned_role'] = UserAccountRoleForm::resolvedSpatieRoleFromUser($user);
+        $data['platform_role'] = UserAccountRoleForm::platformRoleFromUser($user);
 
         return $data;
     }
 
     protected function afterValidate(): void
     {
-        if (auth()->user()?->can('manage_roles')) {
+        if (UserAccountRoleForm::canActorEditRoleSection(auth()->user(), $this->record)) {
             return;
         }
 
         $data = $this->form->getState();
 
-        if (array_key_exists('assigned_role', $data)
-            && (string) ($data['assigned_role'] ?? '') !== (string) ($this->lockedAssignedRole ?? '')) {
+        if (array_key_exists('platform_role', $data)
+            && (string) ($data['platform_role'] ?? '') !== (string) ($this->lockedPlatformRole ?? '')) {
             throw ValidationException::withMessages([
-                'data.assigned_role' => 'تعديل الدور متاح لمن يملك صلاحية إدارة الأدوار فقط.',
-            ]);
-        }
-
-        if (array_key_exists('role_type', $data)
-            && (string) ($data['role_type'] ?? '') !== (string) ($this->lockedFormAccountType ?? '')) {
-            throw ValidationException::withMessages([
-                'data.role_type' => 'تعديل نوع الحساب متاح لمن يملك صلاحية إدارة الأدوار فقط.',
+                'data.platform_role' => 'تعديل الدور غير متاح لحسابك.',
             ]);
         }
     }
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        $this->pendingAssignedRoleForSync = null;
+        $this->pendingPlatformRole = null;
+        $this->pendingRoleType = null;
 
-        $actor = auth()->user();
         /** @var User $record */
         $record = $this->record;
 
-        if ($record->isProtectedAdminUser() || ! ($actor?->can('manage_roles') ?? false)) {
-            unset($data['assigned_role'], $data['role_type']);
+        if ($record->isProtectedAdminUser()
+            || ! UserAccountRoleForm::canActorEditRoleSection(auth()->user(), $record)) {
+            unset($data['platform_role']);
 
             return $data;
         }
 
-        $accountType = (string) ($data['role_type'] ?? '');
-        $assigned = (string) ($data['assigned_role'] ?? '');
-
-        if (! in_array($accountType, [UserAccountRoleForm::TYPE_STAFF, UserAccountRoleForm::TYPE_BENEFICIARY], true)) {
+        $platformRole = (string) ($data['platform_role'] ?? '');
+        if ($platformRole === '') {
             throw ValidationException::withMessages([
-                'data.role_type' => 'نوع الحساب غير صالح.',
+                'data.platform_role' => 'يرجى اختيار الدور.',
             ]);
         }
 
-        if ($assigned === '') {
-            throw ValidationException::withMessages([
-                'data.assigned_role' => 'يرجى اختيار الدور.',
-            ]);
-        }
+        UserAccountRoleForm::assertActorMayAssign(auth()->user(), $platformRole);
+        $resolved = UserAccountRoleForm::resolvePlatformRole($platformRole);
 
-        UserAccountRoleForm::assertValidCombination($accountType, $assigned);
-
-        $this->pendingAssignedRoleForSync = $assigned;
-        unset($data['assigned_role']);
+        $this->pendingPlatformRole = $resolved['spatie'];
+        $this->pendingRoleType = $resolved['role_type'];
+        $data['role_type'] = $resolved['role_type'];
+        unset($data['platform_role']);
 
         return $data;
     }
@@ -146,8 +133,7 @@ class EditUser extends BaseEditRecord
             return;
         }
 
-        $actor = auth()->user();
-        if (! ($actor?->can('manage_roles') ?? false)) {
+        if (! UserAccountRoleForm::canActorEditRoleSection(auth()->user(), $record)) {
             $roleNames = Role::query()
                 ->whereIn('id', $this->lockedRoleIds)
                 ->pluck('name')
@@ -162,8 +148,12 @@ class EditUser extends BaseEditRecord
             return;
         }
 
-        if ($this->pendingAssignedRoleForSync !== null && $this->pendingAssignedRoleForSync !== '') {
-            $record->syncRoles([$this->pendingAssignedRoleForSync]);
+        if ($this->pendingPlatformRole !== null && $this->pendingPlatformRole !== '') {
+            $record->syncRoles([$this->pendingPlatformRole]);
+        }
+
+        if ($this->pendingRoleType !== null && (string) $record->role_type !== $this->pendingRoleType) {
+            $record->update(['role_type' => $this->pendingRoleType]);
         }
     }
 }

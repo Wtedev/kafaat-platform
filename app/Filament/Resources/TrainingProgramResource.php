@@ -10,9 +10,7 @@ use App\Filament\Resources\TrainingProgramResource\Pages;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramCertificatesRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationsRelationManager;
 use App\Models\TrainingProgram;
-use App\Support\FilamentAssignmentVisibility;
 use App\Support\PublicDiskPath;
-use App\Support\StaffFilamentRoles;
 use App\Support\TrainingEntityAuthorization;
 use Carbon\Carbon;
 use Filament\Actions\DeleteAction;
@@ -143,14 +141,6 @@ class TrainingProgramResource extends Resource
     protected static function trainingProgramFormSections(bool $includeImageInBasicSection = true): array
     {
         $adminBypass = fn (): bool => TrainingEntityAuthorization::adminBypass(auth()->user());
-
-        $assignedToVisible = function (?TrainingProgram $record): bool {
-            if (! FilamentAssignmentVisibility::bypasses(auth()->user())) {
-                return false;
-            }
-
-            return $record === null || ! $record->exists || $record->owner_id === null;
-        };
 
         $basicSchema = [
             Hidden::make('program_kind')
@@ -327,12 +317,37 @@ class TrainingProgramResource extends Resource
                         ->helperText('يُستخدم عند امتداد البرنامج لأكثر من يوم واحد.'),
                 ]),
 
-            Section::make('أعضاء الفريق المسؤولين')
-                ->description('محرّرون من الموظفين؛ يُخفى القسم عند ربط البرنامج بمسار.')
-                ->visible(fn (Get $get): bool => ! (bool) $get('is_linked_to_path'))
+            Section::make('فريق العمل')
+                ->description('المسؤول يُعيَّن تلقائياً لمن ينشئ البرنامج. أضف موظفين للمشاركة في التحرير.')
+                ->visible(fn (Get $get, ?TrainingProgram $record): bool => ! (bool) $get('is_linked_to_path') && ($record === null || $record->exists))
                 ->schema([
+                    TextEntry::make('owner_display')
+                        ->label('المسؤول')
+                        ->visible(fn (): bool => ! $adminBypass())
+                        ->getStateUsing(function (?TrainingProgram $record): string {
+                            if ($record?->owner !== null) {
+                                return $record->owner->name;
+                            }
+
+                            if ($record?->creator !== null) {
+                                return $record->creator->name;
+                            }
+
+                            return auth()->user()?->name ?? '—';
+                        }),
+
+                    Select::make('owner_id')
+                        ->label('المسؤول')
+                        ->relationship('owner', 'name')
+                        ->searchable()
+                        ->preload()
+                        ->nullable()
+                        ->visible($adminBypass)
+                        ->dehydrated($adminBypass)
+                        ->helperText('لمدير النظام فقط.'),
+
                     Select::make('editors')
-                        ->label('إضافة من الموظفين')
+                        ->label('مشاركون في التحرير')
                         ->relationship(
                             name: 'editors',
                             titleAttribute: 'name',
@@ -345,34 +360,6 @@ class TrainingProgramResource extends Resource
                         ->preload()
                         ->dehydrated(fn (Get $get): bool => ! (bool) $get('is_linked_to_path'))
                         ->columnSpanFull(),
-                ]),
-
-            Section::make('المسؤولية')
-                ->schema([
-                    TextEntry::make('owner_display')
-                        ->label('المسؤول')
-                        ->visible(fn (): bool => ! $adminBypass())
-                        ->getStateUsing(fn (?TrainingProgram $record): string => $record?->owner?->name ?? '—'),
-
-                    Select::make('owner_id')
-                        ->label('المسؤول (المالك)')
-                        ->relationship('owner', 'name')
-                        ->searchable()
-                        ->preload()
-                        ->nullable()
-                        ->visible($adminBypass)
-                        ->dehydrated($adminBypass)
-                        ->helperText('للمشرفين فقط: تعيين أو تغيير مالك البرنامج.'),
-
-                    Select::make('assigned_to')
-                        ->label('منسق تشغيلي')
-                        ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $query) => $query->role(StaffFilamentRoles::assignableTrainingCoordinatorRoleNames()))
-                        ->searchable()
-                        ->preload()
-                        ->nullable()
-                        ->visible($assignedToVisible)
-                        ->dehydrated(fn (?TrainingProgram $record): bool => $assignedToVisible($record))
-                        ->helperText('اختياري — يُعرض للمشرفين عند عدم تعيين مالك للبرنامج.'),
                 ]),
         ];
     }
