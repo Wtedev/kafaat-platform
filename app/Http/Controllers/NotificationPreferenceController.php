@@ -24,6 +24,10 @@ class NotificationPreferenceController extends Controller
                     'in_app' => true,
                     'email' => $wantsEmail,
                 ],
+                'programs_new' => [
+                    'in_app' => true,
+                    'email' => $wantsEmail,
+                ],
             ],
         ]);
 

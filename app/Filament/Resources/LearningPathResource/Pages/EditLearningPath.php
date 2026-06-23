@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\LearningPathResource\Pages;
 
 use App\Enums\PathStatus;
+use App\Filament\Resources\Concerns\PreparesTrainingEntityFormData;
 use App\Filament\Resources\LearningPathResource;
 use App\Filament\Resources\Pages\BaseEditRecord;
 use App\Models\LearningPath;
@@ -22,6 +23,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class EditLearningPath extends BaseEditRecord
 {
+    use PreparesTrainingEntityFormData;
+
     protected static string $resource = LearningPathResource::class;
 
     protected function resolveRecord(int|string $key): Model
@@ -72,7 +75,9 @@ class EditLearningPath extends BaseEditRecord
 
         unset($data['visible_on_site']);
 
-        return $data;
+        return $this->dropEmptyTrainingSlug(
+            $this->stampTrainingEntityAuditFields($data),
+        );
     }
 
     /**

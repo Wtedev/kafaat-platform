@@ -13,6 +13,7 @@ final readonly class NotificationMessage
     /**
      * @param  array<string, mixed>|null  $context  روابط الإجراءات في لوحة الإدارة (مفتاح resource + id).
      * @param  bool  $emailable  هل تُرسل نسخة بريدية عامة؟ (false للأنواع التي لها بريد مخصّص مسبقاً لتفادي الازدواج).
+     * @param  bool  $emailForCreatorAudience  عند نشر المحتوى من المنشئ: يكفي تفعيل البريد العام (notify_email) دون تفعيل البريد لكل فئة.
      */
     public function __construct(
         public InboxNotificationType $type,
@@ -22,6 +23,7 @@ final readonly class NotificationMessage
         public NotificationTargetType $targetType,
         public ?array $context = null,
         public bool $emailable = false,
+        public bool $emailForCreatorAudience = false,
     ) {}
 
     /**

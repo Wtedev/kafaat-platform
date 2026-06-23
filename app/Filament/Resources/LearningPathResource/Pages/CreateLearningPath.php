@@ -3,12 +3,15 @@
 namespace App\Filament\Resources\LearningPathResource\Pages;
 
 use App\Enums\PathStatus;
+use App\Filament\Resources\Concerns\PreparesTrainingEntityFormData;
 use App\Filament\Resources\LearningPathResource;
 use App\Filament\Resources\Pages\BaseCreateRecord;
 use Filament\Schemas\Schema;
 
 class CreateLearningPath extends BaseCreateRecord
 {
+    use PreparesTrainingEntityFormData;
+
     protected static string $resource = LearningPathResource::class;
 
     public function form(Schema $schema): Schema
@@ -29,6 +32,8 @@ class CreateLearningPath extends BaseCreateRecord
 
         unset($data['visible_on_site']);
 
-        return $data;
+        return $this->dropEmptyTrainingSlug(
+            $this->stampTrainingEntityAuditFields($data),
+        );
     }
 }

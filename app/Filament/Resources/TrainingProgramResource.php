@@ -210,9 +210,8 @@ class TrainingProgramResource extends Resource
                 ->label('الرابط المختصر')
                 ->maxLength(255)
                 ->visible($adminBypass)
-                ->required($adminBypass)
                 ->dehydrated($adminBypass)
-                ->helperText('للمشرفين: يُستخدم في الروابط العامة.'),
+                ->helperText('للمشرفين: اختياري — يُولَّد تلقائياً من اسم البرنامج إن تُرك فارغاً.'),
 
             Textarea::make('description')
                 ->label('نبذة عن البرنامج')
@@ -233,8 +232,9 @@ class TrainingProgramResource extends Resource
                 ->schema([
                     Toggle::make('visible_on_site')
                         ->label('ظاهر للزوار في الموقع')
-                        ->helperText('فعّل لإظهار البرنامج، أو أطفئ لإخفائه عن الموقع العام.')
+                        ->helperText('فعّل لنشر البرنامج على الموقع العام. التنبيهات المرتبطة بالنشر تُرسل فقط عند تفعيل هذا الخيار.')
                         ->default(false)
+                        ->live()
                         ->onColor('success')
                         ->offColor('gray'),
                 ]),
@@ -244,8 +244,10 @@ class TrainingProgramResource extends Resource
                 ->schema([
                     Toggle::make('notify_on_publish')
                         ->label('تنبيه عند نشر البرنامج')
-                        ->default(true)
-                        ->helperText('يُرسل للمستفيدين المهتمين بالبرامج الجديدة (حسب تفضيلاتهم).'),
+                        ->default(false)
+                        ->helperText(fn (Get $get): string => (bool) $get('visible_on_site')
+                            ? 'يُرسل داخل المنصة + بريد للمستفيدين الذين فعّلوا «تنبيهات البريد» في حساباتهم.'
+                            : 'مفعّل — يُرسل (داخل المنصة والبريد) عند تفعيل «ظاهر للزوار في الموقع».'),
 
                     Toggle::make('notify_registrants_on_update')
                         ->label('تنبيه المسجّلين عند تعديل البرنامج')
@@ -369,9 +371,8 @@ class TrainingProgramResource extends Resource
                         ->preload()
                         ->nullable()
                         ->visible($assignedToVisible)
-                        ->required(fn (?TrainingProgram $record): bool => $assignedToVisible($record))
                         ->dehydrated(fn (?TrainingProgram $record): bool => $assignedToVisible($record))
-                        ->helperText('يُعرض فقط عند عدم تعيين مالك للبرنامج؛ للمشرفين.'),
+                        ->helperText('اختياري — يُعرض للمشرفين عند عدم تعيين مالك للبرنامج.'),
                 ]),
         ];
     }

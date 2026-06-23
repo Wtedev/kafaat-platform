@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\TrainingProgramResource\Pages;
 
 use App\Enums\ProgramStatus;
+use App\Filament\Resources\Concerns\PreparesTrainingEntityFormData;
 use App\Filament\Resources\Pages\BaseEditRecord;
 use App\Filament\Resources\TrainingProgramResource;
 use App\Models\TrainingProgram;
@@ -23,6 +24,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class EditTrainingProgram extends BaseEditRecord
 {
+    use PreparesTrainingEntityFormData;
+
     protected static string $resource = TrainingProgramResource::class;
 
     protected function resolveRecord(int|string $key): Model
@@ -89,7 +92,9 @@ class EditTrainingProgram extends BaseEditRecord
 
         unset($data['visible_on_site']);
 
-        return $data;
+        return $this->dropEmptyTrainingSlug(
+            $this->stampTrainingEntityAuditFields($data),
+        );
     }
 
     /**

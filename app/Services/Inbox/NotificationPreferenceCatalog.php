@@ -67,7 +67,11 @@ final class NotificationPreferenceCatalog
     public static function systemAllowsEmail(InboxNotificationType $type): bool
     {
         return match ($type) {
-            InboxNotificationType::CertificateIssued => true,
+            InboxNotificationType::CertificateIssued,
+            InboxNotificationType::ProgramLaunched,
+            InboxNotificationType::LearningPathLaunched,
+            InboxNotificationType::NewsPublished,
+            InboxNotificationType::VolunteerOpportunityPublished => true,
             default => false,
         };
     }

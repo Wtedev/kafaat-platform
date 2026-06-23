@@ -4,6 +4,7 @@ namespace App\Services\Inbox;
 
 use App\Enums\InboxNotificationType;
 use App\Enums\NotificationTargetType;
+use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Inbox\NotificationMessage;
 use App\Models\Certificate;
@@ -133,7 +134,11 @@ class InboxNotificationService
             ->select(['id', 'name', 'email', 'role_type', 'notify_email', 'notification_settings'])
             ->chunkById(200, function (Collection $users) use ($message, $sentBy): void {
                 foreach ($users as $user) {
-                    if (! $this->userPreferences->wantsEmailForType($user, $message->type)) {
+                    $shouldEmail = $message->emailForCreatorAudience
+                        ? $this->userPreferences->wantsEmailForCreatorAudience($user, $message->type)
+                        : $this->userPreferences->wantsEmailForType($user, $message->type);
+
+                    if (! $shouldEmail) {
                         continue;
                     }
 
@@ -142,7 +147,7 @@ class InboxNotificationService
                         notification: new InboxNotificationEmail(
                             titleText: $message->title,
                             bodyText: $message->message,
-                            actionUrl: $this->emailActionUrl($user),
+                            actionUrl: $this->emailActionUrl($user, $message),
                         ),
                         templateKey: 'inbox.'.$message->type->value,
                         subject: $message->title,
@@ -152,9 +157,71 @@ class InboxNotificationService
             });
     }
 
-    private function emailActionUrl(User $user): ?string
+    private function emailActionUrl(User $user, NotificationMessage $message): ?string
     {
+        if ($message->context !== null && $user->isPortalUser()) {
+            $publicUrl = $this->publicUrlForNotificationContext($message->context);
+            if ($publicUrl !== null) {
+                return $publicUrl;
+            }
+        }
+
         return $user->isPortalUser() ? route('portal.notifications') : null;
+    }
+
+    /**
+     * @param  array{resource: string, id: int}  $context
+     */
+    private function publicUrlForNotificationContext(array $context): ?string
+    {
+        $resource = $context['resource'] ?? null;
+        $id = isset($context['id']) ? (int) $context['id'] : 0;
+
+        if ($id <= 0 || ! is_string($resource)) {
+            return null;
+        }
+
+        return match ($resource) {
+            'training_program' => ($program = TrainingProgram::query()->find($id)) !== null
+                && $program->status === ProgramStatus::Published
+                ? route('public.programs.show', $program->slug)
+                : null,
+            'learning_path' => ($path = LearningPath::query()->find($id)) !== null
+                ? route('public.paths.show', $path->slug)
+                : null,
+            'volunteer_opportunity' => ($opportunity = VolunteerOpportunity::query()->find($id)) !== null
+                ? route('public.volunteering.show', $opportunity->slug)
+                : null,
+            'news' => ($news = News::query()->find($id)) !== null
+                ? route('public.news.show', $news->slug)
+                : null,
+            default => null,
+        };
+    }
+
+    /**
+     * تنبيه جمهور يختاره المنشئ عند النشر — داخل المنصة + بريد لمن فعّل notify_email.
+     *
+     * @param  array{resource: string, id: int}  $context
+     */
+    private function creatorAudienceMessage(
+        InboxNotificationType $type,
+        string $title,
+        string $message,
+        ?int $senderId,
+        NotificationTargetType $targetType,
+        array $context,
+    ): NotificationMessage {
+        return new NotificationMessage(
+            type: $type,
+            title: $title,
+            message: $message,
+            senderId: $senderId,
+            targetType: $targetType,
+            context: $context,
+            emailable: true,
+            emailForCreatorAudience: true,
+        );
     }
 
     /**
@@ -171,7 +238,7 @@ class InboxNotificationService
         $portalIds = collect($this->resolveRecipientIds(NotificationTargetType::AllPortalUsers));
         $beneficiaryIds = $portalIds->diff($staffIds)->values()->all();
 
-        $msg = new NotificationMessage(
+        $msg = $this->creatorAudienceMessage(
             type: InboxNotificationType::ProgramLaunched,
             title: 'إطلاق برنامج: '.$program->title,
             message: 'تم نشر برنامج تدريبي جديد. يمكنك الاطلاع على التفاصيل والتسجيل من صفحة البرامج.',
@@ -227,7 +294,7 @@ class InboxNotificationService
         $excerpt = $news->excerpt ?? '';
         $body = $excerpt !== '' ? $excerpt : 'تم نشر خبر جديد على المنصة.';
 
-        $msgBeneficiary = new NotificationMessage(
+        $msgBeneficiary = $this->creatorAudienceMessage(
             type: InboxNotificationType::NewsPublished,
             title: 'نشر خبر: '.$news->title,
             message: $body,
@@ -505,7 +572,7 @@ class InboxNotificationService
         $portalIds = collect($this->resolveRecipientIds(NotificationTargetType::AllPortalUsers));
         $beneficiaryIds = $portalIds->diff($staffIds)->values()->all();
 
-        $msg = new NotificationMessage(
+        $msg = $this->creatorAudienceMessage(
             type: InboxNotificationType::LearningPathLaunched,
             title: 'مسار تعليمي جديد: '.$path->title,
             message: 'تم نشر مسار تعليمي جديد. يمكنك الاطلاع على التفاصيل والتسجيل من صفحة المسارات.',
@@ -533,7 +600,7 @@ class InboxNotificationService
         $staff = collect($this->resolveStaffUserIds());
         $audience = $trainees->merge($volunteers)->diff($staff)->unique()->values()->all();
 
-        $msg = new NotificationMessage(
+        $msg = $this->creatorAudienceMessage(
             type: InboxNotificationType::VolunteerOpportunityPublished,
             title: 'فرصة تطوعية جديدة: '.$opportunity->title,
             message: 'تم نشر فرصة تطوعية جديدة. يمكنك الاطلاع على التفاصيل من قسم التطوع.',

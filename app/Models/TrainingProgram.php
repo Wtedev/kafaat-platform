@@ -9,6 +9,8 @@ use App\Services\Inbox\InboxNotificationService;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\PublicDiskPath;
 use App\Support\StaffFilamentRoles;
+use App\Support\UniqueModelSlug;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,7 +19,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 class TrainingProgram extends Model
 {
@@ -67,8 +68,20 @@ class TrainingProgram extends Model
     protected static function booted(): void
     {
         static::creating(function (self $program) {
-            if (empty($program->slug)) {
-                $program->slug = Str::slug($program->title);
+            if (Auth::check()) {
+                $userId = Auth::id();
+                if ($program->created_by === null) {
+                    $program->created_by = $userId;
+                }
+                $program->updated_by = $userId;
+            }
+
+            if (blank($program->slug) && filled($program->title)) {
+                $program->slug = UniqueModelSlug::fromTitle(
+                    self::class,
+                    $program->title,
+                    fallbackPrefix: 'program',
+                );
             }
 
             // Default operational coordinator (assigned_to) for training_manager creating a program — not the same as owner_id.
@@ -83,6 +96,33 @@ class TrainingProgram extends Model
             if ($program->owner_id === null && filled($program->created_by)) {
                 $program->owner_id = $program->created_by;
             }
+
+            if ($program->status === ProgramStatus::Published && $program->published_at === null) {
+                $program->published_at = now();
+            }
+        });
+
+        static::updating(function (self $program): void {
+            if (Auth::check()) {
+                $program->updated_by = Auth::id();
+            }
+
+            if ($program->isDirty('status')) {
+                if ($program->status === ProgramStatus::Published && $program->published_at === null) {
+                    $program->published_at = now();
+                } elseif ($program->status === ProgramStatus::Draft) {
+                    $program->published_at = null;
+                }
+            }
+
+            if ($program->isDirty('slug') && blank($program->slug) && filled($program->title)) {
+                $program->slug = UniqueModelSlug::fromTitle(
+                    $program,
+                    $program->title,
+                    fallbackPrefix: 'program',
+                    ignoreId: $program->getKey(),
+                );
+            }
         });
 
         static::created(function (self $program): void {
@@ -90,20 +130,13 @@ class TrainingProgram extends Model
                 return;
             }
 
-            $actor = Auth::user();
-            app(InboxNotificationService::class)->programLaunched(
-                $program,
-                $actor instanceof User ? $actor : null,
-            );
+            self::dispatchProgramLaunchedNotification($program);
         });
 
         static::updated(function (self $program): void {
-            $inbox = app(InboxNotificationService::class);
-            $editor = Auth::user();
-
             if ($program->wasChanged('status') && $program->status === ProgramStatus::Published) {
                 if ($program->notify_on_publish) {
-                    $inbox->programLaunched($program, $editor instanceof User ? $editor : null);
+                    self::dispatchProgramLaunchedNotification($program);
                 }
 
                 return;
@@ -119,12 +152,41 @@ class TrainingProgram extends Model
             ];
 
             if ($program->wasChanged($watched)) {
-                $inbox->programUpdatedForRegistrants(
-                    $program,
-                    $editor instanceof User ? $editor : null,
-                );
+                self::dispatchProgramUpdatedForRegistrantsNotification($program);
             }
         });
+    }
+
+    private static function dispatchProgramLaunchedNotification(self $program): void
+    {
+        try {
+            $actor = Auth::user();
+            app(InboxNotificationService::class)->programLaunched(
+                $program,
+                $actor instanceof User ? $actor : null,
+            );
+        } catch (\Throwable $e) {
+            Log::error('فشل إرسال تنبيه إطلاق البرنامج.', [
+                'program_id' => $program->getKey(),
+                'exception' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    private static function dispatchProgramUpdatedForRegistrantsNotification(self $program): void
+    {
+        try {
+            $editor = Auth::user();
+            app(InboxNotificationService::class)->programUpdatedForRegistrants(
+                $program,
+                $editor instanceof User ? $editor : null,
+            );
+        } catch (\Throwable $e) {
+            Log::error('فشل إرسال تنبيه تحديث البرنامج للمسجّلين.', [
+                'program_id' => $program->getKey(),
+                'exception' => $e->getMessage(),
+            ]);
+        }
     }
 
     /** Public URL for catalog image (or placeholder). */

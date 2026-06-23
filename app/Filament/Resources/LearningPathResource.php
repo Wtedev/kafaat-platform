@@ -122,9 +122,8 @@ class LearningPathResource extends Resource
                 ->maxLength(255)
                 ->unique(ignoreRecord: true)
                 ->visible($adminBypass)
-                ->required($adminBypass)
                 ->dehydrated($adminBypass)
-                ->helperText('للمشرفين: يُستخدم في الروابط العامة.'),
+                ->helperText('للمشرفين: اختياري — يُولَّد تلقائياً من اسم المسار إن تُرك فارغاً.'),
 
             Textarea::make('description')
                 ->label('نبذة')
@@ -162,7 +161,7 @@ class LearningPathResource extends Resource
                 ->schema([
                     Toggle::make('notify_on_publish')
                         ->label('تنبيه عند نشر المسار')
-                        ->default(true)
+                        ->default(false)
                         ->helperText('يُرسل للمستفيدين المهتمين بالمسارات الجديدة (حسب تفضيلاتهم).'),
                 ]),
 

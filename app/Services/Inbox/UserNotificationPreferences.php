@@ -13,8 +13,9 @@ final class UserNotificationPreferences
      */
     public function resolvedCategories(User $user): array
     {
-        $stored = is_array($user->notification_settings['categories'] ?? null)
-            ? $user->notification_settings['categories']
+        $settings = $user->notification_settings;
+        $stored = is_array($settings) && is_array($settings['categories'] ?? null)
+            ? $settings['categories']
             : [];
 
         $out = [];
@@ -73,6 +74,22 @@ final class UserNotificationPreferences
         $prefs = $this->resolvedCategories($user);
 
         return ($prefs[$category->value]['email'] ?? false) === true;
+    }
+
+    /**
+     * بريد جمهور النشر عندما يختار المنشئ إرسال تنبيه (notify_on_publish): يكفي notify_email العام.
+     */
+    public function wantsEmailForCreatorAudience(User $user, InboxNotificationType $type): bool
+    {
+        if (! $user->wantsEmailNotifications()) {
+            return false;
+        }
+
+        if (! NotificationPreferenceCatalog::systemAllowsEmail($type)) {
+            return false;
+        }
+
+        return $this->wantsInApp($user, $type);
     }
 
     /**

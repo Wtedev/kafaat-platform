@@ -58,7 +58,10 @@ enum NotificationPreferenceCategory: string
     public function supportsEmail(): bool
     {
         return match ($this) {
-            self::Account => true,
+            self::Account,
+            self::ProgramsNew,
+            self::Volunteering,
+            self::News => true,
             default => false,
         };
     }

@@ -187,6 +187,28 @@ class UserResource extends Resource
                     ->label('نشط')
                     ->sortable(),
 
+                TextColumn::make('notify_email')
+                    ->label('إشعارات البريد')
+                    ->badge()
+                    ->getStateUsing(function (User $record): string {
+                        if (! filled($record->email)) {
+                            return 'بدون بريد';
+                        }
+
+                        return $record->notify_email ? 'مفعّل' : 'معطّل';
+                    })
+                    ->color(function (User $record): string {
+                        if (! filled($record->email)) {
+                            return 'gray';
+                        }
+
+                        return $record->notify_email ? 'success' : 'gray';
+                    })
+                    ->sortable()
+                    ->tooltip(fn (User $record): string => $record->wantsEmailNotifications()
+                        ? 'يستقبل نسخة بريدية عند نشر البرامج/المسارات (إذا اختار المنشئ إرسال تنبيه).'
+                        : 'لا يستقبل بريداً للتنبيهات العامة؛ التنبيهات داخل المنصة حسب إعداداته.'),
+
                 TextColumn::make('last_login_at')
                     ->label('آخر دخول')
                     ->dateTime()
@@ -212,6 +234,12 @@ class UserResource extends Resource
 
                 TernaryFilter::make('is_active')
                     ->label('نشط'),
+
+                TernaryFilter::make('notify_email')
+                    ->label('إشعارات البريد')
+                    ->trueLabel('مفعّل')
+                    ->falseLabel('معطّل')
+                    ->placeholder('الكل'),
             ])
             ->actions([
                 static::makeTableEditAction(),

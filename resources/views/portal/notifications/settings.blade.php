@@ -71,7 +71,7 @@
         <label for="notify_email" class="flex cursor-pointer items-start justify-between gap-4">
             <div class="text-right">
                 <p class="text-sm font-semibold text-gray-900">تفعيل البريد الإلكتروني</p>
-                <p class="mt-1 text-xs text-gray-500">يجب تفعيله لاستقبال نسخ بريدية للفئات التي تدعمها (حالياً: تسجيلاتي وشهاداتي). لن يُرسل بريد للأخبار أو البرامج الجديدة افتراضياً.</p>
+                <p class="mt-1 text-xs text-gray-500">يُفعّل نسخة بريدية للتنبيهات المهمة (تسجيلاتك، البرامج والمسارات الجديدة عند نشرها، الأخبار، التطوع). لن يُرسل بريد لمن يُبقي الخيار معطّلاً.</p>
                 <p class="mt-1 text-xs text-gray-400">{{ $user->email }}</p>
             </div>
             <input type="hidden" name="notify_email" value="0" />

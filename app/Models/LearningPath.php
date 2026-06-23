@@ -7,6 +7,7 @@ use App\Enums\PathStatus;
 use App\Enums\RegistrationStatus;
 use App\Services\Inbox\InboxNotificationService;
 use App\Support\PublicDiskPath;
+use App\Support\UniqueModelSlug;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class LearningPath extends Model
 {
@@ -47,12 +48,51 @@ class LearningPath extends Model
     protected static function booted(): void
     {
         static::creating(function (self $path) {
-            if (empty($path->slug)) {
-                $path->slug = Str::slug($path->title);
+            if (Auth::check()) {
+                $userId = Auth::id();
+                if ($path->created_by === null) {
+                    $path->created_by = $userId;
+                }
+                $path->updated_by = $userId;
+            }
+
+            if (blank($path->slug) && filled($path->title)) {
+                $path->slug = UniqueModelSlug::fromTitle(
+                    self::class,
+                    $path->title,
+                    fallbackPrefix: 'path',
+                );
             }
 
             if ($path->owner_id === null && filled($path->created_by)) {
                 $path->owner_id = $path->created_by;
+            }
+
+            if ($path->status === PathStatus::Published && $path->published_at === null) {
+                $path->published_at = now();
+            }
+        });
+
+        static::updating(function (self $path): void {
+            if (Auth::check()) {
+                $path->updated_by = Auth::id();
+            }
+
+            if ($path->isDirty('status')) {
+                if ($path->status === PathStatus::Published && $path->published_at === null) {
+                    $path->published_at = now();
+                } elseif ($path->status === PathStatus::Draft) {
+                    $path->published_at = null;
+                }
+            }
+
+            if ($path->isDirty('slug') && blank($path->slug) && filled($path->title)) {
+                $path->slug = UniqueModelSlug::fromTitle(
+                    $path,
+                    $path->title,
+                    fallbackPrefix: 'path',
+                    ignoreId: $path->getKey(),
+                );
             }
         });
 
@@ -61,12 +101,7 @@ class LearningPath extends Model
                 return;
             }
 
-            $actor = Auth::user();
-
-            app(InboxNotificationService::class)->learningPathLaunched(
-                $path,
-                $actor instanceof User ? $actor : null,
-            );
+            self::dispatchLearningPathLaunchedNotification($path);
         });
 
         static::updated(function (self $path): void {
@@ -78,13 +113,24 @@ class LearningPath extends Model
                 return;
             }
 
-            $actor = Auth::user();
+            self::dispatchLearningPathLaunchedNotification($path);
+        });
+    }
 
+    private static function dispatchLearningPathLaunchedNotification(self $path): void
+    {
+        try {
+            $actor = Auth::user();
             app(InboxNotificationService::class)->learningPathLaunched(
                 $path,
                 $actor instanceof User ? $actor : null,
             );
-        });
+        } catch (\Throwable $e) {
+            Log::error('فشل إرسال تنبيه إطلاق المسار.', [
+                'path_id' => $path->getKey(),
+                'exception' => $e->getMessage(),
+            ]);
+        }
     }
 
     /** Public URL for catalog image (or placeholder). */
