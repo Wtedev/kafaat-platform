@@ -75,15 +75,6 @@ $govActive = request()->routeIs('public.governance.*');
         padding-inline-start: 1.25rem;
     }
 
-    @keyframes sanad-point {
-        0%, 100% { transform: translateX(0); opacity: 0.65; }
-        50% { transform: translateX(-4px); opacity: 1; }
-    }
-
-    .sanad-pointer {
-        animation: sanad-point 1.15s ease-in-out infinite;
-    }
-
     .pub-nav-mobile-link {
         transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
     }
@@ -115,15 +106,9 @@ $govActive = request()->routeIs('public.governance.*');
                     عن كفاءات
                 </a>
 
-                <span class="inline-flex items-center gap-1 cursor-default select-none" aria-label="سند — قريباً">
-                    <span class="font-medium text-gray-400">سند</span>
-                    <span class="inline-flex items-center gap-0.5 ms-0.5">
-                        <svg class="sanad-pointer w-3 h-3 shrink-0" style="color:{{ $brand['sanad'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                        </svg>
-                        <span class="text-[10px] font-semibold" style="color:{{ $brand['sanad'] }}">قريباً</span>
-                    </span>
-                </span>
+                <a href="{{ route('public.paths.index') }}" class="pub-nav-link {{ request()->routeIs('public.paths.*') ? 'is-active' : '' }}">
+                    المسارات
+                </a>
 
                 <a href="{{ route('public.programs.index') }}" class="pub-nav-link {{ request()->routeIs('public.programs.*') ? 'is-active' : '' }}">
                     البرامج
@@ -199,15 +184,7 @@ $govActive = request()->routeIs('public.governance.*');
         <nav class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
             <a href="{{ $aboutHref }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">عن كفاءات</a>
 
-            <span class="block w-full px-4 py-2.5 rounded-xl text-sm font-medium text-right cursor-default select-none">
-                <span class="text-gray-400">سند</span>
-                <span class="inline-flex items-center gap-0.5 ms-1">
-                    <svg class="sanad-pointer w-3 h-3 shrink-0" style="color:{{ $brand['sanad'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                    </svg>
-                    <span class="text-[10px] font-semibold" style="color:{{ $brand['sanad'] }}">قريباً</span>
-                </span>
-            </span>
+            <a href="{{ route('public.paths.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">المسارات</a>
 
             <a href="{{ route('public.programs.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">البرامج</a>
             <a href="{{ route('public.volunteering.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">الفرص التطوعية</a>
