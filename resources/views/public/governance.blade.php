@@ -130,6 +130,55 @@ $tabs = array_merge(['board' => 'أعضاء مجلس الإدارة'], \App\Mode
 @foreach(\App\Models\GovernanceDocument::TYPES as $type => $typeLabel)
 <div id="tab-{{ $type }}" class="gov-tab-panel" role="tabpanel" aria-labelledby="gov-tabbtn-{{ $type }}">
     <h2 class="gov-panel-heading text-xl font-bold mb-5" style="color:#111827">{{ $typeLabel }}</h2>
+
+    @if($type === 'organizational_structure')
+        <x-org-chart />
+
+        @php $docs = $documents[$type] ?? collect(); @endphp
+        @if($docs->isNotEmpty())
+        <div class="mt-12 pt-8 border-t border-gray-200">
+            <h3 class="text-lg font-bold mb-5 text-right" style="color:#111827">وثائق الهيكل التنظيمي</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                @foreach($docs as $doc)
+                <div class="doc-card bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-right flex flex-col">
+                    @if($doc->coverImageUrl())
+                    <img src="{{ $doc->coverImageUrl() }}"
+                         alt="{{ $doc->title }}"
+                         class="w-full h-36 object-cover rounded-xl mb-4" />
+                    @endif
+
+                    @if($doc->document_date)
+                    <span class="text-xs font-medium mb-2 inline-block" style="color:#9CA3AF">
+                        {{ $doc->document_date->translatedFormat('d F Y') }}
+                    </span>
+                    @endif
+
+                    <h3 class="text-base font-bold mb-2 leading-snug flex-1" style="color:#111827">{{ $doc->title }}</h3>
+
+                    @if($doc->description)
+                    <p class="text-sm leading-relaxed mb-4" style="color:#6B7280">{{ Str::limit($doc->description, 120) }}</p>
+                    @endif
+
+                    @php $url = $doc->filePublicUrl(); @endphp
+                    @if($url)
+                    <a href="{{ $url }}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="mt-auto inline-flex items-center gap-2 text-sm font-semibold rounded-xl px-4 py-2 transition-all duration-200 hover:-translate-y-0.5"
+                       style="background:#e9eff6; color:#335483">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        تنزيل / عرض
+                    </a>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+    @else
     @php $docs = $documents[$type] ?? collect(); @endphp
     @if($docs->isEmpty())
     <div class="text-center py-20">
@@ -180,6 +229,7 @@ $tabs = array_merge(['board' => 'أعضاء مجلس الإدارة'], \App\Mode
         </div>
         @endforeach
     </div>
+    @endif
     @endif
 </div>
 @endforeach
