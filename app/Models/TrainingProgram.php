@@ -5,7 +5,8 @@ namespace App\Models;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
-use App\Services\Inbox\InboxNotificationService;
+use App\Jobs\SendTrainingProgramLaunchedNotifications;
+use App\Models\User;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\PublicDiskPath;
 use App\Support\StaffFilamentRoles;
@@ -161,12 +162,13 @@ class TrainingProgram extends Model
     {
         try {
             $actor = Auth::user();
-            app(InboxNotificationService::class)->programLaunched(
-                $program,
-                $actor instanceof User ? $actor : null,
-            );
+
+            SendTrainingProgramLaunchedNotifications::dispatch(
+                $program->id,
+                $actor instanceof User ? $actor->id : null,
+            )->afterCommit();
         } catch (\Throwable $e) {
-            Log::error('فشل إرسال تنبيه إطلاق البرنامج.', [
+            Log::error('تعذّر جدولة تنبيه إطلاق البرنامج.', [
                 'program_id' => $program->getKey(),
                 'exception' => $e->getMessage(),
             ]);
@@ -177,7 +179,7 @@ class TrainingProgram extends Model
     {
         try {
             $editor = Auth::user();
-            app(InboxNotificationService::class)->programUpdatedForRegistrants(
+            app(\App\Services\Inbox\InboxNotificationService::class)->programUpdatedForRegistrants(
                 $program,
                 $editor instanceof User ? $editor : null,
             );

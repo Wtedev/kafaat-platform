@@ -5,7 +5,8 @@ namespace App\Models;
 use App\Enums\LearningPathKind;
 use App\Enums\PathStatus;
 use App\Enums\RegistrationStatus;
-use App\Services\Inbox\InboxNotificationService;
+use App\Jobs\SendLearningPathLaunchedNotifications;
+use App\Models\User;
 use App\Support\PublicDiskPath;
 use App\Support\UniqueModelSlug;
 use Illuminate\Database\Eloquent\Builder;
@@ -121,12 +122,13 @@ class LearningPath extends Model
     {
         try {
             $actor = Auth::user();
-            app(InboxNotificationService::class)->learningPathLaunched(
-                $path,
-                $actor instanceof User ? $actor : null,
-            );
+
+            SendLearningPathLaunchedNotifications::dispatch(
+                $path->id,
+                $actor instanceof User ? $actor->id : null,
+            )->afterCommit();
         } catch (\Throwable $e) {
-            Log::error('فشل إرسال تنبيه إطلاق المسار.', [
+            Log::error('تعذّر جدولة تنبيه إطلاق المسار.', [
                 'path_id' => $path->getKey(),
                 'exception' => $e->getMessage(),
             ]);
