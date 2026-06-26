@@ -240,7 +240,7 @@ class TrainingProgramSeeder extends Seeder
                 'title' => 'إدارة الفرق وبناء الثقافة',
                 'slug' => 'idarat-alfuraq-wa-bina-althaqafa',
                 'description' => $desc('إدارة الفرق'),
-                'kind' => TrainingProgramKind::Bootcamp,
+                'kind' => TrainingProgramKind::Workshop,
                 'capacity' => 40,
                 'start_date' => Carbon::create($y, 6, 1),
                 'end_date' => Carbon::create($y, 9, 30),

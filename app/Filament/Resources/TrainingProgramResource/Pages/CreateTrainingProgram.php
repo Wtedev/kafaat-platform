@@ -6,6 +6,7 @@ use App\Enums\ProgramStatus;
 use App\Filament\Resources\Concerns\PreparesTrainingEntityFormData;
 use App\Filament\Resources\Pages\BaseCreateRecord;
 use App\Filament\Resources\TrainingProgramResource;
+use App\Filament\Support\TrainingEntityFormSupport;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 
@@ -26,26 +27,20 @@ class CreateTrainingProgram extends BaseCreateRecord
      */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $linked = (bool) ($data['is_linked_to_path'] ?? false);
-        $unlimited = (bool) ($data['capacity_unlimited'] ?? false);
+        unset($data['editors']);
 
-        unset($data['is_linked_to_path'], $data['capacity_unlimited'], $data['editors']);
+        TrainingEntityFormSupport::assertValidProgramScheduleOrFail($data);
 
-        if ($unlimited) {
-            $data['capacity'] = null;
-        }
-
-        if (! $linked) {
-            $data['learning_path_id'] = null;
-            $data['path_sort_order'] = null;
-        }
-
-        $visible = (bool) ($data['visible_on_site'] ?? false);
-        $data['status'] = $visible
+        $wantPublished = TrainingEntityFormSupport::wantsPublishedStatus($data);
+        $data['status'] = $wantPublished && $this->canPublishNewTrainingProgram()
             ? ProgramStatus::Published->value
             : ProgramStatus::Draft->value;
 
-        unset($data['visible_on_site']);
+        $data = TrainingEntityFormSupport::applyPublicationSchedule($data);
+
+        $data = TrainingEntityFormSupport::applyCapacityUnlimited($data);
+        $data = TrainingEntityFormSupport::applyAudienceNotifications($data);
+        $data = TrainingEntityFormSupport::stampOwnerFromCreator($data);
 
         return $this->dropEmptyTrainingSlug(
             $this->stampTrainingEntityAuditFields($data),

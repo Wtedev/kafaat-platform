@@ -2,6 +2,13 @@
 
 namespace App\Filament\Resources\Concerns;
 
+use App\Enums\PathStatus;
+use App\Enums\ProgramStatus;
+use App\Models\LearningPath;
+use App\Models\TrainingProgram;
+use BackedEnum;
+use Illuminate\Database\Eloquent\Model;
+
 trait PreparesTrainingEntityFormData
 {
     /**
@@ -36,5 +43,62 @@ trait PreparesTrainingEntityFormData
         }
 
         return $data;
+    }
+
+    protected function resolveProgramPublicationStatus(TrainingProgram $record, bool $visibleOnSite): ProgramStatus
+    {
+        return $this->resolvePublicationStatus($record, $visibleOnSite, ProgramStatus::class, 'publish');
+    }
+
+    protected function resolvePathPublicationStatus(LearningPath $record, bool $visibleOnSite): PathStatus
+    {
+        return $this->resolvePublicationStatus($record, $visibleOnSite, PathStatus::class, 'publish');
+    }
+
+    protected function canPublishNewTrainingProgram(): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null && $user->can('publish', new TrainingProgram);
+    }
+
+    protected function canPublishNewLearningPath(): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null && $user->can('publish', new LearningPath);
+    }
+
+    /**
+     * @param  class-string<ProgramStatus|PathStatus>  $statusEnum
+     */
+    private function resolvePublicationStatus(
+        Model $record,
+        bool $visibleOnSite,
+        string $statusEnum,
+        string $publishAbility,
+    ): BackedEnum {
+        /** @var ProgramStatus|PathStatus $current */
+        $current = $record->status;
+        $wasArchived = $current === $statusEnum::Archived;
+        $user = auth()->user();
+
+        if ($wasArchived && ! $visibleOnSite) {
+            return $statusEnum::Archived;
+        }
+
+        if ($visibleOnSite) {
+            if ($current === $statusEnum::Published || ($user?->can($publishAbility, $record) ?? false)) {
+                return $statusEnum::Published;
+            }
+
+            return $statusEnum::Draft;
+        }
+
+        if ($current === $statusEnum::Published && ! ($user?->can($publishAbility, $record) ?? false)) {
+            return $statusEnum::Published;
+        }
+
+        return $statusEnum::Draft;
     }
 }

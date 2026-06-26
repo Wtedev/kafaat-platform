@@ -82,8 +82,6 @@ class LearningPath extends Model
             if ($path->isDirty('status')) {
                 if ($path->status === PathStatus::Published && $path->published_at === null) {
                     $path->published_at = now();
-                } elseif ($path->status === PathStatus::Draft) {
-                    $path->published_at = null;
                 }
             }
 
@@ -145,7 +143,13 @@ class LearningPath extends Model
 
     public function scopePublished(Builder $query): void
     {
-        $query->where('status', PathStatus::Published);
+        $now = now();
+
+        $query->where('status', PathStatus::Published)
+            ->where(function (Builder $q) use ($now): void {
+                $q->whereNull('published_at')
+                    ->orWhere('published_at', '<=', $now);
+            });
     }
 
     public function scopeDraft(Builder $query): void

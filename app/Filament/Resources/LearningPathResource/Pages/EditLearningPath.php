@@ -6,6 +6,7 @@ use App\Enums\PathStatus;
 use App\Filament\Resources\Concerns\PreparesTrainingEntityFormData;
 use App\Filament\Resources\LearningPathResource;
 use App\Filament\Resources\Pages\BaseEditRecord;
+use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\LearningPath;
 use App\Policies\LearningPathPolicy;
 use Filament\Actions\Action;
@@ -48,7 +49,13 @@ class EditLearningPath extends BaseEditRecord
     {
         /** @var LearningPath $record */
         $record = $this->getRecord();
-        $data['visible_on_site'] = $record->status === PathStatus::Published;
+        $data['publish_immediately'] = TrainingEntityFormSupport::resolvePublishImmediatelyFromRecord(
+            $record->status,
+            $record->published_at,
+            PathStatus::Published,
+        );
+        $data['published_at'] = $record->published_at?->timezone(config('app.timezone'))->format('Y-m-d');
+        $data['capacity_unlimited'] = $record->capacity === null;
 
         return $data;
     }
@@ -61,19 +68,14 @@ class EditLearningPath extends BaseEditRecord
     {
         /** @var LearningPath $path */
         $path = $this->getRecord();
-        $wasArchived = $path->status === PathStatus::Archived;
+        $wantPublished = TrainingEntityFormSupport::wantsPublishedStatus($data);
 
-        $visible = (bool) ($data['visible_on_site'] ?? false);
+        $data['status'] = $this->resolvePathPublicationStatus($path, $wantPublished)->value;
 
-        if ($wasArchived && ! $visible) {
-            $data['status'] = PathStatus::Archived->value;
-        } else {
-            $data['status'] = $visible
-                ? PathStatus::Published->value
-                : PathStatus::Draft->value;
-        }
+        $preservePublishTime = $path->status === PathStatus::Published && TrainingEntityFormSupport::wantsImmediatePublication($data);
+        $data = TrainingEntityFormSupport::applyPublicationSchedule($data, $preservePublishTime);
 
-        unset($data['visible_on_site']);
+        $data = TrainingEntityFormSupport::applyCapacityUnlimited($data);
 
         return $this->dropEmptyTrainingSlug(
             $this->stampTrainingEntityAuditFields($data),

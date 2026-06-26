@@ -6,6 +6,7 @@ use App\Enums\ProgramStatus;
 use App\Filament\Resources\Concerns\PreparesTrainingEntityFormData;
 use App\Filament\Resources\Pages\BaseEditRecord;
 use App\Filament\Resources\TrainingProgramResource;
+use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\TrainingProgram;
 use App\Policies\TrainingProgramPolicy;
 use Filament\Actions\Action;
@@ -49,9 +50,15 @@ class EditTrainingProgram extends BaseEditRecord
     {
         /** @var TrainingProgram $record */
         $record = $this->getRecord();
-        $data['visible_on_site'] = $record->status === ProgramStatus::Published;
+        $data['publish_immediately'] = TrainingEntityFormSupport::resolvePublishImmediatelyFromRecord(
+            $record->status,
+            $record->published_at,
+            ProgramStatus::Published,
+        );
+        $data['published_at'] = $record->published_at?->timezone(config('app.timezone'))->format('Y-m-d');
         $data['is_linked_to_path'] = $record->learning_path_id !== null;
         $data['capacity_unlimited'] = $record->capacity === null;
+        $data['notify_audience'] = $record->notify_on_publish || $record->notify_milestones;
         $data['editors'] = $record->editors()->pluck('users.id')->all();
 
         return $data;
@@ -65,32 +72,31 @@ class EditTrainingProgram extends BaseEditRecord
     {
         /** @var TrainingProgram $program */
         $program = $this->getRecord();
-        $wasArchived = $program->status === ProgramStatus::Archived;
-        $visible = (bool) ($data['visible_on_site'] ?? false);
+        $wantPublished = TrainingEntityFormSupport::wantsPublishedStatus($data);
 
         $linked = (bool) ($data['is_linked_to_path'] ?? false);
-        $unlimited = (bool) ($data['capacity_unlimited'] ?? false);
 
         unset($data['is_linked_to_path'], $data['capacity_unlimited']);
-
-        if ($unlimited) {
-            $data['capacity'] = null;
-        }
 
         if (! $linked) {
             $data['learning_path_id'] = null;
             $data['path_sort_order'] = null;
-        }
-
-        if ($wasArchived && ! $visible) {
-            $data['status'] = ProgramStatus::Archived->value;
         } else {
-            $data['status'] = $visible
-                ? ProgramStatus::Published->value
-                : ProgramStatus::Draft->value;
+            $data['capacity'] = null;
+            $data['registration_start'] = null;
+            $data['registration_end'] = null;
+            $data['weekdays'] = null;
         }
 
-        unset($data['visible_on_site']);
+        TrainingEntityFormSupport::assertValidProgramScheduleOrFail($data, showRegistration: ! $linked);
+
+        $data['status'] = $this->resolveProgramPublicationStatus($program, $wantPublished)->value;
+
+        $preservePublishTime = $program->status === ProgramStatus::Published && TrainingEntityFormSupport::wantsImmediatePublication($data);
+        $data = TrainingEntityFormSupport::applyPublicationSchedule($data, $preservePublishTime);
+
+        $data = TrainingEntityFormSupport::applyCapacityUnlimited($data);
+        $data = TrainingEntityFormSupport::applyAudienceNotifications($data);
 
         return $this->dropEmptyTrainingSlug(
             $this->stampTrainingEntityAuditFields($data),
@@ -109,7 +115,7 @@ class EditTrainingProgram extends BaseEditRecord
     {
         return $schema
             ->components([
-                Text::make('تعديل البيانات الأساسية وفريق العمل من هذه الصفحة؛ إدارة التسجيلات من صفحة عرض البرنامج.')
+                Text::make('عدّل البيانات الأساسية والمواعيد والنشر من هذه الصفحة؛ إدارة التسجيلات من صفحة عرض البرنامج.')
                     ->columnSpanFull(),
                 $this->getFormContentComponent(),
             ]);

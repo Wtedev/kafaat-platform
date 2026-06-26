@@ -39,8 +39,9 @@
                             @php
                                 $staff = $branchStaff($dept);
                                 $subDepts = $dept['sub_departments'] ?? [];
+                                $teamGroups = $dept['team_groups'] ?? [];
                                 $isGroupOnly = ! empty($dept['group_only']);
-                                $hasBelow = $subDepts !== [] || $staff !== [];
+                                $hasBelow = $subDepts !== [] || $staff !== [] || $teamGroups !== [];
                             @endphp
                             <li class="oc-node oc-node--branch {{ $subDepts !== [] ? 'oc-node--has-subdepts' : '' }}">
                                 <div class="oc-branch-head">
@@ -92,6 +93,16 @@
                                                         @endforeach
                                                     </ul>
                                                 @endif
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @elseif($teamGroups !== [])
+                                    <ul class="oc-level oc-level--staff">
+                                        @foreach($teamGroups as $team)
+                                            <li class="oc-node oc-node--leaf">
+                                                <div class="oc-card oc-card--staff oc-card--team">
+                                                    <p class="oc-card__name oc-card__name--xs">{{ $team }}</p>
+                                                </div>
                                             </li>
                                         @endforeach
                                     </ul>
@@ -397,6 +408,18 @@
         padding: 0.6rem 0.45rem 0.55rem;
         border-radius: 0.85rem;
         background: #fafbfc;
+    }
+
+    .oc-card--team {
+        text-align: center;
+        border-style: dashed;
+        border-color: color-mix(in srgb, var(--oc-brand) 22%, #d1d5db);
+        background: #f8fafc;
+    }
+
+    .oc-card--team .oc-card__name {
+        color: #4b5563;
+        font-weight: 600;
     }
 
     .oc-card--unit {

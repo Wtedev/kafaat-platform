@@ -98,6 +98,10 @@ class TrainingProgram extends Model
                 $program->owner_id = $program->created_by;
             }
 
+            if ($program->learning_path_id !== null) {
+                $program->clearStandaloneEnrollmentFields();
+            }
+
             if ($program->status === ProgramStatus::Published && $program->published_at === null) {
                 $program->published_at = now();
             }
@@ -111,8 +115,6 @@ class TrainingProgram extends Model
             if ($program->isDirty('status')) {
                 if ($program->status === ProgramStatus::Published && $program->published_at === null) {
                     $program->published_at = now();
-                } elseif ($program->status === ProgramStatus::Draft) {
-                    $program->published_at = null;
                 }
             }
 
@@ -123,6 +125,10 @@ class TrainingProgram extends Model
                     fallbackPrefix: 'program',
                     ignoreId: $program->getKey(),
                 );
+            }
+
+            if ($program->isDirty('learning_path_id') && $program->learning_path_id !== null) {
+                $program->clearStandaloneEnrollmentFields();
             }
         });
 
@@ -135,25 +141,8 @@ class TrainingProgram extends Model
         });
 
         static::updated(function (self $program): void {
-            if ($program->wasChanged('status') && $program->status === ProgramStatus::Published) {
-                if ($program->notify_on_publish) {
-                    self::dispatchProgramLaunchedNotification($program);
-                }
-
-                return;
-            }
-
-            if ($program->status !== ProgramStatus::Published || ! $program->notify_registrants_on_update) {
-                return;
-            }
-
-            $watched = [
-                'title', 'slug', 'description', 'start_date', 'end_date',
-                'registration_start', 'registration_end', 'capacity', 'weekdays', 'learning_path_id',
-            ];
-
-            if ($program->wasChanged($watched)) {
-                self::dispatchProgramUpdatedForRegistrantsNotification($program);
+            if ($program->wasChanged('status') && $program->status === ProgramStatus::Published && $program->notify_on_publish) {
+                self::dispatchProgramLaunchedNotification($program);
             }
         });
     }
@@ -175,20 +164,15 @@ class TrainingProgram extends Model
         }
     }
 
-    private static function dispatchProgramUpdatedForRegistrantsNotification(self $program): void
+    /**
+     * برامج المسار لا تملك تسجيلاً مستقلاً — تُدار عبر المسار.
+     */
+    public function clearStandaloneEnrollmentFields(): void
     {
-        try {
-            $editor = Auth::user();
-            app(\App\Services\Inbox\InboxNotificationService::class)->programUpdatedForRegistrants(
-                $program,
-                $editor instanceof User ? $editor : null,
-            );
-        } catch (\Throwable $e) {
-            Log::error('فشل إرسال تنبيه تحديث البرنامج للمسجّلين.', [
-                'program_id' => $program->getKey(),
-                'exception' => $e->getMessage(),
-            ]);
-        }
+        $this->capacity = null;
+        $this->registration_start = null;
+        $this->registration_end = null;
+        $this->weekdays = null;
     }
 
     /** Public URL for catalog image (or placeholder). */
@@ -201,7 +185,13 @@ class TrainingProgram extends Model
 
     public function scopePublished(Builder $query): void
     {
-        $query->where('status', ProgramStatus::Published);
+        $now = now();
+
+        $query->where('status', ProgramStatus::Published)
+            ->where(function (Builder $q) use ($now): void {
+                $q->whereNull('published_at')
+                    ->orWhere('published_at', '<=', $now);
+            });
     }
 
     /**

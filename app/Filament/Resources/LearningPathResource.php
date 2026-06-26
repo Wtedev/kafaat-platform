@@ -11,15 +11,13 @@ use App\Filament\Resources\LearningPathResource\RelationManagers\LearningPathEdi
 use App\Filament\Resources\LearningPathResource\RelationManagers\PathCertificatesRelationManager;
 use App\Filament\Resources\LearningPathResource\RelationManagers\PathRegistrationsRelationManager;
 use App\Filament\Resources\LearningPathResource\RelationManagers\TrainingProgramsRelationManager;
+use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\LearningPath;
 use App\Support\PublicDiskPath;
-use App\Support\TrainingEntityAuthorization;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
@@ -49,9 +47,9 @@ class LearningPathResource extends Resource
 
     protected static ?string $navigationLabel = 'المسارات';
 
-    protected static ?string $modelLabel = 'مسار تعليمي';
+    protected static ?string $modelLabel = 'مسار تدريبي';
 
-    protected static ?string $pluralModelLabel = 'المسارات';
+    protected static ?string $pluralModelLabel = 'المسارات التدريبية';
 
     protected static ?int $navigationSort = 1;
 
@@ -84,19 +82,94 @@ class LearningPathResource extends Resource
 
     public static function learningPathImageUploadField(): FileUpload
     {
-        return FileUpload::make('image')
-            ->label('صورة المسار')
-            ->image()
-            ->disk('public')
-            ->directory('learning-paths/images')
-            ->visibility('public')
-            ->maxSize(4096)
-            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
-            ->imagePreviewHeight('14rem')
-            ->imageResizeMode('cover')
-            ->nullable()
-            ->helperText('JPEG أو PNG أو WebP — حتى 4 ميجابايت. اختياري.')
-            ->columnSpanFull();
+        return TrainingEntityFormSupport::coverImageUpload('learning-paths/images');
+    }
+
+    /**
+     * @return array<int, Component>
+     */
+    protected static function learningPathCreateSections(): array
+    {
+        return [
+            Section::make('البيانات الأساسية')
+                ->columns(2)
+                ->schema([
+                    TextInput::make('title')
+                        ->label('اسم المسار')
+                        ->required()
+                        ->maxLength(255)
+                        ->columnSpanFull(),
+
+                    Select::make('path_kind')
+                        ->label('نوع المسار')
+                        ->options(LearningPathKind::options())
+                        ->default(fn (): string => static::defaultPathKindFromRequest())
+                        ->required()
+                        ->native(false)
+                        ->columnSpanFull(),
+
+                    TrainingEntityFormSupport::descriptionField(),
+
+                    ...TrainingEntityFormSupport::capacityFields(),
+                ]),
+
+            Section::make('النشر')
+                ->schema(TrainingEntityFormSupport::publicationInlineFields()),
+
+            Section::make('التنبيهات')
+                ->schema([
+                    Toggle::make('notify_on_publish')
+                        ->label('إشعار عند النشر')
+                        ->default(false)
+                        ->helperText('يُرسل للمستفيدين المهتمين عند نشر المسار (حسب تفضيلاتهم).')
+                        ->columnSpanFull(),
+                ]),
+
+            TrainingEntityFormSupport::staffSectionForCreate(),
+        ];
+    }
+
+    /**
+     * @return array<int, Component>
+     */
+    protected static function learningPathEditSections(): array
+    {
+        return [
+            Section::make('البيانات الأساسية')
+                ->columns(2)
+                ->schema([
+                    TextInput::make('title')
+                        ->label('اسم المسار')
+                        ->required()
+                        ->maxLength(255)
+                        ->columnSpanFull(),
+
+                    Select::make('path_kind')
+                        ->label('نوع المسار')
+                        ->options(LearningPathKind::options())
+                        ->required()
+                        ->native(false)
+                        ->columnSpanFull(),
+
+                    TrainingEntityFormSupport::descriptionField(),
+
+                    ...TrainingEntityFormSupport::capacityFields(),
+                ]),
+
+            Section::make('النشر')
+                ->schema(TrainingEntityFormSupport::publicationInlineFields()),
+
+            Section::make('التنبيهات')
+                ->schema([
+                    Toggle::make('notify_on_publish')
+                        ->label('إشعار عند النشر')
+                        ->default(false)
+                        ->helperText('يُرسل للمستفيدين المهتمين عند نشر المسار (حسب تفضيلاتهم).')
+                        ->columnSpanFull(),
+                ]),
+
+            TrainingEntityFormSupport::staffSectionForEdit(),
+        ];
     }
 
     /**
@@ -104,115 +177,24 @@ class LearningPathResource extends Resource
      */
     protected static function learningPathFormSections(bool $includeImageInBasicSection = true): array
     {
-        $adminBypass = fn (): bool => TrainingEntityAuthorization::adminBypass(auth()->user());
-
-        $basicFields = [
-            Hidden::make('path_kind')
-                ->dehydrated()
-                ->default(fn (): string => static::defaultPathKindFromRequest()),
-
-            TextInput::make('title')
-                ->label('اسم المسار')
-                ->required()
-                ->maxLength(255)
-                ->columnSpanFull(),
-
-            TextInput::make('slug')
-                ->label('الرابط المختصر')
-                ->maxLength(255)
-                ->unique(ignoreRecord: true)
-                ->visible($adminBypass)
-                ->dehydrated($adminBypass)
-                ->helperText('للمشرفين: اختياري — يُولَّد تلقائياً من اسم المسار إن تُرك فارغاً.'),
-
-            Textarea::make('description')
-                ->label('نبذة')
-                ->rows(4)
-                ->columnSpanFull(),
-
-            TextInput::make('capacity')
-                ->label('السعة الاستيعابية للمسار')
-                ->numeric()
-                ->minValue(1)
-                ->nullable()
-                ->helperText('اتركه فارغاً لعدد غير محدود من المسجلين.'),
-        ];
-
-        if ($includeImageInBasicSection) {
-            $basicFields[] = static::learningPathImageUploadField();
-        }
-
-        return [
-            Section::make('البيانات الأساسية')
-                ->columns(2)
-                ->schema($basicFields),
-
-            Section::make('الظهور في الموقع')
-                ->schema([
-                    Toggle::make('visible_on_site')
-                        ->label('ظاهر للزوار في الموقع')
-                        ->helperText('فعّل لإظهار المسار، أو أطفئ لإخفائه عن الموقع العام.')
-                        ->default(false)
-                        ->onColor('success')
-                        ->offColor('gray'),
-                ]),
-
-            Section::make('التنبيهات')
-                ->schema([
-                    Toggle::make('notify_on_publish')
-                        ->label('تنبيه عند نشر المسار')
-                        ->default(false)
-                        ->helperText('يُرسل للمستفيدين المهتمين بالمسارات الجديدة (حسب تفضيلاتهم).'),
-                ]),
-
-            Section::make('فريق العمل')
-                ->description('المسؤول يُعيَّن تلقائياً لمن ينشئ المسار.')
-                ->visible(fn (?LearningPath $record): bool => $record !== null && $record->exists)
-                ->schema([
-                    TextEntry::make('owner_readonly')
-                        ->label('المسؤول')
-                        ->visible(fn (): bool => ! $adminBypass())
-                        ->getStateUsing(function (LearningPath $record): string {
-                            if ($record->owner_id !== null && $record->owner !== null) {
-                                return $record->owner->name;
-                            }
-
-                            if ($record->created_by !== null && $record->creator !== null) {
-                                return $record->creator->name;
-                            }
-
-                            return '—';
-                        }),
-
-                    Select::make('owner_id')
-                        ->label('المسؤول')
-                        ->relationship('owner', 'name')
-                        ->searchable()
-                        ->preload()
-                        ->nullable()
-                        ->visible($adminBypass)
-                        ->dehydrated($adminBypass)
-                        ->helperText('لمدير النظام فقط.'),
-                ]),
-        ];
+        return static::learningPathEditSections();
     }
 
     public static function createForm(Schema $schema): Schema
     {
-        return static::learningPathTwoColumnForm($schema, 'fi-learning-path-create-layout items-start gap-6 lg:gap-8');
+        return static::learningPathTwoColumnForm($schema, 'fi-learning-path-create-layout items-start gap-6 lg:gap-8', forEdit: false);
     }
 
-    /**
-     * نموذج التعديل: نفس تخطيط الإنشاء (بدون تكرار حقل الصورة في العمود الأيمن).
-     */
     public static function editForm(Schema $schema): Schema
     {
-        return static::learningPathTwoColumnForm($schema, 'fi-learning-path-edit-layout items-start gap-6 lg:gap-8');
+        return static::learningPathTwoColumnForm($schema, 'fi-learning-path-edit-layout items-start gap-6 lg:gap-8', forEdit: true);
     }
 
-    protected static function learningPathTwoColumnForm(Schema $schema, string $layoutClass): Schema
+    protected static function learningPathTwoColumnForm(Schema $schema, string $layoutClass, bool $forEdit): Schema
     {
-        $sections = static::learningPathFormSections(includeImageInBasicSection: false);
+        $sections = $forEdit
+            ? static::learningPathEditSections()
+            : static::learningPathCreateSections();
 
         return $schema->components([
             Grid::make(['default' => 1, 'lg' => 2])
@@ -222,7 +204,7 @@ class LearningPathResource extends Resource
                 ])
                 ->schema([
                     Group::make([
-                        Text::make('صورة المسار')
+                        Text::make('صورة الغلاف')
                             ->size(TextSize::ExtraSmall)
                             ->weight(FontWeight::SemiBold)
                             ->color('gray'),
@@ -244,7 +226,7 @@ class LearningPathResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return $schema->components(static::learningPathFormSections(includeImageInBasicSection: true));
+        return static::createForm($schema);
     }
 
     public static function infolist(Schema $schema): Schema
@@ -258,12 +240,12 @@ class LearningPathResource extends Resource
                             ->columnSpanFull(),
 
                         TextEntry::make('description')
-                            ->label('نبذة عن المسار')
+                            ->label('الوصف')
                             ->placeholder('—')
                             ->columnSpanFull(),
 
                         TextEntry::make('path_publication_status')
-                            ->label('الظهور في الموقع')
+                            ->label('حالة النشر')
                             ->getStateUsing(fn (LearningPath $record): string => $record->status === PathStatus::Published
                                 ? 'ظاهر'
                                 : 'مخفي'),
@@ -283,13 +265,23 @@ class LearningPathResource extends Resource
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['owner', 'creator'])->withCount(['programs', 'registrations']))
             ->columns([
                 TextColumn::make('title')
-                    ->label('عنوان المسار')
+                    ->label('اسم المسار')
                     ->searchable()
                     ->sortable()
                     ->wrap(),
 
+                TextColumn::make('path_kind')
+                    ->label('نوع المسار')
+                    ->formatStateUsing(function ($state): string {
+                        if ($state instanceof LearningPathKind) {
+                            return $state->label();
+                        }
+
+                        return LearningPathKind::tryFrom((string) $state)?->label() ?? '—';
+                    }),
+
                 TextColumn::make('responsible_display')
-                    ->label('المسؤول')
+                    ->label('الموظف المسؤول')
                     ->getStateUsing(function (LearningPath $record): string {
                         if ($record->owner_id !== null && $record->owner !== null) {
                             return $record->owner->name;

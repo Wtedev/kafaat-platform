@@ -7,17 +7,28 @@ enum TrainingProgramKind: string
     case Course = 'course';
     case Session = 'session';
     case Workshop = 'workshop';
-    case Bootcamp = 'bootcamp';
     case Event = 'event';
 
     public function label(): string
     {
         return match ($this) {
-            self::Course => 'دورة',
+            self::Course => 'دورة تدريبية',
             self::Session => 'لقاء',
             self::Workshop => 'ورشة عمل',
-            self::Bootcamp => 'معسكر تدريبي',
             self::Event => 'فعالية',
         };
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function options(): array
+    {
+        $out = [];
+        foreach (self::cases() as $case) {
+            $out[$case->value] = $case->label();
+        }
+
+        return $out;
     }
 }

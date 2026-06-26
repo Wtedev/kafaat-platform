@@ -6,6 +6,7 @@ use App\Enums\PathStatus;
 use App\Filament\Resources\Concerns\PreparesTrainingEntityFormData;
 use App\Filament\Resources\LearningPathResource;
 use App\Filament\Resources\Pages\BaseCreateRecord;
+use App\Filament\Support\TrainingEntityFormSupport;
 use Filament\Schemas\Schema;
 
 class CreateLearningPath extends BaseCreateRecord
@@ -25,12 +26,15 @@ class CreateLearningPath extends BaseCreateRecord
      */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $visible = (bool) ($data['visible_on_site'] ?? false);
-        $data['status'] = $visible
+        $wantPublished = TrainingEntityFormSupport::wantsPublishedStatus($data);
+        $data['status'] = $wantPublished && $this->canPublishNewLearningPath()
             ? PathStatus::Published->value
             : PathStatus::Draft->value;
 
-        unset($data['visible_on_site']);
+        $data = TrainingEntityFormSupport::applyPublicationSchedule($data);
+
+        $data = TrainingEntityFormSupport::applyCapacityUnlimited($data);
+        $data = TrainingEntityFormSupport::stampOwnerFromCreator($data);
 
         return $this->dropEmptyTrainingSlug(
             $this->stampTrainingEntityAuditFields($data),

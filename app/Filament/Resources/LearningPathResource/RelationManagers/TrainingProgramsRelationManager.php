@@ -51,15 +51,10 @@ class TrainingProgramsRelationManager extends RelationManager
     {
         return $schema->components([
             TextInput::make('title')
-                ->label('العنوان')
+                ->label('اسم البرنامج')
                 ->required()
                 ->maxLength(255)
                 ->columnSpanFull(),
-
-            TextInput::make('slug')
-                ->label('الرابط المختصر')
-                ->maxLength(255)
-                ->helperText('اتركه فارغاً للتوليد التلقائي من العنوان'),
 
             Select::make('status')
                 ->label('الحالة')
@@ -69,15 +64,10 @@ class TrainingProgramsRelationManager extends RelationManager
 
             Select::make('program_kind')
                 ->label('نوع البرنامج')
-                ->options(TrainingProgramKind::class)
+                ->options(TrainingProgramKind::options())
                 ->required()
-                ->default(TrainingProgramKind::Course->value),
-
-            TextInput::make('capacity')
-                ->label('الطاقة الاستيعابية')
-                ->numeric()
-                ->minValue(1)
-                ->helperText('اتركه فارغاً لعدد غير محدود'),
+                ->default(TrainingProgramKind::Course->value)
+                ->native(false),
 
             Grid::make(2)->schema([
                 DatePicker::make('start_date')
@@ -86,15 +76,6 @@ class TrainingProgramsRelationManager extends RelationManager
                 DatePicker::make('end_date')
                     ->label('نهاية البرنامج')
                     ->afterOrEqual('start_date'),
-            ])->columnSpanFull(),
-
-            Grid::make(2)->schema([
-                DatePicker::make('registration_start')
-                    ->label('بداية التسجيل'),
-
-                DatePicker::make('registration_end')
-                    ->label('نهاية التسجيل')
-                    ->afterOrEqual('registration_start'),
             ])->columnSpanFull(),
 
             Textarea::make('description')
@@ -175,6 +156,10 @@ class TrainingProgramsRelationManager extends RelationManager
                             ->where('learning_path_id', $path->getKey())
                             ->max('path_sort_order');
                         $data['path_sort_order'] = $max > 0 ? $max + 1 : 1;
+                        $data['capacity'] = null;
+                        $data['registration_start'] = null;
+                        $data['registration_end'] = null;
+                        $data['weekdays'] = null;
 
                         return $data;
                     }),
@@ -217,6 +202,10 @@ class TrainingProgramsRelationManager extends RelationManager
                         $program->update([
                             'learning_path_id' => $path->getKey(),
                             'path_sort_order' => $max > 0 ? $max + 1 : 1,
+                            'capacity' => null,
+                            'registration_start' => null,
+                            'registration_end' => null,
+                            'weekdays' => null,
                         ]);
                         Notification::make()->title('تم ربط البرنامج بالمسار')->success()->send();
                     }),
