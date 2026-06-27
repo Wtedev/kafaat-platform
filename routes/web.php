@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\BeneficiaryCvFileDownloadController;
+use App\Http\Controllers\Admin\BeneficiaryCvPdfController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\EmailVerificationNoticeController;
 use App\Http\Controllers\Auth\EmailVerificationResendController;
@@ -15,6 +17,7 @@ use App\Http\Controllers\Portal\PortalAttendanceSessionController;
 use App\Http\Controllers\Portal\PortalCertificateController;
 use App\Http\Controllers\Portal\PortalCompetencyController;
 use App\Http\Controllers\Portal\PortalCompetencyExportController;
+use App\Http\Controllers\Portal\PortalCvDocumentController;
 use App\Http\Controllers\Portal\PortalDashboardController;
 use App\Http\Controllers\Portal\PortalInboxController;
 use App\Http\Controllers\Portal\PortalPathController;
@@ -68,6 +71,12 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'otp.verified'])->group(function () {
     Route::get('/certificates/{certificate}/download', CertificateDownloadController::class)
         ->name('certificates.download');
+
+    Route::get('/admin/beneficiaries/{user}/cv-pdf', BeneficiaryCvPdfController::class)
+        ->name('admin.beneficiaries.cv-pdf');
+
+    Route::get('/admin/beneficiaries/{user}/cv/download', BeneficiaryCvFileDownloadController::class)
+        ->name('admin.beneficiaries.cv-file.download');
 
     // تفضيل إشعارات البريد (النافذة المنبثقة لمرة واحدة) — متاح لكل المستخدمين.
     Route::post('/notification-prefs/ack', [NotificationPreferenceController::class, 'acknowledge'])
@@ -160,5 +169,9 @@ Route::middleware(['auth', 'otp.verified', 'beneficiary', 'privacy.acknowledged'
         Route::get('/competency', [PortalCompetencyController::class, 'show'])->name('competency');
         Route::patch('/competency', [PortalCompetencyController::class, 'update'])->name('competency.update');
         Route::get('/competency/export-pdf', PortalCompetencyExportController::class)->name('competency.export-pdf');
+
+        Route::post('/competency/cv', [PortalCvDocumentController::class, 'store'])->name('competency.cv.store');
+        Route::get('/competency/cv/download', [PortalCvDocumentController::class, 'download'])->name('competency.cv.download');
+        Route::delete('/competency/cv', [PortalCvDocumentController::class, 'destroy'])->name('competency.cv.destroy');
 
     });

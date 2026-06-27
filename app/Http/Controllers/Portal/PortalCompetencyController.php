@@ -8,16 +8,20 @@ use App\Models\Profile;
 use App\Services\Portal\CompetencyProfilePresenter;
 use App\Services\Portal\CvFormOptions;
 use App\Services\Portal\CvLanguagePresets;
+use App\Services\Documents\CvDocumentService;
 use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PortalCompetencyController extends Controller
 {
     use NormalizesPortalCvInput;
+
+    public function __construct(
+        private readonly CvDocumentService $cvDocuments,
+    ) {}
 
     public function show(Request $request): View
     {
@@ -443,22 +447,20 @@ class PortalCompetencyController extends Controller
     private function updateCvAttachment(Request $request, $user): RedirectResponse
     {
         $request->validate([
-            'cv' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
+            'cv' => ['required', 'file'],
         ]);
 
-        $existing = $user->profile?->cv_path;
-        if ($existing && Storage::disk('public')->exists($existing)) {
-            Storage::disk('public')->delete($existing);
+        try {
+            $this->cvDocuments->upload($user, $request->file('cv'), $user, $request);
+        } catch (\InvalidArgumentException $exception) {
+            $message = match ($exception->getMessage()) {
+                'cv_file_too_large' => 'حجم الملف أكبر من الحد المسموح.',
+                'cv_invalid_extension', 'cv_invalid_mime', 'cv_invalid_pdf', 'cv_double_extension' => 'نوع الملف غير مسموح. يُقبل PDF فقط.',
+                default => 'تعذر رفع الملف.',
+            };
+
+            return back()->withErrors(['cv' => $message]);
         }
-
-        $path = $request->file('cv')->store('cv', 'public');
-
-        $user->profile()->updateOrCreate(
-            ['user_id' => $user->id],
-            ['cv_path' => $path],
-        );
-
-        $this->logCompetencyUpdate($user, 'cv_attachment');
 
         return back()->with('success', 'تم رفع ملف السيرة الذاتية بنجاح.');
     }

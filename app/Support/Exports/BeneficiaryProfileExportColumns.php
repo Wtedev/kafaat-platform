@@ -77,7 +77,7 @@ final class BeneficiaryProfileExportColumns
                 : MembershipType::tryFrom((string) $profile->membership_type))?->label(),
             'membership_badges' => implode(' · ', $profile->displayMembershipBadges()),
             'iconic_skill' => $profile->iconicSkillLabel(),
-            'cv_file_url' => $profile->cvPublicUrl(),
+            'cv_file_url' => $profile->hasActiveCvDocument() ? 'private' : null,
             'competency_english' => $profile->competency_levels['english'] ?? null,
             'competency_office' => $profile->competency_levels['office'] ?? null,
             'competency_courses' => $profile->competency_levels['courses'] ?? null,

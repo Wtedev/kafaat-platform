@@ -269,25 +269,14 @@ final class ProfileAdminForm
                         ->native(false)
                         ->required(),
 
-                    FileUpload::make('cv_path')
-                        ->label('ملف السيرة المرفوع')
-                        ->acceptedFileTypes(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
-                        ->maxSize(10240)
-                        ->disk('public')
-                        ->directory('cvs')
-                        ->visibility('public')
-                        ->nullable()
-                        ->columnSpanFull(),
-
-                    Placeholder::make('cv_file_link')
-                        ->label('رابط الملف الحالي')
-                        ->content(function (?Profile $record): HtmlString|string {
-                            $url = $record?->cvPublicUrl();
-                            if (! filled($url)) {
-                                return '—';
+                    Placeholder::make('cv_private_status')
+                        ->label('السيرة الذاتية')
+                        ->content(function (?Profile $record): string {
+                            if ($record?->hasActiveCvDocument()) {
+                                return 'ملف محفوظ في التخزين الخاص — التنزيل عبر مسار آمن فقط.';
                             }
 
-                            return new HtmlString('<a href="'.e($url).'" target="_blank" rel="noopener" class="text-primary-600 underline">فتح الملف</a>');
+                            return '—';
                         })
                         ->columnSpanFull(),
                 ]),

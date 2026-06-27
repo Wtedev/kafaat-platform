@@ -33,5 +33,7 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="IDENTITY_LOOKUP_KEY" value="base64:dGVzdC1pZGVudGl0eS1sb29rdXAta2V5LTMyYnl0ZXM="/>
+        <env name="PRIVATE_DOCUMENTS_DISK" value="private_documents"/>
+        <env name="CV_MAX_SIZE_KB" value="10240"/>
     </php>
 </phpunit>

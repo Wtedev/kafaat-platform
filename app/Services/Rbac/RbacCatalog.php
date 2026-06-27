@@ -39,6 +39,7 @@ final class RbacCatalog
             'privacy_policy.update_draft',
             'privacy_policy.publish',
             'privacy_policy.archive',
+            'beneficiary.cv.download',
         ];
     }
 
@@ -147,6 +148,7 @@ final class RbacCatalog
             'privacy_policy.update_draft' => 'تعديل مسودات سياسة الخصوصية',
             'privacy_policy.publish' => 'نشر إصدارات سياسة الخصوصية',
             'privacy_policy.archive' => 'أرشفة إصدارات سياسة الخصوصية',
+            'beneficiary.cv.download' => 'تنزيل سيرة مستفيد (ملف مرفوع)',
             'users.view' => 'عرض المستخدمين',
             'users.create' => 'إنشاء مستخدمين',
             'users.update' => 'تعديل المستخدمين',
@@ -314,7 +316,7 @@ final class RbacCatalog
 
         $publicRelations = array_values(array_unique([
             'manage_partners', 'manage_regulations', 'manage_governance',
-            'privacy_policy.view', 'privacy_policy.create', 'privacy_policy.update_draft', 'privacy_policy.publish',
+            'privacy_policy.view', 'privacy_policy.create', 'privacy_policy.update_draft',             'privacy_policy.publish',
             'view_notifications', 'emails.send', 'statistics.view',
         ]));
 
@@ -330,10 +332,12 @@ final class RbacCatalog
             'view_notifications',
         ];
 
+        $trainingManagement = array_values(array_unique([...$pathsPrograms, ...$volunteering]));
+
         return [
             'admin' => $all,
             'technical_admin' => $all,
-            'training_management' => array_values(array_unique([...$pathsPrograms, ...$volunteering])),
+            'training_management' => $trainingManagement,
             'volunteer_management' => $volunteering,
             'programs_management' => $pathsPrograms,
             'media_management' => $media,

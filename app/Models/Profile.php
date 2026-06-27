@@ -36,6 +36,7 @@ class Profile extends Model
         'cv_sections_visibility',
         'cv_language',
         'cv_path',
+        'current_cv_document_id',
     ];
 
     protected function casts(): array
@@ -634,13 +635,25 @@ class Profile extends Model
         return PublicDiskPath::url($this->avatar);
     }
 
+    public function currentCvDocument(): BelongsTo
+    {
+        return $this->belongsTo(UserDocument::class, 'current_cv_document_id');
+    }
+
+    public function hasActiveCvDocument(): bool
+    {
+        $this->loadMissing('currentCvDocument');
+
+        return $this->currentCvDocument !== null
+            && $this->currentCvDocument->status === \App\Enums\UserDocumentStatus::Active;
+    }
+
+    /**
+     * @deprecated Public CV URLs removed — use secure download routes.
+     */
     public function cvPublicUrl(): ?string
     {
-        if (! filled($this->cv_path)) {
-            return null;
-        }
-
-        return PublicDiskPath::url($this->cv_path);
+        return null;
     }
 
     public static function initialsFromName(string $fullName): string

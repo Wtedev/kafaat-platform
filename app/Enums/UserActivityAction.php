@@ -18,6 +18,9 @@ enum UserActivityAction: string
     case VolunteerRegistration = 'volunteer_registration';
     case AttendanceCheckIn = 'attendance_check_in';
     case CertificateDownloaded = 'certificate_downloaded';
+    case CvUploaded = 'cv_uploaded';
+    case CvReplaced = 'cv_replaced';
+    case CvDeleted = 'cv_deleted';
 
     public function category(): string
     {
@@ -31,6 +34,7 @@ enum UserActivityAction: string
             self::ProgramRegistration, self::PathRegistration, self::VolunteerRegistration => 'التسجيل',
             self::AttendanceCheckIn => 'الحضور',
             self::CertificateDownloaded => 'الشهادات',
+            self::CvUploaded, self::CvReplaced, self::CvDeleted => 'السيرة الذاتية',
         };
     }
 
@@ -51,6 +55,9 @@ enum UserActivityAction: string
             self::VolunteerRegistration => 'تسجيل في فرصة تطوعية',
             self::AttendanceCheckIn => 'تسجيل حضور',
             self::CertificateDownloaded => 'تحميل شهادة',
+            self::CvUploaded => 'رفع سيرة ذاتية',
+            self::CvReplaced => 'استبدال سيرة ذاتية',
+            self::CvDeleted => 'حذف سيرة ذاتية',
         };
     }
 

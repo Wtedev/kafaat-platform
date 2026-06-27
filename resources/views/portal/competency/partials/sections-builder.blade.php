@@ -585,15 +585,26 @@ $emptyBox = 'mb-3 rounded-lg border border-dashed border-gray-200 bg-slate-50/70
         <form method="POST" action="{{ route('portal.competency.update') }}" enctype="multipart/form-data" class="space-y-3">
             @csrf @method('PATCH')
             <input type="hidden" name="section" value="cv_attachment" />
-            <input type="file" name="cv" required accept=".pdf,.doc,.docx" class="w-full text-sm file:me-3 file:rounded-lg file:border-0 file:bg-[#e9eff6] file:px-4 file:py-2 file:font-semibold file:text-[#335483]" />
+            <input type="file" name="cv" required accept=".pdf" class="w-full text-sm file:me-3 file:rounded-lg file:border-0 file:bg-[#e9eff6] file:px-4 file:py-2 file:font-semibold file:text-[#335483]" />
             <div class="flex justify-end"><button type="submit" class="rounded-xl px-6 py-2 text-sm font-semibold text-white" style="background:#335483">{{ $cvLocale === 'en' ? 'Upload' : 'رفع' }}</button></div>
         </form>
         </x-portal.cv-edit-dropdown>
     </div>
-    @if ($p?->cvPublicUrl())
-    <p class="mb-3 text-sm"><a href="{{ $p->cvPublicUrl() }}" target="_blank" rel="noopener noreferrer" class="font-semibold text-[#335483] hover:underline">{{ $cvLocale === 'en' ? 'Download current file' : 'تحميل الملف الحالي' }}</a></p>
+    @if ($p?->hasActiveCvDocument())
+    <p class="mb-3 text-sm">
+        <a href="{{ route('portal.competency.cv.download') }}" class="font-semibold text-[#335483] hover:underline">{{ $cvLocale === 'en' ? 'Download current file' : 'تحميل الملف الحالي' }}</a>
+    </p>
+    <form method="POST" action="{{ route('portal.competency.cv.destroy') }}" class="mb-2" onsubmit="return confirm('{{ $cvLocale === 'en' ? 'Delete your CV file?' : 'حذف ملف السيرة الذاتية؟' }}');">
+        @csrf
+        @method('DELETE')
+        <label class="mb-1 block text-xs text-gray-600">{{ $cvLocale === 'en' ? 'Confirm password to delete' : 'أكّد كلمة المرور للحذف' }}</label>
+        <div class="flex flex-wrap items-end gap-2">
+            <input type="password" name="password" required class="rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+            <button type="submit" class="rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">{{ $cvLocale === 'en' ? 'Delete CV' : 'حذف السيرة' }}</button>
+        </div>
+    </form>
     @else
-    <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No CV file uploaded yet. Upload a PDF or Word file via Edit.' : 'لم يُرفع ملف سيرة ذاتية بعد. يمكنك رفع PDF أو Word من «'.$tEdit.'».' }}</p>
+    <p class="{{ $emptyBox }} {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No CV file uploaded yet. Upload a PDF file via Edit.' : 'لم يُرفع ملف سيرة ذاتية بعد. يمكنك رفع PDF من «'.$tEdit.'».' }}</p>
     @endif
 </section>
 
