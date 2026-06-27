@@ -46,6 +46,23 @@ class LoginController extends Controller
 
         $user = Auth::user();
 
+        if (! $user->account_status?->allowsLogin()) {
+            app(SecurityLogService::class)->record(
+                'auth.login_blocked',
+                SecurityLogResult::Blocked,
+                SecurityLogSeverity::Warning,
+                $user,
+                metadata: ['reason' => 'account_status_'.$user->account_status?->value],
+                request: $request,
+            );
+
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return back()->withErrors(['email' => 'لا يمكن تسجيل الدخول إلى هذا الحساب.']);
+        }
+
         if (! $user->is_active) {
             app(SecurityLogService::class)->record(
                 'auth.login_blocked',

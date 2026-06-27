@@ -13,6 +13,7 @@ use App\Models\TeamMember;
 use App\Models\TeamNotification;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use Database\Seeders\Support\DemoEnvironmentUserPurge;
 use App\Models\VolunteerHour;
 use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
@@ -166,7 +167,8 @@ class CleanDemoDataSeeder extends Seeder
 
         foreach ($users as $user) {
             $user->syncRoles([]);
-            $user->delete();
+
+            DemoEnvironmentUserPurge::purge($user);
         }
     }
 

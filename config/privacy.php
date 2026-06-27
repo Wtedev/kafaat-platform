@@ -20,4 +20,16 @@ return [
     */
     'active_policy_cache_key' => 'privacy_policy.active_version',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Account deletion identity verification TTL (seconds)
+    |--------------------------------------------------------------------------
+    |
+    | Re-verification must be recent before executing an approved deletion.
+    |
+    */
+    'account_deletion' => [
+        'identity_verification_ttl_seconds' => (int) env('PRIVACY_ACCOUNT_DELETION_IDENTITY_TTL', 900),
+    ],
+
 ];

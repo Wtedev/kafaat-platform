@@ -14,8 +14,6 @@ use App\Support\Privacy\SensitiveContactMasker;
 use App\Support\UserAccountRoleForm;
 use App\Enums\IdentityType;
 use App\Support\UserDirectoryTabs;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -64,7 +62,7 @@ class UserResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery()->with('roles');
+        $query = parent::getEloquentQuery()->with('roles')->operational();
 
         $viewer = auth()->user();
 
@@ -122,7 +120,11 @@ class UserResource extends Resource
 
                         Toggle::make('is_active')
                             ->default(true)
-                            ->label('نشط'),
+                            ->label('نشط')
+                            ->disabled(fn (?User $record): bool => $record?->isAnonymized() ?? false)
+                            ->helperText(fn (?User $record): ?string => $record?->isAnonymized()
+                                ? 'لا يمكن إعادة تفعيل حساب معمى.'
+                                : null),
 
                         Toggle::make('notify_email')
                             ->label('إشعارات البريد'),
@@ -282,12 +284,6 @@ class UserResource extends Resource
             ->actions([
                 static::makeTableEditAction(),
             ])
-            ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->authorizeIndividualRecords('delete'),
-                ]),
-            ])
             ->defaultSort('created_at', 'desc');
     }
 
@@ -303,12 +299,7 @@ class UserResource extends Resource
 
     public static function canDelete($record): bool
     {
-        $user = auth()->user();
-        if (! $user?->can('users.delete')) {
-            return false;
-        }
-
-        return $user->can('delete', $record);
+        return false;
     }
 
     protected static function resolveEditOnlyRecordUrl(Model $record): ?string

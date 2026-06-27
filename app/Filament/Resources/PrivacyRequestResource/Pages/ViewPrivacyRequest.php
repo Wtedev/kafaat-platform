@@ -6,14 +6,19 @@ use App\Enums\PrivacyRequestStatus;
 use App\Filament\Resources\Pages\BaseViewRecord;
 use App\Filament\Resources\PrivacyRequestResource;
 use App\Models\DataDeletionPlan;
+use App\Services\Access\SensitiveAccessVerification;
 use App\Services\Privacy\DataDeletionPlanService;
+use App\Services\Privacy\PersonalDataDeletionService;
 use App\Services\Privacy\PrivacyRequestService;
 use Filament\Actions\Action;
+use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class ViewPrivacyRequest extends BaseViewRecord
 {
@@ -81,6 +86,41 @@ class ViewPrivacyRequest extends BaseViewRecord
                         app(DataDeletionPlanService::class)->approve($plan, auth()->user());
                         Notification::make()->title('تم اعتماد خطة الحذف')->success()->send();
                     }
+                }),
+            Action::make('execute_deletion')
+                ->label('تنفيذ الحذف المعتمد')
+                ->color('danger')
+                ->requiresConfirmation()
+                ->visible(fn (): bool => auth()->user()?->can('privacy_requests.execute')
+                    && $this->getRecord()->status === PrivacyRequestStatus::Approved
+                    && $this->getRecord()->deletionPlan?->status->value === 'approved')
+                ->schema([
+                    TextInput::make('password')
+                        ->label('كلمة المرور')
+                        ->password()
+                        ->required(),
+                ])
+                ->action(function (array $data): void {
+                    $actor = auth()->user();
+                    if (! Hash::check((string) $data['password'], (string) $actor->password)) {
+                        throw ValidationException::withMessages(['password' => 'كلمة المرور غير صحيحة.']);
+                    }
+
+                    SensitiveAccessVerification::markVerified(request());
+
+                    $plan = $this->getRecord()->deletionPlan;
+                    if ($plan === null) {
+                        throw ValidationException::withMessages(['password' => 'خطة الحذف غير موجودة.']);
+                    }
+
+                    app(PersonalDataDeletionService::class)->executeApprovedPlan(
+                        $this->getRecord(),
+                        $plan,
+                        $actor,
+                        request(),
+                    );
+
+                    Notification::make()->title('اكتمل تنفيذ التعمية')->success()->send();
                 }),
         ];
     }

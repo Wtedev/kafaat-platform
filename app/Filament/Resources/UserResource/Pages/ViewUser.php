@@ -11,7 +11,6 @@ use App\Filament\Support\UserInlineEditSupport;
 use App\Filament\Support\UserViewPresenter;
 use App\Models\User;
 use App\Services\UserActivityLogger;
-use Filament\Actions\DeleteAction;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
@@ -287,9 +286,6 @@ class ViewUser extends BaseViewRecord
 
     protected function getViewPageToolbarActions(): array
     {
-        return [
-            DeleteAction::make()
-                ->hidden(fn (): bool => $this->getRecord()->isProtectedAdminUser()),
-        ];
+        return [];
     }
 }

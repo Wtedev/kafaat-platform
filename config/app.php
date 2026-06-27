@@ -131,4 +131,15 @@ return [
 
     'admin_email' => env('ADMIN_EMAIL'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Demo data purge (seeders only)
+    |--------------------------------------------------------------------------
+    |
+    | Must remain false in production. Enables DemoEnvironmentUserPurge for
+    | local/testing databases only.
+    |
+    */
+    'demo_data_purge_enabled' => (bool) env('APP_DEMO_DATA_PURGE_ENABLED', false),
+
 ];

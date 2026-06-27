@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AccountStatus;
 use App\Enums\IdentityType;
 use App\Enums\VolunteerHoursStatus;
 use App\Services\Identity\IdentityNumberService;
@@ -9,7 +10,10 @@ use App\Services\Identity\PersonNameService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Services\Rbac\RbacCatalog;
 use App\Services\Rbac\RbacService;
+use App\Services\Privacy\AccountDeactivationService;
+use App\Support\Privacy\UserDeletionGuard;
 use App\Support\PublicDiskPath;
+use App\Models\Builders\UserQueryBuilder;
 use App\Models\Concerns\HasEntityNotes;
 use Database\Factories\UserFactory;
 use Filament\Facades\Filament;
@@ -17,6 +21,7 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -28,6 +33,19 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasEntityNotes, HasFactory, HasRoles, Notifiable;
+
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user): void {
+            UserDeletionGuard::assertAuthorized();
+        });
+
+        static::updated(function (User $user): void {
+            if ($user->wasChanged('is_active') && ! $user->is_active) {
+                app(AccountDeactivationService::class)->invalidateSessions($user);
+            }
+        });
+    }
 
     protected $fillable = [
         'name',
@@ -41,6 +59,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'phone',
         'staff_photo',
         'is_active',
+        'account_status',
+        'privacy_deleted_at',
+        'anonymized_at',
+        'deletion_request_id',
         'notify_email',
         'notification_prefs_set_at',
         'notification_settings',
@@ -62,6 +84,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             'last_login_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'account_status' => AccountStatus::class,
+            'privacy_deleted_at' => 'datetime',
+            'anonymized_at' => 'datetime',
             'notify_email' => 'boolean',
             'notification_prefs_set_at' => 'datetime',
             'notification_settings' => 'array',
@@ -167,6 +192,60 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function profile(): HasOne
     {
         return $this->hasOne(Profile::class);
+    }
+
+    public function activeDeletionRequest(): BelongsTo
+    {
+        return $this->belongsTo(PrivacyRequest::class, 'deletion_request_id');
+    }
+
+    public function privacyRequests(): HasMany
+    {
+        return $this->hasMany(PrivacyRequest::class);
+    }
+
+    public function isAnonymized(): bool
+    {
+        return $this->account_status === AccountStatus::Anonymized;
+    }
+
+    public function allowsOperationalAccess(): bool
+    {
+        return ! in_array($this->account_status, [
+            AccountStatus::Anonymized,
+            AccountStatus::DeletionProcessing,
+        ], true);
+    }
+
+    /**
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function scopeOperational(Builder $query): Builder
+    {
+        return $query->whereNotIn('account_status', [
+            AccountStatus::Anonymized->value,
+            AccountStatus::DeletionProcessing->value,
+        ]);
+    }
+
+    public function newEloquentBuilder($query): UserQueryBuilder
+    {
+        return new UserQueryBuilder($query);
+    }
+
+    public function delete(): ?bool
+    {
+        UserDeletionGuard::assertAuthorized();
+
+        return parent::delete();
+    }
+
+    public function forceDelete(): ?bool
+    {
+        UserDeletionGuard::assertAuthorized();
+
+        return parent::forceDelete();
     }
 
     public function privacyPolicyAcknowledgements(): HasMany
@@ -348,6 +427,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function canAccessPanel(Panel $panel): bool
     {
+        if ($this->isAnonymized() || $this->account_status === AccountStatus::DeletionProcessing) {
+            return false;
+        }
+
         if (! $this->is_active) {
             return false;
         }

@@ -79,14 +79,15 @@ class UserPolicy
 
     public function delete(User $actor, User $target): bool
     {
-        if (! $actor->can('users.delete')) {
-            return false;
-        }
+        return false;
+    }
 
+    public function deactivate(User $actor, User $target): bool
+    {
         if ($target->isProtectedAdminUser()) {
             return false;
         }
 
-        return true;
+        return $actor->can('beneficiaries.deactivate') || $actor->can('users.activate');
     }
 }
