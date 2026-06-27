@@ -10,6 +10,7 @@ use App\Filament\Resources\UserResource\RelationManagers\UserTechnicalLogRelatio
 use App\Filament\Resources\UserResource\RelationManagers\UserTrainingRegistrationsRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\UserVolunteerRegistrationsRelationManager;
 use App\Models\User;
+use App\Support\Privacy\SensitiveContactMasker;
 use App\Support\UserAccountRoleForm;
 use App\Enums\IdentityType;
 use App\Support\UserDirectoryTabs;
@@ -195,6 +196,17 @@ class UserResource extends Resource
 
                 TextColumn::make('email')
                     ->label('البريد الإلكتروني')
+                    ->formatStateUsing(function (User $record): string {
+                        $email = (string) ($record->email ?? '');
+
+                        if ($email === '') {
+                            return '—';
+                        }
+
+                        return auth()->user()?->can('viewContact', $record)
+                            ? $email
+                            : (SensitiveContactMasker::maskEmail($email) ?? '—');
+                    })
                     ->searchable()
                     ->sortable(),
 
@@ -204,6 +216,17 @@ class UserResource extends Resource
 
                 TextColumn::make('phone')
                     ->label('الجوال')
+                    ->formatStateUsing(function (User $record): string {
+                        $phone = (string) ($record->phone ?? '');
+
+                        if ($phone === '') {
+                            return '—';
+                        }
+
+                        return auth()->user()?->can('viewContact', $record)
+                            ? $phone
+                            : (SensitiveContactMasker::maskPhone($phone) ?? '—');
+                    })
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
 

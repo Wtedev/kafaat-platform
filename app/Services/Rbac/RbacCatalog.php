@@ -39,12 +39,58 @@ final class RbacCatalog
             'privacy_policy.update_draft',
             'privacy_policy.publish',
             'privacy_policy.archive',
+            'privacy_acknowledgements.view',
+            'beneficiaries.view_basic',
+            'beneficiaries.view_contact',
+            'beneficiaries.update_basic',
+            'beneficiaries.update_sensitive',
+            'beneficiaries.deactivate',
+            'beneficiaries.identity.view_masked',
+            'beneficiaries.identity.view_full',
+            'beneficiaries.identity.update',
+            'beneficiaries.identity.search_exact',
             'beneficiary.cv.download',
+            'beneficiary.cv.view',
             'candidate_pool.view',
             'candidate_pool.profile.view',
+            'candidate_pool.contact.view',
+            'candidate_pool.cv.view',
             'candidate_pool.cv.download',
             'candidate_pool.consent_versions.manage',
+            'exports.beneficiaries.basic',
+            'exports.beneficiaries.contact',
+            'exports.training',
+            'activity_logs.view',
+            'audit_logs.view',
+            'security_logs.view',
+            'security_logs.view_sensitive_metadata',
+            'permissions.assign',
         ];
+    }
+
+    /**
+     * Permissions that must not be granted automatically to broad admin roles.
+     *
+     * @return list<string>
+     */
+    public static function permissionsExcludedFromBroadRoles(): array
+    {
+        return [
+            'beneficiaries.identity.view_full',
+            'beneficiaries.identity.search_exact',
+            'security_logs.view_sensitive_metadata',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function permissionsForBroadAdminRoles(): array
+    {
+        return array_values(array_diff(
+            self::allPermissionNames(),
+            self::permissionsExcludedFromBroadRoles(),
+        ));
     }
 
     /**
@@ -153,10 +199,31 @@ final class RbacCatalog
             'privacy_policy.publish' => 'نشر إصدارات سياسة الخصوصية',
             'privacy_policy.archive' => 'أرشفة إصدارات سياسة الخصوصية',
             'beneficiary.cv.download' => 'تنزيل سيرة مستفيد (ملف مرفوع)',
+            'beneficiary.cv.view' => 'عرض بيانات السيرة (بدون تنزيل)',
+            'beneficiaries.view_basic' => 'عرض بيانات المستفيد الأساسية',
+            'beneficiaries.view_contact' => 'عرض بيانات التواصل للمستفيد',
+            'beneficiaries.update_basic' => 'تعديل بيانات المستفيد الأساسية',
+            'beneficiaries.update_sensitive' => 'تعديل بيانات المستفيد الحساسة',
+            'beneficiaries.deactivate' => 'تعطيل حساب مستفيد',
+            'beneficiaries.identity.view_masked' => 'عرض الهوية مقنعة',
+            'beneficiaries.identity.view_full' => 'كشف رقم الهوية الكامل',
+            'beneficiaries.identity.update' => 'تعديل رقم الهوية',
+            'beneficiaries.identity.search_exact' => 'بحث دقيق برقم الهوية',
             'candidate_pool.view' => 'عرض قاعدة المرشحين',
             'candidate_pool.profile.view' => 'عرض ملف مرشح',
+            'candidate_pool.contact.view' => 'عرض بيانات تواصل المرشح',
+            'candidate_pool.cv.view' => 'عرض بيانات سيرة المرشح',
             'candidate_pool.cv.download' => 'تنزيل سيرة مرشح',
             'candidate_pool.consent_versions.manage' => 'إدارة نص موافقة قاعدة المرشحين',
+            'exports.beneficiaries.basic' => 'تصدير بيانات المستفيدين الأساسية',
+            'exports.beneficiaries.contact' => 'تصدير بيانات التواصل للمستفيدين',
+            'exports.training' => 'تصدير بيانات التدريب',
+            'privacy_acknowledgements.view' => 'عرض إقرارات سياسة الخصوصية',
+            'activity_logs.view' => 'عرض سجل نشاط المستفيدين',
+            'audit_logs.view' => 'عرض سجل التدقيق',
+            'security_logs.view' => 'عرض سجل الأحداث الأمنية',
+            'security_logs.view_sensitive_metadata' => 'عرض بيانات إضافية في سجل الأمن',
+            'permissions.assign' => 'تعيين الصلاحيات',
             'users.view' => 'عرض المستخدمين',
             'users.create' => 'إنشاء مستخدمين',
             'users.update' => 'تعديل المستخدمين',
@@ -285,6 +352,7 @@ final class RbacCatalog
     public static function rolePermissionMatrix(): array
     {
         $all = self::allPermissionNames();
+        $broadAdmin = self::permissionsForBroadAdminRoles();
 
         $staffShared = [
             'view_notifications', 'send_notifications', 'emails.send', 'statistics.view',
@@ -342,18 +410,20 @@ final class RbacCatalog
         ];
 
         $trainingManagement = array_values(array_unique([...$pathsPrograms, ...$volunteering,
-            'candidate_pool.view', 'candidate_pool.profile.view', 'candidate_pool.cv.download',
+            'candidate_pool.view', 'candidate_pool.profile.view', 'candidate_pool.cv.view',
+            'beneficiaries.view_basic', 'beneficiaries.view_contact', 'beneficiaries.identity.view_masked',
+            'exports.beneficiaries.basic',
         ]));
 
         return [
-            'admin' => $all,
-            'technical_admin' => $all,
+            'admin' => $broadAdmin,
+            'technical_admin' => $broadAdmin,
             'training_management' => $trainingManagement,
             'volunteer_management' => $volunteering,
             'programs_management' => $pathsPrograms,
             'media_management' => $media,
             'public_relations' => $publicRelations,
-            'visual_identity' => array_values(array_unique([...$all, ...$visualIdentityExtras])),
+            'visual_identity' => array_values(array_unique([...$broadAdmin, ...$visualIdentityExtras])),
             'trainee' => $portalRead,
             'volunteer' => $portalRead,
         ];

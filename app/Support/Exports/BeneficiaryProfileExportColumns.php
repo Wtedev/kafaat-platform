@@ -4,6 +4,7 @@ namespace App\Support\Exports;
 
 use App\Enums\MembershipType;
 use App\Models\Profile;
+use App\Support\Privacy\SensitiveContactMasker;
 use App\Services\Portal\CvFormOptions;
 use App\Services\Rbac\RbacCatalog;
 
@@ -55,12 +56,14 @@ final class BeneficiaryProfileExportColumns
         $profile->loadMissing('user');
         $user = $profile->user;
         $locale = $profile->cvUiLocale();
+        $actor = auth()->user();
+        $canContact = $actor?->can('exports.beneficiaries.contact') ?? false;
 
         return match ($key) {
             'profile_id' => $profile->id,
             'user_name' => $user?->name,
-            'user_email' => $user?->email,
-            'user_phone' => $user?->phone,
+            'user_email' => $canContact ? $user?->email : SensitiveContactMasker::maskEmail($user?->email),
+            'user_phone' => $canContact ? $user?->phone : SensitiveContactMasker::maskPhone($user?->phone),
             'user_role_type' => self::roleTypeLabel($user?->role_type),
             'user_is_active' => $user === null ? null : ($user->is_active ? 'نشط' : 'موقوف'),
             'gender' => match ($profile->gender) {

@@ -5,7 +5,10 @@ namespace App\Filament\Resources\ProfileResource\Pages;
 use App\Exports\BeneficiaryProfilesExport;
 use App\Filament\Resources\Pages\BaseListRecords;
 use App\Filament\Resources\ProfileResource;
+use App\Services\Audit\AuditLogger;
+use App\Services\Exports\BeneficiaryExportAuthorization;
 use App\Support\Exports\BeneficiaryProfileExportColumns;
+use App\Enums\AuditLogResult;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\CheckboxList;
@@ -47,7 +50,10 @@ class ListProfiles extends BaseListRecords
             ])
             ->action(function (array $data): mixed {
                 $allowed = array_keys(BeneficiaryProfileExportColumns::optionLabels());
-                $keys = array_values(array_intersect($data['columns'] ?? [], $allowed));
+                $keys = BeneficiaryExportAuthorization::filterAllowedColumnKeys(
+                    auth()->user(),
+                    array_values(array_intersect($data['columns'] ?? [], $allowed)),
+                );
 
                 if ($keys === []) {
                     Notification::make()
@@ -73,6 +79,18 @@ class ListProfiles extends BaseListRecords
                 }
 
                 $filename = 'beneficiary-profiles-'.now()->format('Y-m-d-His').'.xlsx';
+
+                app(AuditLogger::class)->record(
+                    auth()->user(),
+                    'export.generated',
+                    AuditLogResult::Success,
+                    metadata: [
+                        'export_type' => 'beneficiary_profiles',
+                        'row_count' => $profiles->count(),
+                        'selected_columns' => $keys,
+                    ],
+                    request: request(),
+                );
 
                 return Excel::download(
                     new BeneficiaryProfilesExport($profiles, $keys),

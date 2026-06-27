@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\BeneficiaryCvFileDownloadController;
 use App\Http\Controllers\Admin\BeneficiaryCvPdfController;
+use App\Http\Controllers\Admin\BeneficiaryIdentityRevealController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\EmailVerificationNoticeController;
 use App\Http\Controllers\Auth\EmailVerificationResendController;
@@ -79,6 +80,10 @@ Route::middleware(['auth', 'otp.verified'])->group(function () {
 
     Route::get('/admin/beneficiaries/{user}/cv/download', BeneficiaryCvFileDownloadController::class)
         ->name('admin.beneficiaries.cv-file.download');
+
+    Route::post('/admin/beneficiaries/{user}/identity/reveal', BeneficiaryIdentityRevealController::class)
+        ->middleware('throttle:10,1')
+        ->name('admin.beneficiaries.identity.reveal');
 
     // تفضيل إشعارات البريد (النافذة المنبثقة لمرة واحدة) — متاح لكل المستخدمين.
     Route::post('/notification-prefs/ack', [NotificationPreferenceController::class, 'acknowledge'])

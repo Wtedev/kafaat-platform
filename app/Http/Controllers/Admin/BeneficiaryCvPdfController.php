@@ -14,7 +14,7 @@ class BeneficiaryCvPdfController extends Controller
 {
     public function __invoke(Request $request, User $user): Response
     {
-        $this->authorize('view', $user);
+        $this->authorize('downloadCv', $user);
 
         abort_unless($user->isPortalUser(), 404);
 

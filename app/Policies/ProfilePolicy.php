@@ -34,6 +34,6 @@ class ProfilePolicy
 
     public function export(User $user): bool
     {
-        return $user->can('roles.view');
+        return $user->can('exports.beneficiaries.basic');
     }
 }
