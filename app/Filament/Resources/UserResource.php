@@ -10,8 +10,8 @@ use App\Filament\Resources\UserResource\RelationManagers\UserTechnicalLogRelatio
 use App\Filament\Resources\UserResource\RelationManagers\UserTrainingRegistrationsRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\UserVolunteerRegistrationsRelationManager;
 use App\Models\User;
-use App\Enums\IdentityType;
 use App\Support\UserAccountRoleForm;
+use App\Enums\IdentityType;
 use App\Support\UserDirectoryTabs;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -323,5 +323,10 @@ class UserResource extends Resource
             'view' => Pages\ViewUser::route('/{record}'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
+    }
+
+    public static function beneficiaryCvPdfUrl(User $user): string
+    {
+        return route('admin.beneficiaries.cv-pdf', ['user' => $user]);
     }
 }

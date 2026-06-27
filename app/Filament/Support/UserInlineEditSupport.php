@@ -74,6 +74,17 @@ final class UserInlineEditSupport
         return auth()->user()?->can('roles.view') ?? false;
     }
 
+    public static function canEditSection(string $field): bool
+    {
+        return match ($field) {
+            'account' => self::canEditAccountSection(),
+            'profile' => self::canEditProfileSection(),
+            'competency' => self::canEditCompetencySection(),
+            'bio' => self::canEditBioSection(),
+            default => false,
+        };
+    }
+
     /**
      * @return array<string, string>
      */
@@ -157,9 +168,6 @@ final class UserInlineEditSupport
      */
     private static function accountFields(): array
     {
-        /** @var User|null $record */
-        $record = null;
-
         $fields = [
             TextInput::make('name')
                 ->label('الاسم الكامل')
@@ -187,13 +195,14 @@ final class UserInlineEditSupport
                 ->label('إشعارات البريد'),
         ];
 
-        if (UserAccountRoleForm::canActorEditRoleSection(auth()->user(), $record)) {
+        if (UserAccountRoleForm::canActorEditRoleSection(auth()->user())) {
             $fields[] = Select::make('platform_role')
                 ->label('الدور في المنصة')
                 ->options(fn (): array => UserAccountRoleForm::platformRoleOptionsForActor(auth()->user()))
                 ->required()
                 ->native(false)
-                ->searchable();
+                ->searchable()
+                ->visible(fn (?User $record): bool => UserAccountRoleForm::canActorEditRoleSection(auth()->user(), $record));
         }
 
         return $fields;

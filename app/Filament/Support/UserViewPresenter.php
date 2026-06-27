@@ -3,6 +3,7 @@
 namespace App\Filament\Support;
 
 use App\Enums\RegistrationStatus;
+use App\Filament\Resources\UserResource;
 use App\Models\User;
 use App\Services\Portal\CompetencyProfilePresenter;
 use App\Support\UserAccountRoleForm;
@@ -16,15 +17,16 @@ final class UserViewPresenter
     {
         $payload = CompetencyProfilePresenter::make($user);
         $profile = $payload['profile'];
+        $editableSections = UserInlineEditSupport::editableSectionKeys();
 
         return [
             'stats' => self::stats($user, $payload),
             'sections' => array_values(array_filter([
-                self::accountSection($user),
-                self::profileSection($profile),
-                self::competencySection($profile),
-                self::cvSummarySection($profile),
-                self::bioSection($profile),
+                self::accountSection($user, $editableSections),
+                self::profileSection($profile, $editableSections),
+                self::competencySection($profile, $editableSections),
+                $user->isPortalUser() ? self::cvSummarySection($user, $profile) : null,
+                self::bioSection($profile, $editableSections),
             ])),
         ];
     }
@@ -60,9 +62,10 @@ final class UserViewPresenter
     }
 
     /**
-     * @return array{title: string, icon: string, rows: array<int, array<string, mixed>>}
+     * @param  list<string>  $editableSections
+     * @return array{title: string, icon: string, rows: array<int, array<string, mixed>>, field?: string}
      */
-    private static function accountSection(User $user): array
+    private static function accountSection(User $user, array $editableSections): array
     {
         $rows = [
             EntityViewPresenterSupport::row('الاسم', $user->name, 'heroicon-o-user'),
@@ -106,35 +109,39 @@ final class UserViewPresenter
             );
         }
 
-        return [
-            'title' => 'معلومات الحساب',
-            'icon' => 'heroicon-o-user-circle',
-            'field' => 'account',
-            'rows' => $rows,
-        ];
+        return self::section(
+            title: 'معلومات الحساب',
+            icon: 'heroicon-o-user-circle',
+            rows: $rows,
+            field: in_array('account', $editableSections, true) ? 'account' : null,
+        );
     }
 
     /**
-     * @return array{title: string, icon: string, rows: array<int, array<string, mixed>>}|null
+     * @param  list<string>  $editableSections
+     * @return array{title: string, icon: string, rows: array<int, array<string, mixed>>, field?: string}|null
      */
-    private static function profileSection(?\App\Models\Profile $profile): ?array
+    private static function profileSection(?\App\Models\Profile $profile, array $editableSections): ?array
     {
+        $field = in_array('profile', $editableSections, true) ? 'profile' : null;
+
         if ($profile === null) {
-            return [
-                'title' => 'الملف الشخصي',
-                'icon' => 'heroicon-o-identification',
-                'rows' => [
+            return self::section(
+                title: 'الملف الشخصي',
+                icon: 'heroicon-o-identification',
+                rows: [
                     EntityViewPresenterSupport::row('الحالة', 'لم يُنشأ ملف كفاءات بعد', 'heroicon-o-information-circle', 'warning'),
                 ],
-            ];
+                field: $field,
+            );
         }
 
         $badges = implode('، ', $profile->displayMembershipBadges());
 
-        return [
-            'title' => 'الملف الشخصي',
-            'icon' => 'heroicon-o-identification',
-            'rows' => array_values(array_filter([
+        return self::section(
+            title: 'الملف الشخصي',
+            icon: 'heroicon-o-identification',
+            rows: array_values(array_filter([
                 EntityViewPresenterSupport::row('نوع العضوية', $badges !== '' ? $badges : '—', 'heroicon-o-tag'),
                 filled($profile->job_title)
                     ? EntityViewPresenterSupport::row('المسمى الوظيفي', (string) $profile->job_title, 'heroicon-o-briefcase')
@@ -157,28 +164,44 @@ final class UserViewPresenter
                     'heroicon-o-language',
                 ),
             ])),
-        ];
+            field: $field,
+        );
     }
 
     /**
-     * @return array{title: string, icon: string, rows: array<int, array<string, mixed>>}|null
+     * @param  list<string>  $editableSections
+     * @return array{title: string, icon: string, rows: array<int, array<string, mixed>>, field?: string}|null
      */
-    private static function competencySection(?\App\Models\Profile $profile): ?array
+    private static function competencySection(?\App\Models\Profile $profile, array $editableSections): ?array
     {
+        $field = in_array('competency', $editableSections, true) ? 'competency' : null;
+
         if ($profile === null) {
-            return null;
+            if ($field === null) {
+                return null;
+            }
+
+            return self::section(
+                title: 'مستويات الكفاءات',
+                icon: 'heroicon-o-chart-bar',
+                rows: [
+                    EntityViewPresenterSupport::row('الحالة', 'لم يُنشأ ملف كفاءات بعد', 'heroicon-o-information-circle', 'warning'),
+                ],
+                field: $field,
+            );
         }
 
         $cards = $profile->presentCompetencyCards();
 
         if ($cards === []) {
-            return [
-                'title' => 'مستويات الكفاءات',
-                'icon' => 'heroicon-o-chart-bar',
-                'rows' => [
+            return self::section(
+                title: 'مستويات الكفاءات',
+                icon: 'heroicon-o-chart-bar',
+                rows: [
                     EntityViewPresenterSupport::row('الحالة', 'لم تُدخل مستويات الكفاءات بعد', 'heroicon-o-information-circle', 'gray'),
                 ],
-            ];
+                field: $field,
+            );
         }
 
         $rows = [];
@@ -190,64 +213,113 @@ final class UserViewPresenter
             );
         }
 
-        return [
-            'title' => 'مستويات الكفاءات',
-            'icon' => 'heroicon-o-chart-bar',
-            'rows' => $rows,
-        ];
+        return self::section(
+            title: 'مستويات الكفاءات',
+            icon: 'heroicon-o-chart-bar',
+            rows: $rows,
+            field: $field,
+        );
     }
 
     /**
-     * @return array{title: string, icon: string, rows: array<int, array<string, mixed>>}|null
+     * @return array{title: string, icon: string, rows: array<int, array<string, mixed>>, header_actions?: array<int, array<string, string>>}
      */
-    private static function cvSummarySection(?\App\Models\Profile $profile): ?array
+    private static function cvSummarySection(User $user, ?\App\Models\Profile $profile): array
     {
         if ($profile === null) {
-            return null;
-        }
+            $rows = [
+                EntityViewPresenterSupport::row('الحالة', 'لم يُنشأ ملف كفاءات بعد', 'heroicon-o-information-circle', 'warning'),
+            ];
+        } else {
+            $skills = $profile->cvSkillsStructured();
+            $languages = $profile->cvLanguagesStructured();
+            $education = is_array($profile->cv_sections['education'] ?? null) ? $profile->cv_sections['education'] : [];
+            $experience = is_array($profile->cv_sections['experience'] ?? null) ? $profile->cv_sections['experience'] : [];
+            $courses = is_array($profile->cv_sections['courses'] ?? null) ? $profile->cv_sections['courses'] : [];
 
-        $skills = $profile->cvSkillsStructured();
-        $languages = $profile->cvLanguagesStructured();
-        $education = is_array($profile->cv_sections['education'] ?? null) ? $profile->cv_sections['education'] : [];
-        $experience = is_array($profile->cv_sections['experience'] ?? null) ? $profile->cv_sections['experience'] : [];
-        $courses = is_array($profile->cv_sections['courses'] ?? null) ? $profile->cv_sections['courses'] : [];
+            $skillPreview = $skills === []
+                ? '—'
+                : implode('، ', array_slice(array_map(fn (array $s): string => $s['skill_name'], $skills), 0, 5))
+                    .(count($skills) > 5 ? ' …' : '');
 
-        $skillPreview = $skills === []
-            ? '—'
-            : implode('، ', array_slice(array_map(fn (array $s): string => $s['skill_name'], $skills), 0, 5))
-                .(count($skills) > 5 ? ' …' : '');
+            $languagePreview = $languages === []
+                ? '—'
+                : implode('، ', array_map(fn (array $l): string => $l['language_name'], $languages));
 
-        $languagePreview = $languages === []
-            ? '—'
-            : implode('، ', array_map(fn (array $l): string => $l['language_name'], $languages));
-
-        return [
-            'title' => 'ملخص السيرة الذاتية',
-            'icon' => 'heroicon-o-document-text',
-            'rows' => [
+            $rows = [
                 EntityViewPresenterSupport::row('المهارات', $skillPreview, 'heroicon-o-wrench-screwdriver'),
                 EntityViewPresenterSupport::row('اللغات', $languagePreview, 'heroicon-o-language'),
                 EntityViewPresenterSupport::row('عدد الخبرات', (string) count($experience), 'heroicon-o-building-office'),
                 EntityViewPresenterSupport::row('عدد المؤهلات', (string) count($education), 'heroicon-o-book-open'),
                 EntityViewPresenterSupport::row('عدد الدورات', (string) count($courses), 'heroicon-o-rectangle-stack'),
-            ],
-        ];
+            ];
+        }
+
+        $section = self::section(
+            title: 'ملخص السيرة الذاتية',
+            icon: 'heroicon-o-document-text',
+            rows: $rows,
+        );
+
+        $section['header_actions'] = [[
+            'label' => 'تحميل السيرة الذاتية',
+            'url' => UserResource::beneficiaryCvPdfUrl($user),
+            'icon' => 'heroicon-o-arrow-down-tray',
+        ]];
+
+        return $section;
     }
 
     /**
-     * @return array{title: string, icon: string, prose: string}|null
+     * @param  list<string>  $editableSections
+     * @return array{title: string, icon: string, prose: string, field?: string}|null
      */
-    private static function bioSection(?\App\Models\Profile $profile): ?array
+    private static function bioSection(?\App\Models\Profile $profile, array $editableSections): ?array
     {
-        if ($profile === null || blank($profile->bio)) {
+        $field = in_array('bio', $editableSections, true) ? 'bio' : null;
+
+        if ($profile === null) {
+            if ($field === null) {
+                return null;
+            }
+
+            return EntityViewPresenterSupport::proseSection(
+                'نبذة عن المستفيد',
+                'heroicon-o-chat-bubble-left-right',
+                'لم يُنشأ ملف كفاءات بعد.',
+                $field,
+            );
+        }
+
+        if (blank($profile->bio) && $field === null) {
             return null;
         }
 
         return EntityViewPresenterSupport::proseSection(
             'نبذة عن المستفيد',
             'heroicon-o-chat-bubble-left-right',
-            (string) $profile->bio,
+            filled($profile->bio) ? (string) $profile->bio : 'لم تُضف نبذة بعد.',
+            $field,
         );
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $rows
+     * @return array{title: string, icon: string, rows: array<int, array<string, mixed>>, field?: string}
+     */
+    private static function section(string $title, string $icon, array $rows, ?string $field = null): array
+    {
+        $section = [
+            'title' => $title,
+            'icon' => $icon,
+            'rows' => $rows,
+        ];
+
+        if ($field !== null) {
+            $section['field'] = $field;
+        }
+
+        return $section;
     }
 
     private static function genderLabel(string $gender): string

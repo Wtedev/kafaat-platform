@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class CompetencyMpdfExporter
 {
-    public function stream(array $viewData, string $filename, ?string $asciiFallback = null): Response
+    public function stream(array $viewData, string $filename, ?string $asciiFallback = null, string $disposition = 'inline'): Response
     {
         $locale = $viewData['cvLocale'] ?? 'ar';
         $html = View::make('portal.competency-pdf-mpdf', $viewData)->render();
@@ -30,7 +30,7 @@ final class CompetencyMpdfExporter
 
         return new Response($pdfBinary, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => HeaderUtils::makeDisposition('inline', $filename, $fallback),
+            'Content-Disposition' => HeaderUtils::makeDisposition($disposition, $filename, $fallback),
         ]);
     }
 

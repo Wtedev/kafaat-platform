@@ -28,16 +28,32 @@
         @foreach ($sections as $section)
             <section class="kafaat-entity-view__section">
                 <header class="kafaat-entity-view__section-header">
-                    @if ($editable && ! empty($section['field']))
-                        <button
-                            type="button"
-                            class="kafaat-entity-view__edit-btn kafaat-entity-view__edit-btn--section"
-                            title="تعديل {{ $section['title'] }}"
-                            wire:click="mountAction('editEntityField', { field: @js($section['field']) })"
-                        >
-                            {!! generate_icon_html('heroicon-o-pencil-square', size: IconSize::Small)?->toHtml() ?? '' !!}
-                        </button>
-                    @endif
+                    <div class="kafaat-entity-view__section-header-actions">
+                        @if (! empty($section['header_actions']))
+                            @foreach ($section['header_actions'] as $headerAction)
+                                <a
+                                    href="{{ $headerAction['url'] }}"
+                                    class="kafaat-entity-view__header-action-btn"
+                                    title="{{ $headerAction['label'] }}"
+                                >
+                                    @if (! empty($headerAction['icon']))
+                                        {!! generate_icon_html($headerAction['icon'], size: IconSize::Small)?->toHtml() ?? '' !!}
+                                    @endif
+                                    <span>{{ $headerAction['label'] }}</span>
+                                </a>
+                            @endforeach
+                        @endif
+                        @if (! empty($section['field']))
+                            <button
+                                type="button"
+                                class="kafaat-entity-view__edit-btn kafaat-entity-view__edit-btn--section"
+                                title="تعديل {{ $section['title'] }}"
+                                wire:click="mountAction('editEntityField', { field: @js($section['field']) })"
+                            >
+                                {!! generate_icon_html('heroicon-o-pencil-square', size: IconSize::Small)?->toHtml() ?? '' !!}
+                            </button>
+                        @endif
+                    </div>
                     <div class="kafaat-entity-view__section-heading">
                         @if (! empty($section['icon']))
                             <span class="kafaat-entity-view__section-icon" aria-hidden="true">

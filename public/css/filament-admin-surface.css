@@ -1157,9 +1157,48 @@ html.fi .kafaat-entity-view__row-value {
     grid-row: 1;
 }
 
-html.fi .kafaat-entity-view__edit-btn--section {
+html.fi .kafaat-entity-view__section-header-actions {
     grid-column: 2;
     grid-row: 1;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+html.fi .kafaat-entity-view__header-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    background: rgba(59, 130, 246, 0.12);
+    color: #93c5fd;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.25;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+html.fi .kafaat-entity-view__header-action-btn:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.55);
+    color: #bfdbfe;
+}
+
+html.fi:not(.dark) .kafaat-entity-view__header-action-btn {
+    background: rgba(51, 84, 131, 0.08);
+    color: #335483;
+    border-color: rgba(51, 84, 131, 0.22);
+}
+
+html.fi:not(.dark) .kafaat-entity-view__header-action-btn:hover {
+    background: rgba(51, 84, 131, 0.14);
+    color: #253b5b;
 }
 
 html.fi .kafaat-entity-view__section-heading {
