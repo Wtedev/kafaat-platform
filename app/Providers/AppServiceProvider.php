@@ -71,6 +71,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureRateLimiting();
+        $this->configureProductionHttps();
         $this->configureEmailVerificationOnLogin();
         $this->configureUserActivityLogging();
         $this->configureSecurityLogging();
@@ -113,6 +114,13 @@ class AppServiceProvider extends ServiceProvider
             $view->with('showCandidatePoolPrompt', $consentService->shouldPrompt(auth()->user()));
             $view->with('candidatePoolConsentText', $consentService->consentText());
         });
+    }
+
+    private function configureProductionHttps(): void
+    {
+        if (config('security.force_https', false)) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
     }
 
     private function configureEmailVerificationOnLogin(): void
@@ -213,6 +221,10 @@ class AppServiceProvider extends ServiceProvider
                         ->withInput()
                         ->withErrors(['email' => 'لقد تجاوزت عدد الطلبات المسموح بها. حاول مجدداً بعد قليل.']);
                 });
+        });
+
+        RateLimiter::for('certificate-verify', function (Request $request): Limit {
+            return Limit::perMinute(30)->by($request->ip());
         });
 
         RateLimiter::for('privacy-request', function (Request $request): Limit {

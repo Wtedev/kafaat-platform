@@ -31,7 +31,16 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             \App\Http\Middleware\AssignRequestId::class,
+            \App\Http\Middleware\ApplySecurityHeaders::class,
         ]);
+
+        $trustedHosts = array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('TRUSTED_HOSTS', '')),
+        )));
+        if ($trustedHosts !== []) {
+            $middleware->trustHosts(at: $trustedHosts);
+        }
 
         $middleware->alias([
             'beneficiary' => BeneficiaryPortal::class,

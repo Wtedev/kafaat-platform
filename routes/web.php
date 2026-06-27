@@ -94,7 +94,9 @@ Route::middleware(['auth', 'otp.verified'])->group(function () {
 
 Route::get('/', HomeController::class)->name('home');
 // Certificate verification (public, no auth required)
-Route::get('/certificates/verify/{code}', CertificateVerificationController::class)->name('certificates.verify');
+Route::get('/certificates/verify/{code}', CertificateVerificationController::class)
+    ->middleware('throttle:certificate-verify')
+    ->name('certificates.verify');
 
 Route::prefix('paths')->name('public.paths.')->group(function () {
     Route::get('/', [PublicLearningPathController::class, 'index'])->name('index');

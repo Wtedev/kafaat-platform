@@ -26,6 +26,15 @@ final class SensitiveDataRedactor
         'lookup_hash',
         'path',
         'disk',
+        'recipient_email',
+        'subject',
+        'user_agent',
+        'ip_address',
+        'authorization_header',
+        'cookie_header',
+        'session_id',
+        'payload',
+        'remember_token',
         'original_filename',
     ];
 
