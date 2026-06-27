@@ -4,6 +4,6 @@
     "buildCommand": "rm -rf node_modules/.cache node_modules/.vite 2>/dev/null || true && npm ci && npm run build"
   },
   "deploy": {
-    "startCommand": "php artisan migrate --force && php artisan storage:link 2>/dev/null || true && php artisan optimize && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"
+    "startCommand": "bash railway/run-web.sh"
   }
 }
