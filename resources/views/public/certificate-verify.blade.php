@@ -31,7 +31,7 @@ default => 'الموضوع',
 <div class="divide-y divide-gray-100 rounded-xl border border-gray-200 overflow-hidden text-sm">
     <div class="flex items-center justify-between px-4 py-3 bg-gray-50">
         <span class="text-gray-500">اسم المستفيد</span>
-        <span class="font-semibold text-gray-800">{{ $certificate->user->name }}</span>
+        <span class="font-semibold text-gray-800">{{ $certificate->user->certificateName() }}</span>
     </div>
     <div class="flex items-center justify-between px-4 py-3">
         <span class="text-gray-500">{{ $certTypeLabel }}</span>

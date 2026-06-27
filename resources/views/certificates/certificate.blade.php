@@ -173,7 +173,7 @@
 
         <div class="subtitle">تُقدَّم هذه الشهادة إلى</div>
 
-        <div class="recipient-name">{{ $certificate->user->name }}</div>
+        <div class="recipient-name">{{ $certificate->user->certificateName() }}</div>
 
         <p class="body-text">
             تقديراً لإتمامه/إتمامها بنجاح

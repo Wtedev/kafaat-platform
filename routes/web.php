@@ -143,6 +143,8 @@ Route::middleware(['auth', 'otp.verified', 'beneficiary'])
 
         Route::get('/profile', [PortalProfileController::class, 'show'])->name('profile');
         Route::patch('/profile', [PortalProfileController::class, 'update'])->name('profile.update');
+        Route::get('/profile/complete', [PortalProfileCompleteController::class, 'show'])->name('profile.complete');
+        Route::post('/profile/complete', [PortalProfileCompleteController::class, 'store'])->name('profile.complete.store');
 
         Route::get('/competency', [PortalCompetencyController::class, 'show'])->name('competency');
         Route::patch('/competency', [PortalCompetencyController::class, 'update'])->name('competency.update');

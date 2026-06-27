@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\IdentityType;
 use App\Enums\VolunteerHoursStatus;
+use App\Services\Identity\IdentityNumberService;
+use App\Services\Identity\PersonNameService;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Services\Rbac\RbacCatalog;
 use App\Services\Rbac\RbacService;
 use App\Support\PublicDiskPath;
@@ -28,6 +31,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     protected $fillable = [
         'name',
+        'first_name',
+        'father_name',
+        'grandfather_name',
+        'family_name',
         'email',
         'password',
         'role_type',
@@ -38,11 +45,14 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'notification_prefs_set_at',
         'notification_settings',
         'last_login_at',
+        'profile_completed_at',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+        'identity_number_ciphertext',
+        'identity_number_lookup_hash',
     ];
 
     protected function casts(): array
@@ -55,7 +65,79 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             'notify_email' => 'boolean',
             'notification_prefs_set_at' => 'datetime',
             'notification_settings' => 'array',
+            'identity_type' => IdentityType::class,
+            'identity_confirmed_at' => 'datetime',
+            'profile_completed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Compatibility field: kept in sync from structured name parts via services.
+     */
+    public function fullName(): string
+    {
+        $structured = PersonNameService::buildFullName([
+            'first_name' => $this->first_name,
+            'father_name' => $this->father_name,
+            'grandfather_name' => $this->grandfather_name,
+            'family_name' => $this->family_name,
+        ]);
+
+        if ($structured !== '') {
+            return $structured;
+        }
+
+        return trim((string) $this->name);
+    }
+
+    public function hasStructuredName(): bool
+    {
+        return PersonNameService::hasAllRequiredParts([
+            'first_name' => $this->first_name,
+            'father_name' => $this->father_name,
+            'grandfather_name' => $this->grandfather_name,
+            'family_name' => $this->family_name,
+        ]);
+    }
+
+    public function certificateName(): string
+    {
+        if ($this->hasStructuredName()) {
+            return $this->fullName();
+        }
+
+        $legacy = trim((string) $this->name);
+
+        return $legacy !== '' ? $legacy : '—';
+    }
+
+    public function hasIdentityOnRecord(): bool
+    {
+        return filled($this->identity_number_lookup_hash)
+            && filled($this->identity_number_last4)
+            && $this->identity_type instanceof IdentityType;
+    }
+
+    public function maskedIdentityNumber(): ?string
+    {
+        return IdentityNumberService::mask($this->identity_number_last4);
+    }
+
+    public function hasCompletedRequiredIdentityData(?string $birthDate = null): bool
+    {
+        if (! $this->hasStructuredName() || ! $this->hasIdentityOnRecord()) {
+            return false;
+        }
+
+        if (! filled($this->phone)) {
+            return false;
+        }
+
+        $this->loadMissing('profile');
+
+        $resolvedBirthDate = $birthDate ?? $this->profile?->birth_date?->toDateString();
+
+        return filled($resolvedBirthDate);
     }
 
     /**

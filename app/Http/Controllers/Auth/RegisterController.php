@@ -3,49 +3,43 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Services\Auth\UserRegistrationService;
 use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
+use InvalidArgumentException;
 
 class RegisterController extends Controller
 {
+    public function __construct(
+        private readonly UserRegistrationService $registrationService,
+    ) {}
+
     public function show(): View
     {
         return view('auth.register');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(RegisterRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
+        try {
+            $user = $this->registrationService->register($request->validated());
+        } catch (InvalidArgumentException $exception) {
+            if ($exception->getMessage() === 'duplicate_identity') {
+                return back()
+                    ->withInput($request->except(['password', 'password_confirmation', 'identity_number']))
+                    ->withErrors([
+                        'identity_number' => 'تعذر إكمال التسجيل بهذه البيانات. يمكنك استخدام استعادة الحساب أو التواصل مع الدعم.',
+                    ]);
+            }
 
-        $user = DB::transaction(function () use ($validated): User {
-            $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
-                'role_type' => 'beneficiary',
-                'is_active' => true,
-            ]);
-
-            $user->assignRole('trainee');
-
-            $user->profile()->create();
-
-            return $user;
-        });
+            throw $exception;
+        }
 
         UserActivityLogger::logAccountCreated($user);
 
-        // Auth::login يُطلق حدث Login الذي يرسل رمز OTP ويضبط بوابة الجلسة.
         Auth::login($user);
 
         $request->session()->regenerate();

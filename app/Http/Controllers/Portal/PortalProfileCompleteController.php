@@ -4,16 +4,14 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Portal\CompletePortalProfileRequest;
-use App\Http\Requests\Portal\UpdatePortalProfileRequest;
 use App\Services\Identity\UserProfileCompletionService;
 use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use InvalidArgumentException;
 
-class PortalProfileController extends Controller
+class PortalProfileCompleteController extends Controller
 {
     public function __construct(
         private readonly UserProfileCompletionService $profileCompletionService,
@@ -23,16 +21,15 @@ class PortalProfileController extends Controller
     {
         $user = $request->user()->load('profile');
 
-        return view('portal.profile', compact('user'));
+        return view('portal.profile-complete', compact('user'));
     }
 
-    public function update(UpdatePortalProfileRequest $request): RedirectResponse
+    public function store(CompletePortalProfileRequest $request): RedirectResponse
     {
         $user = $request->user();
 
         try {
-            $validated = $request->validated();
-            $this->profileCompletionService->updateProfile($user, $validated);
+            $this->profileCompletionService->complete($user, $request->validated());
         } catch (InvalidArgumentException $exception) {
             if ($exception->getMessage() === 'duplicate_identity') {
                 return back()
@@ -45,20 +42,9 @@ class PortalProfileController extends Controller
             throw $exception;
         }
 
-        if ($request->hasFile('avatar')) {
-            $existing = $user->profile?->avatar;
-            if ($existing && Storage::disk('public')->exists($existing)) {
-                Storage::disk('public')->delete($existing);
-            }
+        UserActivityLogger::logProfileUpdated($user, ['استكمال بيانات الحساب']);
 
-            $user->profile()->updateOrCreate(
-                ['user_id' => $user->id],
-                ['avatar' => $request->file('avatar')->store('avatars', 'public')],
-            );
-        }
-
-        UserActivityLogger::logProfileUpdated($user, ['الملف الشخصي']);
-
-        return back()->with('success', 'تم حفظ الملف الشخصي بنجاح.');
+        return redirect()->route('portal.dashboard')
+            ->with('success', 'تم حفظ بيانات حسابك بنجاح.');
     }
 }

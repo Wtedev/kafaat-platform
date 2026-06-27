@@ -7,7 +7,7 @@ $p = $user->profile;
 
 @section('content')
 <h1 class="mb-2 text-2xl font-bold text-gray-900">ملفي الشخصي</h1>
-<p class="mb-8 text-sm text-gray-600">حدّث صورتك وبياناتك والمسمى المهني.</p>
+<p class="mb-8 text-sm text-gray-600">حدّث صورتك وبياناتك الرسمية والمسمى المهني.</p>
 
 <div class="max-w-3xl space-y-8">
     <div class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
@@ -31,42 +31,42 @@ $p = $user->profile;
                     @if ($p?->avatarUrl())
                     <img src="{{ $p->avatarUrl() }}" alt="" class="h-full w-full object-cover" />
                     @else
-                    {{ \App\Models\Profile::initialsFromName($user->name) }}
+                    {{ \App\Models\Profile::initialsFromName($user->fullName()) }}
                     @endif
                 </div>
                 <div class="min-w-0 flex-1 text-center sm:text-right">
                     <label class="mb-2 block text-sm font-medium text-gray-700">رفع أو تغيير الصورة (اختياري)</label>
                     <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif" class="w-full max-w-md text-sm text-gray-600 file:me-3 file:rounded-lg file:border-0 file:bg-[#e9eff6] file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-[#335483] sm:ms-0 sm:me-auto" />
                     @error('avatar') <p class="mt-2 text-xs text-brand-danger">{{ $message }}</p> @enderror
-                    <p class="mt-2 text-xs text-gray-500">صورة مربعة بحد أقصى 2 ميجابايت (JPEG أو PNG أو WebP أو GIF).</p>
                 </div>
             </div>
 
-            <h2 class="mb-4 border-b border-gray-100 pb-2 text-base font-bold text-gray-900">البيانات الأساسية</h2>
+            <h2 class="mb-4 border-b border-gray-100 pb-2 text-base font-bold text-gray-900">البيانات الرسمية</h2>
+            <x-portal-identity-form-fields
+                :first-name="old('first_name', $user->first_name)"
+                :father-name="old('father_name', $user->father_name)"
+                :grandfather-name="old('grandfather_name', $user->grandfather_name)"
+                :family-name="old('family_name', $user->family_name)"
+                :birth-date="old('birth_date', optional($p?->birth_date)->toDateString())"
+                :phone="old('phone', $user->phone)"
+                :show-identity-fields="true"
+                :identity-locked="$user->hasIdentityOnRecord()"
+            />
+
+            <h2 class="mb-4 mt-8 border-b border-gray-100 pb-2 text-base font-bold text-gray-900">بيانات إضافية</h2>
             <div class="grid gap-5 sm:grid-cols-2">
-                <div class="sm:col-span-2">
-                    <label class="mb-1 block text-sm font-medium text-gray-700">الاسم الكامل <span class="text-brand-danger">*</span></label>
-                    <input type="text" name="name" value="{{ old('name', $user->name) }}" class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#335483]/40 @error('name') border-brand-danger @enderror" />
-                    @error('name') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
-                </div>
                 <div class="sm:col-span-2">
                     <label class="mb-1 block text-sm font-medium text-gray-700">البريد الإلكتروني</label>
                     <input type="email" value="{{ $user->email }}" readonly class="w-full cursor-not-allowed rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-600" dir="ltr" />
-                    <p class="mt-1 text-xs text-gray-500">غير قابل للتعديل من هذه الصفحة.</p>
-                </div>
-                <div>
-                    <label class="mb-1 block text-sm font-medium text-gray-700">رقم الجوال</label>
-                    <input type="tel" name="phone" value="{{ old('phone', $user->phone) }}" class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#335483]/40 @error('phone') border-brand-danger @enderror" />
-                    @error('phone') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">المدينة</label>
                     <input type="text" name="city" value="{{ old('city', $p?->city) }}" class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#335483]/40 @error('city') border-brand-danger @enderror" />
                     @error('city') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
                 </div>
-                <div class="sm:col-span-2">
-                    <label class="mb-1 block text-sm font-medium text-gray-700">المسمى المهني</label>
-                    <input type="text" name="job_title" value="{{ old('job_title', $p?->job_title) }}" maxlength="160" placeholder="مثال: محلل بيانات، منسّق برامج" class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#335483]/40 @error('job_title') border-brand-danger @enderror" />
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">المسمى الوظيفي</label>
+                    <input type="text" name="job_title" value="{{ old('job_title', $p?->job_title) }}" maxlength="160" class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#335483]/40 @error('job_title') border-brand-danger @enderror" />
                     @error('job_title') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
                 </div>
             </div>

@@ -31,8 +31,18 @@ final class ProfileAdminForm
                 ->columns(2)
                 ->schema([
                     Placeholder::make('account_name')
-                        ->label('الاسم الكامل')
-                        ->content(fn (?Profile $record): string => $record?->user?->name ?? '—'),
+                        ->label('الاسم الرباعي')
+                        ->content(fn (?Profile $record): string => $record?->user?->fullName() ?? '—'),
+
+                    Placeholder::make('account_identity')
+                        ->label('رقم الهوية / الإقامة')
+                        ->content(fn (?Profile $record): string => $record?->user?->maskedIdentityNumber() ?? '—')
+                        ->visible(fn (?Profile $record): bool => $record?->user?->hasIdentityOnRecord() ?? false),
+
+                    Placeholder::make('account_identity_type')
+                        ->label('نوع الهوية')
+                        ->content(fn (?Profile $record): string => $record?->user?->identity_type?->label() ?? '—')
+                        ->visible(fn (?Profile $record): bool => $record?->user?->hasIdentityOnRecord() ?? false),
 
                     Placeholder::make('account_email')
                         ->label('البريد الإلكتروني')

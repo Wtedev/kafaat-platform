@@ -2,17 +2,20 @@
 
 namespace Tests\Feature\PrivacyBaseline;
 
-use App\Models\Profile;
+use App\Enums\IdentityType;
 use App\Models\User;
 use App\Notifications\VerifyEmailCode;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Tests\Concerns\GeneratesTestIdentityData;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
 
 class RegistrationBaselineTest extends TestCase
 {
+    use GeneratesTestIdentityData;
     use RefreshDatabase;
     use SeedsRbacRoles;
 
@@ -32,12 +35,11 @@ class RegistrationBaselineTest extends TestCase
     {
         Notification::fake();
 
-        $response = $this->post(route('register'), [
-            'name' => 'أحمد المستفيد',
+        $payload = $this->validRegistrationPayload([
             'email' => 'new-beneficiary@example.com',
-            'password' => 'SecurePass1!',
-            'password_confirmation' => 'SecurePass1!',
         ]);
+
+        $response = $this->post(route('register'), $payload);
 
         $response->assertRedirect(route('verification.notice'));
 
@@ -47,8 +49,9 @@ class RegistrationBaselineTest extends TestCase
         $this->assertTrue($user->hasRole('trainee'));
         $this->assertTrue($user->is_active);
         $this->assertDatabaseHas('profiles', ['user_id' => $user->id]);
-        $this->assertNotSame('SecurePass1!', $user->getRawOriginal('password'));
         $this->assertTrue(Hash::check('SecurePass1!', $user->password));
+        $this->assertTrue($user->hasStructuredName());
+        $this->assertTrue($user->hasIdentityOnRecord());
 
         Notification::assertSentTo($user, VerifyEmailCode::class);
     }
@@ -57,21 +60,25 @@ class RegistrationBaselineTest extends TestCase
     {
         User::factory()->create(['email' => 'dup@example.com']);
 
-        $response = $this->post(route('register'), [
-            'name' => 'مستخدم آخر',
-            'email' => 'dup@example.com',
-            'password' => 'SecurePass1!',
-            'password_confirmation' => 'SecurePass1!',
-        ]);
+        $payload = $this->validRegistrationPayload(['email' => 'dup@example.com']);
+
+        $response = $this->post(route('register'), $payload);
 
         $response->assertSessionHasErrors('email');
         $this->assertSame(1, User::query()->where('email', 'dup@example.com')->count());
     }
 
-    public function test_registration_validation_requires_name_email_and_password_confirmation(): void
+    public function test_registration_validation_requires_core_fields(): void
     {
         $response = $this->post(route('register'), []);
 
-        $response->assertSessionHasErrors(['name', 'email', 'password']);
+        $response->assertSessionHasErrors([
+            'first_name',
+            'email',
+            'password',
+            'identity_number',
+            'birth_date',
+            'phone',
+        ]);
     }
 }

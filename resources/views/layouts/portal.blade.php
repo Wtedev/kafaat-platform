@@ -189,6 +189,14 @@
         </aside>
 
         <main class="min-w-0 flex-1">
+            @if (auth()->check() && auth()->user()->isPortalUser() && ! auth()->user()->hasCompletedRequiredIdentityData())
+            <div class="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                <p class="font-semibold">بيانات حسابك غير مكتملة</p>
+                <p class="mt-1">يرجى استكمال الاسم الرباعي ورقم الهوية وتاريخ الميلاد والجوال.</p>
+                <a href="{{ route('portal.profile.complete') }}" class="mt-2 inline-block font-medium text-[#335483] hover:underline">استكمال البيانات</a>
+            </div>
+            @endif
+
             @if (session('success'))
             <div class="mb-4 rounded-3xl border border-[#b8e0e2] bg-[#e6f5f6]/90 px-4 py-3 text-sm text-brand-secondary shadow-[0_2px_16px_-6px_rgba(26,147,153,0.12)] backdrop-blur-sm">
                 {{ session('success') }}

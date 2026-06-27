@@ -10,6 +10,7 @@ use App\Filament\Resources\UserResource\RelationManagers\UserTechnicalLogRelatio
 use App\Filament\Resources\UserResource\RelationManagers\UserTrainingRegistrationsRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\UserVolunteerRegistrationsRelationManager;
 use App\Models\User;
+use App\Enums\IdentityType;
 use App\Support\UserAccountRoleForm;
 use App\Support\UserDirectoryTabs;
 use Filament\Actions\BulkActionGroup;
@@ -158,10 +159,39 @@ class UserResource extends Resource
     {
         return static::applyEditOnlyTable($table)
             ->columns([
-                TextColumn::make('name')
+                TextColumn::make('full_name_display')
                     ->label('الاسم')
-                    ->searchable()
-                    ->sortable(),
+                    ->getStateUsing(fn (User $record): string => $record->fullName())
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->where(function (Builder $q) use ($search): void {
+                            $q->where('name', 'like', "%{$search}%")
+                                ->orWhere('first_name', 'like', "%{$search}%")
+                                ->orWhere('father_name', 'like', "%{$search}%")
+                                ->orWhere('grandfather_name', 'like', "%{$search}%")
+                                ->orWhere('family_name', 'like', "%{$search}%");
+                        });
+                    })
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->orderBy('first_name', $direction)
+                            ->orderBy('family_name', $direction);
+                    }),
+
+                TextColumn::make('identity_type')
+                    ->label('نوع الهوية')
+                    ->formatStateUsing(fn (?IdentityType $state): string => $state?->label() ?? '—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('masked_identity')
+                    ->label('رقم الهوية')
+                    ->getStateUsing(fn (User $record): string => $record->maskedIdentityNumber() ?? '—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('profile_completion')
+                    ->label('اكتمال البيانات')
+                    ->badge()
+                    ->getStateUsing(fn (User $record): string => $record->hasCompletedRequiredIdentityData() ? 'مكتمل' : 'ناقص')
+                    ->color(fn (User $record): string => $record->hasCompletedRequiredIdentityData() ? 'success' : 'warning')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('email')
                     ->label('البريد الإلكتروني')
