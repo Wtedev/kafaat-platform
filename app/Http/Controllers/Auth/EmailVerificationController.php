@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Services\Auth\EmailVerificationCodeService;
+use App\Enums\SecurityLogResult;
+use App\Enums\SecurityLogSeverity;
+use App\Services\Security\SecurityLogService;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,6 +31,14 @@ class EmailVerificationController extends Controller
         $result = $service->verify($user, $validated['code']);
 
         if ($result === 'success') {
+            app(SecurityLogService::class)->record(
+                'auth.otp_verified',
+                SecurityLogResult::Success,
+                SecurityLogSeverity::Info,
+                $user,
+                request: $request,
+            );
+
             // فتح بوابة الجلسة لهذه الجلسة فقط.
             $request->session()->put('otp_verified', true);
 
@@ -36,6 +47,22 @@ class EmailVerificationController extends Controller
             return $this->redirectVerifiedUser($request)
                 ->with('status', 'تم التحقق بنجاح.');
         }
+
+        $severity = $result === 'too_many_attempts' ? SecurityLogSeverity::Warning : SecurityLogSeverity::Info;
+        $event = match ($result) {
+            'expired' => 'auth.otp_expired',
+            'too_many_attempts' => 'auth.otp_locked',
+            default => 'auth.otp_failed',
+        };
+
+        app(SecurityLogService::class)->record(
+            $event,
+            SecurityLogResult::Failed,
+            $severity,
+            $user,
+            metadata: ['reason' => $result],
+            request: $request,
+        );
 
         $message = match ($result) {
             'expired' => 'انتهت صلاحية الرمز. اطلب رمزاً جديداً.',

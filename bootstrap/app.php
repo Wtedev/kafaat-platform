@@ -29,6 +29,10 @@ return Application::configure(basePath: dirname(__DIR__))
                      Request::HEADER_X_FORWARDED_PROTO,
         );
 
+        $middleware->web(append: [
+            \App\Http\Middleware\AssignRequestId::class,
+        ]);
+
         $middleware->alias([
             'beneficiary' => BeneficiaryPortal::class,
             'admin-or-staff' => EnsureAdminOrStaff::class,

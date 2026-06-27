@@ -75,12 +75,11 @@ class UserActivityLogger
         }
 
         $labels = implode('، ', $fieldLabels);
-        $actorName = filled($actor->name) ? $actor->name : 'مسؤول';
 
         self::log(
             $beneficiary,
             UserActivityAction::AdminUserUpdated,
-            'الحقول: '.$labels.' — المعدّل: '.$actorName,
+            'الحقول: '.$labels,
         );
     }
 

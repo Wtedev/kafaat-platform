@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Enums\SecurityLogResult;
+use App\Enums\SecurityLogSeverity;
+use App\Services\Security\SecurityLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,6 +28,15 @@ class LoginController extends Controller
         $remember = $request->boolean('remember');
 
         if (! Auth::attempt($credentials, $remember)) {
+            app(SecurityLogService::class)->record(
+                'auth.login_failed',
+                SecurityLogResult::Failed,
+                SecurityLogSeverity::Warning,
+                identifier: (string) $credentials['email'],
+                metadata: ['reason' => 'invalid_credentials'],
+                request: $request,
+            );
+
             return back()
                 ->withInput($request->only('email', 'remember'))
                 ->withErrors(['email' => 'البريد الإلكتروني أو كلمة المرور غير صحيحة.']);
@@ -35,6 +47,15 @@ class LoginController extends Controller
         $user = Auth::user();
 
         if (! $user->is_active) {
+            app(SecurityLogService::class)->record(
+                'auth.login_blocked',
+                SecurityLogResult::Blocked,
+                SecurityLogSeverity::Warning,
+                $user,
+                metadata: ['reason' => 'inactive_account'],
+                request: $request,
+            );
+
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();

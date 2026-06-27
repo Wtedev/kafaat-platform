@@ -2,34 +2,35 @@
 
 namespace App\Models;
 
-use App\Enums\AuditLogResult;
+use App\Enums\SecurityLogResult;
+use App\Enums\SecurityLogSeverity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class AuditLog extends Model
+class SecurityLog extends Model
 {
     public $timestamps = false;
 
     protected $fillable = [
-        'actor_id',
-        'actor_type',
-        'action',
-        'target_user_id',
-        'resource_type',
-        'resource_id',
+        'user_id',
+        'event',
         'result',
-        'reason',
+        'severity',
         'request_id',
         'ip_address',
         'user_agent',
+        'identifier_hash',
         'metadata',
         'occurred_at',
     ];
 
+    protected $guarded = [];
+
     protected function casts(): array
     {
         return [
-            'result' => AuditLogResult::class,
+            'result' => SecurityLogResult::class,
+            'severity' => SecurityLogSeverity::class,
             'metadata' => 'array',
             'occurred_at' => 'datetime',
             'created_at' => 'datetime',
@@ -42,13 +43,8 @@ class AuditLog extends Model
         static::deleting(fn (): bool => false);
     }
 
-    public function actor(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'actor_id');
-    }
-
-    public function targetUser(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'target_user_id');
+        return $this->belongsTo(User::class);
     }
 }

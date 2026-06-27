@@ -7,7 +7,6 @@ use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class AuditLogService
 {
@@ -44,8 +43,12 @@ class AuditLogService
             return null;
         }
 
-        $existing = $request->headers->get('X-Request-Id');
+        $fromAttribute = $request->attributes->get('request_id');
 
-        return filled($existing) ? (string) $existing : (string) Str::uuid();
+        if (is_string($fromAttribute) && $fromAttribute !== '') {
+            return $fromAttribute;
+        }
+
+        return null;
     }
 }

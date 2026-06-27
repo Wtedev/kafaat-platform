@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\AuditLog;
 use App\Models\BoardMember;
 use App\Models\GovernanceDocument;
 use App\Models\InboxNotification;
@@ -10,7 +11,9 @@ use App\Models\News;
 use App\Models\PrivacyPolicyVersion;
 use App\Models\Profile;
 use App\Models\Regulation;
+use App\Models\SecurityLog;
 use App\Models\User;
+use App\Policies\AuditLogPolicy;
 use App\Policies\BoardMemberPolicy;
 use App\Policies\GovernanceDocumentPolicy;
 use App\Policies\InboxNotificationPolicy;
@@ -20,7 +23,11 @@ use App\Policies\PrivacyPolicyVersionPolicy;
 use App\Policies\ProfilePolicy;
 use App\Policies\RegulationPolicy;
 use App\Policies\SendInAppNotificationPolicy;
+use App\Policies\SecurityLogPolicy;
 use App\Policies\UserPolicy;
+use App\Enums\SecurityLogResult;
+use App\Enums\SecurityLogSeverity;
+use App\Services\Security\SecurityLogService;
 use App\Services\Inbox\InboxNotificationService;
 use App\Services\News\NewsPublicationService;
 use App\Services\Rbac\RbacService;
@@ -55,10 +62,13 @@ class AppServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
         $this->configureEmailVerificationOnLogin();
         $this->configureUserActivityLogging();
+        $this->configureSecurityLogging();
 
         Gate::policy(PrivacyPolicyVersion::class, PrivacyPolicyVersionPolicy::class);
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Profile::class, ProfilePolicy::class);
+        Gate::policy(AuditLog::class, AuditLogPolicy::class);
+        Gate::policy(SecurityLog::class, SecurityLogPolicy::class);
         Gate::policy(InboxNotification::class, InboxNotificationPolicy::class);
         Gate::policy(News::class, NewsPolicy::class);
         Gate::policy(Regulation::class, RegulationPolicy::class);
@@ -106,6 +116,37 @@ class AppServiceProvider extends ServiceProvider
             if (method_exists($user, 'sendEmailVerificationNotification')) {
                 $user->sendEmailVerificationNotification();
             }
+        });
+    }
+
+    private function configureSecurityLogging(): void
+    {
+        Event::listen(Login::class, function (Login $event): void {
+            if (! ($event->user instanceof User)) {
+                return;
+            }
+
+            app(SecurityLogService::class)->record(
+                'auth.login_succeeded',
+                SecurityLogResult::Success,
+                SecurityLogSeverity::Info,
+                $event->user,
+                request: request(),
+            );
+        });
+
+        Event::listen(Logout::class, function (Logout $event): void {
+            if (! ($event->user instanceof User)) {
+                return;
+            }
+
+            app(SecurityLogService::class)->record(
+                'auth.logout',
+                SecurityLogResult::Success,
+                SecurityLogSeverity::Info,
+                $event->user,
+                request: request(),
+            );
         });
     }
 
