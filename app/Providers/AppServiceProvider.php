@@ -83,6 +83,10 @@ class AppServiceProvider extends ServiceProvider
                 'portalInboxUnreadCount',
                 app(InboxNotificationService::class)->unreadCount(auth()->user()),
             );
+
+            $consentService = app(\App\Services\CandidatePool\CandidatePoolConsentService::class);
+            $view->with('showCandidatePoolPrompt', $consentService->shouldPrompt(auth()->user()));
+            $view->with('candidatePoolConsentText', $consentService->consentText());
         });
     }
 

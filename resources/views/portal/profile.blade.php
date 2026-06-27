@@ -81,6 +81,8 @@ $p = $user->profile;
 
     <p class="text-center text-xs text-gray-400">
         <a href="{{ route('public.privacy') }}" class="hover:text-brand hover:underline">سياسة الخصوصية</a>
+        ·
+        <a href="{{ route('portal.candidate-pool.settings') }}" class="hover:text-brand hover:underline">قاعدة المرشحين</a>
     </p>
 </div>
 @endsection

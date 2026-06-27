@@ -15,6 +15,8 @@ use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\Portal\PortalAttendanceCheckInController;
 use App\Http\Controllers\Portal\PortalAttendanceSessionController;
 use App\Http\Controllers\Portal\PortalCertificateController;
+use App\Http\Controllers\Portal\PortalCandidatePoolConsentController;
+use App\Http\Controllers\Portal\PortalCandidatePoolSettingsController;
 use App\Http\Controllers\Portal\PortalCompetencyController;
 use App\Http\Controllers\Portal\PortalCompetencyExportController;
 use App\Http\Controllers\Portal\PortalCvDocumentController;
@@ -173,5 +175,18 @@ Route::middleware(['auth', 'otp.verified', 'beneficiary', 'privacy.acknowledged'
         Route::post('/competency/cv', [PortalCvDocumentController::class, 'store'])->name('competency.cv.store');
         Route::get('/competency/cv/download', [PortalCvDocumentController::class, 'download'])->name('competency.cv.download');
         Route::delete('/competency/cv', [PortalCvDocumentController::class, 'destroy'])->name('competency.cv.destroy');
+
+        Route::post('/candidate-pool/prompted', [PortalCandidatePoolConsentController::class, 'prompted'])
+            ->name('candidate-pool.prompted');
+        Route::post('/candidate-pool/grant', [PortalCandidatePoolConsentController::class, 'grant'])
+            ->name('candidate-pool.grant');
+        Route::post('/candidate-pool/decline', [PortalCandidatePoolConsentController::class, 'decline'])
+            ->name('candidate-pool.decline');
+        Route::get('/candidate-pool/settings', [PortalCandidatePoolSettingsController::class, 'show'])
+            ->name('candidate-pool.settings');
+        Route::post('/candidate-pool/settings/grant', [PortalCandidatePoolSettingsController::class, 'grant'])
+            ->name('candidate-pool.settings.grant');
+        Route::post('/candidate-pool/settings/withdraw', [PortalCandidatePoolSettingsController::class, 'withdraw'])
+            ->name('candidate-pool.settings.withdraw');
 
     });

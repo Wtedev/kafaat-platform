@@ -247,6 +247,8 @@
             });
         })();
     </script>
+    @include('partials.candidate-pool-modal')
+
     @stack('scripts')
 </body>
 </html>

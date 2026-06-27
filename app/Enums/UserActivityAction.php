@@ -21,6 +21,10 @@ enum UserActivityAction: string
     case CvUploaded = 'cv_uploaded';
     case CvReplaced = 'cv_replaced';
     case CvDeleted = 'cv_deleted';
+    case CandidatePoolGranted = 'candidate_pool_granted';
+    case CandidatePoolDeclined = 'candidate_pool_declined';
+    case CandidatePoolWithdrawn = 'candidate_pool_withdrawn';
+    case CandidatePoolRegranted = 'candidate_pool_regranted';
 
     public function category(): string
     {
@@ -35,6 +39,7 @@ enum UserActivityAction: string
             self::AttendanceCheckIn => 'الحضور',
             self::CertificateDownloaded => 'الشهادات',
             self::CvUploaded, self::CvReplaced, self::CvDeleted => 'السيرة الذاتية',
+            self::CandidatePoolGranted, self::CandidatePoolDeclined, self::CandidatePoolWithdrawn, self::CandidatePoolRegranted => 'قاعدة المرشحين',
         };
     }
 
@@ -58,6 +63,10 @@ enum UserActivityAction: string
             self::CvUploaded => 'رفع سيرة ذاتية',
             self::CvReplaced => 'استبدال سيرة ذاتية',
             self::CvDeleted => 'حذف سيرة ذاتية',
+            self::CandidatePoolGranted => 'الانضمام لقاعدة المرشحين',
+            self::CandidatePoolDeclined => 'رفض الانضمام لقاعدة المرشحين',
+            self::CandidatePoolWithdrawn => 'سحب موافقة قاعدة المرشحين',
+            self::CandidatePoolRegranted => 'إعادة الانضمام لقاعدة المرشحين',
         };
     }
 

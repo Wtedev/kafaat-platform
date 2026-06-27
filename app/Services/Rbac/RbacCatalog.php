@@ -40,6 +40,10 @@ final class RbacCatalog
             'privacy_policy.publish',
             'privacy_policy.archive',
             'beneficiary.cv.download',
+            'candidate_pool.view',
+            'candidate_pool.profile.view',
+            'candidate_pool.cv.download',
+            'candidate_pool.consent_versions.manage',
         ];
     }
 
@@ -149,6 +153,10 @@ final class RbacCatalog
             'privacy_policy.publish' => 'نشر إصدارات سياسة الخصوصية',
             'privacy_policy.archive' => 'أرشفة إصدارات سياسة الخصوصية',
             'beneficiary.cv.download' => 'تنزيل سيرة مستفيد (ملف مرفوع)',
+            'candidate_pool.view' => 'عرض قاعدة المرشحين',
+            'candidate_pool.profile.view' => 'عرض ملف مرشح',
+            'candidate_pool.cv.download' => 'تنزيل سيرة مرشح',
+            'candidate_pool.consent_versions.manage' => 'إدارة نص موافقة قاعدة المرشحين',
             'users.view' => 'عرض المستخدمين',
             'users.create' => 'إنشاء مستخدمين',
             'users.update' => 'تعديل المستخدمين',
@@ -317,6 +325,7 @@ final class RbacCatalog
         $publicRelations = array_values(array_unique([
             'manage_partners', 'manage_regulations', 'manage_governance',
             'privacy_policy.view', 'privacy_policy.create', 'privacy_policy.update_draft',             'privacy_policy.publish',
+            'candidate_pool.consent_versions.manage',
             'view_notifications', 'emails.send', 'statistics.view',
         ]));
 
@@ -332,7 +341,9 @@ final class RbacCatalog
             'view_notifications',
         ];
 
-        $trainingManagement = array_values(array_unique([...$pathsPrograms, ...$volunteering]));
+        $trainingManagement = array_values(array_unique([...$pathsPrograms, ...$volunteering,
+            'candidate_pool.view', 'candidate_pool.profile.view', 'candidate_pool.cv.download',
+        ]));
 
         return [
             'admin' => $all,
