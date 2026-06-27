@@ -13,12 +13,6 @@ use Tests\TestCase;
 
 class TrainingProgramViewPresenterTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-        Mockery::close();
-        parent::tearDown();
-    }
-
     public function test_present_includes_core_overview_and_stats(): void
     {
         $owner = new User(['name' => 'لمى المشيقح']);
@@ -42,13 +36,25 @@ class TrainingProgramViewPresenterTest extends TestCase
         $program->setRelation('editors', collect([$owner]));
 
         $presented = TrainingProgramViewPresenter::present($program);
+        $overviewRows = collect($presented['sections'])
+            ->firstWhere('title', 'نظرة عامة')['rows'];
 
         $this->assertSame('16', $presented['stats'][0]['value']);
-        $this->assertSame('دورة تدريبية', $presented['sections'][0]['rows'][2]['value']);
-        $this->assertSame('منشور', $presented['sections'][0]['rows'][0]['value']);
+        $this->assertSame(
+            'دورة تدريبية',
+            collect($overviewRows)->firstWhere('label', 'نوع البرنامج')['value'],
+        );
+        $this->assertSame(
+            'برنامج مستقل',
+            collect($overviewRows)->firstWhere('label', 'التبعية للمسار')['value'],
+        );
+        $this->assertStringStartsWith(
+            'منشور',
+            collect($overviewRows)->firstWhere('label', 'حالة النشر')['value'],
+        );
     }
 
-    public function test_present_omits_empty_description_section(): void
+    public function test_present_shows_placeholder_when_description_empty(): void
     {
         $program = $this->mockProgram();
         $program->fill([
@@ -57,9 +63,11 @@ class TrainingProgramViewPresenterTest extends TestCase
             'program_kind' => TrainingProgramKind::Workshop,
         ]);
 
-        $titles = array_column(TrainingProgramViewPresenter::present($program)['sections'], 'title');
+        $descriptionSection = collect(TrainingProgramViewPresenter::present($program)['sections'])
+            ->firstWhere('title', 'نبذة عن البرنامج');
 
-        $this->assertNotContains('نبذة عن البرنامج', $titles);
+        $this->assertNotNull($descriptionSection);
+        $this->assertSame('—', $descriptionSection['prose']);
     }
 
     public function test_present_hides_duplicate_team_row_when_editor_is_owner(): void
