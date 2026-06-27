@@ -3,22 +3,30 @@
 namespace App\Services\Auth;
 
 use App\Enums\IdentityType;
+use App\Enums\PrivacyPolicyAcknowledgementSource;
+use App\Models\PrivacyPolicyVersion;
 use App\Models\User;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\Identity\PersonNameService;
 use App\Services\Identity\SaudiPhoneService;
+use App\Services\Privacy\PrivacyPolicyAcknowledgementService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use InvalidArgumentException;
 
 class UserRegistrationService
 {
+    public function __construct(
+        private readonly PrivacyPolicyAcknowledgementService $acknowledgementService,
+    ) {}
+
     /**
      * @param  array<string, mixed>  $data
      */
-    public function register(array $data): User
+    public function register(array $data, PrivacyPolicyVersion $policy, ?Request $request = null): User
     {
-        return DB::transaction(function () use ($data): User {
+        return DB::transaction(function () use ($data, $policy, $request): User {
             $nameParts = PersonNameService::normalizedParts($data);
             $identityType = IdentityType::from((string) $data['identity_type']);
             $identityPayload = IdentityNumberService::prepareStoragePayload(
@@ -61,6 +69,13 @@ class UserRegistrationService
             $user->profile()->create([
                 'birth_date' => $data['birth_date'],
             ]);
+
+            $this->acknowledgementService->acknowledge(
+                $user,
+                $policy,
+                PrivacyPolicyAcknowledgementSource::Registration,
+                $request,
+            );
 
             return $user->fresh(['profile']);
         });

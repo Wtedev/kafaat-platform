@@ -4,6 +4,7 @@ namespace Tests\Concerns;
 
 use App\Enums\IdentityType;
 use App\Services\Identity\IdentityNumberService;
+use App\Services\Privacy\PrivacyPolicyService;
 
 trait GeneratesTestIdentityData
 {
@@ -49,6 +50,8 @@ trait GeneratesTestIdentityData
             'phone' => '0501234567',
             'password' => 'SecurePass1!',
             'password_confirmation' => 'SecurePass1!',
+            'privacy_policy_version' => PrivacyPolicyService::active()?->version ?? '1.0',
+            'privacy_policy_acknowledged' => '1',
         ], $overrides);
     }
 

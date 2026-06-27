@@ -63,4 +63,8 @@
     <a href="{{ route('register') }}" class="text-brand font-medium hover:underline">إنشاء حساب</a>
 </p>
 
+<p class="mt-4 text-center text-xs text-gray-400">
+    <a href="{{ route('public.privacy') }}" class="hover:text-brand hover:underline">سياسة الخصوصية</a>
+</p>
+
 @endsection

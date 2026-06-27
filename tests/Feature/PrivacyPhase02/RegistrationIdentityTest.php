@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Tests\Concerns\GeneratesTestIdentityData;
+use Tests\Concerns\SeedsActivePrivacyPolicy;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
 
@@ -17,12 +18,14 @@ class RegistrationIdentityTest extends TestCase
 {
     use GeneratesTestIdentityData;
     use RefreshDatabase;
+    use SeedsActivePrivacyPolicy;
     use SeedsRbacRoles;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->seedRbacRoles();
+        $this->seedActivePrivacyPolicy();
     }
 
     public function test_registration_creates_structured_user_profile_and_encrypted_identity(): void

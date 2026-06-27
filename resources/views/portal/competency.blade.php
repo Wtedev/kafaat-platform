@@ -24,6 +24,10 @@
     @include('portal.competency.partials.hero')
     @include('portal.competency.partials.sections-builder')
 
+    <p class="mb-8 text-center text-xs text-gray-400">
+        <a href="{{ route('public.privacy') }}" class="hover:text-brand hover:underline">سياسة الخصوصية</a>
+    </p>
+
     @php $cvL = $cvLabels ?? []; $platVis = $profile?->cvSectionVisible('platform') ?? true; @endphp
     <section class="mb-5 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
         <div class="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-gray-50 pb-3">

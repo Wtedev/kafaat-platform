@@ -34,6 +34,11 @@ final class RbacCatalog
             'manage_visual_identity',
             'manage_banners',
             'manage_brand_settings',
+            'privacy_policy.view',
+            'privacy_policy.create',
+            'privacy_policy.update_draft',
+            'privacy_policy.publish',
+            'privacy_policy.archive',
         ];
     }
 
@@ -137,6 +142,11 @@ final class RbacCatalog
             'manage_visual_identity' => 'إدارة الهوية البصرية',
             'manage_banners' => 'إدارة البنرات',
             'manage_brand_settings' => 'تخصيص الألوان والتصميم',
+            'privacy_policy.view' => 'عرض إصدارات سياسة الخصوصية',
+            'privacy_policy.create' => 'إنشاء مسودة سياسة خصوصية',
+            'privacy_policy.update_draft' => 'تعديل مسودات سياسة الخصوصية',
+            'privacy_policy.publish' => 'نشر إصدارات سياسة الخصوصية',
+            'privacy_policy.archive' => 'أرشفة إصدارات سياسة الخصوصية',
             'users.view' => 'عرض المستخدمين',
             'users.create' => 'إنشاء مستخدمين',
             'users.update' => 'تعديل المستخدمين',
@@ -304,6 +314,7 @@ final class RbacCatalog
 
         $publicRelations = array_values(array_unique([
             'manage_partners', 'manage_regulations', 'manage_governance',
+            'privacy_policy.view', 'privacy_policy.create', 'privacy_policy.update_draft', 'privacy_policy.publish',
             'view_notifications', 'emails.send', 'statistics.view',
         ]));
 

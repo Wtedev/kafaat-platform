@@ -7,6 +7,7 @@ use App\Models\GovernanceDocument;
 use App\Models\InboxNotification;
 use App\Models\MediaPhoto;
 use App\Models\News;
+use App\Models\PrivacyPolicyVersion;
 use App\Models\Profile;
 use App\Models\Regulation;
 use App\Models\User;
@@ -15,6 +16,7 @@ use App\Policies\GovernanceDocumentPolicy;
 use App\Policies\InboxNotificationPolicy;
 use App\Policies\MediaPhotoPolicy;
 use App\Policies\NewsPolicy;
+use App\Policies\PrivacyPolicyVersionPolicy;
 use App\Policies\ProfilePolicy;
 use App\Policies\RegulationPolicy;
 use App\Policies\SendInAppNotificationPolicy;
@@ -54,6 +56,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureEmailVerificationOnLogin();
         $this->configureUserActivityLogging();
 
+        Gate::policy(PrivacyPolicyVersion::class, PrivacyPolicyVersionPolicy::class);
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Profile::class, ProfilePolicy::class);
         Gate::policy(InboxNotification::class, InboxNotificationPolicy::class);

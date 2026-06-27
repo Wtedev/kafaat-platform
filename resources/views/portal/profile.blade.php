@@ -78,5 +78,9 @@ $p = $user->profile;
             </div>
         </form>
     </div>
+
+    <p class="text-center text-xs text-gray-400">
+        <a href="{{ route('public.privacy') }}" class="hover:text-brand hover:underline">سياسة الخصوصية</a>
+    </p>
 </div>
 @endsection

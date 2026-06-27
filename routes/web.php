@@ -19,10 +19,13 @@ use App\Http\Controllers\Portal\PortalDashboardController;
 use App\Http\Controllers\Portal\PortalInboxController;
 use App\Http\Controllers\Portal\PortalPathController;
 use App\Http\Controllers\Portal\PortalPathDetailController;
+use App\Http\Controllers\Portal\PortalPrivacyPolicyAcknowledgeController;
+use App\Http\Controllers\Portal\PortalProfileCompleteController;
 use App\Http\Controllers\Portal\PortalProfileController;
 use App\Http\Controllers\Portal\PortalProgramController;
 use App\Http\Controllers\Portal\PortalProgramDetailController;
 use App\Http\Controllers\Portal\PortalVolunteerController;
+use App\Http\Controllers\PublicPrivacyPolicyController;
 use App\Http\Controllers\Public\CertificateVerificationController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\PublicGovernanceController;
@@ -106,12 +109,13 @@ Route::get('/governance', PublicGovernanceController::class)->name('public.gover
 
 Route::get('/media', PublicMediaController::class)->name('public.media.index');
 
-Route::view('/privacy', 'public.privacy')->name('public.privacy');
+Route::get('/privacy', [PublicPrivacyPolicyController::class, 'current'])->name('public.privacy');
+Route::get('/privacy/versions/{version}', [PublicPrivacyPolicyController::class, 'version'])->name('public.privacy.version');
 Route::view('/terms', 'public.terms')->name('public.terms');
 
 // ─── Beneficiary Portal ───────────────────────────────────────────────────────
 
-Route::middleware(['auth', 'otp.verified', 'beneficiary'])
+Route::middleware(['auth', 'otp.verified', 'beneficiary', 'privacy.acknowledged'])
     ->prefix('portal')
     ->name('portal.')
     ->group(function () {
@@ -145,6 +149,13 @@ Route::middleware(['auth', 'otp.verified', 'beneficiary'])
         Route::patch('/profile', [PortalProfileController::class, 'update'])->name('profile.update');
         Route::get('/profile/complete', [PortalProfileCompleteController::class, 'show'])->name('profile.complete');
         Route::post('/profile/complete', [PortalProfileCompleteController::class, 'store'])->name('profile.complete.store');
+
+        Route::get('/privacy-policy/acknowledge', [PortalPrivacyPolicyAcknowledgeController::class, 'show'])
+            ->name('privacy-policy.acknowledge')
+            ->withoutMiddleware('privacy.acknowledged');
+        Route::post('/privacy-policy/acknowledge', [PortalPrivacyPolicyAcknowledgeController::class, 'store'])
+            ->name('privacy-policy.acknowledge.store')
+            ->withoutMiddleware('privacy.acknowledged');
 
         Route::get('/competency', [PortalCompetencyController::class, 'show'])->name('competency');
         Route::patch('/competency', [PortalCompetencyController::class, 'update'])->name('competency.update');

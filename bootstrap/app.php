@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\BeneficiaryPortal;
 use App\Http\Middleware\EnsureAdminOrStaff;
+use App\Http\Middleware\EnsureCurrentPrivacyPolicyAcknowledged;
 use App\Http\Middleware\EnsureOtpVerified;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -32,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'beneficiary' => BeneficiaryPortal::class,
             'admin-or-staff' => EnsureAdminOrStaff::class,
             'otp.verified' => EnsureOtpVerified::class,
+            'privacy.acknowledged' => EnsureCurrentPrivacyPolicyAcknowledged::class,
         ]);
 
         // Redirect authenticated users away from guest-only pages

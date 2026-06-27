@@ -50,6 +50,21 @@
         يُنشأ الحساب تلقائياً كحساب مستفيد. تاريخ الميلاد يُستخدم كبيان شخصي فقط ولا يؤثر على أهلية البرامج.
     </p>
 
+    @isset($privacyPolicy)
+    <div class="mt-6 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+        <input type="hidden" name="privacy_policy_version" value="{{ $privacyPolicy->version }}" />
+        <label class="flex items-start gap-3 cursor-pointer">
+            <input type="checkbox" name="privacy_policy_acknowledged" value="1" required
+                class="mt-1 rounded border-gray-300 text-brand focus:ring-brand/25" />
+            <span class="text-sm text-gray-700">
+                {{ $acknowledgementText }}
+                <a href="{{ route('public.privacy') }}" target="_blank" rel="noopener noreferrer" class="text-brand font-medium hover:underline">(الإصدار {{ $privacyPolicy->version }})</a>
+            </span>
+        </label>
+        @error('privacy_policy_acknowledged') <p class="mt-2 text-xs text-brand-danger">{{ $message }}</p> @enderror
+    </div>
+    @endisset
+
     <button type="submit" class="mt-5 w-full py-3 rounded-xl bg-brand text-white font-semibold text-sm hover:opacity-95 transition">
         إنشاء الحساب
     </button>

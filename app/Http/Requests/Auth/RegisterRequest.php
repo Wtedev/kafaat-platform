@@ -4,6 +4,7 @@ namespace App\Http\Requests\Auth;
 
 use App\Enums\IdentityType;
 use App\Rules\UniqueIdentityLookupHash;
+use App\Rules\ValidActivePrivacyPolicyVersion;
 use App\Rules\ValidIdentityNumber;
 use App\Rules\ValidPersonNamePart;
 use App\Rules\ValidSaudiMobile;
@@ -54,6 +55,8 @@ class RegisterRequest extends FormRequest
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['required', 'string', new ValidSaudiMobile],
             'password' => ['required', 'confirmed', Password::min(8)],
+            'privacy_policy_version' => ['required', 'string', new ValidActivePrivacyPolicyVersion],
+            'privacy_policy_acknowledged' => ['required', 'accepted'],
         ];
     }
 
@@ -72,6 +75,7 @@ class RegisterRequest extends FormRequest
             'birth_date.before_or_equal' => 'تاريخ الميلاد لا يمكن أن يكون في المستقبل.',
             'email.unique' => 'البريد الإلكتروني مستخدم بالفعل.',
             'password.confirmed' => 'تأكيد كلمة المرور غير متطابق.',
+            'privacy_policy_acknowledged.accepted' => 'يجب الإقرار بأنك اطلعت على سياسة الخصوصية.',
         ];
     }
 }

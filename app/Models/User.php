@@ -169,6 +169,11 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->hasOne(Profile::class);
     }
 
+    public function privacyPolicyAcknowledgements(): HasMany
+    {
+        return $this->hasMany(PrivacyPolicyAcknowledgement::class);
+    }
+
     public function learningPathRegistrations(): HasMany
     {
         return $this->hasMany(PathRegistration::class);

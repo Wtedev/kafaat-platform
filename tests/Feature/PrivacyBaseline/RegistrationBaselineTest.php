@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Tests\Concerns\GeneratesTestIdentityData;
+use Tests\Concerns\SeedsActivePrivacyPolicy;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
 
@@ -17,6 +18,7 @@ class RegistrationBaselineTest extends TestCase
 {
     use GeneratesTestIdentityData;
     use RefreshDatabase;
+    use SeedsActivePrivacyPolicy;
     use SeedsRbacRoles;
 
     protected function setUp(): void
@@ -24,6 +26,7 @@ class RegistrationBaselineTest extends TestCase
         parent::setUp();
 
         $this->seedRbacRoles();
+        $this->seedActivePrivacyPolicy();
     }
 
     public function test_register_page_is_accessible(): void
