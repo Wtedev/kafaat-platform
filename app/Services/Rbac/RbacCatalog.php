@@ -64,6 +64,18 @@ final class RbacCatalog
             'audit_logs.view',
             'security_logs.view',
             'security_logs.view_sensitive_metadata',
+            'privacy_requests.execute',
+            'privacy_requests.view',
+            'privacy_requests.assign',
+            'privacy_requests.review',
+            'privacy_requests.approve',
+            'privacy_requests.reject',
+            'privacy_requests.view_internal_notes',
+            'retention_policies.view',
+            'retention_policies.manage',
+            'retention_policies.activate',
+            'retention_policies.preview',
+            'retention_exceptions.manage',
             'permissions.assign',
         ];
     }
@@ -79,6 +91,13 @@ final class RbacCatalog
             'beneficiaries.identity.view_full',
             'beneficiaries.identity.search_exact',
             'security_logs.view_sensitive_metadata',
+            'users.delete',
+            'privacy_requests.execute',
+            'privacy_requests.approve',
+            'privacy_requests.reject',
+            'retention_policies.manage',
+            'retention_policies.activate',
+            'retention_exceptions.manage',
         ];
     }
 
@@ -159,6 +178,7 @@ final class RbacCatalog
             'media_management' => 'إدارة الإعلام',
             'public_relations' => 'إدارة العلاقات العامة',
             'visual_identity' => 'إدارة الهوية البصرية',
+            'privacy_officer' => 'مسؤول الخصوصية',
             'trainee' => 'متدرب',
             'volunteer' => 'متطوع',
         ];
@@ -223,11 +243,23 @@ final class RbacCatalog
             'audit_logs.view' => 'عرض سجل التدقيق',
             'security_logs.view' => 'عرض سجل الأحداث الأمنية',
             'security_logs.view_sensitive_metadata' => 'عرض بيانات إضافية في سجل الأمن',
+            'privacy_requests.execute' => 'تنفيذ حذف الحساب المعتمد (سير عمل الخصوصية)',
+            'privacy_requests.view' => 'عرض طلبات الخصوصية',
+            'privacy_requests.assign' => 'تعيين طلبات الخصوصية',
+            'privacy_requests.review' => 'مراجعة طلبات الخصوصية',
+            'privacy_requests.approve' => 'اعتماد طلبات الخصوصية',
+            'privacy_requests.reject' => 'رفض طلبات الخصوصية',
+            'privacy_requests.view_internal_notes' => 'عرض ملاحظات طلبات الخصوصية الداخلية',
+            'retention_policies.view' => 'عرض سياسات الاحتفاظ',
+            'retention_policies.manage' => 'إدارة سياسات الاحتفاظ',
+            'retention_policies.activate' => 'تفعيل سياسات الاحتفاظ',
+            'retention_policies.preview' => 'معاينة سياسات الاحتفاظ',
+            'retention_exceptions.manage' => 'إدارة استثناءات الاحتفاظ',
             'permissions.assign' => 'تعيين الصلاحيات',
             'users.view' => 'عرض المستخدمين',
             'users.create' => 'إنشاء مستخدمين',
             'users.update' => 'تعديل المستخدمين',
-            'users.delete' => 'حذف المستخدمين',
+            'users.delete' => 'حذف المستخدمين (معطّل — استخدم سير عمل الخصوصية)',
             'users.activate' => 'تفعيل المستخدمين',
             'roles.view' => 'عرض الأدوار',
             'roles.create' => 'إنشاء أدوار',
@@ -291,6 +323,7 @@ final class RbacCatalog
         return [
             'admin',
             ...self::staffRoleNames(),
+            'privacy_officer',
             'trainee',
             'volunteer',
         ];
@@ -415,9 +448,29 @@ final class RbacCatalog
             'exports.beneficiaries.basic',
         ]));
 
+        $privacyOfficer = [
+            'privacy_requests.view',
+            'privacy_requests.assign',
+            'privacy_requests.review',
+            'privacy_requests.approve',
+            'privacy_requests.reject',
+            'privacy_requests.view_internal_notes',
+            'retention_policies.view',
+            'retention_policies.manage',
+            'retention_policies.preview',
+            'retention_exceptions.manage',
+            'privacy_policy.view',
+            'privacy_acknowledgements.view',
+            'beneficiaries.view_basic',
+            'audit_logs.view',
+            'users.view',
+            'view_notifications',
+        ];
+
         return [
             'admin' => $broadAdmin,
             'technical_admin' => $broadAdmin,
+            'privacy_officer' => $privacyOfficer,
             'training_management' => $trainingManagement,
             'volunteer_management' => $volunteering,
             'programs_management' => $pathsPrograms,

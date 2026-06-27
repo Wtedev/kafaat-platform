@@ -194,4 +194,7 @@ Route::middleware(['auth', 'otp.verified', 'beneficiary', 'privacy.acknowledged'
         Route::post('/candidate-pool/settings/withdraw', [PortalCandidatePoolSettingsController::class, 'withdraw'])
             ->name('candidate-pool.settings.withdraw');
 
+        Route::post('/account-deletion', [\App\Http\Controllers\Portal\PortalAccountDeletionController::class, 'store'])
+            ->name('account-deletion.store');
+
     });
