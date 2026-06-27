@@ -25,3 +25,8 @@ Schedule::command('privacy:purge-expired-exports')
     ->dailyAt('03:30')
     ->timezone(config('app.timezone', 'Asia/Riyadh'))
     ->withoutOverlapping();
+
+Schedule::command('privacy:apply-retention')
+    ->dailyAt('04:00')
+    ->timezone(config('app.timezone', 'Asia/Riyadh'))
+    ->withoutOverlapping();

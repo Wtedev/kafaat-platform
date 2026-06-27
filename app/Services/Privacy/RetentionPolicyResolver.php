@@ -18,7 +18,7 @@ final class RetentionPolicyResolver
     {
         return RetentionPolicy::query()
             ->where('resource_type', $resourceType)
-            ->where('enabled', true)
+            ->where('status', \App\Enums\RetentionPolicyStatus::Active)
             ->orderByDesc('effective_at')
             ->get();
     }

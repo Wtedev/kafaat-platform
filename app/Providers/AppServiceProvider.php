@@ -12,6 +12,9 @@ use App\Models\PrivacyPolicyVersion;
 use App\Models\PrivacyRequest;
 use App\Models\Profile;
 use App\Models\Regulation;
+use App\Models\RetentionException;
+use App\Models\RetentionPolicy;
+use App\Models\RetentionRun;
 use App\Models\SecurityLog;
 use App\Models\User;
 use App\Policies\AuditLogPolicy;
@@ -24,6 +27,9 @@ use App\Policies\PrivacyPolicyVersionPolicy;
 use App\Policies\PrivacyRequestPolicy;
 use App\Policies\ProfilePolicy;
 use App\Policies\RegulationPolicy;
+use App\Policies\RetentionExceptionPolicy;
+use App\Policies\RetentionPolicyPolicy;
+use App\Policies\RetentionRunPolicy;
 use App\Policies\SendInAppNotificationPolicy;
 use App\Policies\SecurityLogPolicy;
 use App\Policies\UserPolicy;
@@ -54,6 +60,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(RbacService::class);
         $this->app->singleton(NewsPublicationService::class);
+        $this->app->singleton(\App\Services\Privacy\Retention\RetentionResourceCatalog::class);
+        $this->app->singleton(\App\Services\Privacy\Retention\RetentionHandlerRegistry::class);
+        $this->app->singleton(\App\Services\Privacy\Retention\RetentionPolicyEngine::class);
     }
 
     /**
@@ -74,6 +83,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(SecurityLog::class, SecurityLogPolicy::class);
         Gate::policy(InboxNotification::class, InboxNotificationPolicy::class);
         Gate::policy(News::class, NewsPolicy::class);
+        Gate::policy(RetentionPolicy::class, RetentionPolicyPolicy::class);
+        Gate::policy(RetentionException::class, RetentionExceptionPolicy::class);
+        Gate::policy(RetentionRun::class, RetentionRunPolicy::class);
         Gate::policy(Regulation::class, RegulationPolicy::class);
         Gate::policy(GovernanceDocument::class, GovernanceDocumentPolicy::class);
         Gate::policy(BoardMember::class, BoardMemberPolicy::class);
