@@ -22,10 +22,12 @@ use App\Policies\UserPolicy;
 use App\Services\Inbox\InboxNotificationService;
 use App\Services\News\NewsPublicationService;
 use App\Services\Rbac\RbacService;
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Http\Request;
+use App\Services\UserActivityLogger;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -50,6 +52,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureRateLimiting();
         $this->configureEmailVerificationOnLogin();
+        $this->configureUserActivityLogging();
 
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Profile::class, ProfilePolicy::class);
@@ -95,6 +98,21 @@ class AppServiceProvider extends ServiceProvider
 
             if (method_exists($user, 'sendEmailVerificationNotification')) {
                 $user->sendEmailVerificationNotification();
+            }
+        });
+    }
+
+    private function configureUserActivityLogging(): void
+    {
+        Event::listen(Login::class, function (Login $event): void {
+            if ($event->user instanceof User) {
+                UserActivityLogger::logLogin($event->user);
+            }
+        });
+
+        Event::listen(Logout::class, function (Logout $event): void {
+            if ($event->user instanceof User) {
+                UserActivityLogger::logLogout($event->user);
             }
         });
     }

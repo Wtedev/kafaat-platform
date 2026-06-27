@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Certificate;
+use App\Services\UserActivityLogger;
 use App\Support\PublicDiskPath;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -24,6 +25,11 @@ class CertificateDownloadController extends Controller
 
         if (! Storage::disk('public')->exists($relative)) {
             abort(404);
+        }
+
+        $user = $request->user();
+        if ($user !== null) {
+            UserActivityLogger::logCertificateDownload($user, $certificate->certificate_number);
         }
 
         $filename = $certificate->certificate_number.'.pdf';

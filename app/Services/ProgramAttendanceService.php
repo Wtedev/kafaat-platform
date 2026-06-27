@@ -109,9 +109,10 @@ class ProgramAttendanceService
      */
     public function calculatePercentage(ProgramRegistration $registration): ?float
     {
-        $total = $registration->attendanceRecords()->count();
+        $registration->loadMissing('trainingProgram');
+        $expectedDays = $this->countExpectedTrainingDays($registration->trainingProgram);
 
-        if ($total === 0) {
+        if ($expectedDays === 0) {
             return null;
         }
 
@@ -119,7 +120,12 @@ class ProgramAttendanceService
             ->where('status', AttendanceStatus::Present->value)
             ->count();
 
-        return round($present / $total * 100, 2);
+        return round($present / $expectedDays * 100, 2);
+    }
+
+    public function countExpectedTrainingDays(TrainingProgram $program): int
+    {
+        return count(app(PathAttendanceService::class)->expectedDatesForProgram($program));
     }
 
     /**
@@ -146,5 +152,19 @@ class ProgramAttendanceService
     public function dayName(int $dayOfWeek): string
     {
         return self::DAY_NAMES[$dayOfWeek] ?? (string) $dayOfWeek;
+    }
+
+    public function markManualDay(ProgramRegistration $registration, string $date, AttendanceStatus $status, ?string $notes = null): void
+    {
+        ProgramAttendance::updateOrCreate(
+            [
+                'program_registration_id' => $registration->id,
+                'training_date' => $date,
+            ],
+            [
+                'status' => $status,
+                'notes' => $notes,
+            ],
+        );
     }
 }

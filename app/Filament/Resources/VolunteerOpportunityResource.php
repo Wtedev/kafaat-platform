@@ -3,29 +3,24 @@
 namespace App\Filament\Resources;
 
 use App\Enums\OpportunityStatus;
-use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
+use App\Filament\Concerns\ConfiguresViewFirstResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerOpportunityResource\Pages;
 use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\RegistrationsRelationManager;
 use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\VolunteerHoursRelationManager;
+use App\Filament\Support\EntityTwoColumnFormLayout;
+use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\VolunteerOpportunity;
-use App\Support\FilamentAssignmentVisibility;
 use App\Support\PublicDiskPath;
-use App\Support\StaffFilamentRoles;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\BadgeColumn;
@@ -37,7 +32,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class VolunteerOpportunityResource extends Resource
 {
-    use ConfiguresEditOnlyResourceTable;
+    use ConfiguresViewFirstResourceTable;
     use RegistersNavigationByPermission;
 
     protected static ?string $model = VolunteerOpportunity::class;
@@ -59,9 +54,6 @@ class VolunteerOpportunityResource extends Resource
         return ['volunteering.view'];
     }
 
-    /**
-     * مسار عام لمعاينة صورة الفرصة (تخزين محلي).
-     */
     public static function resolveVolunteerOpportunityImagePublicUrl(?string $path): string
     {
         return PublicDiskPath::urlOrPlaceholder($path, PublicDiskPath::PLACEHOLDER_VOLUNTEER_OPPORTUNITY);
@@ -69,98 +61,91 @@ class VolunteerOpportunityResource extends Resource
 
     public static function volunteerOpportunityImageUploadField(): FileUpload
     {
-        return FileUpload::make('image')
-            ->label('صورة الفرصة')
-            ->image()
-            ->disk('public')
-            ->directory('volunteer-opportunities/images')
-            ->visibility('public')
-            ->maxSize(4096)
-            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
-            ->imagePreviewHeight('12rem')
-            ->imageResizeMode('cover')
-            ->nullable()
-            ->helperText('JPEG أو PNG أو WebP — حتى 4 ميجابايت. اختياري.')
-            ->columnSpanFull();
+        return TrainingEntityFormSupport::coverImageUpload(
+            directory: 'volunteer-opportunities/images',
+            label: 'صورة الفرصة',
+            previewHeight: '12rem',
+        );
     }
 
-    public static function form(Schema $schema): Schema
+    public static function createForm(Schema $schema): Schema
     {
-        return $schema->components([
-            Section::make('تفاصيل الفرصة')->columns(2)->schema([
+        return EntityTwoColumnFormLayout::wrap(
+            $schema,
+            static::volunteerOpportunityImageUploadField(),
+            static::volunteerCreateSections(),
+            imageColumnLabel: 'صورة الفرصة',
+            mode: 'create',
+        );
+    }
+
+    public static function editForm(Schema $schema): Schema
+    {
+        return EntityTwoColumnFormLayout::wrap(
+            $schema,
+            static::volunteerOpportunityImageUploadField(),
+            static::volunteerEditSections(),
+            imageColumnLabel: 'صورة الفرصة',
+            mode: 'edit',
+        );
+    }
+
+    /**
+     * @return array<int, Component>
+     */
+    protected static function volunteerCreateSections(): array
+    {
+        return [
+            static::volunteerBasicSection(),
+            TrainingEntityFormSupport::publicationSection(OpportunityStatus::Published),
+            TrainingEntityFormSupport::volunteerScheduleSection(),
+            TrainingEntityFormSupport::advancedVolunteerSettingsSection(),
+        ];
+    }
+
+    /**
+     * @return array<int, Component>
+     */
+    protected static function volunteerEditSections(): array
+    {
+        return [
+            static::volunteerBasicSection(),
+            TrainingEntityFormSupport::publicationSection(OpportunityStatus::Published, forEdit: true),
+            TrainingEntityFormSupport::volunteerScheduleSection(),
+            TrainingEntityFormSupport::advancedVolunteerSettingsSection(),
+        ];
+    }
+
+    protected static function volunteerBasicSection(): Section
+    {
+        return Section::make('البيانات الأساسية')
+            ->columns(2)
+            ->schema([
                 TextInput::make('title')
-                    ->label('العنوان')
+                    ->label('اسم الفرصة')
                     ->required()
                     ->maxLength(255)
                     ->columnSpanFull(),
 
                 TextInput::make('slug')
                     ->label('الرابط المختصر')
-                    ->required()
-                    ->maxLength(255),
-
-                Select::make('status')
-                    ->label('الحالة')
-                    ->options(OpportunityStatus::class)
-                    ->required()
-                    ->default(OpportunityStatus::Draft->value),
-
-                Select::make('assigned_to')
-                    ->label('مسؤول الفرصة')
-                    ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $query) => $query->role(StaffFilamentRoles::assignableVolunteeringCoordinatorRoleNames()))
-                    ->searchable()
-                    ->preload()
-                    ->visible(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
-                    ->required(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
-                    ->dehydrated(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
-                    ->helperText('يحدد مدير التطوع الذي يدير هذه الفرصة في لوحة الإدارة.'),
-
-                Textarea::make('description')
-                    ->label('الوصف')
-                    ->rows(4)
+                    ->maxLength(255)
+                    ->helperText('يُنشأ تلقائياً من العنوان إذا تُرك فارغاً')
                     ->columnSpanFull(),
 
-                static::volunteerOpportunityImageUploadField(),
-            ]),
+                TrainingEntityFormSupport::descriptionField(),
+            ]);
+    }
 
-            Section::make('الطاقة والجدول')->columns(2)->schema([
-                TextInput::make('capacity')
-                    ->label('الطاقة الاستيعابية (فارغاً = غير محدود)')
-                    ->numeric()
-                    ->minValue(1),
-
-                TextInput::make('hours_expected')
-                    ->label('الساعات المطلوبة')
-                    ->numeric()
-                    ->minValue(0)
-                    ->suffix('ساعة'),
-
-                Grid::make(2)->schema([
-                    DatePicker::make('start_date')
-                        ->label('تاريخ البداية'),
-
-                    DatePicker::make('end_date')
-                        ->label('تاريخ الانتهاء')
-                        ->afterOrEqual('start_date'),
-                ]),
-            ]),
-
-            Section::make('التنبيهات')
-                ->schema([
-                    Toggle::make('notify_on_publish')
-                        ->label('تنبيه عند نشر الفرصة')
-                        ->default(true),
-
-                    Toggle::make('notify_registrants_on_update')
-                        ->label('تنبيه المسجّلين عند تعديل الفرصة')
-                        ->default(false),
-                ]),
-        ]);
+    public static function form(Schema $schema): Schema
+    {
+        return static::createForm($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return static::applyEditOnlyTable($table)
+        return static::applyViewFirstTable($table)
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['assignee', 'creator'])->withCount('registrations'))
             ->columns([
                 ImageColumn::make('image')
                     ->label('صورة')
@@ -178,7 +163,8 @@ class VolunteerOpportunityResource extends Resource
                 TextColumn::make('assignee.name')
                     ->label('المسؤول')
                     ->toggleable()
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
 
                 BadgeColumn::make('status')
                     ->label('الحالة')
@@ -189,35 +175,34 @@ class VolunteerOpportunityResource extends Resource
                     ])
                     ->sortable(),
 
+                TextColumn::make('start_date')
+                    ->label('البداية')
+                    ->date('Y/m/d')
+                    ->sortable()
+                    ->toggleable(),
+
+                TextColumn::make('end_date')
+                    ->label('النهاية')
+                    ->date('Y/m/d')
+                    ->sortable()
+                    ->toggleable(),
+
                 TextColumn::make('capacity')
                     ->label('الطاقة')
-                    ->default('غير محدودة'),
+                    ->default('غير محدودة')
+                    ->formatStateUsing(fn (?int $state): string => $state === null ? 'غير محدودة' : (string) $state)
+                    ->toggleable(),
 
                 TextColumn::make('registrations_count')
                     ->counts('registrations')
                     ->label('عدد المتطوعين')
                     ->badge()
-                    ->color('info'),
-
-                TextColumn::make('hours_expected')
-                    ->label('الساعات المطلوبة')
-                    ->suffix(' ساعة')
-                    ->toggleable(),
-
-                TextColumn::make('start_date')
-                    ->label('تاريخ البداية')
-                    ->date()
-                    ->sortable(),
-
-                TextColumn::make('end_date')
-                    ->label('تاريخ الانتهاء')
-                    ->date()
-                    ->sortable()
+                    ->color('info')
                     ->toggleable(),
 
                 TextColumn::make('created_at')
                     ->label('تاريخ الإنشاء')
-                    ->dateTime()
+                    ->dateTime('Y/m/d')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -227,16 +212,33 @@ class VolunteerOpportunityResource extends Resource
                     ->options(OpportunityStatus::class),
             ])
             ->actions([
-                static::makeTableEditAction(),
-                DeleteAction::make(),
+                DeleteAction::make()
+                    ->color('danger')
+                    ->visible(fn (VolunteerOpportunity $record): bool => auth()->user()?->can('delete', $record) ?? false),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ])
-            ->modifyQueryUsing(fn (Builder $query) => $query->forFilamentAssignmentAccess(auth()->user()))
-            ->defaultSort('created_at', 'desc');
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            RegistrationsRelationManager::class,
+            VolunteerHoursRelationManager::class,
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListVolunteerOpportunities::route('/'),
+            'create' => Pages\CreateVolunteerOpportunity::route('/create'),
+            'view' => Pages\ViewVolunteerOpportunity::route('/{record}'),
+            'edit' => Pages\EditVolunteerOpportunity::route('/{record}/edit'),
+        ];
     }
 
     public static function infolist(Schema $schema): Schema
@@ -278,6 +280,7 @@ class VolunteerOpportunityResource extends Resource
 
                 TextEntry::make('capacity')
                     ->label('الطاقة الاستيعابية')
+                    ->formatStateUsing(fn (?int $state): string => $state === null ? 'غير محدودة' : (string) $state)
                     ->placeholder('غير محدودة'),
 
                 TextEntry::make('hours_expected')
@@ -302,23 +305,5 @@ class VolunteerOpportunityResource extends Resource
             ])
                 ->columns(2),
         ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            RegistrationsRelationManager::class,
-            VolunteerHoursRelationManager::class,
-        ];
-    }
-
-    public static function getPages(): array
-    {
-        return [
-            'index' => Pages\ListVolunteerOpportunities::route('/'),
-            'create' => Pages\CreateVolunteerOpportunity::route('/create'),
-            'view' => Pages\ViewVolunteerOpportunity::route('/{record}'),
-            'edit' => Pages\EditVolunteerOpportunity::route('/{record}/edit'),
-        ];
     }
 }

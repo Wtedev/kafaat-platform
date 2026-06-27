@@ -4,21 +4,16 @@ namespace App\Filament\Resources\LearningPathResource\RelationManagers;
 
 use App\Enums\RegistrationStatus;
 use App\Exceptions\PathCapacityExceededException;
-use App\Models\Certificate;
+use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\LearningPath;
 use App\Models\PathRegistration;
-use App\Services\CertificateService;
 use App\Services\PathRegistrationService;
 use Filament\Actions\Action;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\BadgeColumn;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
@@ -45,54 +40,26 @@ class PathRegistrationsRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema->components([
-            Select::make('user_id')
-                ->relationship('user', 'name')
-                ->searchable()
-                ->preload()
-                ->required()
-                ->label('المستفيد'),
-
-            Select::make('status')
-                ->label('الحالة')
-                ->options(RegistrationStatus::class)
-                ->required(),
-
-            Textarea::make('rejected_reason')
-                ->rows(3)
-                ->label('سبب الرفض'),
-        ]);
+        return $schema->components([]);
     }
 
     public function table(Table $table): Table
     {
-        return $table
+        return RegistrationFilamentTableSupport::configureBeneficiaryRowNavigation($table)
             ->heading('')
             ->columns([
-                TextColumn::make('user.name')
-                    ->searchable()
-                    ->sortable()
-                    ->label('المستفيد'),
-
-                TextColumn::make('user.email')
-                    ->searchable()
-                    ->label('البريد الإلكتروني')
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                BadgeColumn::make('status')
-                    ->label('الحالة')
-                    ->colors([
-                        'warning' => RegistrationStatus::Pending->value,
-                        'success' => RegistrationStatus::Approved->value,
-                        'danger' => RegistrationStatus::Rejected->value,
-                        'gray' => RegistrationStatus::Cancelled->value,
-                        'info' => RegistrationStatus::Completed->value,
-                    ])
-                    ->sortable(),
+                RegistrationFilamentTableSupport::beneficiaryNameColumn(),
+                RegistrationFilamentTableSupport::acceptanceStatusColumn(),
+                RegistrationFilamentTableSupport::certificateEligibilityColumn(),
+            ])
+            ->filters([
+                SelectFilter::make('status')
+                    ->label('حالة القبول')
+                    ->options(RegistrationStatus::class),
             ])
             ->actions([
                 Action::make('approve')
-                    ->label('قبول الطلب')
+                    ->label('قبول')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
@@ -111,7 +78,7 @@ class PathRegistrationsRelationManager extends RelationManager
                     }),
 
                 Action::make('reject')
-                    ->label('رفض الطلب')
+                    ->label('رفض')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
@@ -129,57 +96,6 @@ class PathRegistrationsRelationManager extends RelationManager
                         app(PathRegistrationService::class)->reject($record, $data['rejected_reason'] ?? null);
                         Notification::make()->title('تم رفض التسجيل')->warning()->send();
                     }),
-
-                Action::make('complete')
-                    ->label('إنهاء المسار')
-                    ->icon('heroicon-o-trophy')
-                    ->color('info')
-                    ->requiresConfirmation()
-                    ->modalHeading('تسجيل إكمال المسار')
-                    ->modalDescription('سيتم تغيير حالة التسجيل إلى مكتمل. هل أنت متأكد؟')
-                    ->modalSubmitActionLabel('نعم، إنهاء')
-                    ->visible(fn (PathRegistration $record): bool => $record->status === RegistrationStatus::Approved)
-                    ->authorize('update')
-                    ->action(function (PathRegistration $record): void {
-                        app(PathRegistrationService::class)->complete($record);
-                        Notification::make()->title('تم تسجيل إكمال المسار')->success()->send();
-                    }),
-
-                Action::make('issueCertificate')
-                    ->label('إصدار شهادة')
-                    ->icon('heroicon-o-academic-cap')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->modalHeading('إصدار شهادة إتمام المسار')
-                    ->modalDescription('سيتم إصدار شهادة PDF للمستفيد.')
-                    ->modalSubmitActionLabel('نعم، إصدار')
-                    ->visible(fn (PathRegistration $record): bool => $record->isCompleted())
-                    ->authorize('update')
-                    ->action(function (PathRegistration $record): void {
-                        $record->loadMissing(['user', 'learningPath']);
-                        $existing = Certificate::query()
-                            ->where('user_id', $record->user_id)
-                            ->where('certificateable_type', LearningPath::class)
-                            ->where('certificateable_id', $record->learning_path_id)
-                            ->first();
-                        if ($existing !== null) {
-                            Notification::make()
-                                ->title('الشهادة موجودة مسبقاً')
-                                ->body('رقم الشهادة: '.$existing->certificate_number)
-                                ->warning()
-                                ->send();
-
-                            return;
-                        }
-                        app(CertificateService::class)->issue($record->user, $record->learningPath, auth()->user());
-                        Notification::make()->title('تم إصدار الشهادة بنجاح')->success()->send();
-                    }),
-            ])
-            ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->authorizeIndividualRecords('delete'),
-                ]),
             ])
             ->defaultSort('created_at', 'desc');
     }

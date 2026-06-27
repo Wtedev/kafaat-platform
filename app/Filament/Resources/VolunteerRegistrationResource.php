@@ -6,6 +6,7 @@ use App\Enums\OpportunityStatus;
 use App\Enums\RegistrationStatus;
 use App\Exceptions\OpportunityCapacityExceededException;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
+use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerRegistrationResource\Pages;
 use App\Models\Certificate;
@@ -90,7 +91,9 @@ class VolunteerRegistrationResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return static::applyEditOnlyTable($table)
+        return RegistrationFilamentTableSupport::configureBeneficiaryRowNavigation(
+            static::applyEditOnlyTable($table),
+        )
             ->columns([
                 TextColumn::make('user.name')
                     ->label('المتطوع')

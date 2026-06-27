@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\VolunteerOpportunityResource\RelationManagers;
 
 use App\Enums\VolunteerHoursStatus;
+use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\VolunteerHour;
 use App\Services\VolunteerHoursService;
 use Filament\Actions\Action;
@@ -45,7 +46,7 @@ class VolunteerHoursRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
-        return $table
+        return RegistrationFilamentTableSupport::configureBeneficiaryRowNavigation($table)
             ->columns([
                 TextColumn::make('user.name')
                     ->searchable()

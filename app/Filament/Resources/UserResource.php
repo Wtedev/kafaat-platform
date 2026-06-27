@@ -4,7 +4,11 @@ namespace App\Filament\Resources;
 
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
+use App\Filament\Resources\Concerns\EntityNotesRelationManager;
 use App\Filament\Resources\UserResource\Pages;
+use App\Filament\Resources\UserResource\RelationManagers\UserTechnicalLogRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\UserTrainingRegistrationsRelationManager;
+use App\Filament\Resources\UserResource\RelationManagers\UserVolunteerRegistrationsRelationManager;
 use App\Models\User;
 use App\Support\UserAccountRoleForm;
 use App\Support\UserDirectoryTabs;
@@ -23,6 +27,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component as LivewireComponent;
 
@@ -116,6 +121,9 @@ class UserResource extends Resource
                         Toggle::make('is_active')
                             ->default(true)
                             ->label('نشط'),
+
+                        Toggle::make('notify_email')
+                            ->label('إشعارات البريد'),
                     ]),
 
                 Section::make('الدور في المنصة')
@@ -248,6 +256,33 @@ class UserResource extends Resource
         }
 
         return $user->can('delete', $record);
+    }
+
+    protected static function resolveEditOnlyRecordUrl(Model $record): ?string
+    {
+        if ($record instanceof User && $record->isPortalUser() && static::hasPage('view') && (auth()->user()?->can('users.view') ?? false)) {
+            return static::getUrl('view', ['record' => $record]);
+        }
+
+        if (static::hasPage('edit') && static::canEdit($record)) {
+            return static::getUrl('edit', ['record' => $record]);
+        }
+
+        if (static::hasPage('view') && (auth()->user()?->can('users.view') ?? false)) {
+            return static::getUrl('view', ['record' => $record]);
+        }
+
+        return null;
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            UserTrainingRegistrationsRelationManager::class,
+            UserVolunteerRegistrationsRelationManager::class,
+            UserTechnicalLogRelationManager::class,
+            EntityNotesRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

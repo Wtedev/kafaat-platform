@@ -5,32 +5,35 @@ namespace App\Filament\Resources;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
+use App\Filament\Concerns\ConfiguresViewFirstTrainingResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
+use App\Filament\Resources\LearningPathResource;
+use App\Filament\Resources\LearningPathResource\RelationManagers\TrainingProgramsRelationManager;
 use App\Filament\Resources\TrainingProgramResource\Pages;
-use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramCertificatesRelationManager;
+use App\Filament\Resources\Concerns\EntityNotesRelationManager;
+use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramAttendanceRegistrationsRelationManager;
+use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramGradesRelationManager;
+use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationCertificatesRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationsRelationManager;
+use App\Models\LearningPath;
 use App\Models\TrainingProgram;
+use App\Filament\Support\EntityTwoColumnFormLayout;
 use App\Filament\Support\TrainingEntityFormSupport;
 use App\Support\PublicDiskPath;
 use Carbon\Carbon;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
-use Filament\Support\Enums\FontWeight;
-use Filament\Support\Enums\TextSize;
+use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -38,6 +41,7 @@ use Illuminate\Database\Eloquent\Builder;
 class TrainingProgramResource extends Resource
 {
     use ConfiguresEditOnlyResourceTable;
+    use ConfiguresViewFirstTrainingResourceTable;
     use RegistersNavigationByPermission;
 
     protected static ?string $model = TrainingProgram::class;
@@ -72,59 +76,69 @@ class TrainingProgramResource extends Resource
         return TrainingEntityFormSupport::coverImageUpload('training-programs/images');
     }
 
-    public static function createForm(Schema $schema): Schema
+    public static function createForm(Schema $schema, ?int $presetLearningPathId = null): Schema
     {
-        return static::trainingProgramTwoColumnForm($schema, 'fi-training-create-layout items-start gap-6 lg:gap-8', forEdit: false);
+        return EntityTwoColumnFormLayout::wrap(
+            $schema,
+            static::trainingProgramImageUploadField(),
+            static::trainingProgramCreateSections($presetLearningPathId),
+            mode: 'create',
+        );
+    }
+
+    public static function createUrlForLearningPath(LearningPath|int $path): string
+    {
+        $pathId = $path instanceof LearningPath ? $path->getKey() : $path;
+
+        return static::getUrl('create').'?'.http_build_query(['learning_path_id' => $pathId]);
+    }
+
+    public static function learningPathProgramsViewUrl(LearningPath|int $path): string
+    {
+        $pathId = $path instanceof LearningPath ? $path->getKey() : $path;
+
+        return LearningPathResource::getUrl('view', [
+            'record' => $pathId,
+            'relation' => TrainingProgramsRelationManager::class,
+        ]);
     }
 
     public static function editForm(Schema $schema): Schema
     {
-        return static::trainingProgramTwoColumnForm($schema, 'fi-training-edit-layout items-start gap-6 lg:gap-8', forEdit: true);
-    }
-
-    protected static function trainingProgramTwoColumnForm(Schema $schema, string $layoutClass, bool $forEdit): Schema
-    {
-        $sections = $forEdit
-            ? static::trainingProgramEditSections()
-            : static::trainingProgramCreateSections();
-
-        return $schema->components([
-            Grid::make(['default' => 1, 'lg' => 2])
-                ->columnSpanFull()
-                ->extraAttributes([
-                    'class' => $layoutClass.' fi-training-two-col-ltr',
-                ])
-                ->schema([
-                    Group::make([
-                        Text::make('صورة الغلاف')
-                            ->size(TextSize::ExtraSmall)
-                            ->weight(FontWeight::SemiBold)
-                            ->color('gray'),
-                        static::trainingProgramImageUploadField(),
-                    ])
-                        ->columnSpan(1)
-                        ->extraAttributes([
-                            'class' => 'fi-training-two-col-image rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-900',
-                        ]),
-                    Group::make()
-                        ->schema($sections)
-                        ->columnSpan(1)
-                        ->extraAttributes([
-                            'class' => 'fi-training-two-col-details flex min-w-0 flex-col gap-6',
-                        ]),
-                ]),
-        ]);
+        return EntityTwoColumnFormLayout::wrap(
+            $schema,
+            static::trainingProgramImageUploadField(),
+            static::trainingProgramEditSections(),
+            mode: 'edit',
+        );
     }
 
     /**
      * @return array<int, Component>
      */
-    protected static function trainingProgramCreateSections(): array
+    protected static function trainingProgramCreateSections(?int $presetLearningPathId = null): array
     {
+        $linkedToPath = $presetLearningPathId !== null;
+
+        $basicFields = [];
+
+        if ($linkedToPath) {
+            $basicFields = [
+                Hidden::make('is_linked_to_path')
+                    ->default(true)
+                    ->dehydrated(false)
+                    ->live(),
+                Hidden::make('learning_path_id')
+                    ->default($presetLearningPathId),
+            ];
+        }
+
         return [
             Section::make('البيانات الأساسية')
                 ->columns(2)
                 ->schema([
+                    ...$basicFields,
+
                     TextInput::make('title')
                         ->label('اسم البرنامج')
                         ->required()
@@ -141,21 +155,23 @@ class TrainingProgramResource extends Resource
                         ->columnSpanFull(),
 
                     TrainingEntityFormSupport::descriptionField(),
-
-                    ...TrainingEntityFormSupport::capacityFields(hideWhenLinkedToPath: true),
                 ]),
 
-            Section::make('المواعيد')
+            Section::make('مواعيد البرنامج')
                 ->columns(2)
                 ->schema([
-                    ...TrainingEntityFormSupport::scheduleDateHiddenFields(),
+                    ...TrainingEntityFormSupport::scheduleDateHiddenFields(hideRegistrationWhenLinked: true),
                     TrainingEntityFormSupport::trainingScheduleCalendar(
+                        showRegistrationRange: fn (Get $get): bool => ! (bool) $get('is_linked_to_path'),
                         programHasEndDate: fn (Get $get): bool => ! static::isSessionKindValue((string) ($get('program_kind') ?? '')),
                         showWeekdayPicker: fn (Get $get): bool => ! static::isSessionKindValue((string) ($get('program_kind') ?? '')),
                     ),
                 ]),
 
-            TrainingEntityFormSupport::staffSectionForCreate(),
+            TrainingEntityFormSupport::advancedProgramSettingsSection(
+                forEdit: false,
+                hidePathLinkFields: $linkedToPath,
+            ),
         ];
     }
 
@@ -168,34 +184,6 @@ class TrainingProgramResource extends Resource
             Section::make('البيانات الأساسية')
                 ->columns(2)
                 ->schema([
-                    Toggle::make('is_linked_to_path')
-                        ->label('تابع لمسار تدريبي')
-                        ->helperText('عند التفعيل يُختار المسار؛ التسجيل يُدار من المسار.')
-                        ->default(false)
-                        ->live()
-                        ->dehydrated(false),
-
-                    Select::make('learning_path_id')
-                        ->label('المسار التدريبي')
-                        ->relationship(
-                            name: 'learningPath',
-                            titleAttribute: 'title',
-                            modifyQueryUsing: fn (Builder $query) => $query->orderBy('title'),
-                        )
-                        ->searchable()
-                        ->preload()
-                        ->nullable()
-                        ->required(fn (Get $get): bool => (bool) $get('is_linked_to_path'))
-                        ->visible(fn (Get $get): bool => (bool) $get('is_linked_to_path'))
-                        ->live(),
-
-                    TextInput::make('path_sort_order')
-                        ->label('ترتيب البرنامج داخل المسار')
-                        ->numeric()
-                        ->minValue(1)
-                        ->nullable()
-                        ->visible(fn (Get $get): bool => (bool) $get('is_linked_to_path') && filled($get('learning_path_id'))),
-
                     TextInput::make('title')
                         ->label('اسم البرنامج')
                         ->required()
@@ -211,11 +199,9 @@ class TrainingProgramResource extends Resource
                         ->columnSpanFull(),
 
                     TrainingEntityFormSupport::descriptionField(),
-
-                    ...TrainingEntityFormSupport::capacityFields(hideWhenLinkedToPath: true),
                 ]),
 
-            Section::make('المواعيد')
+            Section::make('مواعيد البرنامج')
                 ->columns(2)
                 ->schema([
                     ...TrainingEntityFormSupport::scheduleDateHiddenFields(hideRegistrationWhenLinked: true),
@@ -223,6 +209,10 @@ class TrainingProgramResource extends Resource
                         showRegistrationRange: fn (Get $get): bool => ! (bool) $get('is_linked_to_path'),
                         programHasEndDate: fn (Get $get): bool => ! static::isSessionKindValue((string) ($get('program_kind') ?? '')),
                         showWeekdayPicker: fn (Get $get): bool => ! static::isSessionKindValue((string) ($get('program_kind') ?? '')),
+                        showPublishSchedule: fn (?TrainingProgram $record): bool => TrainingEntityFormSupport::publishControlsVisibleForRecord(
+                            $record,
+                            ProgramStatus::Published,
+                        ),
                     ),
                     Placeholder::make('registration_status_display')
                         ->label('حالة التسجيل الحالية')
@@ -233,26 +223,7 @@ class TrainingProgramResource extends Resource
                         ->columnSpanFull(),
                 ]),
 
-            TrainingEntityFormSupport::staffSectionForEdit(),
-
-            Section::make('فريق التحرير')
-                ->visible(fn (Get $get): bool => ! (bool) $get('is_linked_to_path'))
-                ->schema([
-                    Select::make('editors')
-                        ->label('مشاركون في التحرير')
-                        ->relationship(
-                            name: 'editors',
-                            titleAttribute: 'name',
-                            modifyQueryUsing: fn (Builder $query) => $query
-                                ->where('is_active', true)
-                                ->orderBy('name'),
-                        )
-                        ->multiple()
-                        ->searchable()
-                        ->preload()
-                        ->dehydrated(fn (Get $get): bool => ! (bool) $get('is_linked_to_path'))
-                        ->columnSpanFull(),
-                ]),
+            TrainingEntityFormSupport::advancedProgramSettingsSection(forEdit: true),
         ];
     }
 
@@ -361,7 +332,7 @@ class TrainingProgramResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return static::applyEditOnlyTable($table)
+        return static::applyViewFirstTrainingTable($table)
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['owner', 'creator', 'assignee', 'learningPath'])->withCount('registrations'))
             ->columns([
                 TextColumn::make('title')
@@ -379,6 +350,22 @@ class TrainingProgramResource extends Resource
 
                         return $record->learningPath?->title ?? '—';
                     }),
+
+                BadgeColumn::make('status')
+                    ->label('حالة النشر')
+                    ->colors([
+                        'gray' => ProgramStatus::Draft->value,
+                        'success' => ProgramStatus::Published->value,
+                        'warning' => ProgramStatus::Archived->value,
+                    ])
+                    ->formatStateUsing(function ($state): ?string {
+                        if ($state instanceof ProgramStatus) {
+                            return $state->label();
+                        }
+
+                        return ProgramStatus::tryFrom((string) $state)?->label();
+                    })
+                    ->sortable(),
 
                 TextColumn::make('program_kind')
                     ->label('نوع البرنامج')
@@ -415,9 +402,6 @@ class TrainingProgramResource extends Resource
                     ->alignEnd(),
             ])
             ->actions([
-                static::makeTableEditAction()
-                    ->color('gray')
-                    ->visible(fn (TrainingProgram $record): bool => (auth()->user()?->can('update', $record) || auth()->user()?->can('view', $record)) ?? false),
                 DeleteAction::make()
                     ->color('danger')
                     ->visible(fn (TrainingProgram $record): bool => auth()->user()?->can('delete', $record) ?? false),
@@ -429,7 +413,10 @@ class TrainingProgramResource extends Resource
     {
         return [
             ProgramRegistrationsRelationManager::class,
-            ProgramCertificatesRelationManager::class,
+            ProgramAttendanceRegistrationsRelationManager::class,
+            ProgramGradesRelationManager::class,
+            ProgramRegistrationCertificatesRelationManager::class,
+            EntityNotesRelationManager::class,
         ];
     }
 

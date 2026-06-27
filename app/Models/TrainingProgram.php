@@ -6,6 +6,7 @@ use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
 use App\Jobs\SendTrainingProgramLaunchedNotifications;
+use App\Models\Concerns\HasEntityNotes;
 use App\Models\User;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\PublicDiskPath;
@@ -23,6 +24,7 @@ use Illuminate\Support\Facades\Auth;
 
 class TrainingProgram extends Model
 {
+    use HasEntityNotes;
     protected $fillable = [
         'title',
         'slug',
@@ -30,6 +32,7 @@ class TrainingProgram extends Model
         'description',
         'image',
         'capacity',
+        'auto_accept_registrations',
         'start_date',
         'end_date',
         'weekdays',
@@ -62,6 +65,7 @@ class TrainingProgram extends Model
             'registration_start' => 'date',
             'registration_end' => 'date',
             'capacity' => 'integer',
+            'auto_accept_registrations' => 'boolean',
             'weekdays' => 'array',
         ];
     }

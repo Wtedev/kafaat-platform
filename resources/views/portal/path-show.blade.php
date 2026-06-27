@@ -11,6 +11,10 @@ RegistrationStatus::Completed->value => 'مكتمل',
 $statusColors = RegistrationStatus::badgeClasses();
 
 $pathSv = $registration->status->value;
+$canCheckIn = $registration->canAccessPathPrograms()
+    && isset($liveSession)
+    && $liveSession !== null
+    && $liveSession->isActive();
 @endphp
 
 @extends('layouts.portal')
@@ -39,6 +43,25 @@ $pathSv = $registration->status->value;
     بانتظار قبول تسجيلك في المسار لعرض تفاصيل التقدّم والبرامج بشكل كامل.
 </div>
 @endif
+
+@if (session('attendance_success'))
+<div class="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+    {{ session('attendance_success') }}
+</div>
+@endif
+
+@if (session('attendance_error'))
+<div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+    {{ session('attendance_error') }}
+</div>
+@endif
+
+<x-portal-attendance-session
+    :status-url="route('portal.paths.attendance.session', $learningPath)"
+    :check-in-url="route('portal.paths.attendance.check-in', $learningPath)"
+    :initial-active="$canCheckIn"
+    :initial-expires-at-ms="$canCheckIn ? $liveSession->expires_at->getTimestamp() * 1000 : null"
+/>
 
 <div class="space-y-4">
     <h2 class="text-lg font-semibold text-gray-800">البرامج في المسار</h2>

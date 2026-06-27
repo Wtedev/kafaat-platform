@@ -12,7 +12,6 @@
     $weekdaysPath = $getWeekdaysPath();
     $publishImmediatelyPath = $getPublishImmediatelyPath();
     $publishedAtPath = $getPublishedAtPath();
-    $notifyAudiencePath = $getNotifyAudiencePath();
     $months = [
         'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
         'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
@@ -38,13 +37,12 @@
                 weekdays: @js($weekdaysPath),
                 publishImmediately: @js($publishImmediatelyPath),
                 publishedAt: @js($publishedAtPath),
-                notifyAudience: @js($notifyAudiencePath),
             },
         })"
         class="fi-training-schedule"
         dir="rtl"
     >
-        <div class="fi-training-schedule__toolbar">
+        <div class="fi-training-schedule__header">
             <div class="fi-training-schedule__mode-switch" role="tablist" aria-label="الفترة النشطة">
                 @if ($showRegistration)
                     <button
@@ -56,7 +54,7 @@
                         x-on:click="setActiveRange('registration')"
                     >
                         <span class="fi-training-schedule__mode-dot fi-training-schedule__mode-dot--registration"></span>
-                        التسجيل
+                        وقت التسجيل
                     </button>
                 @endif
                 <button
@@ -68,7 +66,7 @@
                     x-on:click="setActiveRange('program')"
                 >
                     <span class="fi-training-schedule__mode-dot fi-training-schedule__mode-dot--program"></span>
-                    البرنامج
+                    وقت البرنامج
                 </button>
                 <button
                     type="button"
@@ -84,27 +82,28 @@
                     النشر
                 </button>
             </div>
-
-            <div class="fi-training-schedule__legend">
-                @if ($showRegistration)
-                    <span class="fi-training-schedule__legend-item"><span class="fi-training-schedule__legend-chip fi-training-schedule__legend-chip--registration"></span>تسجيل</span>
-                @endif
-                <span class="fi-training-schedule__legend-item"><span class="fi-training-schedule__legend-chip fi-training-schedule__legend-chip--program"></span>برنامج</span>
-                @if ($showPublishSchedule)
-                    <span class="fi-training-schedule__legend-item" x-show="! publishImmediately" x-cloak><span class="fi-training-schedule__legend-chip fi-training-schedule__legend-chip--publish"></span>نشر</span>
-                @endif
-            </div>
         </div>
 
         <div class="fi-training-schedule__publish" x-show="showPublishSchedule" x-cloak>
-            <label class="fi-training-schedule__publish-check">
-                <input type="checkbox" x-model="publishImmediately" x-on:change="onPublishImmediatelyChange()">
-                <span>نشر فوراً</span>
-            </label>
-            <label class="fi-training-schedule__publish-check">
-                <input type="checkbox" x-model="notifyAudience">
-                <span>إرسال إشعارات البرنامج للمستفيدين</span>
-            </label>
+            <div class="fi-training-schedule__toggle-field">
+                <label class="fi-fo-field-label" for="{{ $id }}-publish-immediately">
+                    <span class="fi-fo-field-label-content">نشر فوراً</span>
+                </label>
+                <button
+                    type="button"
+                    role="switch"
+                    id="{{ $id }}-publish-immediately"
+                    class="fi-toggle fi-training-schedule__toggle"
+                    x-bind:aria-checked="publishImmediately ? 'true' : 'false'"
+                    x-on:click="publishImmediately = ! publishImmediately; onPublishImmediatelyChange()"
+                    x-bind:class="{ 'fi-toggle-on': publishImmediately, 'fi-toggle-off': ! publishImmediately }"
+                >
+                    <div>
+                        <div aria-hidden="true"></div>
+                        <div aria-hidden="true"></div>
+                    </div>
+                </button>
+            </div>
         </div>
 
         <p class="fi-training-schedule__pending" x-show="pendingStart && activeRange !== 'publish'" x-cloak x-text="pendingHint()"></p>
@@ -115,112 +114,118 @@
             </template>
         </div>
 
-        <div class="fi-training-schedule__month-bar">
-            <button type="button" class="fi-training-schedule__nav-btn fi-training-schedule__nav-btn--prev" x-on:click="prevMonth()" aria-label="الشهر السابق">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
-            </button>
-            <div class="fi-training-schedule__month-label">
-                <span x-text="months[month]"></span>
-                <span class="fi-training-schedule__month-year" x-text="year"></span>
-            </div>
-            <button type="button" class="fi-training-schedule__nav-btn fi-training-schedule__nav-btn--next" x-on:click="nextMonth()" aria-label="الشهر التالي">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-        </div>
-
-        <div class="fi-training-schedule__calendar">
-            <div class="fi-training-schedule__weekdays">
-                <template x-for="(label, index) in dayLabels" x-bind:key="'wd-' + index">
-                    <div
-                        class="fi-training-schedule__weekday"
-                        x-text="label"
-                        x-bind:class="weekdayHeaderClass(index)"
-                    ></div>
-                </template>
-            </div>
-            <div class="fi-training-schedule__grid" role="grid">
-                <template x-for="blank in leadingBlanks" x-bind:key="'b-' + blank">
-                    <div class="fi-training-schedule__blank" aria-hidden="true"></div>
-                </template>
-                <template x-for="day in daysInMonth" x-bind:key="day">
-                    <button
-                        type="button"
-                        role="gridcell"
-                        x-on:click="selectDay(day)"
-                        x-bind:class="dayClasses(day)"
-                        x-bind:aria-label="dayAriaLabel(day)"
-                        class="fi-training-schedule__day"
-                    >
-                        <span class="fi-training-schedule__day-g" x-text="day"></span>
-                        <span class="fi-training-schedule__day-h" x-text="hijriLabel(day)"></span>
+        <div class="fi-training-schedule__body">
+            <div class="fi-training-schedule__main">
+                <div class="fi-training-schedule__month-bar">
+                    <button type="button" class="fi-training-schedule__nav-btn fi-training-schedule__nav-btn--prev" x-on:click="prevMonth()" aria-label="الشهر السابق">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
                     </button>
-                </template>
-            </div>
-        </div>
+                    <div class="fi-training-schedule__month-label">
+                        <span x-text="months[month]"></span>
+                        <span class="fi-training-schedule__month-year" x-text="year"></span>
+                    </div>
+                    <button type="button" class="fi-training-schedule__nav-btn fi-training-schedule__nav-btn--next" x-on:click="nextMonth()" aria-label="الشهر التالي">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+                    </button>
+                </div>
 
-        <div class="fi-training-schedule__weekday-picker" x-show="showWeekdayPicker" x-cloak>
-            <span class="fi-training-schedule__weekday-picker-label">أيام البرنامج</span>
-            <div class="fi-training-schedule__weekday-pills">
-                <template x-for="(label, index) in dayLabels" x-bind:key="'pill-' + index">
-                    <button
-                        type="button"
-                        class="fi-training-schedule__weekday-pill"
-                        x-text="label"
-                        x-on:click="toggleWeekday(index)"
-                        x-bind:class="{ 'is-selected': weekdaySelected(index) }"
-                        x-bind:aria-pressed="weekdaySelected(index)"
-                    ></button>
-                </template>
-            </div>
-        </div>
+                <div class="fi-training-schedule__calendar">
+                    <div class="fi-training-schedule__weekdays">
+                        <template x-for="(label, index) in dayLabels" x-bind:key="'wd-' + index">
+                            <div
+                                class="fi-training-schedule__weekday"
+                                x-text="label"
+                                x-bind:class="weekdayHeaderClass(index)"
+                            ></div>
+                        </template>
+                    </div>
+                    <div class="fi-training-schedule__grid" role="grid">
+                        <template x-for="blank in leadingBlanks" x-bind:key="'b-' + blank">
+                            <div class="fi-training-schedule__blank" aria-hidden="true"></div>
+                        </template>
+                        <template x-for="day in daysInMonth" x-bind:key="day">
+                            <button
+                                type="button"
+                                role="gridcell"
+                                x-on:click="selectDay(day)"
+                                x-bind:class="dayClasses(day)"
+                                x-bind:aria-label="dayAriaLabel(day)"
+                                class="fi-training-schedule__day"
+                            >
+                                <span class="fi-training-schedule__day-g" x-text="day"></span>
+                                <span class="fi-training-schedule__day-h" x-text="hijriLabel(day)"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
 
-        <div class="fi-training-schedule__summary">
-            <template x-if="showRegistration">
-                <div class="fi-training-schedule__summary-card fi-training-schedule__summary-card--registration">
-                    <div class="fi-training-schedule__summary-accent"></div>
-                    <div class="fi-training-schedule__summary-inner">
-                        <div class="fi-training-schedule__summary-head">
-                            <div class="fi-training-schedule__summary-title-row">
-                                <span class="fi-training-schedule__summary-dot"></span>
-                                <span class="fi-training-schedule__summary-badge">التسجيل</span>
-                            </div>
-                            <button type="button" class="fi-training-schedule__clear-btn" x-show="registrationStart" x-on:click="clearRange('registration')">مسح</button>
-                        </div>
-                        <p class="fi-training-schedule__summary-dates" x-text="rangeSummary(registrationStart, registrationEnd)"></p>
-                        <span class="fi-training-schedule__summary-pill" x-show="registrationStart" x-text="rangeMeta(registrationStart, registrationEnd)"></span>
+                <div class="fi-training-schedule__weekday-picker" x-show="showWeekdayPicker" x-cloak>
+                    <span class="fi-training-schedule__weekday-picker-label">أيام البرنامج</span>
+                    <div class="fi-training-schedule__weekday-pills">
+                        <template x-for="(label, index) in dayLabels" x-bind:key="'pill-' + index">
+                            <button
+                                type="button"
+                                class="fi-training-schedule__weekday-pill"
+                                x-text="label"
+                                x-on:click="toggleWeekday(index)"
+                                x-bind:class="{ 'is-selected': weekdaySelected(index) }"
+                                x-bind:aria-pressed="weekdaySelected(index)"
+                            ></button>
+                        </template>
                     </div>
-                </div>
-            </template>
-            <div class="fi-training-schedule__summary-card fi-training-schedule__summary-card--program">
-                <div class="fi-training-schedule__summary-accent"></div>
-                <div class="fi-training-schedule__summary-inner">
-                    <div class="fi-training-schedule__summary-head">
-                        <div class="fi-training-schedule__summary-title-row">
-                            <span class="fi-training-schedule__summary-dot"></span>
-                            <span class="fi-training-schedule__summary-badge">البرنامج</span>
-                        </div>
-                        <button type="button" class="fi-training-schedule__clear-btn" x-show="programStart" x-on:click="clearRange('program')">مسح</button>
-                    </div>
-                    <p class="fi-training-schedule__summary-dates" x-text="programSummary()"></p>
-                    <span class="fi-training-schedule__summary-pill" x-show="programStart" x-text="programMeta()"></span>
                 </div>
             </div>
-            <template x-if="showPublishSchedule && ! publishImmediately">
-                <div class="fi-training-schedule__summary-card fi-training-schedule__summary-card--publish">
-                    <div class="fi-training-schedule__summary-accent"></div>
-                    <div class="fi-training-schedule__summary-inner">
-                        <div class="fi-training-schedule__summary-head">
-                            <div class="fi-training-schedule__summary-title-row">
-                                <span class="fi-training-schedule__summary-dot"></span>
-                                <span class="fi-training-schedule__summary-badge">النشر</span>
+
+            <aside class="fi-training-schedule__aside" aria-label="ملخص الفترات">
+                <div class="fi-training-schedule__summary">
+                    <template x-if="showRegistration">
+                        <div class="fi-training-schedule__summary-card fi-training-schedule__summary-card--registration">
+                            <div class="fi-training-schedule__summary-accent"></div>
+                            <div class="fi-training-schedule__summary-inner">
+                                <div class="fi-training-schedule__summary-head">
+                                    <div class="fi-training-schedule__summary-title-row">
+                                        <span class="fi-training-schedule__summary-dot"></span>
+                                        <span class="fi-training-schedule__summary-badge">وقت التسجيل</span>
+                                    </div>
+                                    <button type="button" class="fi-training-schedule__clear-btn" x-show="registrationStart" x-on:click="clearRange('registration')">مسح</button>
+                                </div>
+                                <p class="fi-training-schedule__summary-dates" x-text="rangeSummary(registrationStart, registrationEnd)"></p>
+                                <span class="fi-training-schedule__summary-pill" x-show="registrationStart" x-text="rangeMeta(registrationStart, registrationEnd)"></span>
                             </div>
-                            <button type="button" class="fi-training-schedule__clear-btn" x-show="publishedAt" x-on:click="clearPublishDate()">مسح</button>
                         </div>
-                        <p class="fi-training-schedule__summary-dates" x-text="publishSummary()"></p>
-                        <span class="fi-training-schedule__summary-pill" x-show="publishedAt" x-text="publishMeta()"></span>
+                    </template>
+                    <div class="fi-training-schedule__summary-card fi-training-schedule__summary-card--program">
+                        <div class="fi-training-schedule__summary-accent"></div>
+                        <div class="fi-training-schedule__summary-inner">
+                            <div class="fi-training-schedule__summary-head">
+                                <div class="fi-training-schedule__summary-title-row">
+                                    <span class="fi-training-schedule__summary-dot"></span>
+                                    <span class="fi-training-schedule__summary-badge">وقت البرنامج</span>
+                                </div>
+                                <button type="button" class="fi-training-schedule__clear-btn" x-show="programStart" x-on:click="clearRange('program')">مسح</button>
+                            </div>
+                            <p class="fi-training-schedule__summary-dates" x-text="programSummary()"></p>
+                            <span class="fi-training-schedule__summary-pill" x-show="programStart" x-text="programMeta()"></span>
+                        </div>
                     </div>
+                    <template x-if="showPublishSchedule && ! publishImmediately">
+                        <div class="fi-training-schedule__summary-card fi-training-schedule__summary-card--publish">
+                            <div class="fi-training-schedule__summary-accent"></div>
+                            <div class="fi-training-schedule__summary-inner">
+                                <div class="fi-training-schedule__summary-head">
+                                    <div class="fi-training-schedule__summary-title-row">
+                                        <span class="fi-training-schedule__summary-dot"></span>
+                                        <span class="fi-training-schedule__summary-badge">النشر</span>
+                                    </div>
+                                    <button type="button" class="fi-training-schedule__clear-btn" x-show="publishedAt" x-on:click="clearPublishDate()">مسح</button>
+                                </div>
+                                <p class="fi-training-schedule__summary-dates" x-text="publishSummary()"></p>
+                                <span class="fi-training-schedule__summary-pill" x-show="publishedAt" x-text="publishMeta()"></span>
+                            </div>
+                        </div>
+                    </template>
                 </div>
-            </template>
+            </aside>
         </div>
     </div>
 
@@ -240,21 +245,57 @@
             --tsc-surface: rgba(255, 255, 255, 0.03);
             --tsc-text: #f4f4f5;
             --tsc-muted: #a1a1aa;
-            border-radius: 1rem;
-            border: 1px solid var(--tsc-border);
-            background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%);
-            padding: 1.25rem;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 0.85rem;
+            width: 100%;
+            max-width: 48rem;
         }
 
-        .fi-training-schedule__toolbar {
+        .fi-training-schedule-field.fi-fo-field {
+            gap: 0;
+        }
+
+        .fi-training-schedule__body {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(12.5rem, 0.65fr);
+            gap: 1rem;
+            align-items: start;
+        }
+
+        .fi-training-schedule__main {
             display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.75rem;
+            flex-direction: column;
+            gap: 0.65rem;
+            min-width: 0;
+        }
+
+        .fi-training-schedule__aside {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            position: sticky;
+            top: 0;
+        }
+
+        .fi-training-schedule__header {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0;
+            width: 100%;
+        }
+
+        .fi-training-schedule__toggle.fi-toggle-off {
+            background-color: #52525b !important;
+        }
+
+        .fi-training-schedule__toggle.fi-toggle-on {
+            background-color: var(--tsc-brand) !important;
+        }
+
+        .fi-training-schedule__toggle > :first-child {
+            background-color: #fff;
         }
 
         .fi-training-schedule__pending {
@@ -285,21 +326,25 @@
         }
 
         .fi-training-schedule__mode-switch {
-            display: inline-flex;
-            padding: 0.2rem;
-            gap: 0.2rem;
-            border-radius: 0.75rem;
-            background: rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-wrap: wrap;
+            width: 100%;
+            padding: 0.25rem;
+            gap: 0.25rem;
+            border-radius: 0.8rem;
+            background: rgba(0, 0, 0, 0.22);
             border: 1px solid var(--tsc-border);
         }
 
         .fi-training-schedule__mode-btn {
+            flex: 1 1 0;
+            justify-content: center;
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            padding: 0.45rem 0.85rem;
-            border-radius: 0.55rem;
-            font-size: 0.8rem;
+            padding: 0.5rem 0.65rem;
+            border-radius: 0.6rem;
+            font-size: 0.78rem;
             font-weight: 600;
             color: var(--tsc-muted);
             background: transparent;
@@ -342,28 +387,33 @@
 
         .fi-training-schedule__publish {
             display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 1rem 1.5rem;
-            padding: 0.15rem 0;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0;
+            padding: 0;
         }
 
-        .fi-training-schedule__publish-check {
-            display: inline-flex;
+        .fi-training-schedule__toggle-field {
+            display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8rem;
-            font-weight: 600;
+            justify-content: space-between;
+            gap: 1rem;
+            width: 100%;
+            padding: 0.55rem 0.75rem;
+            border-radius: 0.65rem;
+            border: 1px solid var(--tsc-border);
+            background: var(--tsc-surface);
+        }
+
+        .fi-training-schedule__toggle-field .fi-fo-field-label {
+            margin: 0;
+            flex: 1;
+        }
+
+        .fi-training-schedule__toggle-field .fi-fo-field-label-content {
+            font-size: 0.875rem;
+            font-weight: 500;
             color: var(--tsc-text);
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .fi-training-schedule__publish-check input {
-            width: 1rem;
-            height: 1rem;
-            accent-color: var(--tsc-prog);
-            cursor: pointer;
         }
 
         .fi-training-schedule__hint,
@@ -425,13 +475,6 @@
             display: block;
         }
 
-        .fi-training-schedule__legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem 1.25rem;
-            padding: 0 0.15rem;
-        }
-
         .fi-training-schedule__legend-item {
             display: inline-flex;
             align-items: center;
@@ -463,58 +506,56 @@
         }
 
         .fi-training-schedule__calendar {
-            padding: 0.75rem;
-            border-radius: 0.85rem;
+            padding: 0.65rem;
+            border-radius: 0.8rem;
             background: rgba(0, 0, 0, 0.18);
             border: 1px solid var(--tsc-border);
+            width: 100%;
         }
 
         .fi-training-schedule__weekdays,
         .fi-training-schedule__grid {
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: 0.3rem;
+            gap: 0.28rem;
         }
 
         .fi-training-schedule__weekday {
             text-align: center;
             font-size: 0.68rem;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--tsc-muted);
-            padding: 0.35rem 0;
+            padding: 0.25rem 0;
         }
 
         .fi-training-schedule__day {
             position: relative;
-            aspect-ratio: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 0.05rem;
-            border-radius: 0.55rem;
-            font-size: 0.85rem;
+            gap: 0;
+            height: 2.35rem;
+            min-height: 2.35rem;
+            max-height: 2.35rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
             font-weight: 600;
             color: var(--tsc-text);
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.06);
             transition: transform 0.12s, background 0.12s, border-color 0.12s, box-shadow 0.12s;
             cursor: pointer;
-            padding: 0.15rem 0;
-            min-height: 2.75rem;
+            padding: 0;
         }
 
         .fi-training-schedule__day-g {
-            line-height: 1.1;
-            font-size: 0.9rem;
+            line-height: 1;
+            font-size: 0.82rem;
         }
 
         .fi-training-schedule__day-h {
-            line-height: 1;
-            font-size: 0.58rem;
-            font-weight: 500;
-            color: var(--tsc-muted);
-            opacity: 0.9;
+            display: none;
         }
 
         .fi-training-schedule__day:hover {
@@ -623,22 +664,23 @@
         }
 
         .fi-training-schedule__summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
-            gap: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            width: 100%;
         }
 
         .fi-training-schedule__summary-card {
             position: relative;
             display: flex;
             overflow: hidden;
-            border-radius: 0.75rem;
+            border-radius: 0.7rem;
             border: 1px solid var(--tsc-border);
             background: var(--tsc-surface);
         }
 
         .fi-training-schedule__summary-accent {
-            width: 4px;
+            width: 3px;
             flex-shrink: 0;
         }
 
@@ -648,7 +690,7 @@
 
         .fi-training-schedule__summary-inner {
             flex: 1;
-            padding: 0.75rem 0.9rem;
+            padding: 0.65rem 0.75rem;
             min-width: 0;
         }
 
@@ -689,29 +731,29 @@
             align-items: center;
             justify-content: space-between;
             gap: 0.5rem;
-            margin-bottom: 0.45rem;
+            margin-bottom: 0.35rem;
         }
 
         .fi-training-schedule__summary-badge {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 700;
             color: var(--tsc-text);
         }
 
         .fi-training-schedule__summary-dates {
-            margin: 0.35rem 0 0;
-            font-size: 0.82rem;
+            margin: 0;
+            font-size: 0.78rem;
             font-weight: 600;
             color: var(--tsc-text);
-            line-height: 1.5;
+            line-height: 1.45;
         }
 
         .fi-training-schedule__summary-pill {
             display: inline-block;
-            margin-top: 0.45rem;
-            padding: 0.15rem 0.5rem;
+            margin-top: 0.35rem;
+            padding: 0.12rem 0.45rem;
             border-radius: 9999px;
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             font-weight: 600;
             color: var(--tsc-muted);
             background: rgba(255, 255, 255, 0.06);
@@ -745,16 +787,16 @@
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 0.65rem;
-            padding: 0.65rem 0.75rem;
+            gap: 0.55rem;
+            padding: 0.55rem 0.65rem;
             border-radius: 0.65rem;
             border: 1px solid var(--tsc-border);
             background: var(--tsc-surface);
         }
 
         .fi-training-schedule__weekday-picker-label {
-            font-size: 0.75rem;
-            font-weight: 600;
+            font-size: 0.72rem;
+            font-weight: 700;
             color: var(--tsc-muted);
             white-space: nowrap;
         }
@@ -762,15 +804,15 @@
         .fi-training-schedule__weekday-pills {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.35rem;
+            gap: 0.3rem;
             flex: 1;
         }
 
         .fi-training-schedule__weekday-pill {
-            min-width: 2.35rem;
-            padding: 0.35rem 0.5rem;
-            border-radius: 0.45rem;
-            font-size: 0.72rem;
+            min-width: 2.1rem;
+            padding: 0.3rem 0.45rem;
+            border-radius: 0.42rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: var(--tsc-text);
             background: rgba(255, 255, 255, 0.05);
@@ -800,7 +842,12 @@
             --tsc-surface: #fafafa;
             --tsc-text: #18181b;
             --tsc-muted: #71717a;
-            background: #fff;
+        }
+        html:not(.dark) .fi-training-schedule__toggle.fi-toggle-off {
+            background-color: #d4d4d8 !important;
+        }
+        html:not(.dark) .fi-training-schedule__toggle.fi-toggle-on {
+            background-color: var(--tsc-brand) !important;
         }
         html:not(.dark) .fi-training-schedule__mode-switch,
         html:not(.dark) .fi-training-schedule__month-bar,
@@ -823,403 +870,34 @@
             color: #15803d;
             background: rgba(34, 197, 94, 0.15);
         }
+
+        .fi-modal .fi-training-schedule {
+            max-width: none;
+            width: 100%;
+        }
+
+        .fi-modal:has(.fi-training-schedule) .fi-modal-content {
+            gap: 0.75rem;
+        }
+
+        .fi-modal:has(.fi-training-schedule) .fi-training-schedule-field.fi-fo-field {
+            margin: 0;
+        }
+
+        .fi-modal .fi-training-schedule__body {
+            grid-template-columns: minmax(0, 1.45fr) minmax(12rem, 0.55fr);
+            gap: 1.15rem;
+        }
+
+        @media (max-width: 640px) {
+            .fi-training-schedule__body {
+                grid-template-columns: 1fr;
+            }
+
+            .fi-training-schedule__aside {
+                position: static;
+            }
+        }
     </style>
 
-    @once
-        <script>
-            document.addEventListener('alpine:init', () => {
-                Alpine.data('trainingScheduleCalendar', (config) => ({
-                    showRegistration: config.showRegistration,
-                    programHasEnd: config.programHasEnd,
-                    showWeekdayPicker: config.showWeekdayPicker,
-                    showPublishSchedule: config.showPublishSchedule,
-                    months: config.months,
-                    dayLabels: config.dayLabels,
-                    activeRange: config.showRegistration ? 'registration' : 'program',
-                    pendingStart: null,
-                    month: new Date().getMonth(),
-                    year: new Date().getFullYear(),
-                    registrationStart: null,
-                    registrationEnd: null,
-                    programStart: null,
-                    programEnd: null,
-                    weekdays: [],
-                    publishImmediately: true,
-                    publishedAt: null,
-                    notifyAudience: false,
-
-                    init() {
-                        this.registrationStart = this.$wire.$entangle(config.paths.registrationStart, true);
-                        this.registrationEnd = this.$wire.$entangle(config.paths.registrationEnd, true);
-                        this.programStart = this.$wire.$entangle(config.paths.programStart, true);
-                        this.programEnd = this.$wire.$entangle(config.paths.programEnd, true);
-                        this.weekdays = this.$wire.$entangle(config.paths.weekdays, true);
-                        this.publishImmediately = this.$wire.$entangle(config.paths.publishImmediately, true);
-                        this.publishedAt = this.$wire.$entangle(config.paths.publishedAt, true);
-                        this.notifyAudience = this.$wire.$entangle(config.paths.notifyAudience, true);
-
-                        if (this.publishedAt) {
-                            this.publishedAt = this.normalizeDate(this.publishedAt);
-                        }
-
-                        const anchor = this.registrationStart || this.programStart || this.publishedAt;
-                        const anchorDate = anchor ? this.parseDate(anchor) : new Date();
-                        if (anchorDate) {
-                            this.month = anchorDate.getMonth();
-                            this.year = anchorDate.getFullYear();
-                        }
-                    },
-
-                    setActiveRange(range) {
-                        this.activeRange = range;
-                        this.pendingStart = null;
-                    },
-
-                    onPublishImmediatelyChange() {
-                        if (this.publishImmediately) {
-                            this.publishedAt = null;
-                            if (this.activeRange === 'publish') {
-                                this.activeRange = this.showRegistration ? 'registration' : 'program';
-                            }
-                        } else {
-                            this.activeRange = 'publish';
-                        }
-                    },
-
-                    pendingHint() {
-                        if (this.activeRange === 'publish') {
-                            return 'اختر يوم النشر';
-                        }
-                        return 'اختر يوم النهاية';
-                    },
-
-                    normalizeDate(value) {
-                        if (! value) return null;
-                        const str = String(value);
-                        return str.length >= 10 ? str.slice(0, 10) : str;
-                    },
-
-                    hijriLabel(day) {
-                        try {
-                            const date = new Date(this.year, this.month, day);
-                            const hDay = Number(new Intl.DateTimeFormat('en-u-ca-islamic', { day: 'numeric' }).format(date));
-                            if (hDay === 1) {
-                                return new Intl.DateTimeFormat('ar-SA-u-ca-islamic', { month: 'short' }).format(date);
-                            }
-                            return hDay > 0 ? String(hDay) : '';
-                        } catch {
-                            return '';
-                        }
-                    },
-
-                    hasWeekdaySelection() {
-                        return this.showWeekdayPicker && Array.isArray(this.weekdays) && this.weekdays.length > 0;
-                    },
-
-                    isWeekdayOff(day) {
-                        if (! this.hasWeekdaySelection()) {
-                            return false;
-                        }
-                        return ! this.weekdaySelected(new Date(this.year, this.month, day).getDay());
-                    },
-
-                    todayDateString() {
-                        return this.formatDate(new Date());
-                    },
-
-                    isBeforeToday(dateStr) {
-                        const normalized = this.normalizeDate(dateStr);
-                        return normalized !== null && normalized < this.todayDateString();
-                    },
-
-                    isTodayDateStr(dateStr) {
-                        return this.normalizeDate(dateStr) === this.todayDateString();
-                    },
-
-                    get scheduleErrors() {
-                        const errors = [];
-                        const today = this.todayDateString();
-                        const programStart = this.normalizeDate(this.programStart);
-                        const programEnd = this.normalizeDate(this.programEnd || this.programStart);
-                        const regStart = this.normalizeDate(this.registrationStart);
-                        const regEnd = this.normalizeDate(this.registrationEnd || this.registrationStart);
-
-                        if (! this.publishImmediately) {
-                            const pubDate = this.normalizeDate(this.publishedAt);
-                            if (pubDate && pubDate < today) {
-                                errors.push('لا يمكن تحديد تاريخ النشر قبل اليوم.');
-                            }
-                        }
-
-                        if (programStart && regStart && this.showRegistration && programStart < regStart) {
-                            errors.push('لا يمكن أن يبدأ البرنامج قبل تاريخ بدء التسجيل.');
-                        }
-
-                        if (programEnd && regEnd && this.showRegistration && regEnd > programEnd) {
-                            errors.push('يجب أن ينتهي التسجيل في أو قبل تاريخ انتهاء البرنامج.');
-                        }
-
-                        return errors;
-                    },
-
-                    weekdaySelected(index) {
-                        if (! Array.isArray(this.weekdays)) return false;
-                        return this.weekdays.map(Number).includes(index);
-                    },
-
-                    weekdayHeaderClass(index) {
-                        if (this.weekdaySelected(index)) {
-                            return 'is-selected';
-                        }
-                        if (this.hasWeekdaySelection()) {
-                            return 'is-off';
-                        }
-                        return '';
-                    },
-
-                    toggleWeekday(index) {
-                        const current = Array.isArray(this.weekdays) ? [...this.weekdays] : [];
-                        const normalized = current.map(Number);
-                        const pos = normalized.indexOf(index);
-                        if (pos >= 0) {
-                            normalized.splice(pos, 1);
-                        } else {
-                            normalized.push(index);
-                            normalized.sort((a, b) => a - b);
-                        }
-                        this.weekdays = normalized;
-                    },
-
-                    get daysInMonth() {
-                        return new Date(this.year, this.month + 1, 0).getDate();
-                    },
-
-                    get leadingBlanks() {
-                        const first = new Date(this.year, this.month, 1).getDay();
-                        return Array.from({ length: first }, (_, i) => i);
-                    },
-
-                    prevMonth() {
-                        if (this.month === 0) { this.month = 11; this.year--; }
-                        else { this.month--; }
-                    },
-
-                    nextMonth() {
-                        if (this.month === 11) { this.month = 0; this.year++; }
-                        else { this.month++; }
-                    },
-
-                    formatDate(date) {
-                        const y = date.getFullYear();
-                        const m = String(date.getMonth() + 1).padStart(2, '0');
-                        const d = String(date.getDate()).padStart(2, '0');
-                        return `${y}-${m}-${d}`;
-                    },
-
-                    parseDate(value) {
-                        if (! value) return null;
-                        const parts = String(value).split('-');
-                        if (parts.length !== 3) return null;
-                        return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-                    },
-
-                    dateForDay(day) {
-                        return this.formatDate(new Date(this.year, this.month, day));
-                    },
-
-                    isToday(day) {
-                        const t = new Date();
-                        return t.getFullYear() === this.year && t.getMonth() === this.month && t.getDate() === day;
-                    },
-
-                    inRange(dateStr, start, end) {
-                        if (! start) return false;
-                        const endVal = end || start;
-                        return dateStr >= start && dateStr <= endVal;
-                    },
-
-                    isRangeStart(dateStr, start, end) {
-                        return start && dateStr === start;
-                    },
-
-                    isRangeEnd(dateStr, start, end) {
-                        if (! start) return false;
-                        const endVal = end || start;
-                        return dateStr === endVal;
-                    },
-
-                    dayClasses(day) {
-                        const dateStr = this.dateForDay(day);
-                        const inReg = this.showRegistration && this.inRange(dateStr, this.registrationStart, this.registrationEnd);
-                        const inProg = this.inRange(dateStr, this.programStart, this.programHasEnd ? this.programEnd : this.programStart);
-                        const inPublish = ! this.publishImmediately && this.publishedAt && dateStr === this.normalizeDate(this.publishedAt);
-                        const weekdayOff = this.hasWeekdaySelection() && this.isWeekdayOff(day);
-                        const classes = [];
-
-                        if (inPublish) {
-                            classes.push('fi-training-schedule__day--publish');
-                        }
-
-                        if (inReg && inProg && ! weekdayOff) {
-                            classes.push('fi-training-schedule__day--overlap');
-                        } else if (inReg) {
-                            classes.push('fi-training-schedule__day--registration');
-                            if (this.isRangeStart(dateStr, this.registrationStart, this.registrationEnd)) classes.push('is-start');
-                            if (this.isRangeEnd(dateStr, this.registrationStart, this.registrationEnd)) classes.push('is-end');
-                        } else if (inProg) {
-                            if (weekdayOff) {
-                                classes.push('fi-training-schedule__day--weekday-off', 'fi-training-schedule__day--program-inactive');
-                            } else {
-                                classes.push('fi-training-schedule__day--program');
-                                if (this.isRangeStart(dateStr, this.programStart, this.programEnd)) classes.push('is-start');
-                                if (this.isRangeEnd(dateStr, this.programStart, this.programEnd)) classes.push('is-end');
-                            }
-                        } else if (weekdayOff) {
-                            classes.push('fi-training-schedule__day--weekday-off');
-                        }
-
-                        if (this.pendingStart === dateStr) classes.push('fi-training-schedule__day--pending');
-                        if (this.isToday(day)) classes.push('fi-training-schedule__day--today');
-                        if (this.activeRange === 'publish' && this.isBeforeToday(dateStr)) {
-                            classes.push('fi-training-schedule__day--past');
-                        }
-
-                        return classes.join(' ');
-                    },
-
-                    dayAriaLabel(day) {
-                        const dateStr = this.dateForDay(day);
-                        return this.formatDisplay(dateStr) || `يوم ${day}`;
-                    },
-
-                    selectDay(day) {
-                        const dateStr = this.dateForDay(day);
-
-                        if (this.activeRange === 'publish') {
-                            if (this.isBeforeToday(dateStr)) {
-                                return;
-                            }
-
-                            if (this.isTodayDateStr(dateStr)) {
-                                this.publishImmediately = true;
-                                this.publishedAt = null;
-                                this.activeRange = this.showRegistration ? 'registration' : 'program';
-                            } else {
-                                this.publishImmediately = false;
-                                this.publishedAt = dateStr;
-                            }
-
-                            this.pendingStart = null;
-                            return;
-                        }
-
-                        if (this.activeRange === 'program' && ! this.programHasEnd) {
-                            this.programStart = dateStr;
-                            this.programEnd = null;
-                            this.pendingStart = null;
-                            return;
-                        }
-
-                        if (this.pendingStart === dateStr) {
-                            this.pendingStart = null;
-                            return;
-                        }
-
-                        if (! this.pendingStart) {
-                            this.pendingStart = dateStr;
-                            return;
-                        }
-
-                        let start = this.pendingStart;
-                        let end = dateStr;
-                        if (end < start) [start, end] = [end, start];
-
-                        if (this.activeRange === 'registration') {
-                            this.registrationStart = start;
-                            this.registrationEnd = end;
-                        } else {
-                            this.programStart = start;
-                            this.programEnd = end;
-                        }
-
-                        this.pendingStart = null;
-                    },
-
-                    clearRange(type) {
-                        if (type === 'registration') {
-                            this.registrationStart = null;
-                            this.registrationEnd = null;
-                        } else {
-                            this.programStart = null;
-                            this.programEnd = null;
-                        }
-                        this.pendingStart = null;
-                    },
-
-                    clearPublishDate() {
-                        this.publishedAt = null;
-                    },
-
-                    publishSummary() {
-                        if (! this.publishedAt) return '—';
-                        return this.formatDisplay(this.normalizeDate(this.publishedAt));
-                    },
-
-                    publishMeta() {
-                        if (this.publishImmediately) {
-                            return 'نشر فوري';
-                        }
-                        if (! this.publishedAt) return '';
-                        const d = this.parseDate(this.normalizeDate(this.publishedAt));
-                        if (! d) return '';
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        d.setHours(0, 0, 0, 0);
-                        if (d.getTime() === today.getTime()) {
-                            return 'نشر فوري';
-                        }
-                        return d > today ? 'مجدول' : '';
-                    },
-
-                    formatDisplay(dateStr) {
-                        const d = this.parseDate(dateStr);
-                        if (! d) return '';
-                        return `${d.getDate()} ${this.months[d.getMonth()]} ${d.getFullYear()}`;
-                    },
-
-                    daysBetween(start, end) {
-                        if (! start) return 0;
-                        const s = this.parseDate(start);
-                        const e = this.parseDate(end || start);
-                        if (! s || ! e) return 0;
-                        return Math.round((e - s) / 86400000) + 1;
-                    },
-
-                    rangeSummary(start, end) {
-                        if (! start) return '—';
-                        if (! end || end === start) return this.formatDisplay(start);
-                        return `${this.formatDisplay(start)} — ${this.formatDisplay(end)}`;
-                    },
-
-                    rangeMeta(start, end) {
-                        if (! start) return '';
-                        const days = this.daysBetween(start, end);
-                        return days === 1 ? 'يوم واحد' : `${days} أيام`;
-                    },
-
-                    programSummary() {
-                        if (! this.programStart) return '—';
-                        if (! this.programHasEnd) return this.formatDisplay(this.programStart);
-                        return this.rangeSummary(this.programStart, this.programEnd);
-                    },
-
-                    programMeta() {
-                        if (! this.programStart) return '';
-                        if (! this.programHasEnd) return 'يوم واحد';
-                        return this.rangeMeta(this.programStart, this.programEnd);
-                    },
-                }));
-            });
-        </script>
-    @endonce
 </x-dynamic-component>

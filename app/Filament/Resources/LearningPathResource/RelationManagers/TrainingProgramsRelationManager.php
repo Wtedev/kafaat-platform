@@ -7,17 +7,9 @@ use App\Enums\TrainingProgramKind;
 use App\Filament\Resources\TrainingProgramResource;
 use App\Models\LearningPath;
 use App\Models\TrainingProgram;
-use App\Support\FilamentAssignmentVisibility;
-use App\Support\StaffFilamentRoles;
 use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -25,6 +17,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
+use Filament\Forms\Components\Select;
 
 class TrainingProgramsRelationManager extends RelationManager
 {
@@ -49,50 +42,10 @@ class TrainingProgramsRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema->components([
-            TextInput::make('title')
-                ->label('اسم البرنامج')
-                ->required()
-                ->maxLength(255)
-                ->columnSpanFull(),
+        /** @var LearningPath $path */
+        $path = $this->getOwnerRecord();
 
-            Select::make('status')
-                ->label('الحالة')
-                ->options(ProgramStatus::class)
-                ->required()
-                ->default(ProgramStatus::Draft->value),
-
-            Select::make('program_kind')
-                ->label('نوع البرنامج')
-                ->options(TrainingProgramKind::options())
-                ->required()
-                ->default(TrainingProgramKind::Course->value)
-                ->native(false),
-
-            Grid::make(2)->schema([
-                DatePicker::make('start_date')
-                    ->label('بداية البرنامج'),
-
-                DatePicker::make('end_date')
-                    ->label('نهاية البرنامج')
-                    ->afterOrEqual('start_date'),
-            ])->columnSpanFull(),
-
-            Textarea::make('description')
-                ->label('الوصف')
-                ->rows(3)
-                ->columnSpanFull(),
-
-            Select::make('assigned_to')
-                ->label('منسق البرنامج (تشغيلي)')
-                ->relationship('assignee', 'name', modifyQueryUsing: fn (Builder $query) => $query->role(StaffFilamentRoles::assignableTrainingCoordinatorRoleNames()))
-                ->searchable()
-                ->preload()
-                ->visible(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
-                ->required(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
-                ->dehydrated(fn (): bool => FilamentAssignmentVisibility::bypasses(auth()->user()))
-                ->helperText('منفصل عن المسؤول — المالك (owner_id). يُملأ من إعدادات البرنامج الرئيسية عند الحاجة.'),
-        ]);
+        return TrainingProgramResource::createForm($schema, $path->getKey());
     }
 
     public function table(Table $table): Table
@@ -145,24 +98,13 @@ class TrainingProgramsRelationManager extends RelationManager
                     ->alignEnd(),
             ])
             ->headerActions([
-                CreateAction::make()
+                Action::make('createProgramInPath')
                     ->label('إنشاء برنامج جديد في المسار')
-                    ->modalHeading('إنشاء برنامج جديد')
+                    ->icon('heroicon-o-plus')
+                    ->color('primary')
                     ->authorize(fn (): bool => (auth()->user()?->can('updateContainerStructure', $path) ?? false)
                         && (auth()->user()?->can('create', TrainingProgram::class) ?? false))
-                    ->mutateFormDataUsing(function (array $data) use ($path): array {
-                        $data['learning_path_id'] = $path->getKey();
-                        $max = (int) TrainingProgram::query()
-                            ->where('learning_path_id', $path->getKey())
-                            ->max('path_sort_order');
-                        $data['path_sort_order'] = $max > 0 ? $max + 1 : 1;
-                        $data['capacity'] = null;
-                        $data['registration_start'] = null;
-                        $data['registration_end'] = null;
-                        $data['weekdays'] = null;
-
-                        return $data;
-                    }),
+                    ->url(fn (): string => TrainingProgramResource::createUrlForLearningPath($path)),
 
                 Action::make('attachExistingProgram')
                     ->label('ربط برنامج موجود')
@@ -212,10 +154,13 @@ class TrainingProgramsRelationManager extends RelationManager
             ])
             ->actions([
                 Action::make('editProgramContent')
-                    ->label('تعديل محتوى البرنامج')
-                    ->icon('heroicon-o-pencil-square')
+                    ->label('إعدادات البرنامج')
+                    ->icon('heroicon-o-cog-6-tooth')
                     ->color('gray')
-                    ->url(fn (TrainingProgram $record): string => TrainingProgramResource::getUrl('edit', ['record' => $record]))
+                    ->url(fn (TrainingProgram $record): string => TrainingProgramResource::getUrl('view', [
+                        'record' => $record,
+                        'relation' => 'settings',
+                    ]))
                     ->openUrlInNewTab()
                     ->visible(fn (TrainingProgram $record): bool => auth()->user()?->can('update', $record) ?? false),
 
@@ -240,11 +185,6 @@ class TrainingProgramsRelationManager extends RelationManager
                         Notification::make()->title('تم فصل البرنامج عن المسار')->success()->send();
                     }),
             ])
-            ->reorderable(
-                'path_sort_order',
-                fn (): bool => auth()->user()?->can('updateContainerStructure', $path) ?? false
-            )
-            ->authorizeReorder(fn (): bool => auth()->user()?->can('updateContainerStructure', $path) ?? false)
-            ->defaultSort('path_sort_order');
+            ->defaultSort('title');
     }
 }

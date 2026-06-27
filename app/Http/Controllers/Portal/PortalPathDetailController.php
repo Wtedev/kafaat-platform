@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Models\LearningPath;
 use App\Models\PathRegistration;
+use App\Services\AttendanceLiveSessionService;
 use App\Services\ProgressService;
 use Illuminate\Http\Request;
 
@@ -46,11 +47,14 @@ class PortalPathDetailController extends Controller
             ? $this->progressService->calculatePathProgress($user, $learningPath)
             : null;
 
+        $liveSession = app(AttendanceLiveSessionService::class)->activeSessionFor($learningPath);
+
         return view('portal.path-show', [
             'learningPath' => $learningPath,
             'registration' => $registration,
             'programRows' => $programRows,
             'pathProgress' => $pathProgress,
+            'liveSession' => $liveSession,
         ]);
     }
 }

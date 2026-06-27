@@ -2,8 +2,14 @@
 
 namespace App\Services;
 
+use App\Enums\RegistrationStatus;
 use App\Models\Certificate;
+use App\Models\LearningPath;
+use App\Models\PathRegistration;
+use App\Models\ProgramRegistration;
+use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Notifications\CertificateReadyEmail;
 use App\Services\Inbox\InboxNotificationService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -13,6 +19,7 @@ class CertificateService
     public function __construct(
         private readonly CertificatePdfService $pdfService,
         private readonly InboxNotificationService $inboxNotifications,
+        private readonly EmailLogService $emailLogService,
     ) {}
 
     /**
@@ -49,6 +56,156 @@ class CertificateService
         $this->inboxNotifications->certificateIssued($user, $certificate, $issuedBy);
 
         return $certificate->fresh();
+    }
+
+    public function issueForProgramRegistration(ProgramRegistration $registration, ?User $issuedBy = null): ?Certificate
+    {
+        $registration->loadMissing(['user', 'trainingProgram']);
+
+        if (! $registration->isEligibleForCertificate()) {
+            return null;
+        }
+
+        if ($registration->isApproved()) {
+            $registration->update(['status' => RegistrationStatus::Completed]);
+            $registration->refresh();
+        }
+
+        return $this->issue($registration->user, $registration->trainingProgram, $issuedBy);
+    }
+
+    public function issueForPathRegistration(PathRegistration $registration, ?User $issuedBy = null): ?Certificate
+    {
+        $registration->loadMissing(['user', 'learningPath']);
+
+        if (! $registration->isEligibleForCertificate()) {
+            return null;
+        }
+
+        if ($registration->isApproved()) {
+            $registration->update([
+                'status' => RegistrationStatus::Completed,
+                'completed_at' => now(),
+            ]);
+            $registration->refresh();
+        }
+
+        return $this->issue($registration->user, $registration->learningPath, $issuedBy);
+    }
+
+    public function issueEligibleProgramRegistrations(TrainingProgram $program, ?User $issuedBy = null): int
+    {
+        $count = 0;
+
+        $program->registrations()
+            ->whereIn('status', [
+                RegistrationStatus::Approved->value,
+                RegistrationStatus::Completed->value,
+            ])
+            ->with(['user', 'trainingProgram'])
+            ->each(function (ProgramRegistration $registration) use ($issuedBy, &$count): void {
+                if ($this->issueForProgramRegistration($registration, $issuedBy) !== null) {
+                    $count++;
+                }
+            });
+
+        return $count;
+    }
+
+    public function issueEligiblePathRegistrations(LearningPath $path, ?User $issuedBy = null): int
+    {
+        $count = 0;
+
+        $path->registrations()
+            ->whereIn('status', [
+                RegistrationStatus::Approved->value,
+                RegistrationStatus::Completed->value,
+            ])
+            ->with(['user', 'learningPath'])
+            ->each(function (PathRegistration $registration) use ($issuedBy, &$count): void {
+                if ($this->issueForPathRegistration($registration, $issuedBy) !== null) {
+                    $count++;
+                }
+            });
+
+        return $count;
+    }
+
+    public function emailCertificate(Certificate $certificate, ?User $sentBy = null): bool
+    {
+        $certificate->loadMissing(['user', 'certificateable']);
+
+        if ($certificate->user === null) {
+            return false;
+        }
+
+        $label = match (true) {
+            $certificate->certificateable instanceof TrainingProgram => $certificate->certificateable->title,
+            $certificate->certificateable instanceof LearningPath => $certificate->certificateable->title,
+            default => 'نشاطك',
+        };
+
+        $this->emailLogService->send(
+            recipient: $certificate->user,
+            notification: new CertificateReadyEmail($certificate, $label),
+            templateKey: 'certificate.ready',
+            subject: 'شهادتك جاهزة — '.$label,
+            sentBy: $sentBy,
+        );
+
+        return true;
+    }
+
+    public function emailEligibleProgramCertificates(TrainingProgram $program, ?User $sentBy = null): int
+    {
+        $count = 0;
+
+        $program->registrations()
+            ->whereIn('status', [
+                RegistrationStatus::Approved->value,
+                RegistrationStatus::Completed->value,
+            ])
+            ->with('user')
+            ->each(function (ProgramRegistration $registration) use ($program, $sentBy, &$count): void {
+                if (! $registration->isEligibleForCertificate()) {
+                    return;
+                }
+
+                $certificate = $registration->certificateForEntity()
+                    ?? $this->issueForProgramRegistration($registration, $sentBy);
+
+                if ($certificate !== null && $this->emailCertificate($certificate, $sentBy)) {
+                    $count++;
+                }
+            });
+
+        return $count;
+    }
+
+    public function emailEligiblePathCertificates(LearningPath $path, ?User $sentBy = null): int
+    {
+        $count = 0;
+
+        $path->registrations()
+            ->whereIn('status', [
+                RegistrationStatus::Approved->value,
+                RegistrationStatus::Completed->value,
+            ])
+            ->with('user')
+            ->each(function (PathRegistration $registration) use ($path, $sentBy, &$count): void {
+                if (! $registration->isEligibleForCertificate()) {
+                    return;
+                }
+
+                $certificate = $registration->certificateForEntity()
+                    ?? $this->issueForPathRegistration($registration, $sentBy);
+
+                if ($certificate !== null && $this->emailCertificate($certificate, $sentBy)) {
+                    $count++;
+                }
+            });
+
+        return $count;
     }
 
     /**

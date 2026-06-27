@@ -8,6 +8,7 @@ use App\Models\Profile;
 use App\Services\Portal\CompetencyProfilePresenter;
 use App\Services\Portal\CvFormOptions;
 use App\Services\Portal\CvLanguagePresets;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -72,6 +73,8 @@ class PortalCompetencyController extends Controller
             $payload,
         );
 
+        $this->logCompetencyUpdate($user, 'cv_display');
+
         return back()->with('success', 'تم حفظ إعدادات العرض.');
     }
 
@@ -91,6 +94,8 @@ class PortalCompetencyController extends Controller
             ['user_id' => $user->id],
             ['cv_sections_visibility' => $vis],
         );
+
+        $this->logCompetencyUpdate($user, 'visibility', $key);
 
         return back()->with('success', 'تم تحديث ظهور القسم في السيرة والتصدير.');
     }
@@ -146,6 +151,8 @@ class PortalCompetencyController extends Controller
             ['bio' => self::trimOrNull($validated['bio'] ?? null)],
         );
 
+        $this->logCompetencyUpdate($user, 'bio');
+
         return back()->with('success', 'تم حفظ النبذة بنجاح.');
     }
 
@@ -181,6 +188,8 @@ class PortalCompetencyController extends Controller
         $cv['skills'] = $items;
         $cv = $this->ensureLinks($cv);
         $this->persistCvSections($user, $cv);
+
+        $this->logCompetencyUpdate($user, 'skills');
 
         return back()->with('success', 'تم حفظ المهارات بنجاح.');
     }
@@ -237,6 +246,8 @@ class PortalCompetencyController extends Controller
         $cv = $this->ensureLinks($cv);
         $this->persistCvSections($user, $cv);
 
+        $this->logCompetencyUpdate($user, 'languages');
+
         return back()->with('success', 'تم حفظ اللغات بنجاح.');
     }
 
@@ -268,6 +279,8 @@ class PortalCompetencyController extends Controller
         $cv['office_tools'] = $items;
         $cv = $this->ensureLinks($cv);
         $this->persistCvSections($user, $cv);
+
+        $this->logCompetencyUpdate($user, 'office_tools');
 
         return back()->with('success', 'تم حفظ الأدوات الرقمية بنجاح.');
     }
@@ -308,6 +321,8 @@ class PortalCompetencyController extends Controller
         $cv['education'] = $items;
         $cv = $this->ensureLinks($cv);
         $this->persistCvSections($user, $cv);
+
+        $this->logCompetencyUpdate($user, 'education');
 
         return back()->with('success', 'تم حفظ التعليم بنجاح.');
     }
@@ -355,6 +370,8 @@ class PortalCompetencyController extends Controller
         $cv = $this->ensureLinks($cv);
         $this->persistCvSections($user, $cv);
 
+        $this->logCompetencyUpdate($user, 'experience');
+
         return back()->with('success', 'تم حفظ الخبرات بنجاح.');
     }
 
@@ -400,6 +417,8 @@ class PortalCompetencyController extends Controller
         $cv = $this->ensureLinks($cv);
         $this->persistCvSections($user, $cv);
 
+        $this->logCompetencyUpdate($user, 'external_courses');
+
         return back()->with('success', 'تم حفظ الدورات والشهادات الخارجية بنجاح.');
     }
 
@@ -415,6 +434,8 @@ class PortalCompetencyController extends Controller
         $cv = $this->mergeCv($user);
         $cv['links'] = self::normalizeLinkItemsFromRequest($request);
         $this->persistCvSections($user, $cv);
+
+        $this->logCompetencyUpdate($user, 'links');
 
         return back()->with('success', 'تم حفظ الروابط بنجاح.');
     }
@@ -437,6 +458,13 @@ class PortalCompetencyController extends Controller
             ['cv_path' => $path],
         );
 
+        $this->logCompetencyUpdate($user, 'cv_attachment');
+
         return back()->with('success', 'تم رفع ملف السيرة الذاتية بنجاح.');
+    }
+
+    private function logCompetencyUpdate($user, string $section, ?string $extraDetail = null): void
+    {
+        UserActivityLogger::logCompetencyUpdated($user, $section, $extraDetail);
     }
 }

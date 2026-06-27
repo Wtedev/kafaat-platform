@@ -7,6 +7,7 @@ use App\Enums\RegistrationStatus;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Exceptions\RegistrationNotApprovedException;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
+use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\ProgramRegistrationResource\Pages;
 use App\Filament\Resources\ProgramRegistrationResource\RelationManagers\AttendanceRelationManager;
@@ -110,7 +111,9 @@ class ProgramRegistrationResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return static::applyEditOnlyTable($table)
+        return RegistrationFilamentTableSupport::configureBeneficiaryRowNavigation(
+            static::applyEditOnlyTable($table),
+        )
             ->columns([
                 TextColumn::make('user.name')
                     ->label('المستخدم')

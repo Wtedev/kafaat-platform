@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\VolunteerHoursStatus;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
+use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerHourResource\Pages;
 use App\Models\VolunteerHour;
@@ -88,7 +89,9 @@ class VolunteerHourResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return static::applyEditOnlyTable($table)
+        return RegistrationFilamentTableSupport::configureBeneficiaryRowNavigation(
+            static::applyEditOnlyTable($table),
+        )
             ->columns([
                 TextColumn::make('user.name')
                     ->searchable()

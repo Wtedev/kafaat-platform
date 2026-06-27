@@ -5,31 +5,29 @@ namespace App\Filament\Resources;
 use App\Enums\LearningPathKind;
 use App\Enums\PathStatus;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
+use App\Filament\Concerns\ConfiguresViewFirstTrainingResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
+use App\Filament\Resources\Concerns\EntityNotesRelationManager;
 use App\Filament\Resources\LearningPathResource\Pages;
 use App\Filament\Resources\LearningPathResource\RelationManagers\LearningPathEditorsRelationManager;
-use App\Filament\Resources\LearningPathResource\RelationManagers\PathCertificatesRelationManager;
+use App\Filament\Resources\LearningPathResource\RelationManagers\PathAttendanceRegistrationsRelationManager;
+use App\Filament\Resources\LearningPathResource\RelationManagers\PathGradesRelationManager;
+use App\Filament\Resources\LearningPathResource\RelationManagers\PathRegistrationCertificatesRelationManager;
 use App\Filament\Resources\LearningPathResource\RelationManagers\PathRegistrationsRelationManager;
 use App\Filament\Resources\LearningPathResource\RelationManagers\TrainingProgramsRelationManager;
+use App\Filament\Support\EntityTwoColumnFormLayout;
 use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\LearningPath;
 use App\Support\PublicDiskPath;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
-use Filament\Support\Enums\FontWeight;
-use Filament\Support\Enums\TextSize;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -37,6 +35,7 @@ use Illuminate\Database\Eloquent\Builder;
 class LearningPathResource extends Resource
 {
     use ConfiguresEditOnlyResourceTable;
+    use ConfiguresViewFirstTrainingResourceTable;
     use RegistersNavigationByPermission;
 
     protected static ?string $model = LearningPath::class;
@@ -109,23 +108,11 @@ class LearningPathResource extends Resource
                         ->columnSpanFull(),
 
                     TrainingEntityFormSupport::descriptionField(),
-
-                    ...TrainingEntityFormSupport::capacityFields(),
                 ]),
 
-            Section::make('النشر')
-                ->schema(TrainingEntityFormSupport::publicationInlineFields()),
+            TrainingEntityFormSupport::publicationSection(PathStatus::Published),
 
-            Section::make('التنبيهات')
-                ->schema([
-                    Toggle::make('notify_on_publish')
-                        ->label('إشعار عند النشر')
-                        ->default(false)
-                        ->helperText('يُرسل للمستفيدين المهتمين عند نشر المسار (حسب تفضيلاتهم).')
-                        ->columnSpanFull(),
-                ]),
-
-            TrainingEntityFormSupport::staffSectionForCreate(),
+            TrainingEntityFormSupport::advancedLearningPathSettingsSection(forEdit: false),
         ];
     }
 
@@ -152,23 +139,11 @@ class LearningPathResource extends Resource
                         ->columnSpanFull(),
 
                     TrainingEntityFormSupport::descriptionField(),
-
-                    ...TrainingEntityFormSupport::capacityFields(),
                 ]),
 
-            Section::make('النشر')
-                ->schema(TrainingEntityFormSupport::publicationInlineFields()),
+            TrainingEntityFormSupport::publicationSection(PathStatus::Published, forEdit: true),
 
-            Section::make('التنبيهات')
-                ->schema([
-                    Toggle::make('notify_on_publish')
-                        ->label('إشعار عند النشر')
-                        ->default(false)
-                        ->helperText('يُرسل للمستفيدين المهتمين عند نشر المسار (حسب تفضيلاتهم).')
-                        ->columnSpanFull(),
-                ]),
-
-            TrainingEntityFormSupport::staffSectionForEdit(),
+            TrainingEntityFormSupport::advancedLearningPathSettingsSection(forEdit: true),
         ];
     }
 
@@ -182,46 +157,22 @@ class LearningPathResource extends Resource
 
     public static function createForm(Schema $schema): Schema
     {
-        return static::learningPathTwoColumnForm($schema, 'fi-learning-path-create-layout items-start gap-6 lg:gap-8', forEdit: false);
+        return EntityTwoColumnFormLayout::wrap(
+            $schema,
+            static::learningPathImageUploadField(),
+            static::learningPathCreateSections(),
+            mode: 'create',
+        );
     }
 
     public static function editForm(Schema $schema): Schema
     {
-        return static::learningPathTwoColumnForm($schema, 'fi-learning-path-edit-layout items-start gap-6 lg:gap-8', forEdit: true);
-    }
-
-    protected static function learningPathTwoColumnForm(Schema $schema, string $layoutClass, bool $forEdit): Schema
-    {
-        $sections = $forEdit
-            ? static::learningPathEditSections()
-            : static::learningPathCreateSections();
-
-        return $schema->components([
-            Grid::make(['default' => 1, 'lg' => 2])
-                ->columnSpanFull()
-                ->extraAttributes([
-                    'class' => $layoutClass.' fi-learning-path-two-col-ltr',
-                ])
-                ->schema([
-                    Group::make([
-                        Text::make('صورة الغلاف')
-                            ->size(TextSize::ExtraSmall)
-                            ->weight(FontWeight::SemiBold)
-                            ->color('gray'),
-                        static::learningPathImageUploadField(),
-                    ])
-                        ->columnSpan(1)
-                        ->extraAttributes([
-                            'class' => 'fi-learning-path-two-col-image rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-900',
-                        ]),
-                    Group::make()
-                        ->schema($sections)
-                        ->columnSpan(1)
-                        ->extraAttributes([
-                            'class' => 'fi-learning-path-two-col-details flex min-w-0 flex-col gap-6',
-                        ]),
-                ]),
-        ]);
+        return EntityTwoColumnFormLayout::wrap(
+            $schema,
+            static::learningPathImageUploadField(),
+            static::learningPathEditSections(),
+            mode: 'edit',
+        );
     }
 
     public static function form(Schema $schema): Schema
@@ -261,7 +212,7 @@ class LearningPathResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return static::applyEditOnlyTable($table)
+        return static::applyViewFirstTrainingTable($table)
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['owner', 'creator'])->withCount(['programs', 'registrations']))
             ->columns([
                 TextColumn::make('title')
@@ -307,9 +258,6 @@ class LearningPathResource extends Resource
                     ->alignEnd(),
             ])
             ->actions([
-                static::makeTableEditAction()
-                    ->color('gray')
-                    ->visible(fn (LearningPath $record): bool => (auth()->user()?->can('update', $record) || auth()->user()?->can('view', $record)) ?? false),
                 DeleteAction::make()
                     ->color('danger')
                     ->visible(fn (LearningPath $record): bool => auth()->user()?->can('delete', $record) ?? false),
@@ -322,8 +270,11 @@ class LearningPathResource extends Resource
         return [
             TrainingProgramsRelationManager::class,
             PathRegistrationsRelationManager::class,
+            PathAttendanceRegistrationsRelationManager::class,
+            PathGradesRelationManager::class,
+            PathRegistrationCertificatesRelationManager::class,
             LearningPathEditorsRelationManager::class,
-            PathCertificatesRelationManager::class,
+            EntityNotesRelationManager::class,
         ];
     }
 

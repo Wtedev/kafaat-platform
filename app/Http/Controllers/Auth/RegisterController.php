@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,6 +42,8 @@ class RegisterController extends Controller
 
             return $user;
         });
+
+        UserActivityLogger::logAccountCreated($user);
 
         // Auth::login يُطلق حدث Login الذي يرسل رمز OTP ويضبط بوابة الجلسة.
         Auth::login($user);

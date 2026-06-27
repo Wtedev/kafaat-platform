@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
+use App\Services\AttendanceLiveSessionService;
 use Illuminate\Http\Request;
 
 class PortalProgramDetailController extends Controller
@@ -21,9 +22,12 @@ class PortalProgramDetailController extends Controller
 
         abort_if($registration === null, 404);
 
+        $liveSession = app(AttendanceLiveSessionService::class)->activeSessionFor($trainingProgram);
+
         return view('portal.program-show', [
             'trainingProgram' => $trainingProgram,
             'registration' => $registration,
+            'liveSession' => $liveSession,
         ]);
     }
 }

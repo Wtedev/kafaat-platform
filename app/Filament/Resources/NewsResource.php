@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Resources\NewsResource\Pages;
 use App\Filament\Resources\NewsResource\Pages\EditNews;
+use App\Filament\Support\EntityTwoColumnFormLayout;
+use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\News;
 use App\Support\PublicDiskPath;
 use Closure;
@@ -19,7 +21,6 @@ use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Component;
@@ -134,19 +135,11 @@ class NewsResource extends Resource
      */
     public static function newsImageUploadField(): FileUpload
     {
-        return FileUpload::make('image')
-            ->label('صورة الخبر')
-            ->image()
-            ->disk('public')
-            ->directory('news/images')
-            ->visibility('public')
-            ->maxSize(4096)
-            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
-            ->imagePreviewHeight('14rem')
-            ->imageResizeMode('cover')
-            ->nullable()
-            ->helperText('JPEG أو PNG أو WebP — حتى 4 ميجابايت. تُحفظ في التخزين العام ويُعرض معاينة تلقائياً.')
-            ->columnSpanFull();
+        return TrainingEntityFormSupport::coverImageUpload(
+            directory: 'news/images',
+            label: 'صورة الخبر',
+            helperText: 'JPEG أو PNG أو WebP — حتى 4 ميجابايت. تُحفظ في التخزين العام ويُعرض معاينة تلقائياً.',
+        );
     }
 
     /**
@@ -154,12 +147,27 @@ class NewsResource extends Resource
      */
     public static function createForm(Schema $schema): Schema
     {
-        return $schema->components([
-            Section::make('محتوى الخبر')
+        return EntityTwoColumnFormLayout::wrap(
+            $schema,
+            static::newsImageUploadField(),
+            static::newsCreateFormSections(),
+            imageColumnLabel: 'صورة الخبر',
+            mode: 'create',
+        );
+    }
+
+    /**
+     * @return array<int, Component>
+     */
+    protected static function newsCreateFormSections(): array
+    {
+        return [
+            Section::make('البيانات الأساسية')
                 ->description('احفظ كمسودة أو انشر فوراً أو جدّل الموعد — دون ضبط التاريخ يدوياً هنا.')
                 ->columns(2)
                 ->schema(static::contentFieldsSchema()),
-        ]);
+            TrainingEntityFormSupport::advancedNewsSettingsSection(),
+        ];
     }
 
     /**
@@ -195,10 +203,7 @@ class NewsResource extends Resource
                         ->columnSpan(1),
                     Group::make([
                         static::editNewsDatesCard(),
-                        Toggle::make('notify_audience_on_publish')
-                            ->label('إرسال تنبيه للمستفيدين عند النشر')
-                            ->default(true)
-                            ->helperText('يُحترم عند النشر أو الجدولة. المستفيدون يمكنهم إيقاف فئة الأخبار من إعداداتهم.'),
+                        TrainingEntityFormSupport::advancedNewsSettingsSection(),
                         static::editNewsFieldCard($page, 'title', 'عنوان الخبر', static::editNewsTitleStack($page, $resolveNews), true, 'soft'),
                         static::editNewsMetadataCard($page, $resolveNews),
                         static::editNewsContentCard($page, $resolveNews),
@@ -700,17 +705,10 @@ class NewsResource extends Resource
                 ->required()
                 ->columnSpanFull(),
 
-            static::newsImageUploadField(),
-
             Select::make('category')
                 ->label('التصنيف')
                 ->options(static::categoryOptions())
                 ->nullable(),
-
-            Toggle::make('notify_audience_on_publish')
-                ->label('إرسال تنبيه للمستفيدين عند النشر')
-                ->default(true)
-                ->helperText('يمكن للمستفيدين إيقاف أخبار المنصة من إعداداتهم. معطّل = نشر بدون تنبيه جماعي.'),
         ];
     }
 

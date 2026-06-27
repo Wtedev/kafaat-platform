@@ -4,6 +4,8 @@ namespace App\Filament\Resources\VolunteerOpportunityResource\RelationManagers;
 
 use App\Enums\RegistrationStatus;
 use App\Exceptions\OpportunityCapacityExceededException;
+use App\Filament\Support\RegistrationFilamentTableSupport;
+use App\Filament\Support\UserFilamentTableSupport;
 use App\Models\Certificate;
 use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
@@ -52,12 +54,13 @@ class RegistrationsRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
-        return $table
+        return RegistrationFilamentTableSupport::configureBeneficiaryRowNavigation($table)
             ->columns([
                 TextColumn::make('user.name')
                     ->searchable()
                     ->sortable()
-                    ->label('المتطوع'),
+                    ->label('المتطوع')
+                    ->url(fn (VolunteerRegistration $record): ?string => UserFilamentTableSupport::recordUrlFromUserRelation($record)),
 
                 TextColumn::make('user.email')
                     ->searchable()

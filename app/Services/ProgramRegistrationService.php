@@ -15,6 +15,8 @@ use App\Models\User;
 use App\Notifications\ProgramRegistrationApproved;
 use App\Notifications\ProgramRegistrationRejected;
 use App\Services\Inbox\InboxNotificationService;
+use App\Services\ProgramAttendanceService;
+use App\Services\UserActivityLogger;
 
 class ProgramRegistrationService
 {
@@ -46,7 +48,7 @@ class ProgramRegistrationService
         // This allows registrations to be queued as pending even when the program is full,
         // to handle dropouts. Remove this comment if you want to block here too.
 
-        return ProgramRegistration::firstOrCreate(
+        $registration = ProgramRegistration::firstOrCreate(
             [
                 'training_program_id' => $program->id,
                 'user_id' => $user->id,
@@ -55,6 +57,18 @@ class ProgramRegistrationService
                 'status' => RegistrationStatus::Pending,
             ]
         );
+
+        if ($registration->wasRecentlyCreated) {
+            UserActivityLogger::logProgramRegistration($user, $program->title ?? 'برنامج تدريبي');
+        }
+
+        if ($program->auto_accept_registrations && $registration->status === RegistrationStatus::Pending) {
+            $approver = $program->owner ?? $user;
+
+            return $this->approve($registration, $approver);
+        }
+
+        return $registration;
     }
 
     /**
@@ -229,9 +243,7 @@ class ProgramRegistrationService
     /**
      * Mark an approved registration as completed, recording attendance and
      * score, and automatically issue a certificate if eligibility conditions
-     * are met:
-     *   - attendance_percentage >= 80
-     *   - score, if provided, >= 60
+     * are met (average of attendance and score ≥ 75%).
      *
      * Certificate issuance is idempotent — calling this multiple times will
      * not produce duplicate certificates.
@@ -248,10 +260,7 @@ class ProgramRegistrationService
             throw new RegistrationNotApprovedException;
         }
 
-        // Prefer the percentage calculated from daily attendance records.
-        // Only fall back to the passed parameter (or stored value) when no
-        // daily records exist yet.
-        $calculatedPct = $registration->calculateAttendancePercentage();
+        $calculatedPct = app(ProgramAttendanceService::class)->calculatePercentage($registration);
         $finalPct = $calculatedPct ?? $attendancePercentage ?? $registration->attendance_percentage;
 
         $registration->update([

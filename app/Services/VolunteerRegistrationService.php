@@ -13,6 +13,7 @@ use App\Models\VolunteerRegistration;
 use App\Notifications\VolunteerRegistrationApproved;
 use App\Notifications\VolunteerRegistrationRejected;
 use App\Services\Inbox\InboxNotificationService;
+use App\Services\UserActivityLogger;
 
 class VolunteerRegistrationService
 {
@@ -50,11 +51,15 @@ class VolunteerRegistrationService
             throw new OpportunityCapacityExceededException;
         }
 
-        return VolunteerRegistration::create([
+        $registration = VolunteerRegistration::create([
             'opportunity_id' => $opportunity->id,
             'user_id' => $user->id,
             'status' => RegistrationStatus::Pending,
         ]);
+
+        UserActivityLogger::logVolunteerRegistration($user, $opportunity->title ?? 'فرصة تطوعية');
+
+        return $registration;
     }
 
     /**

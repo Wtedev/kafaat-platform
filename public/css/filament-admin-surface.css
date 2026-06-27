@@ -311,9 +311,7 @@ html.fi.dark .fi-section {
 }
 
 html.fi.dark .fi-section-has-header .fi-section-header {
-    border-inline-start: 4px solid rgba(255, 255, 255, 0.12);
     padding-inline-start: 1rem;
-    margin-inline-start: -1px;
 }
 
 html.fi.dark .fi-section-header-heading {
@@ -622,12 +620,15 @@ html.fi .news-edit-main-grid {
         direction: rtl;
     }
 
-    /* البرامج والمسارات: صورة يسار الشاشة، البطاقات يمين (نفس منطق الأخبار) */
+    /* البرامج والمسارات والفرص: صورة يسار الشاشة، البطاقات يمين (نفس منطق الأخبار) */
+    html.fi .fi-entity-two-col-ltr,
     html.fi .fi-training-two-col-ltr,
     html.fi .fi-learning-path-two-col-ltr {
         direction: ltr;
     }
 
+    html.fi .fi-entity-two-col-ltr .fi-entity-two-col-image,
+    html.fi .fi-entity-two-col-ltr .fi-entity-two-col-details,
     html.fi .fi-training-two-col-ltr .fi-training-two-col-image,
     html.fi .fi-training-two-col-ltr .fi-training-two-col-details,
     html.fi .fi-learning-path-two-col-ltr .fi-learning-path-two-col-image,
@@ -702,6 +703,82 @@ html.fi.dark .news-edit-strip--active {
     border-bottom-color: rgba(255, 255, 255, 0.12) !important;
 }
 
+/* إعدادات متقدمة — البرامج التدريبية */
+html.fi .fi-advanced-settings-section .fi-advanced-settings-toggle-row.fi-fo-field {
+    display: block;
+    gap: 0;
+}
+
+html.fi .fi-advanced-settings-section .fi-advanced-settings-toggle-row.fi-fo-field-has-inline-label {
+    grid-template-columns: minmax(0, 1fr) !important;
+}
+
+html.fi .fi-advanced-settings-section .fi-advanced-settings-toggle-row .fi-fo-field-label-col {
+    width: 100%;
+}
+
+html.fi .fi-advanced-settings-section .fi-advanced-settings-toggle-row .fi-fo-field-content-col {
+    display: none;
+}
+
+html.fi .fi-advanced-settings-section .fi-advanced-settings-toggle-row .fi-fo-field-label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 1rem;
+}
+
+html.fi .fi-advanced-settings-section .fi-advanced-settings-toggle-row .fi-fo-field-label-content {
+    order: 1;
+    flex: 1;
+    text-align: start;
+}
+
+html.fi .fi-advanced-settings-section .fi-advanced-settings-toggle-row .fi-toggle {
+    order: 2;
+    flex-shrink: 0;
+    margin-inline-start: auto;
+}
+
+html.fi .fi-advanced-settings__divider {
+    border: 0;
+    border-top: 1px solid var(--admin-border);
+    margin: 0.25rem 0 0.75rem;
+}
+
+html.fi .fi-advanced-settings__staff-title {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--admin-heading);
+}
+
+html.fi .fi-advanced-settings__staff-desc {
+    margin: 0.35rem 0 0;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--admin-muted);
+}
+
+html.fi .fi-advanced-settings__capacity {
+    margin-top: -0.15rem;
+    padding-inline-start: 0.15rem;
+}
+
+html.fi:not(.dark) .fi-advanced-settings__divider {
+    border-top-color: #e4e4e7;
+}
+
+html.fi:not(.dark) .fi-advanced-settings__staff-title {
+    color: #18181b;
+}
+
+html.fi:not(.dark) .fi-advanced-settings__staff-desc {
+    color: #71717a;
+}
+
 html.fi:not(.dark) .news-edit-strip--active {
     background-color: rgba(51, 84, 131, 0.06);
     border-bottom-color: rgba(51, 84, 131, 0.2) !important;
@@ -709,4 +786,520 @@ html.fi:not(.dark) .news-edit-strip--active {
 
 html.fi.dark .news-edit-row {
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+html.fi .fi-training-settings-save--disabled.fi-disabled,
+html.fi .fi-training-settings-save--disabled[disabled] {
+    background-color: #e4e4e7 !important;
+    border-color: #e4e4e7 !important;
+    color: #71717a !important;
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+html.fi.dark .fi-training-settings-save--disabled.fi-disabled,
+html.fi.dark .fi-training-settings-save--disabled[disabled] {
+    background-color: #3f3f46 !important;
+    border-color: #3f3f46 !important;
+    color: #a1a1aa !important;
+}
+
+/* ── نافذة تأكيد تعديلات الإعدادات (نسخة احتياطية خارج الـ modal) ── */
+html.fi .fi-modal .kafaat-settings-changes,
+html.fi .kafaat-settings-changes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: min(55vh, 24rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+html.fi .kafaat-settings-changes__card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0.65rem 0.85rem;
+    border-radius: 0.65rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+html.fi .kafaat-settings-changes__field {
+    flex: 0 0 auto;
+    max-width: 42%;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: #f4f4f5;
+}
+
+html.fi .kafaat-settings-changes__diff {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1 1 auto;
+    gap: 0.4rem;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+html.fi .kafaat-settings-changes__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.2rem 0.45rem;
+    border-radius: 0.4rem;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    max-width: 9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+html.fi .kafaat-settings-changes__chip-label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+html.fi .kafaat-settings-changes__chip-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+html.fi .kafaat-settings-changes__chip--old {
+    background: rgba(239, 68, 68, 0.16);
+    color: #fca5a5;
+}
+
+html.fi .kafaat-settings-changes__chip--old .kafaat-settings-changes__chip-value {
+    text-decoration: line-through;
+}
+
+html.fi .kafaat-settings-changes__chip--new {
+    background: rgba(34, 197, 94, 0.16);
+    color: #86efac;
+    font-weight: 600;
+}
+
+html.fi .kafaat-settings-changes__arrow {
+    flex-shrink: 0;
+    color: #71717a;
+    font-size: 0.75rem;
+}
+
+html.fi .kafaat-settings-changes--empty {
+    padding: 1rem;
+    border-radius: 0.65rem;
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    text-align: center;
+}
+
+html.fi .kafaat-settings-changes__empty {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #a1a1aa;
+}
+
+html.fi:not(.dark) .kafaat-settings-changes__card {
+    background: #fafafa;
+    border-color: #e4e4e7;
+}
+
+html.fi:not(.dark) .kafaat-settings-changes__field {
+    color: #18181b;
+}
+
+html.fi:not(.dark) .kafaat-settings-changes__chip--old {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+html.fi:not(.dark) .kafaat-settings-changes__chip--new {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+html.fi:not(.dark) .kafaat-settings-changes--empty {
+    border-color: #d4d4d8;
+}
+
+html.fi:not(.dark) .kafaat-settings-changes__empty {
+    color: #71717a;
+}
+
+/* ——— عرض الكيانات: إحصائيات + أقسام معلومات ——— */
+html.fi .kafaat-entity-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+html.fi .kafaat-entity-view__stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+@media (max-width: 1023px) {
+    html.fi .kafaat-entity-view__stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 639px) {
+    html.fi .kafaat-entity-view__stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+html.fi .kafaat-entity-view__stat {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1rem 1.15rem;
+    border-radius: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+html.fi .kafaat-entity-view__stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.7rem;
+    background: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+    flex-shrink: 0;
+}
+
+html.fi .kafaat-entity-view__stat-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+html.fi .kafaat-entity-view__stat-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #a1a1aa;
+}
+
+html.fi .kafaat-entity-view__stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fafafa;
+}
+
+html.fi .kafaat-entity-view__sections {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+html.fi .kafaat-entity-view__section {
+    border-radius: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1.15rem 1.25rem 1.25rem;
+}
+
+html.fi .kafaat-entity-view__section-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+html.fi .kafaat-entity-view__section-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+}
+
+html.fi .kafaat-entity-view__section-title {
+    flex: 1;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: #fafafa;
+}
+
+html.fi .kafaat-entity-view__section-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 0.5rem;
+    background: rgba(59, 130, 246, 0.12);
+    color: #93c5fd;
+    flex-shrink: 0;
+}
+
+html.fi .kafaat-entity-view__rows {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+html.fi .kafaat-entity-view__row {
+    display: grid;
+    grid-template-columns: minmax(9rem, 12rem) 1fr;
+    gap: 0.75rem 1rem;
+    align-items: center;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+html.fi .kafaat-entity-view__row:first-child {
+    padding-top: 0;
+}
+
+html.fi .kafaat-entity-view__row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+html.fi .kafaat-entity-view__row-label {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #a1a1aa;
+}
+
+html.fi .kafaat-entity-view__row-icon {
+    display: inline-flex;
+    color: #71717a;
+    flex-shrink: 0;
+}
+
+html.fi .kafaat-entity-view__row-value {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.55;
+    color: #f4f4f5;
+    text-align: start;
+    word-break: break-word;
+    justify-self: start;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+html.fi .kafaat-entity-view__row-value-body {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    min-width: 0;
+}
+
+html.fi .kafaat-entity-view__row-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+html.fi .kafaat-entity-view__row-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.3rem 0.65rem;
+    border-radius: 0.45rem;
+    border: 1px solid rgba(59, 130, 246, 0.45);
+    background: rgba(59, 130, 246, 0.14);
+    color: #93c5fd;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+html.fi .kafaat-entity-view__row-action-btn:hover {
+    background: rgba(59, 130, 246, 0.24);
+    border-color: rgba(59, 130, 246, 0.65);
+    color: #bfdbfe;
+}
+
+html.fi .kafaat-entity-view__row-label {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+html.fi .kafaat-entity-view__row-value {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+html.fi .kafaat-entity-view__edit-btn--section {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+html.fi .kafaat-entity-view__section-heading {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+html.fi .kafaat-entity-view__edit-btn {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.06);
+    color: inherit;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+html.fi .kafaat-entity-view__edit-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+html.fi:not(.dark) .kafaat-entity-view__edit-btn {
+    border-color: rgba(51, 84, 131, 0.15);
+    background: rgba(51, 84, 131, 0.06);
+    color: #335483;
+}
+
+html.fi:not(.dark) .kafaat-entity-view__edit-btn:hover {
+    background: rgba(51, 84, 131, 0.12);
+    border-color: rgba(51, 84, 131, 0.25);
+}
+
+html.fi .kafaat-entity-view__prose {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.75;
+    color: #e4e4e7;
+    white-space: pre-line;
+}
+
+html.fi .kafaat-entity-view__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+html.fi .kafaat-entity-view__badge--success {
+    background: rgba(34, 197, 94, 0.18);
+    color: #86efac;
+}
+
+html.fi .kafaat-entity-view__badge--warning {
+    background: rgba(234, 179, 8, 0.18);
+    color: #fde047;
+}
+
+html.fi .kafaat-entity-view__badge--info {
+    background: rgba(59, 130, 246, 0.18);
+    color: #93c5fd;
+}
+
+html.fi .kafaat-entity-view__badge--gray {
+    background: rgba(161, 161, 170, 0.18);
+    color: #d4d4d8;
+}
+
+html.fi:not(.dark) .kafaat-entity-view__stat,
+html.fi:not(.dark) .kafaat-entity-view__section {
+    background: #fff;
+    border-color: #e4e4e7;
+}
+
+html.fi:not(.dark) .kafaat-entity-view__stat-icon,
+html.fi:not(.dark) .kafaat-entity-view__section-icon {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+html.fi:not(.dark) .kafaat-entity-view__stat-label,
+html.fi:not(.dark) .kafaat-entity-view__row-label {
+    color: #71717a;
+}
+
+html.fi:not(.dark) .kafaat-entity-view__stat-value,
+html.fi:not(.dark) .kafaat-entity-view__section-title {
+    color: #18181b;
+}
+
+html.fi:not(.dark) .kafaat-entity-view__section-header {
+    border-bottom-color: #f4f4f5;
+}
+
+html.fi:not(.dark) .kafaat-entity-view__row {
+    border-bottom-color: #f4f4f5;
+}
+
+html.fi:not(.dark) .kafaat-entity-view__row-value {
+    color: #18181b;
+}
+
+html.fi:not(.dark) .kafaat-entity-view__prose {
+    color: #3f3f46;
+}
+
+html.fi:not(.dark) .kafaat-entity-view__badge--success {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+html.fi:not(.dark) .kafaat-entity-view__badge--warning {
+    background: #fef9c3;
+    color: #a16207;
+}
+
+html.fi:not(.dark) .kafaat-entity-view__badge--info {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+html.fi:not(.dark) .kafaat-entity-view__badge--gray {
+    background: #f4f4f5;
+    color: #52525b;
+}
+
+@media (max-width: 639px) {
+    html.fi .kafaat-entity-view__row {
+        grid-template-columns: 1fr;
+        gap: 0.35rem;
+    }
+
+    html.fi .kafaat-entity-view__section {
+        padding: 1rem;
+    }
 }

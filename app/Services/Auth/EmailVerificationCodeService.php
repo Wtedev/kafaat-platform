@@ -5,6 +5,7 @@ namespace App\Services\Auth;
 use App\Models\EmailVerificationCode;
 use App\Models\User;
 use App\Notifications\VerifyEmailCode;
+use App\Services\UserActivityLogger;
 use Illuminate\Support\Facades\Hash;
 
 class EmailVerificationCodeService
@@ -69,6 +70,7 @@ class EmailVerificationCodeService
 
         if (! $user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
+            UserActivityLogger::logEmailVerified($user);
         }
 
         return 'success';

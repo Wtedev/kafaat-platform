@@ -25,6 +25,7 @@ class TrainingScheduleCalendar extends Field
         $this->hiddenLabel();
         $this->dehydrated(false);
         $this->columnSpanFull();
+        $this->extraFieldWrapperAttributes(['class' => 'fi-training-schedule-field']);
     }
 
     public function showWeekdayPicker(bool | Closure $condition = true): static
@@ -108,10 +109,5 @@ class TrainingScheduleCalendar extends Field
     public function getPublishedAtPath(): string
     {
         return $this->resolveRelativeStatePath('published_at');
-    }
-
-    public function getNotifyAudiencePath(): string
-    {
-        return $this->resolveRelativeStatePath('notify_audience');
     }
 }

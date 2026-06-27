@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
+use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\CertificateResource\Pages;
 use App\Models\Certificate;
@@ -92,7 +93,9 @@ class CertificateResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return static::applyEditOnlyTable($table)
+        return RegistrationFilamentTableSupport::configureBeneficiaryRowNavigation(
+            static::applyEditOnlyTable($table),
+        )
             ->columns([
                 TextColumn::make('user.name')
                     ->searchable()

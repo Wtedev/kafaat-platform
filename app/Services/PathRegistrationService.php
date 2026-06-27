@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use App\Notifications\PathRegistrationApproved;
 use App\Notifications\PathRegistrationRejected;
 use App\Services\Inbox\InboxNotificationService;
+use App\Services\UserActivityLogger;
 
 class PathRegistrationService
 {
@@ -57,11 +58,21 @@ class PathRegistrationService
             throw new PathCapacityExceededException;
         }
 
-        return PathRegistration::create([
+        $registration = PathRegistration::create([
             'learning_path_id' => $path->id,
             'user_id' => $user->id,
             'status' => RegistrationStatus::Pending,
         ]);
+
+        UserActivityLogger::logPathRegistration($user, $path->title ?? 'مسار تدريبي');
+
+        if ($path->auto_accept_registrations) {
+            $approver = $path->owner ?? $user;
+
+            return $this->approve($registration, $approver);
+        }
+
+        return $registration;
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\Inbox\UserNotificationPreferences;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -35,11 +36,18 @@ class NotificationPreferenceController extends Controller
             ],
         ], $wantsEmail);
 
-        $request->user()->forceFill([
+        $user = $request->user();
+        $previousNotifyEmail = (bool) $user->notify_email;
+
+        $user->forceFill([
             'notify_email' => $wantsEmail,
             'notification_settings' => $settings,
             'notification_prefs_set_at' => now(),
         ])->save();
+
+        if ($previousNotifyEmail !== $wantsEmail) {
+            UserActivityLogger::logEmailNotifications($user, $wantsEmail);
+        }
 
         return back()->with('success', 'تم حفظ تفضيلات التنبيهات. يمكنك تخصيصها لاحقاً من إعدادات التنبيهات.');
     }

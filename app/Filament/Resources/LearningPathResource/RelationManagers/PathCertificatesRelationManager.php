@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\LearningPathResource\RelationManagers;
 
 use App\Filament\Resources\CertificateResource;
+use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\Certificate;
 use App\Models\LearningPath;
 use Filament\Actions\Action;
@@ -35,7 +36,7 @@ class PathCertificatesRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
-        return $table
+        return RegistrationFilamentTableSupport::configureBeneficiaryRowNavigation($table)
             ->heading('')
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('user'))
             ->columns([

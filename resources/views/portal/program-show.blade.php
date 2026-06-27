@@ -2,14 +2,17 @@
 use App\Enums\RegistrationStatus;
 
 $statusLabels = [
-RegistrationStatus::Pending->value => 'قيد المراجعة',
-RegistrationStatus::Approved->value => 'مقبول',
-RegistrationStatus::Rejected->value => 'مرفوض',
-RegistrationStatus::Cancelled->value => 'ملغي',
-RegistrationStatus::Completed->value => 'مكتمل',
+    RegistrationStatus::Pending->value => 'قيد المراجعة',
+    RegistrationStatus::Approved->value => 'مقبول',
+    RegistrationStatus::Rejected->value => 'مرفوض',
+    RegistrationStatus::Cancelled->value => 'ملغي',
+    RegistrationStatus::Completed->value => 'مكتمل',
 ];
 $statusColors = RegistrationStatus::badgeClasses();
 $sv = $registration->status->value;
+$canCheckIn = in_array($sv, [RegistrationStatus::Approved->value, RegistrationStatus::Completed->value], true)
+    && $liveSession !== null
+    && $liveSession->isActive();
 @endphp
 
 @extends('layouts.portal')
@@ -35,6 +38,25 @@ $sv = $registration->status->value;
     <span class="text-sm text-gray-500">النهاية: {{ $trainingProgram->end_date->format('Y/m/d') }}</span>
     @endif
 </div>
+
+@if (session('attendance_success'))
+<div class="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+    {{ session('attendance_success') }}
+</div>
+@endif
+
+@if (session('attendance_error'))
+<div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+    {{ session('attendance_error') }}
+</div>
+@endif
+
+<x-portal-attendance-session
+    :status-url="route('portal.programs.attendance.session', $trainingProgram)"
+    :check-in-url="route('portal.programs.attendance.check-in', $trainingProgram)"
+    :initial-active="$canCheckIn"
+    :initial-expires-at-ms="$canCheckIn ? $liveSession->expires_at->getTimestamp() * 1000 : null"
+/>
 
 <div class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
     <h2 class="text-sm font-semibold text-gray-700 mb-2">نبذة عن البرنامج</h2>

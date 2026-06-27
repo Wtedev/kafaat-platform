@@ -7,6 +7,7 @@ use App\Exceptions\PathCapacityExceededException;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Filament\Support\InboxNotificationRecordActions;
 use App\Services\Inbox\UserNotificationPreferences;
+use App\Services\UserActivityLogger;
 use App\Http\Controllers\Controller;
 use App\Models\InboxNotification;
 use App\Models\User;
@@ -50,11 +51,17 @@ class PortalInboxController extends Controller
         );
 
         $user = $request->user();
+        $previousNotifyEmail = (bool) $user->notify_email;
+
         $user->forceFill([
             'notify_email' => $wantsEmail,
             'notification_settings' => $normalized,
             'notification_prefs_set_at' => now(),
         ])->save();
+
+        if ($previousNotifyEmail !== $wantsEmail) {
+            UserActivityLogger::logEmailNotifications($user, $wantsEmail);
+        }
 
         return redirect()
             ->route('portal.notifications.settings')

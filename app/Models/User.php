@@ -7,6 +7,7 @@ use App\Enums\VolunteerHoursStatus;
 use App\Services\Rbac\RbacCatalog;
 use App\Services\Rbac\RbacService;
 use App\Support\PublicDiskPath;
+use App\Models\Concerns\HasEntityNotes;
 use Database\Factories\UserFactory;
 use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
@@ -23,7 +24,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable;
+    use HasEntityNotes, HasFactory, HasRoles, Notifiable;
 
     protected $fillable = [
         'name',

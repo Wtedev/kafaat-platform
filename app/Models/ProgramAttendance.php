@@ -38,22 +38,30 @@ class ProgramAttendance extends Model
     protected static function booted(): void
     {
         $recalculate = static function (self $record): void {
-            $regId = $record->program_registration_id;
+            $registration = ProgramRegistration::with('trainingProgram')->find($record->program_registration_id);
 
-            $total = static::where('program_registration_id', $regId)->count();
-
-            if ($total === 0) {
+            if ($registration === null) {
                 return;
             }
 
-            $present = static::where('program_registration_id', $regId)
-                ->where('status', AttendanceStatus::Present->value)
-                ->count();
+            $percentage = app(\App\Services\ProgramAttendanceService::class)->calculatePercentage($registration);
 
-            $percentage = round($present / $total * 100, 2);
+            if ($percentage === null) {
+                $total = static::where('program_registration_id', $registration->id)->count();
+
+                if ($total === 0) {
+                    return;
+                }
+
+                $present = static::where('program_registration_id', $registration->id)
+                    ->where('status', AttendanceStatus::Present->value)
+                    ->count();
+
+                $percentage = round($present / $total * 100, 2);
+            }
 
             DB::table('program_registrations')
-                ->where('id', $regId)
+                ->where('id', $registration->id)
                 ->update([
                     'attendance_percentage' => $percentage,
                     'updated_at' => now(),

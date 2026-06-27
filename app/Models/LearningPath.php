@@ -6,6 +6,7 @@ use App\Enums\LearningPathKind;
 use App\Enums\PathStatus;
 use App\Enums\RegistrationStatus;
 use App\Jobs\SendLearningPathLaunchedNotifications;
+use App\Models\Concerns\HasEntityNotes;
 use App\Models\User;
 use App\Support\PublicDiskPath;
 use App\Support\UniqueModelSlug;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\Log;
 
 class LearningPath extends Model
 {
+    use HasEntityNotes;
     protected $fillable = [
         'title',
         'slug',
@@ -27,6 +29,7 @@ class LearningPath extends Model
         'description',
         'image',
         'capacity',
+        'auto_accept_registrations',
         'status',
         'published_at',
         'notify_on_publish',
@@ -43,6 +46,7 @@ class LearningPath extends Model
             'published_at' => 'datetime',
             'notify_on_publish' => 'boolean',
             'capacity' => 'integer',
+            'auto_accept_registrations' => 'boolean',
         ];
     }
 

@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources\Concerns;
 
+use App\Enums\OpportunityStatus;
 use App\Enums\PathStatus;
 use App\Enums\ProgramStatus;
 use App\Models\LearningPath;
 use App\Models\TrainingProgram;
+use App\Models\VolunteerOpportunity;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
 
@@ -55,6 +57,11 @@ trait PreparesTrainingEntityFormData
         return $this->resolvePublicationStatus($record, $visibleOnSite, PathStatus::class, 'publish');
     }
 
+    protected function resolveOpportunityPublicationStatus(VolunteerOpportunity $record, bool $visibleOnSite): OpportunityStatus
+    {
+        return $this->resolvePublicationStatus($record, $visibleOnSite, OpportunityStatus::class, 'publish');
+    }
+
     protected function canPublishNewTrainingProgram(): bool
     {
         $user = auth()->user();
@@ -69,8 +76,15 @@ trait PreparesTrainingEntityFormData
         return $user !== null && $user->can('publish', new LearningPath);
     }
 
+    protected function canPublishNewVolunteerOpportunity(): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null && $user->can('publish', new VolunteerOpportunity);
+    }
+
     /**
-     * @param  class-string<ProgramStatus|PathStatus>  $statusEnum
+     * @param  class-string<OpportunityStatus|PathStatus|ProgramStatus>  $statusEnum
      */
     private function resolvePublicationStatus(
         Model $record,
@@ -78,7 +92,7 @@ trait PreparesTrainingEntityFormData
         string $statusEnum,
         string $publishAbility,
     ): BackedEnum {
-        /** @var ProgramStatus|PathStatus $current */
+        /** @var OpportunityStatus|PathStatus|ProgramStatus $current */
         $current = $record->status;
         $wasArchived = $current === $statusEnum::Archived;
         $user = auth()->user();

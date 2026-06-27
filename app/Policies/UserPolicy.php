@@ -17,6 +17,16 @@ class UserPolicy
         return $user->can('manage_roles');
     }
 
+    public function view(User $user, User $target): bool
+    {
+        return $user->can('users.view');
+    }
+
+    public function update(User $user, User $target): bool
+    {
+        return $user->can('users.update');
+    }
+
     /**
      * حذف مستخدم — ممنوع لحسابات مدير النظام.
      */

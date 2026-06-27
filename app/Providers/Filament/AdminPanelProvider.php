@@ -58,9 +58,22 @@ class AdminPanelProvider extends PanelProvider
                 }
 
                 $fonts = asset('css/shamel-fonts.css');
-                $href = asset('css/filament-admin-surface.css').'?v=23';
+                $href = asset('css/filament-admin-surface.css').'?v=31';
 
                 return '<link rel="stylesheet" href="'.e($fonts).'"><link rel="stylesheet" href="'.e($href).'">';
+            },
+        );
+
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::SCRIPTS_AFTER,
+            function (): string {
+                if (! filament()->getCurrentPanel() || filament()->getId() !== 'admin') {
+                    return '';
+                }
+
+                $calendar = asset('js/filament/training-schedule-calendar.js').'?v=1';
+
+                return '<script src="'.e($calendar).'"></script>';
             },
         );
 

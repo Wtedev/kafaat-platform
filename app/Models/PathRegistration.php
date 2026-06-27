@@ -4,10 +4,13 @@ namespace App\Models;
 
 use App\Enums\RegistrationStatus;
 use App\Services\Inbox\InboxNotificationService;
+use App\Services\PathAttendanceService;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\RegistrationEligibilitySupport;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PathRegistration extends Model
 {
@@ -19,6 +22,8 @@ class PathRegistration extends Model
         'approved_at',
         'completed_at',
         'rejected_reason',
+        'attendance_percentage',
+        'score',
     ];
 
     protected function casts(): array
@@ -27,6 +32,8 @@ class PathRegistration extends Model
             'status' => RegistrationStatus::class,
             'approved_at' => 'datetime',
             'completed_at' => 'datetime',
+            'attendance_percentage' => 'decimal:2',
+            'score' => 'decimal:2',
         ];
     }
 
@@ -84,6 +91,11 @@ class PathRegistration extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
+    public function attendanceRecords(): HasMany
+    {
+        return $this->hasMany(PathAttendance::class, 'path_registration_id');
+    }
+
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     public function isApproved(): bool
@@ -105,5 +117,44 @@ class PathRegistration extends Model
             RegistrationStatus::Approved,
             RegistrationStatus::Completed,
         ], true);
+    }
+
+    public function effectiveAttendancePercentage(): ?float
+    {
+        $calculated = app(PathAttendanceService::class)->calculatePercentage($this);
+
+        if ($calculated !== null) {
+            return $calculated;
+        }
+
+        if ($this->attendance_percentage === null) {
+            return null;
+        }
+
+        return (float) $this->attendance_percentage;
+    }
+
+    public function isEligibleForCertificate(): bool
+    {
+        if (! in_array($this->status, [
+            RegistrationStatus::Approved,
+            RegistrationStatus::Completed,
+        ], true)) {
+            return false;
+        }
+
+        return RegistrationEligibilitySupport::isEligible(
+            $this->effectiveAttendancePercentage(),
+            $this->score !== null ? (float) $this->score : null,
+        );
+    }
+
+    public function certificateForEntity(): ?Certificate
+    {
+        return Certificate::query()
+            ->where('user_id', $this->user_id)
+            ->where('certificateable_type', LearningPath::class)
+            ->where('certificateable_id', $this->learning_path_id)
+            ->first();
     }
 }

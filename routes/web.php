@@ -10,6 +10,8 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CertificateDownloadController;
 use App\Http\Controllers\NotificationPreferenceController;
+use App\Http\Controllers\Portal\PortalAttendanceCheckInController;
+use App\Http\Controllers\Portal\PortalAttendanceSessionController;
 use App\Http\Controllers\Portal\PortalCertificateController;
 use App\Http\Controllers\Portal\PortalCompetencyController;
 use App\Http\Controllers\Portal\PortalCompetencyExportController;
@@ -126,8 +128,16 @@ Route::middleware(['auth', 'otp.verified', 'beneficiary'])
             ->name('notifications.registration-action');
         Route::get('/paths', PortalPathController::class)->name('paths');
         Route::get('/paths/{learningPath}', PortalPathDetailController::class)->name('paths.show');
+        Route::post('/paths/{learningPath}/attendance/check-in', [PortalAttendanceCheckInController::class, 'checkInPath'])
+            ->name('paths.attendance.check-in');
+        Route::get('/paths/{learningPath}/attendance/session', [PortalAttendanceSessionController::class, 'path'])
+            ->name('paths.attendance.session');
         Route::get('/programs', PortalProgramController::class)->name('programs');
         Route::get('/programs/{trainingProgram}', PortalProgramDetailController::class)->name('programs.show');
+        Route::post('/programs/{trainingProgram}/attendance/check-in', [PortalAttendanceCheckInController::class, 'checkInProgram'])
+            ->name('programs.attendance.check-in');
+        Route::get('/programs/{trainingProgram}/attendance/session', [PortalAttendanceSessionController::class, 'program'])
+            ->name('programs.attendance.session');
         Route::get('/volunteering', PortalVolunteerController::class)->name('volunteering');
         Route::get('/certificates', PortalCertificateController::class)->name('certificates');
 

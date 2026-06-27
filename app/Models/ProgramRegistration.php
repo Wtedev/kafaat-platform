@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
-use App\Enums\AttendanceStatus;
 use App\Enums\RegistrationStatus;
 use App\Services\Inbox\InboxNotificationService;
+use App\Services\ProgramAttendanceService;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\RegistrationEligibilitySupport;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -81,26 +82,46 @@ class ProgramRegistration extends Model
     }
 
     /**
-     * A registration is eligible for a certificate when:
-     *  - status is completed
-     *  - attendance_percentage >= 80
-     *  - score, if provided, is >= 60
+     * A registration is eligible for a certificate when approved or completed,
+     * with attendance and score averaging at least 75%.
      */
     public function isEligibleForCertificate(): bool
     {
-        if (! $this->isCompleted()) {
+        if (! in_array($this->status, [
+            RegistrationStatus::Approved,
+            RegistrationStatus::Completed,
+        ], true)) {
             return false;
         }
 
-        if ((float) $this->attendance_percentage < 80.0) {
-            return false;
+        return RegistrationEligibilitySupport::isEligible(
+            $this->effectiveAttendancePercentage(),
+            $this->score !== null ? (float) $this->score : null,
+        );
+    }
+
+    public function effectiveAttendancePercentage(): ?float
+    {
+        $calculated = app(ProgramAttendanceService::class)->calculatePercentage($this);
+
+        if ($calculated !== null) {
+            return $calculated;
         }
 
-        if ($this->score !== null && (float) $this->score < 60.0) {
-            return false;
+        if ($this->attendance_percentage === null) {
+            return null;
         }
 
-        return true;
+        return (float) $this->attendance_percentage;
+    }
+
+    public function certificateForEntity(): ?Certificate
+    {
+        return Certificate::query()
+            ->where('user_id', $this->user_id)
+            ->where('certificateable_type', TrainingProgram::class)
+            ->where('certificateable_id', $this->training_program_id)
+            ->first();
     }
 
     // ─── Relationships ────────────────────────────────────────────────────────
@@ -127,26 +148,8 @@ class ProgramRegistration extends Model
 
     // ─── Attendance helpers ───────────────────────────────────────────────────
 
-    /**
-     * Calculate attendance percentage live from daily records.
-     *
-     * Returns null when no records exist — caller should fall back to the
-     * stored attendance_percentage field.
-     *
-     * Note: excused absences count as absent for percentage purposes.
-     */
     public function calculateAttendancePercentage(): ?float
     {
-        $total = $this->attendanceRecords()->count();
-
-        if ($total === 0) {
-            return null;
-        }
-
-        $present = $this->attendanceRecords()
-            ->where('status', AttendanceStatus::Present->value)
-            ->count();
-
-        return round($present / $total * 100, 2);
+        return $this->effectiveAttendancePercentage();
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -27,12 +28,36 @@ class PortalProfileController extends Controller
             'avatar' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
         ]);
 
+        $changedFields = [];
+
+        if ($user->name !== $validated['name']) {
+            $changedFields[] = 'الاسم';
+        }
+
+        if (($user->phone ?? '') !== ($validated['phone'] ?? '')) {
+            $changedFields[] = 'الجوال';
+        }
+
+        $profile = $user->profile;
+        $jobTitle = trim((string) ($validated['job_title'] ?? ''));
+
+        if (($profile?->city ?? '') !== ($validated['city'] ?? '')) {
+            $changedFields[] = 'المدينة';
+        }
+
+        if (($profile?->job_title ?? '') !== ($jobTitle !== '' ? $jobTitle : null)) {
+            $changedFields[] = 'المسمى الوظيفي';
+        }
+
+        if ($request->hasFile('avatar')) {
+            $changedFields[] = 'الصورة الشخصية';
+        }
+
         $user->update([
             'name' => $validated['name'],
             'phone' => $validated['phone'],
         ]);
 
-        $jobTitle = trim((string) ($validated['job_title'] ?? ''));
         $profileData = [
             'city' => $validated['city'],
             'job_title' => $jobTitle !== '' ? $jobTitle : null,
@@ -50,6 +75,8 @@ class PortalProfileController extends Controller
             ['user_id' => $user->id],
             $profileData,
         );
+
+        UserActivityLogger::logProfileUpdated($user, $changedFields);
 
         return back()->with('success', 'تم حفظ الملف الشخصي بنجاح.');
     }
