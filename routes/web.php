@@ -197,4 +197,15 @@ Route::middleware(['auth', 'otp.verified', 'beneficiary', 'privacy.acknowledged'
         Route::post('/account-deletion', [\App\Http\Controllers\Portal\PortalAccountDeletionController::class, 'store'])
             ->name('account-deletion.store');
 
+        Route::get('/privacy', [\App\Http\Controllers\Portal\PortalPrivacyCenterController::class, 'show'])
+            ->name('privacy');
+        Route::post('/privacy/requests/access', [\App\Http\Controllers\Portal\PortalPrivacyAccessRequestController::class, 'store'])
+            ->middleware('throttle:privacy-request')
+            ->name('privacy.requests.access');
+        Route::post('/privacy/requests/correction', [\App\Http\Controllers\Portal\PortalPrivacyCorrectionRequestController::class, 'store'])
+            ->middleware('throttle:privacy-request')
+            ->name('privacy.requests.correction');
+        Route::post('/privacy/requests/{privacyRequest}/cancel', [\App\Http\Controllers\Portal\PortalPrivacyRequestCancelController::class, 'store'])
+            ->name('privacy.requests.cancel');
+
     });

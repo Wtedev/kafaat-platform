@@ -77,6 +77,18 @@ class PrivacyRequestResource extends Resource
                     ->label('المهلة')
                     ->dateTime('Y-m-d H:i')
                     ->placeholder('—'),
+                TextColumn::make('assignee.name')
+                    ->label('المعيَّن')
+                    ->placeholder('—'),
+                TextColumn::make('overdue')
+                    ->label('متأخر')
+                    ->getStateUsing(function (PrivacyRequest $record): string {
+                        if ($record->due_at === null || $record->status->isTerminal()) {
+                            return '—';
+                        }
+
+                        return $record->due_at->isPast() ? 'نعم' : '—';
+                    }),
             ])
             ->defaultSort('created_at', 'desc');
     }

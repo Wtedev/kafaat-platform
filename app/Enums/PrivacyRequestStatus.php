@@ -8,6 +8,7 @@ enum PrivacyRequestStatus: string
     case IdentityVerificationRequired = 'identity_verification_required';
     case UnderReview = 'under_review';
     case Approved = 'approved';
+    case PartiallyApproved = 'partially_approved';
     case Processing = 'processing';
     case Completed = 'completed';
     case Rejected = 'rejected';
@@ -21,6 +22,7 @@ enum PrivacyRequestStatus: string
             self::IdentityVerificationRequired => 'يتطلب تحققاً',
             self::UnderReview => 'قيد المراجعة',
             self::Approved => 'معتمد',
+            self::PartiallyApproved => 'معتمد جزئياً',
             self::Processing => 'قيد المعالجة',
             self::Completed => 'مكتمل',
             self::Rejected => 'مرفوض',
@@ -36,6 +38,7 @@ enum PrivacyRequestStatus: string
             self::IdentityVerificationRequired,
             self::UnderReview,
             self::Approved,
+            self::PartiallyApproved,
             self::Processing,
         ], true);
     }

@@ -202,5 +202,15 @@ class AppServiceProvider extends ServiceProvider
                         ->withErrors(['email' => 'لقد تجاوزت عدد الطلبات المسموح بها. حاول مجدداً بعد قليل.']);
                 });
         });
+
+        RateLimiter::for('privacy-request', function (Request $request): Limit {
+            $key = $request->user()?->id ?? $request->ip();
+
+            return Limit::perMinute(5)
+                ->by((string) $key)
+                ->response(function () {
+                    return back()->withErrors(['email' => 'لقد تجاوزت عدد طلبات الخصوصية المسموح بها. حاول لاحقاً.']);
+                });
+        });
     }
 }

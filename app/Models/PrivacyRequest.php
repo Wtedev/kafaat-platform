@@ -17,6 +17,9 @@ class PrivacyRequest extends Model
         'request_type',
         'status',
         'request_details',
+        'correction_field_code',
+        'access_response',
+        'user_visible_response',
         'identity_verification_method',
         'identity_verified_at',
         'assigned_to',
@@ -34,6 +37,7 @@ class PrivacyRequest extends Model
             'request_type' => PrivacyRequestType::class,
             'status' => PrivacyRequestStatus::class,
             'request_details' => 'array',
+            'access_response' => 'array',
             'identity_verified_at' => 'datetime',
             'due_at' => 'datetime',
             'completed_at' => 'datetime',
@@ -59,5 +63,23 @@ class PrivacyRequest extends Model
     public function deletionPlan(): HasOne
     {
         return $this->hasOne(DataDeletionPlan::class);
+    }
+
+    public function correctionPayload(): HasOne
+    {
+        return $this->hasOne(PrivacyCorrectionPayload::class);
+    }
+
+    public function latestUserVisibleMessage(): ?string
+    {
+        return $this->events()
+            ->whereNotNull('user_visible_message')
+            ->orderByDesc('occurred_at')
+            ->value('user_visible_message');
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
     }
 }

@@ -3,14 +3,17 @@
 namespace App\Filament\Resources\PrivacyRequestResource\Pages;
 
 use App\Enums\PrivacyRequestStatus;
+use App\Enums\PrivacyRequestType;
 use App\Filament\Resources\Pages\BaseViewRecord;
 use App\Filament\Resources\PrivacyRequestResource;
 use App\Models\DataDeletionPlan;
 use App\Services\Access\SensitiveAccessVerification;
 use App\Services\Privacy\DataDeletionPlanService;
 use App\Services\Privacy\PersonalDataDeletionService;
+use App\Services\Privacy\PrivacyCorrectionService;
 use App\Services\Privacy\PrivacyRequestService;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -29,11 +32,37 @@ class ViewPrivacyRequest extends BaseViewRecord
         return $schema->components([
             Section::make('بيانات الطلب')->schema([
                 TextEntry::make('uuid')->label('المرجع'),
-                TextEntry::make('request_type')->label('النوع'),
-                TextEntry::make('status')->label('الحالة'),
-                TextEntry::make('identity_verified_at')->label('تاريخ التحقق')->dateTime('Y-m-d H:i'),
+                TextEntry::make('request_type')->label('النوع')->formatStateUsing(fn ($state) => $state?->label()),
+                TextEntry::make('status')->label('الحالة')->formatStateUsing(fn ($state) => $state?->label()),
+                TextEntry::make('user.name')->label('المستخدم'),
+                TextEntry::make('assignee.name')->label('المعيَّن')->placeholder('—'),
+                TextEntry::make('due_at')->label('المهلة')->dateTime('Y-m-d H:i')->placeholder('—'),
+                TextEntry::make('identity_verified_at')->label('تاريخ التحقق')->dateTime('Y-m-d H:i')->placeholder('—'),
                 TextEntry::make('created_at')->label('تاريخ الإنشاء')->dateTime('Y-m-d H:i'),
             ])->columns(2),
+            Section::make('طلب الوصول')
+                ->visible(fn (): bool => $this->getRecord()->request_type === PrivacyRequestType::DataAccess)
+                ->schema([
+                    TextEntry::make('user_visible_response')->label('الاستجابة للمستخدم')->placeholder('—')->columnSpanFull(),
+                ]),
+            Section::make('طلب التصحيح')
+                ->visible(fn (): bool => $this->getRecord()->request_type === PrivacyRequestType::DataCorrection)
+                ->schema([
+                    TextEntry::make('correction_field_code')->label('الحقل')->formatStateUsing(
+                        fn (?string $state) => \App\Enums\PrivacyCorrectionFieldCode::tryFrom((string) $state)?->label() ?? '—',
+                    ),
+                    TextEntry::make('request_details.reason')->label('سبب المستخدم'),
+                    TextEntry::make('correctionPayload.value_last4')
+                        ->label('آخر أربعة أرقام')
+                        ->visible(fn (): bool => filled($this->getRecord()->correctionPayload?->value_last4))
+                        ->formatStateUsing(fn (?string $state): string => $state ? '******'.$state : '—'),
+                    TextEntry::make('certificates_warning')
+                        ->label('تنبيه الشهادات')
+                        ->state(fn (): string => app(PrivacyCorrectionService::class)->userHasCertificates($this->getRecord()->user)
+                            ? 'لدى المستفيد شهادات مرتبطة. تعديل بيانات الحساب لا يعيد إصدار الشهادات تلقائياً.'
+                            : 'لا توجد شهادات مرتبطة.')
+                        ->columnSpanFull(),
+                ])->columns(2),
             Section::make('الأحداث')->schema([
                 RepeatableEntry::make('events')
                     ->label('')
@@ -50,6 +79,12 @@ class ViewPrivacyRequest extends BaseViewRecord
     protected function getViewPageToolbarActions(): array
     {
         return [
+            Action::make('assign_to_me')
+                ->label('تعيين لي')
+                ->visible(fn (): bool => auth()->user()?->can('privacy_requests.assign') === true)
+                ->action(function (): void {
+                    app(PrivacyRequestService::class)->assign($this->getRecord(), auth()->user(), auth()->user());
+                }),
             Action::make('start_review')
                 ->label('بدء المراجعة')
                 ->visible(fn (): bool => auth()->user()?->can('privacy_requests.review')
@@ -66,9 +101,61 @@ class ViewPrivacyRequest extends BaseViewRecord
                     app(PrivacyRequestService::class)->approve($this->getRecord(), auth()->user());
                     $this->refreshFormData(['status']);
                 }),
+            Action::make('partially_approve')
+                ->label('اعتماد جزئي')
+                ->visible(fn (): bool => auth()->user()?->can('privacy_requests.approve')
+                    && in_array($this->getRecord()->request_type, [PrivacyRequestType::DataAccess, PrivacyRequestType::DataCorrection], true)
+                    && in_array($this->getRecord()->status, [PrivacyRequestStatus::Submitted, PrivacyRequestStatus::UnderReview], true))
+                ->action(function (): void {
+                    app(PrivacyRequestService::class)->partiallyApprove($this->getRecord(), auth()->user());
+                    $this->refreshFormData(['status']);
+                }),
+            Action::make('reject')
+                ->label('رفض الطلب')
+                ->color('danger')
+                ->requiresConfirmation()
+                ->visible(fn (): bool => auth()->user()?->can('privacy_requests.reject')
+                    && ! $this->getRecord()->status->isTerminal())
+                ->schema([
+                    TextInput::make('reason_code')->label('رمز السبب')->required(),
+                    Textarea::make('reason')->label('سبب الرفض')->required(),
+                ])
+                ->action(function (array $data): void {
+                    app(PrivacyRequestService::class)->reject(
+                        $this->getRecord(),
+                        auth()->user(),
+                        (string) $data['reason_code'],
+                        (string) $data['reason'],
+                    );
+                    $this->refreshFormData(['status']);
+                }),
+            Action::make('complete_access')
+                ->label('إكمال طلب الوصول')
+                ->visible(fn (): bool => auth()->user()?->can('privacy_requests.review')
+                    && $this->getRecord()->request_type === PrivacyRequestType::DataAccess
+                    && in_array($this->getRecord()->status, [PrivacyRequestStatus::Approved, PrivacyRequestStatus::PartiallyApproved, PrivacyRequestStatus::UnderReview], true))
+                ->requiresConfirmation()
+                ->action(function (): void {
+                    app(PrivacyRequestService::class)->completeAccessRequest($this->getRecord(), auth()->user());
+                    Notification::make()->title('تم إكمال طلب الوصول')->success()->send();
+                    $this->refreshFormData(['status', 'user_visible_response']);
+                }),
+            Action::make('apply_correction')
+                ->label('تنفيذ التصحيح')
+                ->color('warning')
+                ->requiresConfirmation()
+                ->visible(fn (): bool => auth()->user()?->can('privacy_requests.correction.execute')
+                    && $this->getRecord()->request_type === PrivacyRequestType::DataCorrection
+                    && in_array($this->getRecord()->status, [PrivacyRequestStatus::Approved, PrivacyRequestStatus::PartiallyApproved], true))
+                ->action(function (): void {
+                    app(PrivacyRequestService::class)->applyCorrection($this->getRecord(), auth()->user());
+                    Notification::make()->title('تم تنفيذ التصحيح')->success()->send();
+                    $this->refreshFormData(['status']);
+                }),
             Action::make('create_deletion_plan')
                 ->label('إنشاء خطة الحذف')
                 ->visible(fn (): bool => auth()->user()?->can('privacy_requests.review')
+                    && $this->getRecord()->request_type === PrivacyRequestType::AccountDeletion
                     && $this->getRecord()->status === PrivacyRequestStatus::Approved
                     && $this->getRecord()->deletionPlan === null)
                 ->action(function (): void {
@@ -78,6 +165,7 @@ class ViewPrivacyRequest extends BaseViewRecord
             Action::make('approve_deletion_plan')
                 ->label('اعتماد خطة الحذف')
                 ->visible(fn (): bool => auth()->user()?->can('privacy_requests.approve')
+                    && $this->getRecord()->request_type === PrivacyRequestType::AccountDeletion
                     && $this->getRecord()->deletionPlan !== null
                     && $this->getRecord()->deletionPlan->status->value === 'ready_for_review')
                 ->action(function (): void {
@@ -92,6 +180,7 @@ class ViewPrivacyRequest extends BaseViewRecord
                 ->color('danger')
                 ->requiresConfirmation()
                 ->visible(fn (): bool => auth()->user()?->can('privacy_requests.execute')
+                    && $this->getRecord()->request_type === PrivacyRequestType::AccountDeletion
                     && $this->getRecord()->status === PrivacyRequestStatus::Approved
                     && $this->getRecord()->deletionPlan?->status->value === 'approved')
                 ->schema([

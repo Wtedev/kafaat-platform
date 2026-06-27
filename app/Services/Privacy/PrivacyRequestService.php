@@ -9,9 +9,15 @@ use App\Enums\PrivacyRequestStatus;
 use App\Enums\PrivacyRequestType;
 use App\Models\PrivacyRequest;
 use App\Models\PrivacyRequestEvent;
+use App\Models\PrivacyCorrectionPayload;
 use App\Models\User;
+use App\Data\Privacy\PrivacyAccessResponseSnapshot;
+use App\Enums\PrivacyCorrectionFieldCode;
+use App\Enums\UserActivityAction;
+use App\Services\Identity\PersonNameService;
 use App\Services\Access\SensitiveAccessVerification;
 use App\Services\Audit\AuditLogger;
+use App\Services\UserActivityLogger;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +30,9 @@ final class PrivacyRequestService
 {
     public function __construct(
         private readonly AuditLogger $auditLogger,
+        private readonly PrivacyCorrectionService $correctionService,
+        private readonly PrivacyAccessResponseBuilder $accessResponseBuilder,
+        private readonly PrivacyRequestNotificationService $notifications,
     ) {}
 
     public function submitAccountDeletion(User $user, ?string $reason, Request $request): PrivacyRequest
@@ -60,14 +69,148 @@ final class PrivacyRequestService
 
             $this->auditLogger->recordOrFail(
                 $user,
-                'account_deletion.requested',
+                'privacy_request.created',
                 AuditLogResult::Success,
                 $user,
-                metadata: ['privacy_request_uuid' => $privacyRequest->uuid],
+                metadata: ['privacy_request_uuid' => $privacyRequest->uuid, 'request_type' => $privacyRequest->request_type->value],
                 request: $request,
             );
 
+            UserActivityLogger::log($user, UserActivityAction::PrivacyRequestSubmitted, 'طلب حذف الحساب.');
+
             return $privacyRequest;
+        });
+    }
+
+    public function submitDataAccess(User $user, Request $request): PrivacyRequest
+    {
+        $this->assertCanSubmitPrivacyRequest($user);
+
+        if ($this->hasActiveRequest($user, PrivacyRequestType::DataAccess)) {
+            throw new InvalidArgumentException('An active data access request already exists.');
+        }
+
+        return DB::transaction(function () use ($user, $request): PrivacyRequest {
+            $privacyRequest = $this->createRequest(
+                $user,
+                PrivacyRequestType::DataAccess,
+                PrivacyRequestStatus::Submitted,
+                null,
+            );
+
+            $this->recordEvent(
+                $privacyRequest,
+                PrivacyRequestEventType::Submitted,
+                $user,
+                PrivacyRequestStatus::Submitted,
+                userVisibleMessage: 'استلمنا طلب الوصول إلى بياناتك. سيراجعه فريق الخصوصية.',
+            );
+
+            $this->logPrivacyRequestCreated($user, $privacyRequest, $request, UserActivityAction::PrivacyAccessRequested);
+
+            return $privacyRequest;
+        });
+    }
+
+    /**
+     * @param  array<string, mixed>  $valuePayload
+     */
+    public function submitDataCorrection(
+        User $user,
+        PrivacyCorrectionFieldCode $field,
+        string $reason,
+        array $valuePayload,
+        Request $httpRequest,
+        ?string $password = null,
+    ): PrivacyRequest {
+        $this->assertCanSubmitPrivacyRequest($user);
+
+        if ($field->isSelfServiceFor($user)) {
+            throw ValidationException::withMessages([
+                'field_code' => 'يمكنك تعديل هذا الحقل مباشرة من ملفك الشخصي.',
+            ]);
+        }
+
+        if ($this->hasActiveRequest($user, PrivacyRequestType::DataCorrection)) {
+            throw new InvalidArgumentException('An active correction request already exists.');
+        }
+
+        if ($field->requiresSensitiveVerification()) {
+            if ($password === null || ! Hash::check($password, (string) $user->password)) {
+                app(\App\Services\Security\SecurityLogService::class)->record(
+                    'privacy_correction.verification_failed',
+                    \App\Enums\SecurityLogResult::Failed,
+                    \App\Enums\SecurityLogSeverity::Warning,
+                    $user,
+                    request: $httpRequest,
+                );
+
+                throw ValidationException::withMessages(['password' => 'كلمة المرور غير صحيحة.']);
+            }
+
+            SensitiveAccessVerification::markVerified($httpRequest);
+        }
+
+        return DB::transaction(function () use ($user, $field, $reason, $valuePayload, $httpRequest): PrivacyRequest {
+            $details = [
+                'reason' => Str::limit($reason, 1000),
+                'field_code' => $field->value,
+            ];
+
+            if ($field === PrivacyCorrectionFieldCode::StructuredName) {
+                $details = array_merge($details, PersonNameService::normalizedParts($valuePayload));
+            } else            if ($field === PrivacyCorrectionFieldCode::BirthDate) {
+                $details['new_value'] = (string) ($valuePayload['birth_date'] ?? '');
+            } elseif ($field === PrivacyCorrectionFieldCode::IdentityNumber) {
+                $identityType = \App\Enums\IdentityType::from((string) ($valuePayload['identity_type'] ?? ''));
+                $details['identity_type'] = $identityType->value;
+            }
+
+            $privacyRequest = $this->createRequest(
+                $user,
+                PrivacyRequestType::DataCorrection,
+                PrivacyRequestStatus::Submitted,
+                $details,
+                correctionFieldCode: $field->value,
+            );
+
+            if ($field === PrivacyCorrectionFieldCode::IdentityNumber) {
+                $identityType = \App\Enums\IdentityType::from((string) ($valuePayload['identity_type'] ?? ''));
+                try {
+                    $this->correctionService->storeSensitivePayload(
+                        $privacyRequest,
+                        $field,
+                        (string) ($valuePayload['identity_number'] ?? ''),
+                        $identityType,
+                    );
+                } catch (InvalidArgumentException $exception) {
+                    if ($exception->getMessage() === 'duplicate_identity') {
+                        throw ValidationException::withMessages([
+                            'identity_number' => 'رقم الهوية مستخدم مسبقاً.',
+                        ]);
+                    }
+
+                    throw $exception;
+                }
+            } elseif ($field === PrivacyCorrectionFieldCode::Email) {
+                $this->correctionService->storeSensitivePayload(
+                    $privacyRequest,
+                    $field,
+                    (string) ($valuePayload['email'] ?? ''),
+                );
+            }
+
+            $this->recordEvent(
+                $privacyRequest,
+                PrivacyRequestEventType::Submitted,
+                $user,
+                PrivacyRequestStatus::Submitted,
+                userVisibleMessage: 'استلمنا طلب تصحيح بياناتك. سيراجعه فريق الخصوصية.',
+            );
+
+            $this->logPrivacyRequestCreated($user, $privacyRequest, $httpRequest, UserActivityAction::PrivacyCorrectionRequested);
+
+            return $privacyRequest->fresh(['correctionPayload']);
         });
     }
 
@@ -173,14 +316,94 @@ final class PrivacyRequestService
             PrivacyRequestStatus::Rejected,
             PrivacyRequestEventType::Rejected,
             $actor,
-            userVisibleMessage: 'تم رفض طلب حذف حسابك.',
+            userVisibleMessage: $this->rejectionMessageForType($privacyRequest->request_type),
         );
 
-        $privacyRequest->user->forceFill([
-            'account_status' => AccountStatus::Active,
-            'is_active' => true,
-            'deletion_request_id' => null,
+        $this->restoreUserAfterTerminalRequest($privacyRequest);
+
+        UserActivityLogger::log($privacyRequest->user, UserActivityAction::PrivacyRequestRejected);
+        $this->notifications->notifyStatusChange($privacyRequest->user, $privacyRequest);
+
+        return $result;
+    }
+
+    public function partiallyApprove(PrivacyRequest $privacyRequest, User $actor, ?string $summary = null): PrivacyRequest
+    {
+        $this->assertStaff($actor, 'privacy_requests.approve');
+
+        $privacyRequest->forceFill(['decision_summary' => $summary])->save();
+
+        return $this->transition(
+            $privacyRequest,
+            PrivacyRequestStatus::PartiallyApproved,
+            PrivacyRequestEventType::PartiallyApproved,
+            $actor,
+            userVisibleMessage: 'تمت الموافقة جزئياً على طلبك.',
+        );
+    }
+
+    public function completeAccessRequest(PrivacyRequest $privacyRequest, User $actor, ?string $userVisibleResponse = null): PrivacyRequest
+    {
+        $this->assertStaff($actor, 'privacy_requests.review');
+
+        if ($privacyRequest->request_type !== PrivacyRequestType::DataAccess) {
+            throw new InvalidArgumentException('Not a data access request.');
+        }
+
+        $snapshot = $this->accessResponseBuilder->buildFor($privacyRequest->user);
+        $responseText = $userVisibleResponse ?? $this->formatAccessResponseForUser($snapshot);
+
+        $privacyRequest->forceFill([
+            'access_response' => $snapshot->toArray(),
+            'user_visible_response' => $responseText,
+            'completed_at' => now(),
         ])->save();
+
+        $result = $this->transition(
+            $privacyRequest,
+            PrivacyRequestStatus::Completed,
+            PrivacyRequestEventType::AccessResponseCreated,
+            $actor,
+            userVisibleMessage: $responseText,
+        );
+
+        $this->auditLogger->recordOrFail(
+            $actor,
+            'privacy_access.response_created',
+            AuditLogResult::Success,
+            $privacyRequest->user,
+            metadata: ['privacy_request_uuid' => $privacyRequest->uuid],
+        );
+
+        UserActivityLogger::log($privacyRequest->user, UserActivityAction::PrivacyAccessCompleted);
+        $this->notifications->notifyStatusChange($privacyRequest->user, $privacyRequest);
+
+        return $result;
+    }
+
+    public function applyCorrection(PrivacyRequest $privacyRequest, User $actor): PrivacyRequest
+    {
+        $this->correctionService->apply($privacyRequest, $actor);
+
+        $certificatesNote = $this->correctionService->userHasCertificates($privacyRequest->user)
+            ? ' تم تصحيح بيانات الحساب. الشهادات السابقة لم تُعدَّل تلقائياً.'
+            : ' تم تصحيح بيانات الحساب.';
+
+        $privacyRequest->forceFill([
+            'completed_at' => now(),
+            'user_visible_response' => 'اكتمل تنفيذ طلب التصحيح.'.$certificatesNote,
+        ])->save();
+
+        $result = $this->transition(
+            $privacyRequest,
+            PrivacyRequestStatus::Completed,
+            PrivacyRequestEventType::CorrectionApplied,
+            $actor,
+            userVisibleMessage: $privacyRequest->user_visible_response,
+        );
+
+        UserActivityLogger::log($privacyRequest->user, UserActivityAction::PrivacyCorrectionCompleted);
+        $this->notifications->notifyStatusChange($privacyRequest->user, $privacyRequest);
 
         return $result;
     }
@@ -200,14 +423,12 @@ final class PrivacyRequestService
             PrivacyRequestStatus::Cancelled,
             PrivacyRequestEventType::Cancelled,
             $actor,
-            userVisibleMessage: 'تم إلغاء طلب حذف حسابك.',
+            userVisibleMessage: $this->cancellationMessageForType($privacyRequest->request_type),
         );
 
-        $privacyRequest->user->forceFill([
-            'account_status' => AccountStatus::Active,
-            'is_active' => true,
-            'deletion_request_id' => null,
-        ])->save();
+        $this->restoreUserAfterTerminalRequest($privacyRequest);
+
+        UserActivityLogger::log($privacyRequest->user, UserActivityAction::PrivacyRequestCancelled);
 
         return $result;
     }
@@ -294,6 +515,7 @@ final class PrivacyRequestService
                 PrivacyRequestStatus::IdentityVerificationRequired,
                 PrivacyRequestStatus::UnderReview,
                 PrivacyRequestStatus::Approved,
+                PrivacyRequestStatus::PartiallyApproved,
                 PrivacyRequestStatus::Processing,
             ])
             ->exists();
@@ -366,5 +588,92 @@ final class PrivacyRequestService
         if (! $actor->can($permission)) {
             throw new AuthorizationException('You are not allowed to perform this action.');
         }
+    }
+
+    private function assertCanSubmitPrivacyRequest(User $user): void
+    {
+        if ($user->isAnonymized() || $user->account_status === AccountStatus::DeletionProcessing) {
+            throw new InvalidArgumentException('This account cannot submit privacy requests.');
+        }
+    }
+
+    private function createRequest(
+        User $user,
+        PrivacyRequestType $type,
+        PrivacyRequestStatus $status,
+        ?array $details,
+        ?string $correctionFieldCode = null,
+    ): PrivacyRequest {
+        return PrivacyRequest::query()->create([
+            'uuid' => (string) Str::uuid(),
+            'user_id' => $user->id,
+            'request_type' => $type,
+            'status' => $status,
+            'request_details' => $details,
+            'correction_field_code' => $correctionFieldCode,
+            'due_at' => now()->addDays(30),
+        ]);
+    }
+
+    private function logPrivacyRequestCreated(
+        User $user,
+        PrivacyRequest $privacyRequest,
+        Request $request,
+        UserActivityAction $activity,
+    ): void {
+        $this->auditLogger->recordOrFail(
+            $user,
+            'privacy_request.created',
+            AuditLogResult::Success,
+            $user,
+            metadata: [
+                'privacy_request_uuid' => $privacyRequest->uuid,
+                'request_type' => $privacyRequest->request_type->value,
+            ],
+            request: $request,
+        );
+
+        UserActivityLogger::log($user, $activity);
+        $this->notifications->notifyRequestCreated($user, $privacyRequest);
+    }
+
+    private function restoreUserAfterTerminalRequest(PrivacyRequest $privacyRequest): void
+    {
+        if ($privacyRequest->request_type !== PrivacyRequestType::AccountDeletion) {
+            return;
+        }
+
+        $privacyRequest->user->forceFill([
+            'account_status' => AccountStatus::Active,
+            'is_active' => true,
+            'deletion_request_id' => null,
+        ])->save();
+    }
+
+    private function rejectionMessageForType(PrivacyRequestType $type): string
+    {
+        return match ($type) {
+            PrivacyRequestType::AccountDeletion => 'تم رفض طلب حذف حسابك.',
+            PrivacyRequestType::DataAccess => 'تم رفض طلب الوصول إلى بياناتك.',
+            PrivacyRequestType::DataCorrection => 'تم رفض طلب تصحيح بياناتك.',
+        };
+    }
+
+    private function cancellationMessageForType(PrivacyRequestType $type): string
+    {
+        return match ($type) {
+            PrivacyRequestType::AccountDeletion => 'تم إلغاء طلب حذف حسابك.',
+            PrivacyRequestType::DataAccess => 'تم إلغاء طلب الوصول إلى بياناتك.',
+            PrivacyRequestType::DataCorrection => 'تم إلغاء طلب تصحيح بياناتك.',
+        };
+    }
+
+    private function formatAccessResponseForUser(PrivacyAccessResponseSnapshot $snapshot): string
+    {
+        $lines = collect($snapshot->categories)
+            ->map(fn (array $category): string => '• '.$category['category'].': '.$category['summary'])
+            ->implode("\n");
+
+        return "فيما يلي فئات البيانات التي تحتفظ بها المنصة عنك:\n".$lines;
     }
 }

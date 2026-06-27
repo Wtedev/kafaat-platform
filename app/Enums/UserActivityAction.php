@@ -25,6 +25,13 @@ enum UserActivityAction: string
     case CandidatePoolDeclined = 'candidate_pool_declined';
     case CandidatePoolWithdrawn = 'candidate_pool_withdrawn';
     case CandidatePoolRegranted = 'candidate_pool_regranted';
+    case PrivacyRequestSubmitted = 'privacy_request_submitted';
+    case PrivacyAccessRequested = 'privacy_access_requested';
+    case PrivacyCorrectionRequested = 'privacy_correction_requested';
+    case PrivacyRequestCancelled = 'privacy_request_cancelled';
+    case PrivacyAccessCompleted = 'privacy_access_completed';
+    case PrivacyCorrectionCompleted = 'privacy_correction_completed';
+    case PrivacyRequestRejected = 'privacy_request_rejected';
 
     public function category(): string
     {
@@ -40,6 +47,9 @@ enum UserActivityAction: string
             self::CertificateDownloaded => 'الشهادات',
             self::CvUploaded, self::CvReplaced, self::CvDeleted => 'السيرة الذاتية',
             self::CandidatePoolGranted, self::CandidatePoolDeclined, self::CandidatePoolWithdrawn, self::CandidatePoolRegranted => 'قاعدة المرشحين',
+            self::PrivacyRequestSubmitted, self::PrivacyAccessRequested, self::PrivacyCorrectionRequested,
+            self::PrivacyRequestCancelled, self::PrivacyAccessCompleted, self::PrivacyCorrectionCompleted,
+            self::PrivacyRequestRejected => 'الخصوصية',
         };
     }
 
@@ -67,6 +77,13 @@ enum UserActivityAction: string
             self::CandidatePoolDeclined => 'رفض الانضمام لقاعدة المرشحين',
             self::CandidatePoolWithdrawn => 'سحب موافقة قاعدة المرشحين',
             self::CandidatePoolRegranted => 'إعادة الانضمام لقاعدة المرشحين',
+            self::PrivacyRequestSubmitted => 'تقديم طلب خصوصية',
+            self::PrivacyAccessRequested => 'طلب الوصول إلى البيانات',
+            self::PrivacyCorrectionRequested => 'طلب تصحيح البيانات',
+            self::PrivacyRequestCancelled => 'إلغاء طلب خصوصية',
+            self::PrivacyAccessCompleted => 'اكتمال طلب الوصول',
+            self::PrivacyCorrectionCompleted => 'اكتمال طلب التصحيح',
+            self::PrivacyRequestRejected => 'رفض طلب خصوصية',
         };
     }
 
