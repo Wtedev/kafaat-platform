@@ -45,6 +45,24 @@ final class PrivacyRequestNotificationService
         $this->dispatch($user, 'تحديث طلب الخصوصية', $text);
     }
 
+    public function notifyExportReady(User $user, PrivacyRequest $request): void
+    {
+        $this->dispatch(
+            $user,
+            'ملف تصدير بياناتك جاهز',
+            'يمكنك تنزيل نسخة بياناتك من مركز الخصوصية قبل انتهاء الصلاحية.',
+        );
+    }
+
+    public function notifyExportFailed(User $user, PrivacyRequest $request): void
+    {
+        $this->dispatch(
+            $user,
+            'تعذّر تجهيز ملف التصدير',
+            'تعذّر تجهيز ملف تصدير بياناتك. يرجى مراجعة مركز الخصوصية أو التواصل مع الدعم.',
+        );
+    }
+
     private function dispatch(User $user, string $title, string $message): void
     {
         $this->inbox->dispatch(

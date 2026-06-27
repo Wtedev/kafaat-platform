@@ -101,6 +101,33 @@
         @endif
     </section>
 
+    <section class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <h2 class="mb-4 text-base font-bold text-gray-900">تصدير نسخة من بياناتي</h2>
+        <p class="mb-4 text-sm text-gray-600">سيتم إعداد نسخة قابلة للتنزيل من بياناتك داخل المنصة. قد تستغرق المعالجة بعض الوقت، وسيصبح الملف متاحاً لفترة محدودة.</p>
+
+        @if ($privacy->dataExport['file'])
+        <dl class="mb-4 grid gap-3 text-sm sm:grid-cols-2">
+            <div><dt class="text-gray-500">حالة الملف</dt><dd>{{ $privacy->dataExport['file']['status'] }}</dd></div>
+            <div><dt class="text-gray-500">تاريخ الإنشاء</dt><dd>{{ $privacy->dataExport['file']['generated_at'] ?? '—' }}</dd></div>
+            <div><dt class="text-gray-500">انتهاء التنزيل</dt><dd>{{ $privacy->dataExport['file']['expires_at'] ?? '—' }}</dd></div>
+        </dl>
+        <form method="POST" action="{{ $privacy->dataExport['file']['download_url'] }}" class="flex flex-wrap items-end gap-3">
+            @csrf
+            <div>
+                <label class="mb-1 block text-sm font-medium">كلمة المرور للتنزيل</label>
+                <input type="password" name="password" class="rounded-xl border border-gray-300 px-3 py-2 text-sm" />
+            </div>
+            <button type="submit" class="rounded-xl bg-[#335483] px-5 py-2.5 text-sm font-semibold text-white">تنزيل ملف التصدير</button>
+        </form>
+        @elseif ($privacy->dataExport['processing'])
+        <p class="text-sm text-amber-800">جاري تجهيز ملف التصدير. ستصلك إشعار عند الجاهزية.</p>
+        @elseif ($privacy->dataExport['active_request'])
+        <p class="text-sm text-gray-700">طلب تصدير قيد المعالجة ({{ $privacy->dataExport['active_request']['status'] }}). المرجع: {{ $privacy->dataExport['active_request']['uuid'] }}</p>
+        @else
+        <p class="text-sm text-gray-600">لا يوجد ملف تصدير جاهز حالياً.</p>
+        @endif
+    </section>
+
     @if ($privacy->canSubmitRequests)
     <section class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
         <h2 class="mb-4 text-base font-bold text-gray-900">الإجراءات</h2>
@@ -111,6 +138,19 @@
                 <p class="mb-4 text-sm text-gray-600">طلب رسمي لمعرفة فئات البيانات التي تحتفظ بها المنصة عنك (وليس ملف تصدير).</p>
                 <button type="submit" class="rounded-xl bg-[#335483] px-5 py-2.5 text-sm font-semibold text-white">تقديم طلب الوصول</button>
             </form>
+
+            @if ($privacy->dataExport['can_request'])
+            <form method="POST" action="{{ route('portal.privacy.requests.export') }}" class="rounded-xl border border-gray-100 p-4">
+                @csrf
+                <h3 class="mb-2 font-semibold text-gray-900">طلب نسخة قابلة للتنزيل من بياناتي</h3>
+                <p class="mb-4 text-sm text-gray-600">يُراجع الطلب قبل توليد ملف ZIP خاص بك. يلزم تأكيد كلمة المرور.</p>
+                <div class="mb-4 max-w-sm">
+                    <label class="mb-1 block text-sm font-medium">كلمة المرور</label>
+                    <input type="password" name="password" required class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm" />
+                </div>
+                <button type="submit" class="rounded-xl bg-[#335483] px-5 py-2.5 text-sm font-semibold text-white">تقديم طلب التصدير</button>
+            </form>
+            @endif
 
             <form method="POST" action="{{ route('portal.privacy.requests.correction') }}" class="rounded-xl border border-gray-100 p-4">
                 @csrf

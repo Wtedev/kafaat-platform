@@ -112,6 +112,115 @@ final class PrivacyRequestService
         });
     }
 
+    public function submitDataExport(User $user, Request $request, string $password): PrivacyRequest
+    {
+        $this->assertCanSubmitPrivacyRequest($user);
+
+        if ($this->hasActiveRequest($user, PrivacyRequestType::DataExport)) {
+            throw new InvalidArgumentException('An active data export request already exists.');
+        }
+
+        if ($this->hasDownloadableExportFile($user)) {
+            throw new InvalidArgumentException('A downloadable export file is still available.');
+        }
+
+        if (! Hash::check($password, (string) $user->password)) {
+            app(\App\Services\Security\SecurityLogService::class)->record(
+                'privacy_export.verification_failed',
+                \App\Enums\SecurityLogResult::Failed,
+                \App\Enums\SecurityLogSeverity::Warning,
+                $user,
+                request: $request,
+            );
+
+            throw ValidationException::withMessages(['password' => 'كلمة المرور غير صحيحة.']);
+        }
+
+        SensitiveAccessVerification::markVerified($request);
+
+        return DB::transaction(function () use ($user, $request): PrivacyRequest {
+            $privacyRequest = $this->createRequest(
+                $user,
+                PrivacyRequestType::DataExport,
+                PrivacyRequestStatus::Submitted,
+                null,
+            );
+
+            $this->recordEvent(
+                $privacyRequest,
+                PrivacyRequestEventType::Submitted,
+                $user,
+                PrivacyRequestStatus::Submitted,
+                userVisibleMessage: 'استلمنا طلب تصدير بياناتك. سيراجعه فريق الخصوصية قبل توليد الملف.',
+            );
+
+            $this->auditLogger->recordOrFail(
+                $user,
+                'privacy_export.request_created',
+                AuditLogResult::Success,
+                $user,
+                metadata: [
+                    'privacy_request_uuid' => $privacyRequest->uuid,
+                    'request_type' => $privacyRequest->request_type->value,
+                ],
+                request: $request,
+            );
+
+            UserActivityLogger::log($user, UserActivityAction::PrivacyExportRequested);
+            $this->notifications->notifyRequestCreated($user, $privacyRequest);
+
+            return $privacyRequest;
+        });
+    }
+
+    public function markExportProcessing(PrivacyRequest $privacyRequest, User $actor): PrivacyRequest
+    {
+        if ($privacyRequest->request_type !== PrivacyRequestType::DataExport) {
+            throw new InvalidArgumentException('Not a data export request.');
+        }
+
+        $this->assertStaff($actor, 'privacy_requests.export.generate');
+
+        return $this->transition(
+            $privacyRequest,
+            PrivacyRequestStatus::Processing,
+            PrivacyRequestEventType::ProcessingStarted,
+            $actor,
+            userVisibleMessage: 'جاري تجهيز ملف تصدير بياناتك.',
+        );
+    }
+
+    public function completeExportRequest(PrivacyRequest $privacyRequest, User $actor): PrivacyRequest
+    {
+        if ($privacyRequest->request_type !== PrivacyRequestType::DataExport) {
+            throw new InvalidArgumentException('Not a data export request.');
+        }
+
+        $message = 'ملف تصدير بياناتك جاهز للتنزيل من مركز الخصوصية. يرجى تنزيله قبل انتهاء الصلاحية.';
+
+        $privacyRequest->forceFill([
+            'completed_at' => now(),
+            'user_visible_response' => $message,
+        ])->save();
+
+        return $this->transition(
+            $privacyRequest,
+            PrivacyRequestStatus::Completed,
+            PrivacyRequestEventType::Completed,
+            $actor,
+            userVisibleMessage: $message,
+        );
+    }
+
+    public function hasDownloadableExportFile(User $user): bool
+    {
+        return \App\Models\PrivacyExportFile::query()
+            ->where('user_id', $user->id)
+            ->where('status', \App\Enums\PrivacyExportFileStatus::Ready->value)
+            ->where('expires_at', '>', now())
+            ->exists();
+    }
+
     /**
      * @param  array<string, mixed>  $valuePayload
      */
@@ -159,7 +268,7 @@ final class PrivacyRequestService
 
             if ($field === PrivacyCorrectionFieldCode::StructuredName) {
                 $details = array_merge($details, PersonNameService::normalizedParts($valuePayload));
-            } else            if ($field === PrivacyCorrectionFieldCode::BirthDate) {
+            } elseif ($field === PrivacyCorrectionFieldCode::BirthDate) {
                 $details['new_value'] = (string) ($valuePayload['birth_date'] ?? '');
             } elseif ($field === PrivacyCorrectionFieldCode::IdentityNumber) {
                 $identityType = \App\Enums\IdentityType::from((string) ($valuePayload['identity_type'] ?? ''));
@@ -293,12 +402,26 @@ final class PrivacyRequestService
 
         $privacyRequest->forceFill(['decision_summary' => $summary])->save();
 
+        if ($privacyRequest->request_type === PrivacyRequestType::DataExport) {
+            $this->auditLogger->recordOrFail(
+                $actor,
+                'privacy_export.approved',
+                AuditLogResult::Success,
+                $privacyRequest->user,
+                metadata: ['privacy_request_uuid' => $privacyRequest->uuid],
+            );
+        }
+
         return $this->transition(
             $privacyRequest,
             PrivacyRequestStatus::Approved,
             PrivacyRequestEventType::Approved,
             $actor,
-            userVisibleMessage: 'تمت الموافقة على طلبك. سيبدأ التنفيذ بعد اعتماد خطة الحذف.',
+            userVisibleMessage: match ($privacyRequest->request_type) {
+                PrivacyRequestType::AccountDeletion => 'تمت الموافقة على طلبك. سيبدأ التنفيذ بعد اعتماد خطة الحذف.',
+                PrivacyRequestType::DataExport => 'تمت الموافقة على طلب تصدير بياناتك. سيبدأ تجهيز الملف بعد مراجعة فريق الخصوصية.',
+                default => 'تمت الموافقة على طلبك.',
+            },
         );
     }
 
@@ -656,6 +779,7 @@ final class PrivacyRequestService
             PrivacyRequestType::AccountDeletion => 'تم رفض طلب حذف حسابك.',
             PrivacyRequestType::DataAccess => 'تم رفض طلب الوصول إلى بياناتك.',
             PrivacyRequestType::DataCorrection => 'تم رفض طلب تصحيح بياناتك.',
+            PrivacyRequestType::DataExport => 'تم رفض طلب تصدير بياناتك.',
         };
     }
 
@@ -665,6 +789,7 @@ final class PrivacyRequestService
             PrivacyRequestType::AccountDeletion => 'تم إلغاء طلب حذف حسابك.',
             PrivacyRequestType::DataAccess => 'تم إلغاء طلب الوصول إلى بياناتك.',
             PrivacyRequestType::DataCorrection => 'تم إلغاء طلب تصحيح بياناتك.',
+            PrivacyRequestType::DataExport => 'تم إلغاء طلب تصدير بياناتك.',
         };
     }
 

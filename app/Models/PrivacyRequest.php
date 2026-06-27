@@ -70,6 +70,11 @@ class PrivacyRequest extends Model
         return $this->hasOne(PrivacyCorrectionPayload::class);
     }
 
+    public function exportFile(): HasOne
+    {
+        return $this->hasOne(PrivacyExportFile::class);
+    }
+
     public function latestUserVisibleMessage(): ?string
     {
         return $this->events()

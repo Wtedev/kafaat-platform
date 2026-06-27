@@ -7,6 +7,7 @@ enum PrivacyRequestType: string
     case AccountDeletion = 'account_deletion';
     case DataAccess = 'data_access';
     case DataCorrection = 'data_correction';
+    case DataExport = 'data_export';
 
     public function label(): string
     {
@@ -14,6 +15,7 @@ enum PrivacyRequestType: string
             self::AccountDeletion => 'حذف الحساب والبيانات',
             self::DataAccess => 'الوصول إلى بياناتي',
             self::DataCorrection => 'تصحيح بياناتي',
+            self::DataExport => 'تصدير بياناتي',
         };
     }
 

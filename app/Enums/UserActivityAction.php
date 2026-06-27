@@ -32,6 +32,11 @@ enum UserActivityAction: string
     case PrivacyAccessCompleted = 'privacy_access_completed';
     case PrivacyCorrectionCompleted = 'privacy_correction_completed';
     case PrivacyRequestRejected = 'privacy_request_rejected';
+    case PrivacyExportRequested = 'privacy_export_requested';
+    case PrivacyExportReady = 'privacy_export_ready';
+    case PrivacyExportDownloaded = 'privacy_export_downloaded';
+    case PrivacyExportExpired = 'privacy_export_expired';
+    case PrivacyExportFailed = 'privacy_export_failed';
 
     public function category(): string
     {
@@ -49,7 +54,8 @@ enum UserActivityAction: string
             self::CandidatePoolGranted, self::CandidatePoolDeclined, self::CandidatePoolWithdrawn, self::CandidatePoolRegranted => 'قاعدة المرشحين',
             self::PrivacyRequestSubmitted, self::PrivacyAccessRequested, self::PrivacyCorrectionRequested,
             self::PrivacyRequestCancelled, self::PrivacyAccessCompleted, self::PrivacyCorrectionCompleted,
-            self::PrivacyRequestRejected => 'الخصوصية',
+            self::PrivacyRequestRejected, self::PrivacyExportRequested, self::PrivacyExportReady,
+            self::PrivacyExportDownloaded, self::PrivacyExportExpired, self::PrivacyExportFailed => 'الخصوصية',
         };
     }
 
@@ -84,6 +90,11 @@ enum UserActivityAction: string
             self::PrivacyAccessCompleted => 'اكتمال طلب الوصول',
             self::PrivacyCorrectionCompleted => 'اكتمال طلب التصحيح',
             self::PrivacyRequestRejected => 'رفض طلب خصوصية',
+            self::PrivacyExportRequested => 'طلب تصدير البيانات',
+            self::PrivacyExportReady => 'جاهزية ملف التصدير',
+            self::PrivacyExportDownloaded => 'تنزيل ملف التصدير',
+            self::PrivacyExportExpired => 'انتهاء ملف التصدير',
+            self::PrivacyExportFailed => 'فشل تصدير البيانات',
         };
     }
 

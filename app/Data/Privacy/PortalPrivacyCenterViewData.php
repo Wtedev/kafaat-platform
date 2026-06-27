@@ -7,7 +7,10 @@ use App\Enums\CandidatePoolPreferenceStatus;
 use App\Enums\IdentityType;
 use App\Models\PrivacyPolicyAcknowledgement;
 use App\Models\PrivacyPolicyVersion;
+use App\Models\PrivacyExportFile;
 use App\Models\PrivacyRequest;
+use App\Enums\PrivacyExportFileStatus;
+use App\Enums\PrivacyRequestType;
 use App\Models\User;
 use App\Services\CandidatePool\CandidatePoolConsentService;
 use App\Services\CandidatePool\CandidatePoolConsentVersionService;
@@ -28,6 +31,7 @@ final class PortalPrivacyCenterViewData
         public readonly ?array $cv,
         public readonly array $requests,
         public readonly bool $canSubmitRequests,
+        public readonly ?array $dataExport,
     ) {}
 
     public static function forUser(User $user, CvDocumentService $cvService, CandidatePoolConsentService $consentService): self
@@ -60,6 +64,46 @@ final class PortalPrivacyCenterViewData
                 'user_message' => $request->user_visible_response ?? $request->latestUserVisibleMessage(),
             ])
             ->all();
+
+        $activeExportRequest = PrivacyRequest::query()
+            ->where('user_id', $user->id)
+            ->where('request_type', PrivacyRequestType::DataExport)
+            ->whereIn('status', [
+                \App\Enums\PrivacyRequestStatus::Submitted,
+                \App\Enums\PrivacyRequestStatus::UnderReview,
+                \App\Enums\PrivacyRequestStatus::Approved,
+                \App\Enums\PrivacyRequestStatus::Processing,
+            ])
+            ->latest('created_at')
+            ->first();
+
+        $downloadableExport = PrivacyExportFile::query()
+            ->where('user_id', $user->id)
+            ->where('status', PrivacyExportFileStatus::Ready)
+            ->where('expires_at', '>', now())
+            ->latest('generated_at')
+            ->first();
+
+        $dataExport = [
+            'can_request' => $user->allowsOperationalAccess()
+                && ! $user->isAnonymized()
+                && $activeExportRequest === null
+                && $downloadableExport === null,
+            'active_request' => $activeExportRequest === null ? null : [
+                'uuid' => $activeExportRequest->uuid,
+                'status' => $activeExportRequest->status->label(),
+                'submitted_at' => $activeExportRequest->created_at?->translatedFormat('j F Y'),
+            ],
+            'file' => $downloadableExport === null ? null : [
+                'uuid' => $downloadableExport->uuid,
+                'status' => $downloadableExport->status->label(),
+                'generated_at' => $downloadableExport->generated_at?->translatedFormat('j F Y H:i'),
+                'expires_at' => $downloadableExport->expires_at?->translatedFormat('j F Y H:i'),
+                'download_url' => route('portal.privacy.exports.download', $downloadableExport),
+            ],
+            'processing' => $activeExportRequest !== null
+                && $activeExportRequest->status === \App\Enums\PrivacyRequestStatus::Processing,
+        ];
 
         return new self(
             account: [
@@ -103,6 +147,7 @@ final class PortalPrivacyCenterViewData
             ],
             requests: $requests,
             canSubmitRequests: $user->allowsOperationalAccess() && ! $user->isAnonymized(),
+            dataExport: $dataExport,
         );
     }
 

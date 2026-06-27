@@ -20,3 +20,8 @@ Schedule::command('news:publish-scheduled')->everyMinute();
 Schedule::command('training:publish-scheduled')->everyMinute();
 
 Schedule::command('inbox:dispatch-training-milestones')->hourly();
+
+Schedule::command('privacy:purge-expired-exports')
+    ->dailyAt('03:30')
+    ->timezone(config('app.timezone', 'Asia/Riyadh'))
+    ->withoutOverlapping();

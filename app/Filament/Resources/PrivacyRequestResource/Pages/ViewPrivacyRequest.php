@@ -10,6 +10,7 @@ use App\Models\DataDeletionPlan;
 use App\Services\Access\SensitiveAccessVerification;
 use App\Services\Privacy\DataDeletionPlanService;
 use App\Services\Privacy\PersonalDataDeletionService;
+use App\Services\Privacy\Export\PersonalDataExportService;
 use App\Services\Privacy\PrivacyCorrectionService;
 use App\Services\Privacy\PrivacyRequestService;
 use Filament\Actions\Action;
@@ -45,6 +46,17 @@ class ViewPrivacyRequest extends BaseViewRecord
                 ->schema([
                     TextEntry::make('user_visible_response')->label('الاستجابة للمستخدم')->placeholder('—')->columnSpanFull(),
                 ]),
+            Section::make('طلب التصدير')
+                ->visible(fn (): bool => $this->getRecord()->request_type === PrivacyRequestType::DataExport)
+                ->schema([
+                    TextEntry::make('exportFile.status')->label('حالة الملف')->formatStateUsing(
+                        fn ($state) => $state instanceof \App\Enums\PrivacyExportFileStatus ? $state->label() : ($state ?? '—'),
+                    ),
+                    TextEntry::make('exportFile.generated_at')->label('تاريخ التوليد')->dateTime('Y-m-d H:i')->placeholder('—'),
+                    TextEntry::make('exportFile.expires_at')->label('انتهاء التنزيل')->dateTime('Y-m-d H:i')->placeholder('—'),
+                    TextEntry::make('exportFile.download_count')->label('عدد التنزيلات')->placeholder('0'),
+                    TextEntry::make('exportFile.failure_code')->label('رمز الفشل')->placeholder('—'),
+                ])->columns(2),
             Section::make('طلب التصحيح')
                 ->visible(fn (): bool => $this->getRecord()->request_type === PrivacyRequestType::DataCorrection)
                 ->schema([
@@ -139,6 +151,29 @@ class ViewPrivacyRequest extends BaseViewRecord
                     app(PrivacyRequestService::class)->completeAccessRequest($this->getRecord(), auth()->user());
                     Notification::make()->title('تم إكمال طلب الوصول')->success()->send();
                     $this->refreshFormData(['status', 'user_visible_response']);
+                }),
+            Action::make('generate_export')
+                ->label('توليد ملف التصدير')
+                ->visible(fn (): bool => auth()->user()?->can('privacy_requests.export.generate')
+                    && $this->getRecord()->request_type === PrivacyRequestType::DataExport
+                    && in_array($this->getRecord()->status, [PrivacyRequestStatus::Approved, PrivacyRequestStatus::PartiallyApproved], true))
+                ->requiresConfirmation()
+                ->action(function (): void {
+                    app(PersonalDataExportService::class)->dispatchGeneration($this->getRecord(), auth()->user());
+                    Notification::make()->title('بدأ توليد ملف التصدير')->success()->send();
+                    $this->refreshFormData(['status']);
+                }),
+            Action::make('retry_export')
+                ->label('إعادة محاولة التصدير')
+                ->color('warning')
+                ->visible(fn (): bool => auth()->user()?->can('privacy_requests.export.retry')
+                    && $this->getRecord()->request_type === PrivacyRequestType::DataExport
+                    && $this->getRecord()->exportFile?->status === \App\Enums\PrivacyExportFileStatus::Failed)
+                ->requiresConfirmation()
+                ->action(function (): void {
+                    app(PersonalDataExportService::class)->retryGeneration($this->getRecord(), auth()->user());
+                    Notification::make()->title('أُعيد إرسال مهمة التصدير')->success()->send();
+                    $this->refreshFormData(['status']);
                 }),
             Action::make('apply_correction')
                 ->label('تنفيذ التصحيح')

@@ -212,5 +212,15 @@ class AppServiceProvider extends ServiceProvider
                     return back()->withErrors(['email' => 'لقد تجاوزت عدد طلبات الخصوصية المسموح بها. حاول لاحقاً.']);
                 });
         });
+
+        RateLimiter::for('privacy-export-download', function (Request $request): Limit {
+            $key = $request->user()?->id ?? $request->ip();
+
+            return Limit::perMinute(10)
+                ->by((string) $key)
+                ->response(function () {
+                    return back()->withErrors(['export' => 'لقد تجاوزت عدد محاولات التنزيل. حاول لاحقاً.']);
+                });
+        });
     }
 }

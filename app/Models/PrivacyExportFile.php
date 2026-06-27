@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PrivacyExportFileStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -18,9 +19,11 @@ class PrivacyExportFile extends Model
         'sha256_checksum',
         'generated_at',
         'expires_at',
-        'downloaded_at',
+        'first_downloaded_at',
+        'last_downloaded_at',
         'download_count',
         'status',
+        'failure_code',
     ];
 
     protected $hidden = [
@@ -32,9 +35,11 @@ class PrivacyExportFile extends Model
     protected function casts(): array
     {
         return [
+            'status' => PrivacyExportFileStatus::class,
             'generated_at' => 'datetime',
             'expires_at' => 'datetime',
-            'downloaded_at' => 'datetime',
+            'first_downloaded_at' => 'datetime',
+            'last_downloaded_at' => 'datetime',
             'size_bytes' => 'integer',
             'download_count' => 'integer',
         ];
@@ -48,5 +53,17 @@ class PrivacyExportFile extends Model
     public function privacyRequest(): BelongsTo
     {
         return $this->belongsTo(PrivacyRequest::class);
+    }
+
+    public function isDownloadable(): bool
+    {
+        return $this->status === PrivacyExportFileStatus::Ready
+            && $this->expires_at !== null
+            && $this->expires_at->isFuture();
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
     }
 }

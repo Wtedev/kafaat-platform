@@ -19,7 +19,7 @@ final class PrivacyExportDeletionHandler implements DeletionHandlerInterface
     {
         $exports = PrivacyExportFile::query()
             ->where('user_id', $context->target->id)
-            ->whereIn('status', ['pending', 'generating', 'ready'])
+            ->whereIn('status', ['pending', 'generating', 'ready', 'failed'])
             ->get();
 
         foreach ($exports as $export) {

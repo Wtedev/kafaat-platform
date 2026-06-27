@@ -205,6 +205,12 @@ Route::middleware(['auth', 'otp.verified', 'beneficiary', 'privacy.acknowledged'
         Route::post('/privacy/requests/correction', [\App\Http\Controllers\Portal\PortalPrivacyCorrectionRequestController::class, 'store'])
             ->middleware('throttle:privacy-request')
             ->name('privacy.requests.correction');
+        Route::post('/privacy/requests/export', [\App\Http\Controllers\Portal\PortalPrivacyExportRequestController::class, 'store'])
+            ->middleware('throttle:privacy-request')
+            ->name('privacy.requests.export');
+        Route::post('/privacy/exports/{privacyExportFile}/download', [\App\Http\Controllers\Portal\PortalPrivacyExportDownloadController::class, 'store'])
+            ->middleware('throttle:privacy-export-download')
+            ->name('privacy.exports.download');
         Route::post('/privacy/requests/{privacyRequest}/cancel', [\App\Http\Controllers\Portal\PortalPrivacyRequestCancelController::class, 'store'])
             ->name('privacy.requests.cancel');
 
