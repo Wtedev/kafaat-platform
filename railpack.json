@@ -4,6 +4,6 @@
     "buildCommand": "rm -rf node_modules/.cache node_modules/.vite 2>/dev/null || true && npm ci && npm run build"
   },
   "deploy": {
-    "startCommand": "bash railway/run-web.sh"
+    "startCommand": "bash railway/start.sh"
   }
 }
