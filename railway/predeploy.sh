@@ -14,5 +14,6 @@ fi
 
 php artisan optimize:clear
 php artisan migrate --force
+php artisan db:seed --class=PrivacyPolicySeeder --force
 php artisan db:seed --class=RolesAndPermissionsSeeder --force
 php artisan permission:cache-reset
