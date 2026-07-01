@@ -17,3 +17,4 @@ php artisan migrate --force
 php artisan db:seed --class=PrivacyPolicySeeder --force
 php artisan db:seed --class=RolesAndPermissionsSeeder --force
 php artisan permission:cache-reset
+php artisan cache:clear

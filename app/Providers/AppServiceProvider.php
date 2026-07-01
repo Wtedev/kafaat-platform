@@ -47,6 +47,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -137,7 +138,14 @@ class AppServiceProvider extends ServiceProvider
             session()->put('otp_verified', false);
 
             if (method_exists($user, 'sendEmailVerificationNotification')) {
-                $user->sendEmailVerificationNotification();
+                try {
+                    $user->sendEmailVerificationNotification();
+                } catch (\Throwable $exception) {
+                    Log::error('otp.send_failed', [
+                        'user_id' => $user->getAuthIdentifier(),
+                        'message' => $exception->getMessage(),
+                    ]);
+                }
             }
         });
     }
