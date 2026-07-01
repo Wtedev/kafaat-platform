@@ -5,6 +5,6 @@ set -euo pipefail
 php artisan optimize:clear
 
 while true; do
-  php artisan schedule:run --no-interaction
+  php artisan schedule:run --no-interaction || true
   sleep 60
 done

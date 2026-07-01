@@ -15,12 +15,15 @@ fi
 
 case "$mode" in
   worker)
+    echo "Railway start: worker (queue)" >&2
     exec bash railway/run-worker.sh
     ;;
   scheduler)
+    echo "Railway start: scheduler loop" >&2
     exec bash railway/run-scheduler.sh
     ;;
   web)
+    echo "Railway start: web" >&2
     bash railway/predeploy.sh
     exec bash railway/run-web.sh
     ;;
