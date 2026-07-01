@@ -2,6 +2,8 @@
 # Dedicated queue worker for Railway (persistent service, no public domain).
 set -euo pipefail
 
+php artisan optimize:clear
+
 exec php artisan queue:work \
   --queue=default \
   --sleep=3 \

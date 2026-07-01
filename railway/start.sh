@@ -14,8 +14,7 @@ case "${RAILWAY_SERVICE_NAME:-}" in
     exec bash railway/run-web.sh
     ;;
   *)
-    echo "Unknown RAILWAY_SERVICE_NAME=${RAILWAY_SERVICE_NAME:-<unset>}; defaulting to web." >&2
-    bash railway/predeploy.sh
-    exec bash railway/run-web.sh
+    echo "FATAL: Unknown RAILWAY_SERVICE_NAME=${RAILWAY_SERVICE_NAME:-<unset>}" >&2
+    exit 1
     ;;
 esac
