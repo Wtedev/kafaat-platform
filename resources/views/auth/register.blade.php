@@ -1,15 +1,20 @@
 @extends('layouts.auth')
 @section('title', 'إنشاء حساب')
+@section('container_width', 'max-w-2xl')
 @section('content')
 
-<h1 class="text-xl font-bold text-gray-900 text-center mb-6">إنشاء حساب جديد</h1>
+<div class="mb-6 text-center">
+    <h1 class="text-2xl font-bold text-gray-900">إنشاء حساب جديد</h1>
+    <p class="mt-2 text-sm text-gray-500">أدخل بياناتك الرسمية لإنشاء حساب مستفيد في منصة كفاءات.</p>
+</div>
 
-<form method="POST" action="{{ route('register') }}" novalidate>
+<form method="POST" action="{{ route('register') }}" novalidate class="space-y-5">
     @csrf
 
     @if ($errors->any())
-    <div class="mb-4 rounded-xl {{ config('brand.classes.alert_danger') }} px-4 py-3 text-sm">
-        <ul class="list-disc list-inside space-y-1">
+    <div class="rounded-xl {{ config('brand.classes.alert_danger') }} px-4 py-3 text-sm">
+        <p class="mb-2 font-semibold">يرجى تصحيح الأخطاء التالية:</p>
+        <ul class="list-inside list-disc space-y-1">
             @foreach ($errors->all() as $error)
             <li>{{ $error }}</li>
             @endforeach
@@ -17,63 +22,84 @@
     </div>
     @endif
 
-    <div class="space-y-6">
-        <div>
-            <h2 class="mb-3 text-sm font-bold text-gray-800">الاسم الرباعي</h2>
-            <x-portal-identity-form-fields />
-        </div>
-
-        <div>
-            <h2 class="mb-3 text-sm font-bold text-gray-800">بيانات الحساب</h2>
-            <div class="grid gap-4 sm:grid-cols-2">
-                <div class="sm:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">البريد الإلكتروني</label>
-                    <input type="email" name="email" value="{{ old('email') }}" required dir="ltr"
-                        class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/25 @error('email') border-brand-danger @enderror" />
-                    @error('email') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">كلمة المرور</label>
-                    <input type="password" name="password" required
-                        class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/25" />
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">تأكيد كلمة المرور</label>
-                    <input type="password" name="password_confirmation" required
-                        class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/25" />
-                </div>
+    <section class="rounded-2xl border border-gray-100 bg-[#F8FAFC]/80 p-5 sm:p-6">
+        <div class="mb-4 flex items-center gap-3 border-b border-gray-100 pb-3">
+            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand/10 text-sm font-bold text-brand">١</span>
+            <div>
+                <h2 class="text-sm font-bold text-gray-900">الاسم الرباعي</h2>
+                <p class="text-xs text-gray-500">كما هو في الهوية الرسمية</p>
             </div>
         </div>
-    </div>
+        <x-portal-identity-form-fields layout="sectioned" section="names" />
+    </section>
 
-    <p class="mt-4 text-xs text-gray-400">
+    <section class="rounded-2xl border border-gray-100 bg-[#F8FAFC]/80 p-5 sm:p-6">
+        <div class="mb-4 flex items-center gap-3 border-b border-gray-100 pb-3">
+            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand/10 text-sm font-bold text-brand">٢</span>
+            <div>
+                <h2 class="text-sm font-bold text-gray-900">الهوية والتواصل</h2>
+                <p class="text-xs text-gray-500">للتحقق من الحساب والتواصل معك</p>
+            </div>
+        </div>
+        <x-portal-identity-form-fields layout="sectioned" section="identity-contact" />
+    </section>
+
+    <section class="rounded-2xl border border-gray-100 bg-[#F8FAFC]/80 p-5 sm:p-6">
+        <div class="mb-4 flex items-center gap-3 border-b border-gray-100 pb-3">
+            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand/10 text-sm font-bold text-brand">٣</span>
+            <div>
+                <h2 class="text-sm font-bold text-gray-900">بيانات الحساب</h2>
+                <p class="text-xs text-gray-500">البريد الإلكتروني وكلمة المرور</p>
+            </div>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+                <label class="mb-1.5 block text-sm font-medium text-gray-700">البريد الإلكتروني <span class="text-brand-danger">*</span></label>
+                <input type="email" name="email" value="{{ old('email') }}" required dir="ltr" autocomplete="email"
+                    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/25 @error('email') border-brand-danger @enderror" />
+                @error('email') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label class="mb-1.5 block text-sm font-medium text-gray-700">كلمة المرور <span class="text-brand-danger">*</span></label>
+                <input type="password" name="password" required autocomplete="new-password"
+                    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/25 @error('password') border-brand-danger @enderror" />
+                @error('password') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label class="mb-1.5 block text-sm font-medium text-gray-700">تأكيد كلمة المرور <span class="text-brand-danger">*</span></label>
+                <input type="password" name="password_confirmation" required autocomplete="new-password"
+                    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/25" />
+            </div>
+        </div>
+    </section>
+
+    <p class="rounded-xl border border-gray-100 bg-white px-4 py-3 text-xs leading-relaxed text-gray-500">
         يُنشأ الحساب تلقائياً كحساب مستفيد. تاريخ الميلاد يُستخدم كبيان شخصي فقط ولا يؤثر على أهلية البرامج.
     </p>
 
     @isset($privacyPolicy)
-    <div class="mt-6 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+    <section class="rounded-2xl border border-gray-100 bg-white p-5">
         <input type="hidden" name="privacy_policy_version" value="{{ $privacyPolicy->version }}" />
-        <label class="flex items-start gap-3 cursor-pointer">
+        <label class="flex cursor-pointer items-start gap-3">
             <input type="checkbox" name="privacy_policy_acknowledged" value="1" required
                 class="mt-1 rounded border-gray-300 text-brand focus:ring-brand/25" />
-            <span class="text-sm text-gray-700">
+            <span class="text-sm leading-relaxed text-gray-700">
                 {{ $acknowledgementText }}
-                <a href="{{ route('public.privacy') }}" target="_blank" rel="noopener noreferrer" class="text-brand font-medium hover:underline">(الإصدار {{ $privacyPolicy->version }})</a>
+                <a href="{{ route('public.privacy') }}" target="_blank" rel="noopener noreferrer" class="font-medium text-brand hover:underline">(الإصدار {{ $privacyPolicy->version }})</a>
             </span>
         </label>
         @error('privacy_policy_acknowledged') <p class="mt-2 text-xs text-brand-danger">{{ $message }}</p> @enderror
-    </div>
+    </section>
     @endisset
 
-    <button type="submit" class="mt-5 w-full py-3 rounded-xl bg-brand text-white font-semibold text-sm hover:opacity-95 transition">
+    <button type="submit" class="w-full rounded-xl bg-brand py-3.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95">
         إنشاء الحساب
     </button>
-
 </form>
 
 <p class="mt-6 text-center text-sm text-gray-500">
     لديك حساب بالفعل؟
-    <a href="{{ route('login') }}" class="text-brand font-medium hover:underline">تسجيل الدخول</a>
+    <a href="{{ route('login') }}" class="font-medium text-brand hover:underline">تسجيل الدخول</a>
 </p>
 
 @endsection

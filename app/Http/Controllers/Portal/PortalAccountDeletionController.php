@@ -41,6 +41,8 @@ class PortalAccountDeletionController extends Controller
             $request,
         );
 
-        return back()->with('success', 'تم تقديم طلب حذف حسابك. سيراجعه فريق الخصوصية قبل أي تنفيذ.');
+        return redirect()
+            ->route('portal.profile')
+            ->with('success', 'تم تقديم طلب حذف حسابك. سيراجعه فريق الخصوصية قبل أي تنفيذ.');
     }
 }

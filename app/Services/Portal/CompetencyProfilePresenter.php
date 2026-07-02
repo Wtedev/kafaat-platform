@@ -9,6 +9,8 @@ use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
+use App\Services\CandidatePool\CandidatePoolConsentService;
+use App\Services\CandidatePool\CandidatePoolConsentVersionService;
 
 final class CompetencyProfilePresenter
 {
@@ -20,6 +22,7 @@ final class CompetencyProfilePresenter
         $user->load([
             'profile',
             'profileRecommendations',
+            'candidatePoolPreference',
         ]);
 
         $completedPaths = $user->learningPathRegistrations()
@@ -85,6 +88,9 @@ final class CompetencyProfilePresenter
             'cvLabels' => $labels,
             'mergedExperience' => $mergedExperience,
             'mergedCourses' => $mergedCourses,
+            'employmentConsentGranted' => $user->candidatePoolPreference?->current_status?->value === 'granted',
+            'employmentConsentAvailable' => CandidatePoolConsentVersionService::activeVersion() !== null,
+            'employmentConsentText' => app(CandidatePoolConsentService::class)->consentText(),
         ];
     }
 

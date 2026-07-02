@@ -12,6 +12,7 @@ use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\SeedsActivePrivacyPolicy;
@@ -34,6 +35,10 @@ class PrivacyIdorTest extends TestCase
 
     public function test_user_cannot_download_another_users_export(): void
     {
+        if (! Route::has('portal.privacy.exports.download')) {
+            $this->markTestSkipped('Portal privacy export download route was removed from the portal.');
+        }
+
         $owner = $this->makeBeneficiary('owner-export@example.com');
         $attacker = $this->makeBeneficiary('attacker-export@example.com');
 

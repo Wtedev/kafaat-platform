@@ -24,6 +24,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\GeneratesTestIdentityData;
 use Tests\Concerns\SeedsActivePrivacyPolicy;
@@ -41,6 +42,11 @@ class PrivacyCenterTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        if (! Route::has('portal.privacy')) {
+            $this->markTestSkipped('Portal privacy center routes were removed from the portal.');
+        }
+
         $this->seedRbacRoles();
         $this->seedActivePrivacyPolicy();
         $this->seed(RetentionPolicySeeder::class);

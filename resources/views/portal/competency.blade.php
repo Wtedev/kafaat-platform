@@ -24,10 +24,6 @@
     @include('portal.competency.partials.hero')
     @include('portal.competency.partials.sections-builder')
 
-    <p class="mb-8 text-center text-xs text-gray-400">
-        <a href="{{ route('public.privacy') }}" class="hover:text-brand hover:underline">سياسة الخصوصية</a>
-    </p>
-
     @php $cvL = $cvLabels ?? []; $platVis = $profile?->cvSectionVisible('platform') ?? true; @endphp
     <section class="mb-5 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
         <div class="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-gray-50 pb-3">
@@ -114,5 +110,31 @@
         @endforelse
         @endif
     </section>
+
+    @if ($employmentConsentAvailable ?? false)
+    <section class="mb-8 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
+        <h2 class="mb-2 text-lg font-bold text-gray-900">مشاركة البيانات لغرض التوظيف</h2>
+        <p class="mb-4 text-sm leading-relaxed text-gray-600">{{ $employmentConsentText }}</p>
+
+        <form method="POST" action="{{ route('portal.competency.employment-consent') }}" class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-4">
+            @csrf
+            <label class="flex cursor-pointer items-start gap-3">
+                <input type="checkbox" name="employment_consent" value="1"
+                    @checked(old('employment_consent', $employmentConsentGranted ?? false))
+                    class="mt-1 rounded border-gray-300 text-brand focus:ring-brand/25" />
+                <span class="text-sm text-gray-800">{{ config('candidate_pool.employment_consent_checkbox_label') }}</span>
+            </label>
+            @error('employment_consent') <p class="mt-2 text-xs text-brand-danger">{{ $message }}</p> @enderror
+            <p class="mt-3 text-xs text-gray-500">يمكنك سحب الموافقة في أي وقت بإلغاء التحديد ثم الضغط على حفظ.</p>
+            <button type="submit" class="mt-4 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-95">
+                حفظ اختيار المشاركة
+            </button>
+        </form>
+    </section>
+    @endif
+
+    <p class="mb-8 text-center text-xs text-gray-400">
+        <a href="{{ route('public.privacy') }}" class="hover:text-brand hover:underline">سياسة الخصوصية</a>
+    </p>
 </div>
 @endsection

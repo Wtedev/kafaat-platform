@@ -19,6 +19,7 @@ use Database\Seeders\RetentionPolicySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
@@ -37,6 +38,11 @@ class PersonalDataExportTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        if (! Route::has('portal.privacy')) {
+            $this->markTestSkipped('Portal privacy center routes were removed from the portal.');
+        }
+
         $this->seedRbacRoles();
         $this->seedActivePrivacyPolicy();
         $this->seed(RetentionPolicySeeder::class);

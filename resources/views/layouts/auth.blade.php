@@ -21,7 +21,7 @@
 </head>
 <body class="min-h-screen antialiased font-sans flex items-center justify-center py-12 px-4" style="background: linear-gradient(150deg, #EEF5FB 0%, #F3F7FB 55%, #e9eff6 100%)">
 
-    <div class="w-full max-w-md">
+    <div class="w-full @yield('container_width', 'max-w-md')">
 
         {{-- Logo --}}
         <div class="text-center mb-8">

@@ -72,7 +72,7 @@ final class PrivacyRequestNotificationService
                 message: $message,
                 senderId: null,
                 targetType: NotificationTargetType::SingleUser,
-                context: ['portal_route' => 'portal.privacy'],
+                context: ['portal_route' => 'portal.profile'],
                 emailable: true,
             ),
             [$user->id],

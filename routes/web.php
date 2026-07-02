@@ -177,6 +177,8 @@ Route::middleware(['auth', 'otp.verified', 'beneficiary', 'privacy.acknowledged'
 
         Route::get('/competency', [PortalCompetencyController::class, 'show'])->name('competency');
         Route::patch('/competency', [PortalCompetencyController::class, 'update'])->name('competency.update');
+        Route::post('/competency/employment-consent', [\App\Http\Controllers\Portal\PortalCompetencyEmploymentConsentController::class, 'update'])
+            ->name('competency.employment-consent');
         Route::get('/competency/export-pdf', PortalCompetencyExportController::class)->name('competency.export-pdf');
 
         Route::post('/competency/cv', [PortalCvDocumentController::class, 'store'])->name('competency.cv.store');
@@ -198,22 +200,5 @@ Route::middleware(['auth', 'otp.verified', 'beneficiary', 'privacy.acknowledged'
 
         Route::post('/account-deletion', [\App\Http\Controllers\Portal\PortalAccountDeletionController::class, 'store'])
             ->name('account-deletion.store');
-
-        Route::get('/privacy', [\App\Http\Controllers\Portal\PortalPrivacyCenterController::class, 'show'])
-            ->name('privacy');
-        Route::post('/privacy/requests/access', [\App\Http\Controllers\Portal\PortalPrivacyAccessRequestController::class, 'store'])
-            ->middleware('throttle:privacy-request')
-            ->name('privacy.requests.access');
-        Route::post('/privacy/requests/correction', [\App\Http\Controllers\Portal\PortalPrivacyCorrectionRequestController::class, 'store'])
-            ->middleware('throttle:privacy-request')
-            ->name('privacy.requests.correction');
-        Route::post('/privacy/requests/export', [\App\Http\Controllers\Portal\PortalPrivacyExportRequestController::class, 'store'])
-            ->middleware('throttle:privacy-request')
-            ->name('privacy.requests.export');
-        Route::post('/privacy/exports/{privacyExportFile}/download', [\App\Http\Controllers\Portal\PortalPrivacyExportDownloadController::class, 'store'])
-            ->middleware('throttle:privacy-export-download')
-            ->name('privacy.exports.download');
-        Route::post('/privacy/requests/{privacyRequest}/cancel', [\App\Http\Controllers\Portal\PortalPrivacyRequestCancelController::class, 'store'])
-            ->name('privacy.requests.cancel');
 
     });
