@@ -64,7 +64,7 @@ $meta = collect([
         </div>
 
         <div class="min-w-0 flex-1 text-right">
-            <h1 class="truncate text-lg font-bold tracking-tight text-gray-900 sm:text-xl">{{ $user->name }}</h1>
+            <h2 class="truncate text-lg font-bold tracking-tight text-gray-900 sm:text-xl">{{ $user->name }}</h2>
 
             @if ($jobTitle !== '')
             <p class="mt-1 text-sm font-semibold text-[#335483]">{{ $jobTitle }}</p>

@@ -1,5 +1,5 @@
 @extends('layouts.portal')
-@section('title', 'الكفاءة — ملفي المهني')
+@section('title', 'الكفاءة')
 
 @section('content')
 <style>
@@ -10,6 +10,11 @@
 </style>
 
 <div class="mx-auto max-w-4xl">
+    <section class="mb-6 text-right">
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">الكفاءة</h1>
+        <p class="mt-2 max-w-2xl text-sm leading-relaxed text-gray-600">ملفك المهني — أضف خبراتك ومؤهلاتك، وادمج إنجازاتك من المنصة، ثم صدّر سيرتك بصيغة PDF.</p>
+    </section>
+
     @if ($errors->any())
     <div class="mb-5 rounded-2xl {{ config('brand.classes.alert_danger') }}">
         <ul class="list-inside list-disc space-y-1 text-right">

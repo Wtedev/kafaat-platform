@@ -1,34 +1,45 @@
 @props([
     'align' => 'end',
+    'variant' => 'default',
 ])
 
 @php
 $u = auth()->user();
 $p = $u->profile;
 $avatarUrl = $p?->avatarUrl();
-$initials = \App\Models\Profile::initialsFromName($u->name);
+$displayName = $u->fullName();
+$initials = \App\Models\Profile::initialsFromName($displayName);
 $settingsActive = request()->routeIs('portal.settings*', 'portal.notifications.settings');
 $profileActive = request()->routeIs('portal.settings.profile', 'portal.profile');
 $passwordActive = request()->routeIs('portal.settings.password');
+$isToolbar = $variant === 'toolbar';
+$triggerClass = $isToolbar
+    ? 'inline-flex h-9 max-w-[11rem] items-center gap-1.5 rounded-xl px-1.5 transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#335483]/25 sm:max-w-[12rem] sm:ps-2 sm:pe-2.5'
+    : 'inline-flex h-10 w-10 items-center justify-center rounded-xl border border-transparent transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#335483]/25 sm:h-auto sm:w-auto sm:max-w-none sm:gap-2 sm:border-slate-200/70 sm:bg-white sm:px-2 sm:py-1.5 sm:shadow-sm';
 @endphp
 
 <div {{ $attributes->class('relative shrink-0') }} data-portal-profile-menu>
     <button
         type="button"
-        class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-transparent transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#335483]/25 sm:h-auto sm:w-auto sm:gap-2 sm:border-slate-200/70 sm:bg-white sm:px-2 sm:py-1.5 sm:shadow-sm"
+        class="{{ $triggerClass }}"
         aria-haspopup="menu"
         aria-expanded="false"
         data-portal-profile-menu-trigger
         aria-label="قائمة الحساب"
     >
-        <span class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#335483] text-[11px] font-bold text-white sm:rounded-xl">
+        <span class="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#335483] text-[10px] font-bold text-white sm:h-8 sm:w-8 sm:rounded-xl sm:text-[11px]">
             @if ($avatarUrl)
             <img src="{{ $avatarUrl }}" alt="" class="h-full w-full object-cover" />
             @else
             {{ $initials }}
             @endif
         </span>
+        @if ($isToolbar)
+        <span class="hidden min-w-0 truncate text-xs font-semibold text-slate-700 sm:inline">{{ $displayName }}</span>
+        <svg class="hidden h-3.5 w-3.5 shrink-0 text-slate-400 sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        @else
         <svg class="hidden h-3.5 w-3.5 shrink-0 text-slate-400 md:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        @endif
     </button>
 
     <div
@@ -37,7 +48,7 @@ $passwordActive = request()->routeIs('portal.settings.password');
         data-portal-profile-menu-panel
     >
         <div class="border-b border-slate-100 px-4 py-3">
-            <p class="truncate text-sm font-semibold text-gray-900">{{ $u->name }}</p>
+            <p class="truncate text-sm font-semibold text-gray-900">{{ $displayName }}</p>
             <p class="mt-0.5 truncate text-xs text-gray-500" dir="ltr">{{ $u->email }}</p>
         </div>
 

@@ -55,11 +55,7 @@ $showIdentityContact = ! $sectioned || $section === 'identity-contact';
     <div class="grid gap-4 sm:grid-cols-2">
         @if ($showIdentityFields)
             @if ($identityLocked)
-                <div class="sm:col-span-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
-                    <p class="font-medium text-gray-800">رقم الهوية / الإقامة</p>
-                    <p class="mt-1">{{ auth()->user()?->maskedIdentityNumber() ?? '—' }}</p>
-                    <p class="mt-2 text-xs text-gray-500">لتعديل رقم الهوية بعد تسجيله، يرجى التواصل مع الدعم.</p>
-                </div>
+                <x-portal.identity-locked-fields :label-class="$labelClass" />
             @else
                 <div>
                     <label class="{{ $labelClass }}">نوع الهوية <span class="text-brand-danger">*</span></label>
@@ -123,11 +119,7 @@ $showIdentityContact = ! $sectioned || $section === 'identity-contact';
 
     @if ($showIdentityFields)
         @if ($identityLocked)
-            <div class="sm:col-span-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
-                <p class="font-medium text-gray-800">رقم الهوية / الإقامة</p>
-                <p class="mt-1">{{ auth()->user()?->maskedIdentityNumber() ?? '—' }}</p>
-                <p class="mt-2 text-xs text-gray-500">لتعديل رقم الهوية بعد تسجيله، يرجى التواصل مع الدعم.</p>
-            </div>
+            <x-portal.identity-locked-fields :label-class="$labelClass" />
         @else
             <div>
                 <label class="{{ $labelClass }}">نوع الهوية <span class="text-brand-danger">*</span></label>

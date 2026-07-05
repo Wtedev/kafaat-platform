@@ -18,17 +18,29 @@ $p = $user->profile;
 
     <x-portal.settings-card class="mb-4">
         <p class="border-b border-slate-100 px-4 py-2.5 text-[11px] font-semibold text-slate-400 sm:px-5">الصورة الشخصية</p>
-        <div class="flex flex-col items-center gap-4 px-4 py-4 sm:flex-row sm:items-start sm:px-5 sm:py-5">
-            <div class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 text-lg font-bold text-slate-600 sm:h-24 sm:w-24">
-                @if ($p?->avatarUrl())
-                <img src="{{ $p->avatarUrl() }}" alt="" class="h-full w-full object-cover" />
-                @else
-                {{ \App\Models\Profile::initialsFromName($user->fullName()) }}
-                @endif
+        <div class="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:gap-5 sm:px-5 sm:py-5">
+            <div class="flex shrink-0 justify-center sm:justify-start">
+                <div class="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 ring-2 ring-white ring-offset-2 ring-offset-slate-100 sm:h-24 sm:w-24">
+                    @if ($p?->avatarUrl())
+                    <img id="avatar-preview-img" src="{{ $p->avatarUrl() }}" alt="" class="h-full w-full object-cover" />
+                    @else
+                    <span id="avatar-preview-initials" class="text-lg font-bold text-slate-600">{{ \App\Models\Profile::initialsFromName($user->fullName()) }}</span>
+                    <img id="avatar-preview-img" src="" alt="" class="hidden h-full w-full object-cover" />
+                    @endif
+                </div>
             </div>
             <div class="min-w-0 flex-1 text-center sm:text-right">
-                <label class="mb-2 block text-xs font-medium text-gray-600">رفع أو تغيير الصورة</label>
-                <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif" class="w-full text-sm text-gray-600 file:me-3 file:rounded-lg file:border-0 file:bg-[#e9eff6] file:px-3 file:py-2 file:text-xs file:font-semibold file:text-[#335483]" />
+                <p class="text-sm font-medium text-slate-800">صورتك في المنصة</p>
+                <p class="mt-1 text-xs leading-relaxed text-slate-500">
+                    تُعرض في ملفك الشخصي وقائمة حسابك. الصيغ المدعومة: JPG، PNG، WebP — بحد أقصى 2 م.ب.
+                </p>
+                <div class="mt-3 flex flex-col items-center gap-2 sm:flex-row sm:items-center">
+                    <label for="avatar-input" class="inline-flex cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-[#335483] shadow-sm transition hover:border-[#335483]/20 hover:bg-slate-50">
+                        {{ $p?->avatarUrl() ? 'استبدال الصورة' : 'رفع صورة' }}
+                    </label>
+                    <span id="avatar-file-name" class="hidden truncate text-xs text-slate-500"></span>
+                </div>
+                <input id="avatar-input" type="file" name="avatar" accept="image/jpeg,image/png,image/webp" class="sr-only" />
                 @error('avatar') <p class="mt-2 text-xs text-brand-danger">{{ $message }}</p> @enderror
             </div>
         </div>
@@ -76,3 +88,31 @@ $p = $user->profile;
         </button>
     </div>
 </form>
+
+@push('scripts')
+<script>
+(function () {
+    var input = document.getElementById('avatar-input');
+    var fileName = document.getElementById('avatar-file-name');
+    var previewImg = document.getElementById('avatar-preview-img');
+    var initials = document.getElementById('avatar-preview-initials');
+    if (!input) return;
+
+    input.addEventListener('change', function () {
+        var file = input.files && input.files[0];
+        if (!file) return;
+
+        if (fileName) {
+            fileName.textContent = 'الملف: ' + file.name;
+            fileName.classList.remove('hidden');
+        }
+
+        if (previewImg && file.type.indexOf('image/') === 0) {
+            previewImg.src = URL.createObjectURL(file);
+            previewImg.classList.remove('hidden');
+            if (initials) initials.classList.add('hidden');
+        }
+    });
+})();
+</script>
+@endpush
