@@ -73,10 +73,6 @@
         </div>
     </section>
 
-    <p class="rounded-xl border border-gray-100 bg-white px-4 py-3 text-xs leading-relaxed text-gray-500">
-        يُنشأ الحساب تلقائياً كحساب مستفيد. تاريخ الميلاد يُستخدم كبيان شخصي فقط ولا يؤثر على أهلية البرامج.
-    </p>
-
     @isset($privacyPolicy)
     <section class="rounded-2xl border border-gray-100 bg-white p-5">
         <input type="hidden" name="privacy_policy_version" value="{{ $privacyPolicy->version }}" />

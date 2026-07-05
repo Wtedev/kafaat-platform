@@ -12,9 +12,6 @@
         <h1 class="text-3xl sm:text-4xl font-bold mb-3" style="color:#111827">{{ $policy->title }}</h1>
         <p class="text-sm" style="color:#9CA3AF">
             الإصدار {{ $policy->version }}
-            @if ($policy->effective_at)
-            · سريان: {{ $policy->effective_at->translatedFormat('j F Y') }}
-            @endif
             @if ($policy->published_at)
             · نشر: {{ $policy->published_at->translatedFormat('j F Y') }}
             @endif

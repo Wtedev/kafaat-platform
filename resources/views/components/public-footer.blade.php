@@ -31,7 +31,7 @@
                 <p class="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-gray-400 sm:mx-0 sm:max-w-none">
                     {{ $site['brand_summary'] ?? '' }}
                 </p>
-                <div class="mt-5 flex flex-wrap items-center justify-center gap-2.5 sm:justify-end">
+                <div class="mt-5 flex flex-wrap items-center justify-center gap-2.5 sm:justify-start">
                     @foreach($site['social'] ?? [] as $social)
                         <a
                             href="{{ $social['url'] }}"
@@ -270,18 +270,18 @@
     @endonce
     <script>
         (function () {
-            if (window.__kafaatFooterMapInit) return;
-            window.__kafaatFooterMapInit = true;
-
             function startMap() {
                 var el = document.getElementById('kafaat-footer-map');
                 if (!el || el.getAttribute('data-map-ready') === '1') return;
-                if (typeof L === 'undefined') return;
+                if (typeof L === 'undefined') {
+                    window.setTimeout(startMap, 150);
+                    return;
+                }
 
                 var lat = parseFloat(el.getAttribute('data-lat') || '0');
                 var lng = parseFloat(el.getAttribute('data-lng') || '0');
                 var zoom = parseInt(el.getAttribute('data-zoom') || '16', 10);
-                if (!lat || !lng) return;
+                if (Number.isNaN(lat) || Number.isNaN(lng)) return;
 
                 el.setAttribute('data-map-ready', '1');
 
@@ -311,24 +311,34 @@
                 window.addEventListener('resize', function () { map.invalidateSize(); });
             }
 
-            if ('IntersectionObserver' in window) {
+            function observeMap() {
                 var el = document.getElementById('kafaat-footer-map');
                 if (!el) return;
-                var io = new IntersectionObserver(function (entries) {
-                    entries.forEach(function (entry) {
-                        if (entry.isIntersecting) {
-                            startMap();
-                            io.disconnect();
-                        }
-                    });
-                }, { rootMargin: '80px', threshold: 0.05 });
-                io.observe(el);
-            } else {
+
+                if ('IntersectionObserver' in window) {
+                    var io = new IntersectionObserver(function (entries) {
+                        entries.forEach(function (entry) {
+                            if (entry.isIntersecting) {
+                                startMap();
+                                io.disconnect();
+                            }
+                        });
+                    }, { rootMargin: '80px', threshold: 0.05 });
+                    io.observe(el);
+                    return;
+                }
+
                 if (document.readyState === 'loading') {
                     document.addEventListener('DOMContentLoaded', startMap);
                 } else {
                     startMap();
                 }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', observeMap);
+            } else {
+                observeMap();
             }
         })();
     </script>
