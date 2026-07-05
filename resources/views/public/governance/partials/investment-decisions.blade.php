@@ -38,24 +38,9 @@
                     </p>
                 </div>
             </div>
-            <div class="flex shrink-0 items-center gap-2">
-                @if ($fileUrl)
-                <a href="{{ $fileUrl }}"
-                   download="{{ $downloadName }}"
-                   target="_blank"
-                   rel="noopener noreferrer"
-                   class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-all hover:-translate-y-0.5"
-                   style="background:#335483; color:#fff"
-                   onclick="event.stopPropagation()"
-                   aria-label="تحميل {{ $yearRecord->title }}">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    تحميل
-                </a>
-                @endif
-                <span class="flex h-8 w-8 items-center justify-center rounded-lg transition-transform group-open:rotate-180" style="background:#F3F4F6; color:#6B7280">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </span>
-            </div>
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform group-open:rotate-180" style="background:#F3F4F6; color:#6B7280">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </span>
         </summary>
 
         <div class="border-t border-gray-100 px-5 py-5">
