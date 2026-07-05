@@ -124,14 +124,6 @@
                             <svg class="h-4 w-4 text-[#1a9399]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                         </span>
                     </li>
-                    @if(filled($site['website_url'] ?? null))
-                    <li class="flex flex-wrap items-center justify-center gap-2 sm:flex-nowrap sm:justify-end">
-                        <a href="{{ $site['website_url'] }}" class="min-w-0 font-medium text-gray-200 transition-colors hover:text-white" dir="ltr">{{ parse_url($site['website_url'], PHP_URL_HOST) ?: $site['website_url'] }}</a>
-                        <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5" aria-hidden="true">
-                            <svg class="h-4 w-4 text-[#1a9399]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
-                        </span>
-                    </li>
-                    @endif
                 </ul>
             </div>
         </div>
@@ -213,7 +205,7 @@
         {{-- Bottom bar --}}
         <div class="mt-14 border-t border-white/10 pt-8">
             @if($hasLicense)
-            <div class="mb-8 flex justify-center sm:justify-end">
+            <div class="mb-8 flex justify-center sm:justify-start">
                 <div class="flex w-full max-w-xl items-center gap-3 rounded-2xl border border-white/10 bg-gradient-to-l from-white/[0.06] to-white/[0.02] p-3.5 shadow-inner sm:gap-4 sm:p-4">
                     <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#1a9399]/25 bg-[#1a9399]/10 text-[#1a9399]" aria-hidden="true">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
