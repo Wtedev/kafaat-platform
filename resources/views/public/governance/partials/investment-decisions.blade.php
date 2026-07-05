@@ -16,6 +16,7 @@
     @php
         $items = $yearRecord->activeItems;
         $fileUrl = $yearRecord->filePublicUrl();
+        $downloadName = 'قرارات-استثمار-'.en_num($yearRecord->year).'.pdf';
         $isOpen = $loop->first;
     @endphp
     <details class="inv-year-card group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm" {{ $isOpen ? 'open' : '' }}>
@@ -40,13 +41,15 @@
             <div class="flex shrink-0 items-center gap-2">
                 @if ($fileUrl)
                 <a href="{{ $fileUrl }}"
+                   download="{{ $downloadName }}"
                    target="_blank"
                    rel="noopener noreferrer"
-                   class="hidden items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-all hover:-translate-y-0.5 sm:inline-flex"
-                   style="background:#e9eff6; color:#335483"
-                   onclick="event.stopPropagation()">
+                   class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-all hover:-translate-y-0.5"
+                   style="background:#335483; color:#fff"
+                   onclick="event.stopPropagation()"
+                   aria-label="تحميل {{ $yearRecord->title }}">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    المرفق
+                    تحميل
                 </a>
                 @endif
                 <span class="flex h-8 w-8 items-center justify-center rounded-lg transition-transform group-open:rotate-180" style="background:#F3F4F6; color:#6B7280">
@@ -75,14 +78,24 @@
             @endif
 
             @if ($fileUrl)
-            <div class="mt-5 flex flex-wrap gap-3 border-t border-gray-100 pt-4 sm:hidden">
+            <div class="mt-5 flex items-center justify-between gap-4 rounded-xl border border-gray-100 px-4 py-3.5 text-right" style="background:#F8FAFC">
+                <div class="flex min-w-0 items-center gap-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg" style="background:#e9eff6; color:#335483">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                    </span>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold" style="color:#111827">مرفق PDF</p>
+                        <p class="truncate text-xs" style="color:#9CA3AF">{{ $downloadName }}</p>
+                    </div>
+                </div>
                 <a href="{{ $fileUrl }}"
+                   download="{{ $downloadName }}"
                    target="_blank"
                    rel="noopener noreferrer"
-                   class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all hover:-translate-y-0.5"
-                   style="background:#e9eff6; color:#335483">
+                   class="inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all hover:-translate-y-0.5"
+                   style="background:#335483; color:#fff">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    تنزيل / عرض المرفق
+                    تحميل
                 </a>
             </div>
             @endif

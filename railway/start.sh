@@ -8,7 +8,7 @@ if [[ -z "$mode" ]]; then
   case "${RAILWAY_SERVICE_NAME:-}" in
     kafaat-worker-staging) mode=worker ;;
     kafaat-scheduler-staging) mode=scheduler ;;
-    kafaat-web-staging) mode=web ;;
+    kafaat-web-staging|kafaat-platform) mode=web ;;
     *) mode=unknown ;;
   esac
 fi
