@@ -14,6 +14,7 @@ class GovernanceContentSeeder extends Seeder
             StandingCommitteesSeeder::class,
             InvestmentDecisionsSeeder::class,
             GeneralAssemblyMinutesSeeder::class,
+            SurveysSeeder::class,
         ]);
     }
 }

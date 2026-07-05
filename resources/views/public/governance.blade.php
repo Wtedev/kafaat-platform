@@ -194,6 +194,8 @@ $tabs = array_merge([
         @include('public.governance.partials.investment-decisions', ['years' => $investmentDecisionYears])
     @elseif($type === 'general_assembly_minutes')
         @include('public.governance.partials.general-assembly-minutes', ['documents' => $documents[$type] ?? collect()])
+    @elseif($type === 'surveys')
+        @include('public.governance.partials.surveys', ['documents' => $documents[$type] ?? collect()])
     @else
     @php $docs = $documents[$type] ?? collect(); @endphp
     @if($docs->isEmpty())

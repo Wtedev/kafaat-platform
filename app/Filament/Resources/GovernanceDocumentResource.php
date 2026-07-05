@@ -82,7 +82,7 @@ class GovernanceDocumentResource extends Resource
 
                     Select::make('type')
                         ->label('النوع')
-                        ->options(collect(GovernanceDocument::TYPES)->except('investment_decisions'))
+                        ->options(collect(GovernanceDocument::TYPES)->except(['investment_decisions', 'surveys', 'general_assembly_minutes']))
                         ->required(),
 
                     DatePicker::make('document_date')
@@ -182,7 +182,7 @@ class GovernanceDocumentResource extends Resource
             ->filters([
                 SelectFilter::make('type')
                     ->label('النوع')
-                    ->options(collect(GovernanceDocument::TYPES)->except('investment_decisions')),
+                    ->options(collect(GovernanceDocument::TYPES)->except(['investment_decisions', 'surveys', 'general_assembly_minutes'])),
                 SelectFilter::make('is_active')
                     ->label('الحالة')
                     ->options([

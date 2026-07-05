@@ -3,11 +3,13 @@
 namespace Database\Seeders;
 
 use App\Models\InvestmentDecisionYear;
+use Database\Seeders\Concerns\PublishesGovernancePdf;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\File;
 
 class InvestmentDecisionsSeeder extends Seeder
 {
+    use PublishesGovernancePdf;
+
     /** @var list{array{year: int, items: list<string>, empty_message: ?string, pdf: ?string}>} */
     private const YEARS = [
         [
@@ -60,7 +62,7 @@ class InvestmentDecisionsSeeder extends Seeder
 
         foreach (self::YEARS as $index => $yearData) {
             $filePath = $yearData['pdf']
-                ? $this->publishPdf($yearData['pdf'])
+                ? $this->publishGovernancePdf('investment-decisions', $yearData['pdf'])
                 : null;
 
             $year = InvestmentDecisionYear::query()->updateOrCreate(
@@ -86,22 +88,5 @@ class InvestmentDecisionsSeeder extends Seeder
                 );
             }
         }
-    }
-
-    private function publishPdf(string $filename): ?string
-    {
-        $source = database_path('seeders/assets/investment-decisions/'.$filename);
-
-        if (! File::exists($source)) {
-            return null;
-        }
-
-        $relativePath = 'governance/investment-decisions/'.$filename;
-        $destination = storage_path('app/public/'.$relativePath);
-
-        File::ensureDirectoryExists(dirname($destination));
-        File::copy($source, $destination);
-
-        return $relativePath;
     }
 }

@@ -3,11 +3,13 @@
 namespace Database\Seeders;
 
 use App\Models\GovernanceDocument;
+use Database\Seeders\Concerns\PublishesGovernancePdf;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\File;
 
 class GeneralAssemblyMinutesSeeder extends Seeder
 {
+    use PublishesGovernancePdf;
+
     public const CATEGORY_REGULAR = 'regular';
 
     public const CATEGORY_EXTRAORDINARY = 'extraordinary';
@@ -96,7 +98,7 @@ class GeneralAssemblyMinutesSeeder extends Seeder
                 [
                     'type' => 'general_assembly_minutes',
                     'description' => $minute['category'],
-                    'file_path' => $this->publishPdf($minute['pdf']),
+                    'file_path' => $this->publishGovernancePdf('general-assembly-minutes', $minute['pdf']),
                     'file_url' => null,
                     'document_date' => $minute['document_date'],
                     'is_active' => true,
@@ -104,22 +106,5 @@ class GeneralAssemblyMinutesSeeder extends Seeder
                 ],
             );
         }
-    }
-
-    private function publishPdf(string $filename): ?string
-    {
-        $source = database_path('seeders/assets/general-assembly-minutes/'.$filename);
-
-        if (! File::exists($source)) {
-            return null;
-        }
-
-        $relativePath = 'governance/general-assembly-minutes/'.$filename;
-        $destination = storage_path('app/public/'.$relativePath);
-
-        File::ensureDirectoryExists(dirname($destination));
-        File::copy($source, $destination);
-
-        return $relativePath;
     }
 }

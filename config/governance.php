@@ -20,4 +20,14 @@ return [
         'other',
     ],
 
+    'survey_categories' => [
+        'general' => 'استطلاعات عامة',
+        'beneficiary_satisfaction' => 'قياس رضا المستفيدين',
+    ],
+
+    'survey_category_order' => [
+        'general',
+        'beneficiary_satisfaction',
+    ],
+
 ];
