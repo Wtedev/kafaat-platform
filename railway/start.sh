@@ -24,7 +24,6 @@ case "$mode" in
     ;;
   web)
     echo "Railway start: web" >&2
-    bash railway/predeploy.sh
     exec bash railway/run-web.sh
     ;;
   *)
