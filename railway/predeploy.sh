@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Web-only: migrations and permission seed (invoked from start.sh on kafaat-web-staging).
+# Web-only: migrations, permissions, and governance content (Railway preDeploy + staging web boot).
 set -euo pipefail
 
 if [[ "${RAILWAY_ENVIRONMENT_NAME:-}" == "staging" && "${APP_ENV:-}" != "staging" ]]; then

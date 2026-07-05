@@ -1,0 +1,7 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "deploy": {
+    "preDeployCommand": ["bash railway/predeploy.sh"],
+    "startCommand": "bash railway/start.sh"
+  }
+}
