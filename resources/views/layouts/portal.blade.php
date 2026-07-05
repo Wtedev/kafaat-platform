@@ -38,6 +38,8 @@
             color: #335483;
         }
     </style>
+
+    @stack('styles')
 </head>
 <body class="min-h-screen bg-[#F7FAFC] text-[#111827] antialiased font-sans">
 
@@ -222,6 +224,7 @@
         })();
     </script>
 
+    @stack('modals')
     @stack('scripts')
 </body>
 </html>

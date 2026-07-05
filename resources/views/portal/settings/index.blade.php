@@ -40,8 +40,33 @@
         </x-portal.settings-row>
     </x-portal.settings-card>
 </x-portal.settings-shell>
+@endsection
 
-<dialog id="delete-account-modal" class="w-[min(100%,24rem)] rounded-2xl border border-red-100 bg-white p-0 text-right shadow-xl backdrop:bg-black/40">
+@push('styles')
+<style>
+    #delete-account-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        margin: auto;
+        width: min(calc(100% - 2rem), 24rem);
+        max-height: calc(100vh - 2rem);
+        overflow: auto;
+        border: 1px solid #fecaca;
+        padding: 0;
+        border-radius: 1rem;
+        background: #fff;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    #delete-account-modal::backdrop {
+        background: rgba(15, 23, 42, 0.45);
+    }
+</style>
+@endpush
+
+@push('modals')
+<dialog id="delete-account-modal" class="text-right">
     <form method="POST" action="{{ route('portal.account-deletion.store') }}" class="p-5 sm:p-6" onsubmit="return confirm('هل أنت متأكد من طلب حذف حسابك؟');">
         @csrf
         <h2 class="text-base font-bold text-red-900">حذف الحساب</h2>
@@ -65,6 +90,7 @@
         </div>
     </form>
 </dialog>
+@endpush
 
 @push('scripts')
 <script>
@@ -87,4 +113,3 @@
 })();
 </script>
 @endpush
-@endsection
