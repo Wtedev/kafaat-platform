@@ -55,7 +55,7 @@
             </div>
 
             <div class="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-2 lg:gap-2.5">
-                @php $portalHeaderNotifActive = (request()->route()?->getName() ?? '') === 'portal.notifications'; @endphp
+                @php $portalHeaderNotifActive = in_array(request()->route()?->getName() ?? '', ['portal.notifications', 'portal.notifications.settings'], true); @endphp
                 <a
                     href="{{ route('portal.notifications') }}"
                     class="inline-flex h-11 min-w-[2.75rem] shrink-0 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#335483]/25 sm:h-auto sm:min-w-0 sm:justify-start sm:gap-2 sm:rounded-2xl sm:px-3.5 sm:py-2 {{ $portalHeaderNotifActive ? 'bg-white text-[#335483] shadow-[0_2px_12px_-2px_rgba(51,84,131,0.15)] ring-1 ring-slate-200/70' : 'text-slate-600 hover:bg-white/80 hover:text-[#335483] hover:shadow-sm hover:ring-1 hover:ring-slate-200/50' }}"
@@ -70,31 +70,8 @@
                     </span>
                     <span class="hidden sm:inline">التنبيهات</span>
                 </a>
-                @php $portalNotifSettingsActive = (request()->route()?->getName() ?? '') === 'portal.notifications.settings'; @endphp
-                <a
-                    href="{{ route('portal.notifications.settings') }}"
-                    class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#335483]/25 sm:h-auto sm:rounded-2xl sm:px-2.5 sm:py-2 {{ $portalNotifSettingsActive ? 'bg-white text-[#335483] shadow-[0_2px_12px_-2px_rgba(51,84,131,0.15)] ring-1 ring-slate-200/70' : 'text-slate-500 hover:bg-white/80 hover:text-[#335483] hover:shadow-sm hover:ring-1 hover:ring-slate-200/50' }}"
-                    aria-label="إعدادات التنبيهات"
-                    @if ($portalNotifSettingsActive) aria-current="page" @endif
-                >
-                    <svg class="h-[1.3rem] w-[1.3rem] sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                </a>
                 <x-portal.external-nav />
-                <div class="hidden min-w-0 items-center gap-2 sm:flex lg:hidden">
-                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white" style="background:#335483">
-                        {{ \App\Models\Profile::initialsFromName(auth()->user()->name) }}
-                    </div>
-                    <span class="max-w-[8rem] truncate text-xs font-medium text-gray-800 sm:max-w-[10rem] sm:text-sm">{{ auth()->user()->name }}</span>
-                </div>
-                <form method="POST" action="{{ route('logout') }}" class="shrink-0">
-                    @csrf
-                    <button type="submit" class="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200/80 bg-white/60 text-brand-danger/90 shadow-sm transition-all hover:border-[#f5c4c0] hover:bg-[#fdeeed]/80 hover:shadow sm:h-auto sm:w-auto sm:rounded-2xl sm:px-3.5 sm:py-2 sm:text-sm sm:font-medium" aria-label="تسجيل الخروج">
-                        <svg class="h-[1.35rem] w-[1.35rem] sm:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        <span class="hidden sm:inline">خروج</span>
-                    </button>
-                </form>
+                <x-portal.profile-menu />
             </div>
         </div>
     </header>
@@ -113,7 +90,7 @@
             $isPrograms = str_starts_with($rn, 'portal.programs');
             $isVol = $rn === 'portal.volunteering';
             $isCert = $rn === 'portal.certificates';
-            $isProfile = str_starts_with($rn, 'portal.profile');
+            $isSettings = str_starts_with($rn, 'portal.settings') || $rn === 'portal.notifications.settings';
             $isCompetency = str_starts_with($rn, 'portal.competency');
             $navIcon = 'h-[1.125rem] w-[1.125rem] shrink-0 text-slate-500 transition-colors group-hover:text-brand sm:h-[1.15rem] sm:w-[1.15rem]';
             $navActive = 'flex min-h-[2.75rem] items-center gap-3 rounded-2xl bg-white px-3 py-2.5 text-sm font-semibold text-brand shadow-[0_2px_14px_-4px_rgba(51,84,131,0.18)] ring-1 ring-[#c5d4e4]/70 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30';
@@ -178,9 +155,9 @@
                             <svg class="portal-nav-chevron h-3.5 w-3.5 shrink-0 text-slate-300 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </summary>
                         <div class="mt-1 space-y-0.5">
-                            <a href="{{ route('portal.profile') }}" class="{{ $isProfile ? $navActive : $navIdle }}" @if($isProfile) aria-current="page" @endif>
-                                <svg class="{{ $navIcon }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                <span>ملفي الشخصي</span>
+                            <a href="{{ route('portal.settings') }}" class="{{ $isSettings ? $navActive : $navIdle }}" @if($isSettings) aria-current="page" @endif>
+                                <svg class="{{ $navIcon }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span>الإعدادات</span>
                             </a>
                         </div>
                     </details>

@@ -26,8 +26,10 @@ use App\Http\Controllers\Portal\PortalInboxController;
 use App\Http\Controllers\Portal\PortalPathController;
 use App\Http\Controllers\Portal\PortalPathDetailController;
 use App\Http\Controllers\Portal\PortalPrivacyPolicyAcknowledgeController;
+use App\Http\Controllers\Portal\PortalPasswordController;
 use App\Http\Controllers\Portal\PortalProfileCompleteController;
 use App\Http\Controllers\Portal\PortalProfileController;
+use App\Http\Controllers\Portal\PortalSettingsController;
 use App\Http\Controllers\Portal\PortalProgramController;
 use App\Http\Controllers\Portal\PortalProgramDetailController;
 use App\Http\Controllers\Portal\PortalVolunteerController;
@@ -167,6 +169,12 @@ Route::middleware(['auth', 'otp.verified', 'beneficiary', 'privacy.acknowledged'
         Route::patch('/profile', [PortalProfileController::class, 'update'])->name('profile.update');
         Route::get('/profile/complete', [PortalProfileCompleteController::class, 'show'])->name('profile.complete');
         Route::post('/profile/complete', [PortalProfileCompleteController::class, 'store'])->name('profile.complete.store');
+
+        Route::get('/settings', [PortalSettingsController::class, 'index'])->name('settings');
+        Route::get('/settings/account', [PortalSettingsController::class, 'account'])->name('settings.account');
+        Route::get('/settings/legal', [PortalSettingsController::class, 'legal'])->name('settings.legal');
+        Route::get('/settings/password', [PortalPasswordController::class, 'show'])->name('settings.password');
+        Route::patch('/settings/password', [PortalPasswordController::class, 'update'])->name('settings.password.update');
 
         Route::get('/privacy-policy/acknowledge', [PortalPrivacyPolicyAcknowledgeController::class, 'show'])
             ->name('privacy-policy.acknowledge')

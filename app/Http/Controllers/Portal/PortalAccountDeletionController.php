@@ -42,7 +42,7 @@ class PortalAccountDeletionController extends Controller
         );
 
         return redirect()
-            ->route('portal.profile')
+            ->route('portal.settings')
             ->with('success', 'تم تقديم طلب حذف حسابك. سيراجعه فريق الخصوصية قبل أي تنفيذ.');
     }
 }

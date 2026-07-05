@@ -78,30 +78,5 @@ $p = $user->profile;
             </div>
         </form>
     </div>
-
-    <div class="rounded-2xl border border-red-100 bg-red-50/40 p-6 shadow-sm sm:p-8">
-        <h2 class="mb-2 text-base font-bold text-red-900">حذف الحساب</h2>
-        <p class="mb-6 text-sm text-red-800">يمكنك تقديم طلب حذف حسابك. سيُراجع الطلب ويُنفَّذ التعمية وليس الحذف الكامل للسجل.</p>
-
-        <form method="POST" action="{{ route('portal.account-deletion.store') }}" class="max-w-xl space-y-4" onsubmit="return confirm('هل أنت متأكد من طلب حذف حسابك؟');">
-            @csrf
-            <div>
-                <label class="mb-1 block text-sm font-medium text-red-900">كلمة المرور</label>
-                <input type="password" name="password" required class="w-full rounded-xl border border-red-200 px-4 py-2.5 text-sm @error('password') border-brand-danger @enderror" />
-                @error('password') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
-            </div>
-            <div>
-                <label class="mb-1 block text-sm font-medium text-red-900">سبب اختياري</label>
-                <textarea name="reason" rows="2" maxlength="500" class="w-full rounded-xl border border-red-200 px-4 py-2.5 text-sm"></textarea>
-            </div>
-            <button type="submit" class="rounded-xl bg-red-700 px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-95">
-                تقديم طلب حذف الحساب
-            </button>
-        </form>
-    </div>
-
-    <p class="text-center text-xs text-gray-400">
-        <a href="{{ route('public.privacy') }}" class="hover:text-brand hover:underline">سياسة الخصوصية</a>
-    </p>
 </div>
 @endsection
