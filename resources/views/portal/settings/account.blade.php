@@ -2,34 +2,23 @@
 @section('title', 'بيانات الدخول')
 
 @section('content')
-@include('portal.settings.partials.back-link')
-
-<section class="mb-8 text-right">
-    <h1 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">بيانات الدخول</h1>
-    <p class="mt-2 text-sm text-gray-600">معلومات تسجيل الدخول إلى حسابك في المنصة.</p>
-</section>
-
-<div class="max-w-2xl space-y-4">
-    <div class="rounded-3xl border border-slate-200/70 bg-white px-5 py-4 shadow-sm">
-        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Account</p>
-        <dl class="mt-4 space-y-4">
-            <div>
-                <dt class="text-sm font-medium text-gray-700">البريد الإلكتروني</dt>
-                <dd class="mt-1 text-sm text-gray-900" dir="ltr">{{ $user->email }}</dd>
+<x-portal.settings-shell title="بيانات الدخول" subtitle="معلومات تسجيل الدخول الأساسية.">
+    <x-portal.settings-card>
+        <dl class="divide-y divide-slate-100">
+            <div class="flex items-center justify-between gap-4 px-4 py-3.5 sm:px-5">
+                <dd class="text-sm text-gray-900" dir="ltr">{{ $user->email }}</dd>
+                <dt class="text-xs font-medium text-gray-500">البريد الإلكتروني</dt>
             </div>
-            <div>
-                <dt class="text-sm font-medium text-gray-700">رقم الجوال</dt>
-                <dd class="mt-1 text-sm text-gray-900" dir="ltr">{{ $user->phone ?: '—' }}</dd>
+            <div class="flex items-center justify-between gap-4 px-4 py-3.5 sm:px-5">
+                <dd class="text-sm text-gray-900" dir="ltr">{{ $user->phone ?: '—' }}</dd>
+                <dt class="text-xs font-medium text-gray-500">رقم الجوال</dt>
             </div>
         </dl>
-    </div>
-
-    <a href="{{ route('portal.settings.password') }}" class="flex items-center justify-between gap-4 rounded-3xl border border-slate-200/70 bg-white px-5 py-4 shadow-sm transition hover:bg-slate-50">
-        <svg class="h-4 w-4 shrink-0 rotate-180 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        <div class="min-w-0 flex-1 text-right">
-            <p class="text-sm font-semibold text-gray-900">تغيير كلمة المرور</p>
-            <p class="mt-0.5 text-xs text-gray-500">تحديث كلمة مرور حسابك</p>
-        </div>
-    </a>
-</div>
+        <x-portal.settings-row href="{{ route('portal.settings.password') }}" label="تغيير كلمة المرور" hint="تحديث كلمة مرور الحساب" class="border-t border-slate-100">
+            <x-slot:icon>
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+            </x-slot:icon>
+        </x-portal.settings-row>
+    </x-portal.settings-card>
+</x-portal.settings-shell>
 @endsection

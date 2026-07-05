@@ -41,34 +41,31 @@
 </head>
 <body class="min-h-screen bg-[#F7FAFC] text-[#111827] antialiased font-sans">
 
-    <header class="sticky top-0 z-40 border-b border-[#c5d4e4]/60 bg-white/90 shadow-[0_1px_0_rgba(51,84,131,0.06)] backdrop-blur-md">
-        <div class="mx-auto flex h-14 max-w-7xl min-w-0 items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-6 lg:px-8">
-            <div class="flex min-w-0 shrink items-center gap-1.5 sm:gap-3">
-                <button id="portal-sidebar-toggle" type="button" aria-controls="portal-sidebar" aria-expanded="false" aria-label="فتح القائمة" class="-me-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100/90 active:bg-slate-100 lg:hidden">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+    <header class="sticky top-0 z-40 border-b border-slate-200/70 bg-white/95 backdrop-blur-sm">
+        <div class="mx-auto flex h-14 max-w-7xl min-w-0 items-center gap-2 px-3 sm:px-6 lg:px-8">
+            <div class="flex min-w-0 shrink items-center gap-1 sm:gap-2">
+                <button id="portal-sidebar-toggle" type="button" aria-controls="portal-sidebar" aria-expanded="false" aria-label="فتح القائمة" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-600 transition hover:bg-slate-100 lg:hidden">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
-                <a href="{{ route('home') }}" class="flex min-w-0 items-center" aria-label="كفاءات — الرئيسية">
-                    <img src="{{ asset(config('brand.logos.kafaat')) }}" alt="كفاءات" class="h-9 w-auto" width="119" height="36" />
+                <a href="{{ route('portal.dashboard') }}" class="flex min-w-0 items-center" aria-label="بوابة كفاءات">
+                    <img src="{{ asset(config('brand.logos.kafaat')) }}" alt="كفاءات" class="h-8 w-auto sm:h-9" width="119" height="36" />
                 </a>
             </div>
 
-            <div class="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-2 lg:gap-2.5">
+            <div class="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-1.5">
                 @php $portalHeaderNotifActive = in_array(request()->route()?->getName() ?? '', ['portal.notifications', 'portal.notifications.settings'], true); @endphp
                 <a
                     href="{{ route('portal.notifications') }}"
-                    class="inline-flex h-11 min-w-[2.75rem] shrink-0 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#335483]/25 sm:h-auto sm:min-w-0 sm:justify-start sm:gap-2 sm:rounded-2xl sm:px-3.5 sm:py-2 {{ $portalHeaderNotifActive ? 'bg-white text-[#335483] shadow-[0_2px_12px_-2px_rgba(51,84,131,0.15)] ring-1 ring-slate-200/70' : 'text-slate-600 hover:bg-white/80 hover:text-[#335483] hover:shadow-sm hover:ring-1 hover:ring-slate-200/50' }}"
+                    class="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#335483]/25 {{ $portalHeaderNotifActive ? 'bg-[#335483]/10 text-[#335483]' : 'text-slate-500 hover:bg-slate-100 hover:text-[#335483]' }}"
                     aria-label="التنبيهات"
                     @if ($portalHeaderNotifActive) aria-current="page" @endif
                 >
-                    <span class="relative inline-flex shrink-0">
-                        <svg class="h-[1.35rem] w-[1.35rem] sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                        @if (($portalInboxUnreadCount ?? 0) > 0)
-                        <span class="absolute -end-0.5 -top-0.5 flex h-3.5 min-w-[0.875rem] items-center justify-center rounded-full bg-brand-danger px-0.5 text-[8px] font-bold leading-none text-white ring-2 ring-white sm:-end-1 sm:-top-1 sm:h-4 sm:min-w-[1rem] sm:px-1 sm:text-[9px]">{{ $portalInboxUnreadCount > 99 ? '99+' : $portalInboxUnreadCount }}</span>
-                        @endif
-                    </span>
-                    <span class="hidden sm:inline">التنبيهات</span>
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    @if (($portalInboxUnreadCount ?? 0) > 0)
+                    <span class="absolute end-1.5 top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-brand-danger px-1 text-[9px] font-bold leading-none text-white ring-2 ring-white">{{ $portalInboxUnreadCount > 99 ? '99+' : $portalInboxUnreadCount }}</span>
+                    @endif
                 </a>
                 <x-portal.external-nav />
                 <x-portal.profile-menu />
@@ -98,7 +95,7 @@
             $navSectionSummary = 'flex w-full cursor-pointer list-none items-center justify-between gap-2 rounded-xl px-2 py-2 text-[10px] font-bold tracking-wide text-slate-400 transition-colors hover:text-slate-500';
         @endphp
 
-        <aside id="portal-sidebar" class="fixed right-0 top-14 z-30 h-[calc(100vh-3.5rem)] w-[18rem] translate-x-full overflow-y-auto border-l border-[#c5d4e4]/50 bg-[#F7FAFC]/95 shadow-[8px_0_32px_-8px_rgba(51,84,131,0.12)] backdrop-blur-md sm:top-16 sm:h-[calc(100vh-4rem)] lg:static lg:h-auto lg:w-[17.5rem] lg:translate-x-0 lg:shrink-0 lg:border-0 lg:bg-transparent lg:shadow-none lg:backdrop-blur-none">
+        <aside id="portal-sidebar" class="fixed right-0 top-14 z-30 h-[calc(100vh-3.5rem)] w-[18rem] translate-x-full overflow-y-auto border-l border-[#c5d4e4]/50 bg-[#F7FAFC]/95 shadow-[8px_0_32px_-8px_rgba(51,84,131,0.12)] backdrop-blur-md lg:static lg:h-auto lg:w-[17.5rem] lg:translate-x-0 lg:shrink-0 lg:border-0 lg:bg-transparent lg:shadow-none lg:backdrop-blur-none">
             <nav class="flex flex-col lg:sticky lg:top-16 lg:overflow-hidden lg:rounded-3xl lg:border lg:border-[#c5d4e4]/50 lg:bg-white/90 lg:shadow-[0_8px_40px_-12px_rgba(51,84,131,0.12)] lg:ring-1 lg:ring-white/60" aria-label="قائمة بوابة المستفيد">
                 <div class="p-4 sm:p-5">
                     <x-portal.sidebar-identity />
