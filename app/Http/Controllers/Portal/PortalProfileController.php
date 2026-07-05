@@ -10,7 +10,6 @@ use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\View\View;
 use InvalidArgumentException;
 
 class PortalProfileController extends Controller
@@ -19,11 +18,9 @@ class PortalProfileController extends Controller
         private readonly UserProfileCompletionService $profileCompletionService,
     ) {}
 
-    public function show(Request $request): View
+    public function show(Request $request): RedirectResponse
     {
-        $user = $request->user()->load('profile');
-
-        return view('portal.profile', compact('user'));
+        return redirect()->route('portal.settings.profile');
     }
 
     public function update(UpdatePortalProfileRequest $request): RedirectResponse
@@ -59,6 +56,8 @@ class PortalProfileController extends Controller
 
         UserActivityLogger::logProfileUpdated($user, ['الملف الشخصي']);
 
-        return back()->with('success', 'تم حفظ الملف الشخصي بنجاح.');
+        return redirect()
+            ->route('portal.settings.profile')
+            ->with('success', 'تم حفظ الملف الشخصي بنجاح.');
     }
 }

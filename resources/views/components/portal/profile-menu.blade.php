@@ -8,7 +8,7 @@ $p = $u->profile;
 $avatarUrl = $p?->avatarUrl();
 $initials = \App\Models\Profile::initialsFromName($u->name);
 $settingsActive = request()->routeIs('portal.settings*', 'portal.notifications.settings');
-$profileActive = request()->routeIs('portal.profile');
+$profileActive = request()->routeIs('portal.settings.profile', 'portal.profile');
 $passwordActive = request()->routeIs('portal.settings.password');
 @endphp
 
@@ -42,8 +42,8 @@ $passwordActive = request()->routeIs('portal.settings.password');
         </div>
 
         <div class="py-1">
-            <a href="{{ route('portal.profile') }}" role="menuitem" class="flex items-center gap-2.5 px-4 py-2 text-sm transition hover:bg-slate-50 {{ $profileActive ? 'font-semibold text-[#335483]' : 'text-slate-700' }}">
-                الملف الشخصي
+            <a href="{{ route('portal.settings.profile') }}" role="menuitem" class="flex items-center gap-2.5 px-4 py-2 text-sm transition hover:bg-slate-50 {{ $profileActive ? 'font-semibold text-[#335483]' : 'text-slate-700' }}">
+                تعديل بياناتي
             </a>
             <a href="{{ route('portal.settings') }}" role="menuitem" class="flex items-center gap-2.5 px-4 py-2 text-sm transition hover:bg-slate-50 {{ $settingsActive ? 'font-semibold text-[#335483]' : 'text-slate-700' }}">
                 الإعدادات

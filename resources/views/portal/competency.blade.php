@@ -20,7 +20,6 @@
     </div>
     @endif
 
-    @include('portal.competency.partials.cv-language-bar')
     @include('portal.competency.partials.hero')
     @include('portal.competency.partials.sections-builder')
 

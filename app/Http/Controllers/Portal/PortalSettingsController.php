@@ -24,6 +24,13 @@ class PortalSettingsController extends Controller
         ]);
     }
 
+    public function profile(Request $request): View
+    {
+        $user = $request->user()->load('profile');
+
+        return view('portal.settings.profile', compact('user'));
+    }
+
     public function legal(): View
     {
         $policy = PrivacyPolicyService::active();

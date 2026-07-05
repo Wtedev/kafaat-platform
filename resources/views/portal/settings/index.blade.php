@@ -5,7 +5,12 @@
 <x-portal.settings-shell title="الإعدادات" subtitle="إدارة الحساب والتنبيهات والخصوصية." back-route="portal.dashboard" back-label="البوابة">
     <x-portal.settings-card>
         <p class="border-b border-slate-100 px-4 py-2.5 text-[11px] font-semibold text-slate-400 sm:px-5">الحساب</p>
-        <x-portal.settings-row href="{{ route('portal.settings.account') }}" label="بيانات الدخول" hint="البريد والجوال">
+        <x-portal.settings-row href="{{ route('portal.settings.profile') }}" label="تعديل بياناتي" hint="الصورة والاسم والهوية والمسمى">
+            <x-slot:icon>
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </x-slot:icon>
+        </x-portal.settings-row>
+        <x-portal.settings-row href="{{ route('portal.settings.account') }}" label="بيانات الدخول" hint="البريد وكلمة المرور">
             <x-slot:icon>
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
             </x-slot:icon>

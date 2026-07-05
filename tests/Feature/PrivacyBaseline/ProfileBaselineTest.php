@@ -31,7 +31,7 @@ class ProfileBaselineTest extends TestCase
         $user = $this->makePortalUserWithProfile();
 
         $this->actingAsOtpVerified($user)
-            ->get(route('portal.profile'))
+            ->get(route('portal.settings.profile'))
             ->assertOk()
             ->assertSee($user->fullName());
     }

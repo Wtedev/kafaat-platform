@@ -40,7 +40,7 @@ enum PrivacyCorrectionFieldCode: string
     public function selfServiceRoute(): ?string
     {
         return match ($this) {
-            self::StructuredName, self::IdentityNumber, self::BirthDate => 'portal.profile',
+            self::StructuredName, self::IdentityNumber, self::BirthDate => 'portal.settings.profile',
             self::Email => null,
         };
     }

@@ -87,7 +87,7 @@
             $isPrograms = str_starts_with($rn, 'portal.programs');
             $isVol = $rn === 'portal.volunteering';
             $isCert = $rn === 'portal.certificates';
-            $isSettings = str_starts_with($rn, 'portal.settings') || $rn === 'portal.notifications.settings';
+            $isSettings = str_starts_with($rn, 'portal.settings') || $rn === 'portal.notifications.settings' || $rn === 'portal.profile';
             $isCompetency = str_starts_with($rn, 'portal.competency');
             $navIcon = 'h-[1.125rem] w-[1.125rem] shrink-0 text-slate-500 transition-colors group-hover:text-brand sm:h-[1.15rem] sm:w-[1.15rem]';
             $navActive = 'flex min-h-[2.75rem] items-center gap-3 rounded-2xl bg-white px-3 py-2.5 text-sm font-semibold text-brand shadow-[0_2px_14px_-4px_rgba(51,84,131,0.18)] ring-1 ring-[#c5d4e4]/70 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30';

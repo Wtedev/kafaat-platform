@@ -30,7 +30,7 @@ class PortalPrivacyCorrectionRequestController extends Controller
             $route = $fieldCode->selfServiceRoute();
 
             return redirect()
-                ->route($route ?? 'portal.profile')
+                ->route($route ?? 'portal.settings.profile')
                 ->with('error', 'يمكنك تعديل هذا الحقل مباشرة من ملفك الشخصي.');
         }
 

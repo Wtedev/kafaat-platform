@@ -172,6 +172,7 @@ Route::middleware(['auth', 'otp.verified', 'beneficiary', 'privacy.acknowledged'
 
         Route::get('/settings', [PortalSettingsController::class, 'index'])->name('settings');
         Route::get('/settings/account', [PortalSettingsController::class, 'account'])->name('settings.account');
+        Route::get('/settings/profile', [PortalSettingsController::class, 'profile'])->name('settings.profile');
         Route::get('/settings/legal', [PortalSettingsController::class, 'legal'])->name('settings.legal');
         Route::get('/settings/password', [PortalPasswordController::class, 'show'])->name('settings.password');
         Route::patch('/settings/password', [PortalPasswordController::class, 'update'])->name('settings.password.update');
