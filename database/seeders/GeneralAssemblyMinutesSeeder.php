@@ -66,10 +66,10 @@ class GeneralAssemblyMinutesSeeder extends Seeder
             'sort_order' => 7,
         ],
         [
-            'title' => 'محضر اجتماع الجمعية العمومية غير العادية',
+            'title' => 'محضر اجتماع الجمعية العمومية غير العادية — 2021',
             'category' => self::CATEGORY_EXTRAORDINARY,
             'pdf' => 'extraordinary.pdf',
-            'document_date' => null,
+            'document_date' => '2021-01-01',
             'sort_order' => 8,
         ],
         [
