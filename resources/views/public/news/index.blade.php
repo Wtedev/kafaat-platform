@@ -36,7 +36,7 @@ $imageBgs = config('brand.image_gradients');
         <div class="p-6 text-right">
             <div class="flex items-center justify-between mb-3">
                 <span class="text-xs" style="color:#6B7280">
-                    {{ $item->published_at ? $item->published_at->translatedFormat('j F Y') : '' }}
+                    {{ $item->published_at ? ar_date($item->published_at) : '' }}
                 </span>
                 @if ($item->category)
                 <x-news-category-badge :category="$item->category" />

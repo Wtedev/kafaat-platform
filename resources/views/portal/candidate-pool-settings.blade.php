@@ -19,7 +19,7 @@
     <div class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
         <p class="text-sm font-medium text-gray-800">{{ $statusLabel }}</p>
         @if ($preference?->decided_at)
-        <p class="text-xs text-gray-500">آخر اختيار: {{ $preference->decided_at->translatedFormat('j F Y') }}</p>
+        <p class="text-xs text-gray-500">آخر اختيار: {{ ar_date($preference->decided_at) }}</p>
         @endif
         @if ($activeVersion)
         <p class="text-xs text-gray-500">إصدار النص: {{ $activeVersion->version }}</p>

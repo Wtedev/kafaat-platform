@@ -27,7 +27,7 @@ $canRejectVolunteer = \App\Filament\Support\InboxNotificationRecordActions::canR
             @if ($n->sender)
             <p class="mt-2 text-xs text-gray-500">من: {{ $n->sender->name }}</p>
             @endif
-            <time class="mt-2 block text-xs text-gray-400" datetime="{{ $n->created_at->toIso8601String() }}">{{ $n->created_at->translatedFormat('j F Y، H:i') }}</time>
+            <time class="mt-2 block text-xs text-gray-400" datetime="{{ $n->created_at->toIso8601String() }}">{{ ar_date_time($n->created_at) }}</time>
         </div>
         <div class="flex w-full max-w-[16rem] shrink-0 flex-col items-stretch gap-2 sm:w-auto sm:items-end">
             @if ($inboxOpenUrl)

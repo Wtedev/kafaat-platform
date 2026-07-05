@@ -75,7 +75,7 @@ RegistrationStatus::Completed->value => 'مكتمل',
                             @elseif ($pct >= 75) bg-brand-secondary
                             @else bg-brand-accent @endif" style="width: {{ $pct }}%"></div>
                     </div>
-                    <span class="text-xs text-gray-500 w-12 text-left">{{ number_format($pct, 0) }}%</span>
+                    <span class="text-xs text-gray-500 w-12 text-left">{{ en_num($pct, 0) }}%</span>
                 </div>
             </div>
 

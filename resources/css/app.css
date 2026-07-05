@@ -80,5 +80,6 @@
 
     html {
         font-family: var(--font-sans);
+        font-variant-numeric: lining-nums tabular-nums;
     }
 }

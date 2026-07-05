@@ -8,6 +8,7 @@ use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
 use App\Models\User;
 use App\Models\VolunteerRegistration;
+use App\Support\Format\LocaleFormat;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -45,7 +46,7 @@ class PlatformStatsWidget extends BaseWidget
                 ->icon('heroicon-o-clock'),
 
             Stat::make('شهادات هذا الشهر', $certificatesThisMonth)
-                ->description(now()->translatedFormat('F Y'))
+                ->description(LocaleFormat::date(now(), 'MMMM y'))
                 ->color('success')
                 ->icon('heroicon-o-academic-cap'),
         ];

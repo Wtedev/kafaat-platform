@@ -2,6 +2,10 @@
  * لوحة الإدارة — دارك مود محايد (فحمي + طبقات رمادية) مع لمسة هوية كفاءات على الأزرار فقط.
  */
 
+html.fi {
+    font-variant-numeric: lining-nums tabular-nums;
+}
+
 :root {
     --admin-canvas: #121212;
     --admin-sidebar: #181818;

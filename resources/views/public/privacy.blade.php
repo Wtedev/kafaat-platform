@@ -13,7 +13,7 @@
         <p class="text-sm" style="color:#9CA3AF">
             الإصدار {{ $policy->version }}
             @if ($policy->published_at)
-            · نشر: {{ $policy->published_at->translatedFormat('j F Y') }}
+            · نشر: {{ ar_date($policy->published_at) }}
             @endif
         </p>
     </div>

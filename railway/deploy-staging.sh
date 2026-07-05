@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ENVIRONMENT=staging
-BRANCH=feature/privacy-compliance-phase-07-production-hardening
+BRANCH=main
 SERVICES=(kafaat-web-staging kafaat-worker-staging kafaat-scheduler-staging)
 
 if ! railway whoami >/dev/null 2>&1; then

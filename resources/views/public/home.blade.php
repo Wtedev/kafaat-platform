@@ -3,7 +3,7 @@
     Kafaat Platform — Public Homepage (standalone, does NOT extend layouts.public)
 --}}
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar-SA-u-nu-latn" dir="rtl">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -313,12 +313,12 @@
 
                 @php
                 $stats = [
-                ['value' => '+١٢٠٠', 'label' => 'المستفيدون'],
-                ['value' => '٣٨', 'label' => 'المسارات'],
-                ['value' => '٦٥', 'label' => 'البرامج'],
-                ['value' => '٤٢', 'label' => 'الفرص التطوعية'],
-                ['value' => '+٨٠٠', 'label' => 'الشهادات'],
-                ['value' => '٢٥', 'label' => 'الشركاء'],
+                ['value' => '+1200', 'label' => 'المستفيدون'],
+                ['value' => '38', 'label' => 'المسارات'],
+                ['value' => '65', 'label' => 'البرامج'],
+                ['value' => '42', 'label' => 'الفرص التطوعية'],
+                ['value' => '+800', 'label' => 'الشهادات'],
+                ['value' => '25', 'label' => 'الشركاء'],
                 ];
                 @endphp
 
@@ -510,10 +510,10 @@
 
                     {{-- Text (right in RTL) --}}
                     <div class="text-right">
-                        <div class="text-8xl font-black leading-none mb-1" style="color:rgba(255,255,255,0.12)">٢٠٢٥</div>
+                        <div class="text-8xl font-black leading-none mb-1" style="color:rgba(255,255,255,0.12)">2025</div>
                         <h2 class="text-3xl font-bold text-white mb-3">التقرير السنوي</h2>
                         <p class="leading-relaxed max-w-md" style="color:rgba(255,255,255,0.65)">
-                            تقرير شامل يرصد إنجازات جمعية كفاءات خلال عام ٢٠٢٥: برامجها التدريبية، عملها التطوعي، وأثرها المجتمعي.
+                            تقرير شامل يرصد إنجازات جمعية كفاءات خلال عام 2025: برامجها التدريبية، عملها التطوعي، وأثرها المجتمعي.
                         </p>
                     </div>
 

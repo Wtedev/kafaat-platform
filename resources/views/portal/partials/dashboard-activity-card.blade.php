@@ -27,7 +27,7 @@ $isDiscover = ! empty($activity['discover']);
     @if ($activity['progress'] !== null)
     <div class="mb-4">
         <div class="mb-1 flex justify-between text-xs text-gray-500">
-            <span>{{ number_format((float) $activity['progress'], 0) }}٪</span>
+            <span>{{ en_num((float) $activity['progress'], 0) }}%</span>
             <span>التقدم</span>
         </div>
         <div class="h-2 overflow-hidden rounded-full bg-gray-100">

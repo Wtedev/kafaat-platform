@@ -9,7 +9,11 @@ $hasRegulations = Route::has('public.regulations.index');
 $hasMedia = Route::has('public.media.index');
 $brand = config('brand');
 $govTabs = $hasGovernance
-    ? array_merge(['board' => 'أعضاء مجلس الإدارة'], \App\Models\GovernanceDocument::TYPES)
+    ? array_merge([
+        'board' => 'أعضاء مجلس الإدارة',
+        'general_assembly' => 'أعضاء الجمعية العمومية',
+        'standing_committees' => 'اللجان الدائمة',
+    ], \App\Models\GovernanceDocument::TYPES)
     : [];
 $govActive = request()->routeIs('public.governance.*');
 @endphp

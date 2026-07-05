@@ -2,6 +2,7 @@
 
 namespace App\Filament\Support;
 
+use App\Support\Format\LocaleFormat;
 use App\Enums\OpportunityStatus;
 use App\Enums\PathStatus;
 use App\Enums\ProgramStatus;
@@ -57,7 +58,7 @@ final class EntityViewPresenterSupport
 
         $date = $state instanceof Carbon ? $state : Carbon::parse($state);
 
-        return $date->translatedFormat('j F Y');
+        return LocaleFormat::fromCarbonFormat($date, 'j F Y');
     }
 
     public static function formatDateTime(mixed $state): string
@@ -68,7 +69,10 @@ final class EntityViewPresenterSupport
 
         $date = $state instanceof Carbon ? $state : Carbon::parse($state);
 
-        return $date->timezone(config('app.timezone'))->translatedFormat('j F Y — H:i');
+        return LocaleFormat::fromCarbonFormat(
+            $date->timezone(config('app.timezone')),
+            'j F Y — H:i',
+        );
     }
 
     public static function formatDateRange(mixed $start, mixed $end): string

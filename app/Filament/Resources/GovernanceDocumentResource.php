@@ -82,7 +82,7 @@ class GovernanceDocumentResource extends Resource
 
                     Select::make('type')
                         ->label('النوع')
-                        ->options(GovernanceDocument::TYPES)
+                        ->options(collect(GovernanceDocument::TYPES)->except('investment_decisions'))
                         ->required(),
 
                     DatePicker::make('document_date')
@@ -182,7 +182,7 @@ class GovernanceDocumentResource extends Resource
             ->filters([
                 SelectFilter::make('type')
                     ->label('النوع')
-                    ->options(GovernanceDocument::TYPES),
+                    ->options(collect(GovernanceDocument::TYPES)->except('investment_decisions')),
                 SelectFilter::make('is_active')
                     ->label('الحالة')
                     ->options([

@@ -24,7 +24,7 @@
 
     <section class="rounded-2xl border border-gray-100 bg-[#F8FAFC]/80 p-5 sm:p-6">
         <div class="mb-4 flex items-center gap-3 border-b border-gray-100 pb-3">
-            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand/10 text-sm font-bold text-brand">١</span>
+            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand/10 text-sm font-bold text-brand">1</span>
             <div>
                 <h2 class="text-sm font-bold text-gray-900">الاسم الرباعي</h2>
                 <p class="text-xs text-gray-500">كما هو في الهوية الرسمية</p>
@@ -35,7 +35,7 @@
 
     <section class="rounded-2xl border border-gray-100 bg-[#F8FAFC]/80 p-5 sm:p-6">
         <div class="mb-4 flex items-center gap-3 border-b border-gray-100 pb-3">
-            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand/10 text-sm font-bold text-brand">٢</span>
+            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand/10 text-sm font-bold text-brand">2</span>
             <div>
                 <h2 class="text-sm font-bold text-gray-900">الهوية والتواصل</h2>
                 <p class="text-xs text-gray-500">للتحقق من الحساب والتواصل معك</p>
@@ -46,7 +46,7 @@
 
     <section class="rounded-2xl border border-gray-100 bg-[#F8FAFC]/80 p-5 sm:p-6">
         <div class="mb-4 flex items-center gap-3 border-b border-gray-100 pb-3">
-            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand/10 text-sm font-bold text-brand">٣</span>
+            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand/10 text-sm font-bold text-brand">3</span>
             <div>
                 <h2 class="text-sm font-bold text-gray-900">بيانات الحساب</h2>
                 <p class="text-xs text-gray-500">البريد الإلكتروني وكلمة المرور</p>

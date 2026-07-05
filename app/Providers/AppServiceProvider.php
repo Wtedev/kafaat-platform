@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Models\AuditLog;
 use App\Models\BoardMember;
+use App\Models\InvestmentDecisionYear;
+use App\Models\GovernanceCommittee;
 use App\Models\GovernanceDocument;
 use App\Models\InboxNotification;
 use App\Models\MediaPhoto;
@@ -19,7 +21,9 @@ use App\Models\SecurityLog;
 use App\Models\User;
 use App\Policies\AuditLogPolicy;
 use App\Policies\BoardMemberPolicy;
+use App\Policies\GovernanceCommitteePolicy;
 use App\Policies\GovernanceDocumentPolicy;
+use App\Policies\InvestmentDecisionYearPolicy;
 use App\Policies\InboxNotificationPolicy;
 use App\Policies\MediaPhotoPolicy;
 use App\Policies\NewsPolicy;
@@ -90,6 +94,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(RetentionRun::class, RetentionRunPolicy::class);
         Gate::policy(Regulation::class, RegulationPolicy::class);
         Gate::policy(GovernanceDocument::class, GovernanceDocumentPolicy::class);
+        Gate::policy(GovernanceCommittee::class, GovernanceCommitteePolicy::class);
+        Gate::policy(InvestmentDecisionYear::class, InvestmentDecisionYearPolicy::class);
         Gate::policy(BoardMember::class, BoardMemberPolicy::class);
         Gate::policy(MediaPhoto::class, MediaPhotoPolicy::class);
 

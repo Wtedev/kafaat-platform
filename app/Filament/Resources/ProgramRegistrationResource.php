@@ -376,7 +376,7 @@ class ProgramRegistrationResource extends Resource
                             } else {
                                 Notification::make()
                                     ->title('تم تحديد التسجيل كمكتمل')
-                                    ->body('لم تُصدر شهادة — يجب أن يكون الحضور ≥ 80٪ والدرجة ≥ 60')
+                                    ->body('لم تُصدر شهادة — يجب أن يكون الحضور ≥ 80% والدرجة ≥ 60')
                                     ->warning()
                                     ->send();
                             }
@@ -399,7 +399,7 @@ class ProgramRegistrationResource extends Resource
                         if (! $record->isEligibleForCertificate()) {
                             Notification::make()
                                 ->title('غير مؤهل للحصول على شهادة')
-                                ->body('يجب أن يكون الحضور ≥ 80٪ والدرجة ≥ 60')
+                                ->body('يجب أن يكون الحضور ≥ 80% والدرجة ≥ 60')
                                 ->danger()
                                 ->send();
 

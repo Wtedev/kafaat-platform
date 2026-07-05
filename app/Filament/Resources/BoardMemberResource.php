@@ -10,6 +10,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -20,6 +21,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class BoardMemberResource extends Resource
 {
@@ -72,6 +74,9 @@ class BoardMemberResource extends Resource
             Section::make('بيانات العضو')
                 ->columns(2)
                 ->schema([
+                    Hidden::make('group')
+                        ->default(BoardMember::GROUP_BOARD),
+
                     TextInput::make('name')
                         ->label('الاسم')
                         ->required()
@@ -159,6 +164,11 @@ class BoardMemberResource extends Resource
                     DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('group', BoardMember::GROUP_BOARD);
     }
 
     public static function getRelations(): array

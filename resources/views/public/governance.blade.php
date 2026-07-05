@@ -46,6 +46,16 @@
         transform: translateY(-6px);
         box-shadow: 0 20px 48px rgba(51,84,131,0.12);
     }
+    .inv-year-card {
+        transition: box-shadow 0.25s cubic-bezier(.22,1,.36,1);
+    }
+    .inv-year-card[open] {
+        box-shadow: 0 12px 32px rgba(51,84,131,0.08);
+    }
+    .inv-year-card summary:focus-visible {
+        outline: 2px solid #335483;
+        outline-offset: 2px;
+    }
 </style>
 @endsection
 
@@ -62,7 +72,11 @@
 
 {{-- Tabs Navigation — مصدر التسميات الموحّد: GovernanceDocument::TYPES --}}
 @php
-$tabs = array_merge(['board' => 'أعضاء مجلس الإدارة'], \App\Models\GovernanceDocument::TYPES);
+$tabs = array_merge([
+    'board' => 'أعضاء مجلس الإدارة',
+    'general_assembly' => 'أعضاء الجمعية العمومية',
+    'standing_committees' => 'اللجان الدائمة',
+], \App\Models\GovernanceDocument::TYPES);
 @endphp
 
 <div class="mb-8 border-b border-gray-200 gov-tabs-nav">
@@ -89,41 +103,39 @@ $tabs = array_merge(['board' => 'أعضاء مجلس الإدارة'], \App\Mode
 
 {{-- Board Members --}}
 <div id="tab-board" class="gov-tab-panel active" role="tabpanel" aria-labelledby="gov-tabbtn-board">
-    <h2 class="gov-panel-heading text-xl font-bold mb-5" style="color:#111827">{{ $tabs['board'] }}</h2>
-    @if($boardMembers->isEmpty())
-    <div class="text-center py-20">
-        <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:#e9eff6">
-            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        </div>
-        <h3 class="text-lg font-semibold mb-1" style="color:#374151">لم يتم إضافة أعضاء مجلس الإدارة بعد</h3>
-        <p class="text-sm" style="color:#9CA3AF">سيتم إضافة المحتوى قريباً.</p>
-    </div>
-    @else
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        @foreach($boardMembers as $member)
-        <div class="member-card bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center flex flex-col items-center">
-            {{-- Avatar --}}
-            @if($member->photoPublicUrl())
-            <img src="{{ $member->photoPublicUrl() }}"
-                 alt="{{ $member->name }}"
-                 class="w-20 h-20 rounded-full object-cover mb-4 border-2 border-gray-100 shadow-sm" />
-            @else
-            <div class="w-20 h-20 rounded-full flex items-center justify-center mb-4 border-2 border-gray-100 shadow-sm" style="background:#e9eff6">
-                <svg class="w-9 h-9" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-            </div>
-            @endif
+    <h2 class="gov-panel-heading mb-5 text-xl font-bold" style="color:#111827">{{ $tabs['board'] }}</h2>
 
-            <h3 class="text-base font-bold mb-1" style="color:#111827">{{ $member->name }}</h3>
-            @if($member->role)
-            <p class="text-xs font-medium mb-3 px-3 py-1 rounded-full" style="background:#e9eff6; color:#335483">{{ $member->role }}</p>
-            @endif
-            @if($member->bio)
-            <p class="text-sm leading-relaxed" style="color:#6B7280">{{ Str::limit($member->bio, 140) }}</p>
-            @endif
-        </div>
-        @endforeach
+    @if (! empty($boardTerm['label']))
+    <div class="mb-6 rounded-2xl border border-gray-100 bg-[#F8FAFC] px-5 py-4 text-right">
+        <p class="text-base font-bold" style="color:#111827">{{ $boardTerm['label'] }}</p>
+        @if (! empty($boardTerm['starts_at']) && ! empty($boardTerm['ends_at']))
+        <p class="mt-2 text-sm leading-relaxed" style="color:#6B7280">
+            تاريخ بداية مجلس الإدارة
+            <span dir="ltr">{{ ar_date($boardTerm['starts_at'], 'dd-MM-y') }}</span>م
+            — حتى
+            <span dir="ltr">{{ ar_date($boardTerm['ends_at'], 'dd-MM-y') }}</span>م
+        </p>
+        @endif
     </div>
     @endif
+
+    @include('public.governance.partials.member-grid', [
+        'members' => $boardMembers,
+        'emptyTitle' => 'لم يتم إضافة أعضاء مجلس الإدارة بعد',
+    ])
+</div>
+
+<div id="tab-general_assembly" class="gov-tab-panel" role="tabpanel" aria-labelledby="gov-tabbtn-general_assembly">
+    <h2 class="gov-panel-heading mb-5 text-xl font-bold" style="color:#111827">{{ $tabs['general_assembly'] }}</h2>
+    @include('public.governance.partials.member-grid', [
+        'members' => $generalAssemblyMembers,
+        'emptyTitle' => 'لم يتم إضافة أعضاء الجمعية العمومية بعد',
+    ])
+</div>
+
+<div id="tab-standing_committees" class="gov-tab-panel" role="tabpanel" aria-labelledby="gov-tabbtn-standing_committees">
+    <h2 class="gov-panel-heading mb-5 text-xl font-bold" style="color:#111827">{{ $tabs['standing_committees'] }}</h2>
+    @include('public.governance.partials.committee-grid', ['committees' => $standingCommittees])
 </div>
 
 {{-- Document-based tabs --}}
@@ -149,7 +161,7 @@ $tabs = array_merge(['board' => 'أعضاء مجلس الإدارة'], \App\Mode
 
                     @if($doc->document_date)
                     <span class="text-xs font-medium mb-2 inline-block" style="color:#9CA3AF">
-                        {{ $doc->document_date->translatedFormat('d F Y') }}
+                        {{ ar_date($doc->document_date, 'd MMMM y') }}
                     </span>
                     @endif
 
@@ -178,6 +190,8 @@ $tabs = array_merge(['board' => 'أعضاء مجلس الإدارة'], \App\Mode
             </div>
         </div>
         @endif
+    @elseif($type === 'investment_decisions')
+        @include('public.governance.partials.investment-decisions', ['years' => $investmentDecisionYears])
     @else
     @php $docs = $documents[$type] ?? collect(); @endphp
     @if($docs->isEmpty())
@@ -202,7 +216,7 @@ $tabs = array_merge(['board' => 'أعضاء مجلس الإدارة'], \App\Mode
             {{-- Date badge --}}
             @if($doc->document_date)
             <span class="text-xs font-medium mb-2 inline-block" style="color:#9CA3AF">
-                {{ $doc->document_date->translatedFormat('d F Y') }}
+                {{ ar_date($doc->document_date, 'd MMMM y') }}
             </span>
             @endif
 

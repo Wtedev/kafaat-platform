@@ -130,7 +130,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                     </span>
                     @if($item->published_at)
-                    <span class="text-xs" style="color:#9CA3AF">{{ $item->published_at->translatedFormat('d M Y') }}</span>
+                    <span class="text-xs" style="color:#9CA3AF">{{ ar_date($item->published_at, 'd MMM y') }}</span>
                     @endif
                 </div>
             </div>

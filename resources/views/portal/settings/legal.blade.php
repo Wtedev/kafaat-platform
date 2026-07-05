@@ -4,7 +4,7 @@
 @section('content')
 @php
 $meta = $policy
-    ? 'الإصدار '.$policy->version.($policy->published_at ? ' · '.$policy->published_at->translatedFormat('j F Y') : '')
+    ? 'الإصدار '.$policy->version.($policy->published_at ? ' · '.ar_date($policy->published_at) : '')
     : null;
 @endphp
 

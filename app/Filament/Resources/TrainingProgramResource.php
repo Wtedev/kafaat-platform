@@ -19,6 +19,7 @@ use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Filament\Support\EntityTwoColumnFormLayout;
 use App\Filament\Support\TrainingEntityFormSupport;
+use App\Support\Format\LocaleFormat;
 use App\Support\PublicDiskPath;
 use Carbon\Carbon;
 use Filament\Actions\DeleteAction;
@@ -322,7 +323,7 @@ class TrainingProgramResource extends Resource
                                     ? $state
                                     : \Illuminate\Support\Carbon::parse($state);
 
-                                return $d->translatedFormat('j F Y');
+                                return LocaleFormat::fromCarbonFormat($d, 'j F Y');
                             }),
                     ])
                     ->columns(1)

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Concerns;
 use App\Models\EntityNote;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Textarea;
+use App\Support\Format\LocaleFormat;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -48,7 +49,7 @@ class EntityNotesRelationManager extends RelationManager
                     ->description(fn (EntityNote $record): string => sprintf(
                         '%s · %s',
                         $record->creator?->name ?? '—',
-                        $record->created_at?->timezone(config('app.timezone'))->translatedFormat('j F Y — H:i') ?? '—',
+                        $record->created_at ? LocaleFormat::dateTime($record->created_at->timezone(config('app.timezone'))) : '—',
                     )),
             ])
             ->headerActions([

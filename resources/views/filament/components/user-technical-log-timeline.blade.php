@@ -25,7 +25,7 @@
                         </p>
                     </div>
                     <time class="shrink-0 text-xs text-gray-500 dark:text-gray-400" datetime="{{ $entry['occurred_at']->toIso8601String() }}">
-                        {{ $entry['occurred_at']->timezone(config('app.timezone'))->translatedFormat('j F Y — H:i') }}
+                        {{ ar_date_time($entry['occurred_at']->timezone(config('app.timezone'))) }}
                     </time>
                 </div>
             @endforeach

@@ -27,7 +27,7 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
         </div>
         <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
             <p class="text-xs font-medium text-gray-500">ساعات تطوع معتمدة</p>
-            <p class="mt-2 text-2xl font-bold tabular-nums text-brand sm:text-3xl">{{ number_format($approvedHours, 1) }}</p>
+            <p class="mt-2 text-2xl font-bold tabular-nums text-brand sm:text-3xl">{{ en_num($approvedHours, 1) }}</p>
         </div>
         <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
             <p class="text-xs font-medium text-gray-500">الشهادات</p>
@@ -98,7 +98,7 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
             <h3 class="text-right text-sm font-bold leading-snug text-gray-900">{{ $row['title'] }}</h3>
             <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
                 @if ($row['hours'] !== null)
-                <span class="rounded-lg bg-gray-50 px-2 py-1 font-medium text-gray-600">{{ number_format((float) $row['hours'], 0) }} ساعة</span>
+                <span class="rounded-lg bg-gray-50 px-2 py-1 font-medium text-gray-600">{{ en_num((float) $row['hours'], 0) }} ساعة</span>
                 @else
                 <span class="text-gray-400">—</span>
                 @endif
@@ -171,7 +171,7 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
             <div class="flex flex-wrap items-start justify-between gap-2">
                 <h3 class="text-right text-sm font-bold text-gray-900">{{ $n['title'] }}</h3>
                 @if (! empty($n['published_at']))
-                <time class="shrink-0 text-xs text-gray-500" datetime="{{ $n['published_at']->toIso8601String() }}">{{ $n['published_at']->translatedFormat('j F Y، H:i') }}</time>
+                <time class="shrink-0 text-xs text-gray-500" datetime="{{ $n['published_at']->toIso8601String() }}">{{ ar_date_time($n['published_at']) }}</time>
                 @endif
             </div>
             <p class="mt-1 text-right text-xs font-medium text-gray-500">{{ $n['team_name'] }}</p>

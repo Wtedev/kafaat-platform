@@ -80,7 +80,7 @@ class PathRegistrationCertificatesRelationManager extends RelationManager
                     ->color('success')
                     ->requiresConfirmation()
                     ->modalHeading('إصدار الشهادات للمؤهلين')
-                    ->modalDescription('سيتم إصدار شهادة لكل مستفيد يحقق متوسط حضور ودرجة ≥ 75٪.')
+                    ->modalDescription('سيتم إصدار شهادة لكل مستفيد يحقق متوسط حضور ودرجة ≥ 75%.')
                     ->modalSubmitActionLabel('نعم، إصدار')
                     ->authorize(fn (): bool => auth()->user()?->can('viewOperational', $this->getOwnerRecord()) ?? false)
                     ->action(function (): void {
@@ -130,7 +130,7 @@ class PathRegistrationCertificatesRelationManager extends RelationManager
                         if ($certificate === null) {
                             Notification::make()
                                 ->title('المستفيد غير مؤهل')
-                                ->body('يجب إدخال الحضور والدرجة بمتوسط لا يقل عن 75٪.')
+                                ->body('يجب إدخال الحضور والدرجة بمتوسط لا يقل عن 75%.')
                                 ->danger()
                                 ->send();
 

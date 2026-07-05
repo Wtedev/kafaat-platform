@@ -69,7 +69,7 @@ class PathGradesRelationManager extends RelationManager
                             ->required()
                             ->minValue(0)
                             ->maxValue(100)
-                            ->helperText('تُحتسب أهلية الشهادة من متوسط الحضور والدرجة (الحد الأدنى 75٪).'),
+                            ->helperText('تُحتسب أهلية الشهادة من متوسط الحضور والدرجة (الحد الأدنى 75%).'),
                     ])
                     ->action(function (array $data): void {
                         /** @var LearningPath $path */
@@ -110,7 +110,7 @@ class PathGradesRelationManager extends RelationManager
                             ->required()
                             ->minValue(0)
                             ->maxValue(100)
-                            ->helperText('تُحتسب أهلية الشهادة من متوسط الحضور والدرجة (الحد الأدنى 75٪).'),
+                            ->helperText('تُحتسب أهلية الشهادة من متوسط الحضور والدرجة (الحد الأدنى 75%).'),
                     ])
                     ->action(function (PathRegistration $record, array $data): void {
                         $record->update([

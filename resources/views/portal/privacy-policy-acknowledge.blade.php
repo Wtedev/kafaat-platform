@@ -7,7 +7,7 @@
     <p class="mb-6 text-sm text-gray-600">يُرجى الاطلاع على النسخة المحدّثة من سياسة الخصوصية ثم تأكيد الإقرار للمتابعة.</p>
 
     <div class="mb-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-        <p class="mb-2 text-xs text-gray-500">الإصدار {{ $policy->version }} · سريان {{ $policy->effective_at?->translatedFormat('j F Y') }}</p>
+        <p class="mb-2 text-xs text-gray-500">الإصدار {{ $policy->version }} · سريان {{ ar_date($policy->effective_at) }}</p>
         <div class="prose prose-sm max-w-none text-right leading-relaxed text-gray-700 privacy-policy-content">
             {!! $sanitizedContent !!}
         </div>

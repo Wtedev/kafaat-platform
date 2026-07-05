@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" class="no-js">
+<html lang="ar-SA-u-nu-latn" dir="rtl" class="no-js">
 <head>
     <script>document.documentElement.classList.replace('no-js', 'js');</script>
     <meta charset="UTF-8" />
