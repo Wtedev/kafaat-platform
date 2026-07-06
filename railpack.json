@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.railpack.com",
   "build": {
-    "buildCommand": "rm -rf node_modules 2>/dev/null || true && npm ci && npm run build && mkdir -p storage/app/public/governance && cp -r database/seeders/assets/* storage/app/public/governance/"
+    "buildCommand": "rm -rf node_modules 2>/dev/null || true && npm ci && npm run build && mkdir -p public/governance-docs && cp -r database/seeders/assets/* public/governance-docs/"
   },
   "deploy": {
     "startCommand": "bash railway/start.sh"

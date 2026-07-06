@@ -4,9 +4,13 @@ set -euo pipefail
 
 bash railway/predeploy.sh
 
+if [[ -d public/governance/surveys ]]; then
+  rm -rf public/governance
+fi
+
 if [[ -d database/seeders/assets ]]; then
-  mkdir -p public/governance
-  cp -rn database/seeders/assets/. public/governance/ 2>/dev/null || true
+  mkdir -p public/governance-docs
+  cp -rn database/seeders/assets/. public/governance-docs/ 2>/dev/null || true
 fi
 
 php artisan optimize:clear
