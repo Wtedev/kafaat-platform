@@ -134,7 +134,7 @@
 
                     {{-- CTA Buttons --}}
                     <div class="flex flex-wrap gap-4 mb-10">
-                        <a href="{{ route('public.programs.index') }}" class="px-7 py-3.5 rounded-2xl text-base font-semibold text-white shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5" style="background: linear-gradient(135deg, #335483 0%, #406688 100%)">
+                        <a href="#programs" class="px-7 py-3.5 rounded-2xl text-base font-semibold text-white shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5" style="background: linear-gradient(135deg, #335483 0%, #406688 100%)">
                             استكشف برامجنا
                         </a>
                         <a href="{{ $homeAboutHref }}" class="px-7 py-3.5 rounded-2xl text-base font-semibold border-2 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#e9eff6]" style="color:#335483; border-color:#c5d4e4">
@@ -337,7 +337,17 @@
 
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 5. WORK AREAS SECTION                                               --}}
+    {{-- 5. COMPETENCY TRACKS / PROGRAMS (prominent)                         --}}
+    {{-- ═══════════════════════════════════════════════════════════════════ --}}
+    <section id="programs" class="scroll-mt-24 bg-white py-20 sm:py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <x-public.competency-tracks-showcase :programCounts="$programCounts" />
+        </div>
+    </section>
+
+
+    {{-- ═══════════════════════════════════════════════════════════════════ --}}
+    {{-- 6. WORK AREAS SECTION                                               --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <section id="work" class="py-20 bg-[#F7FAFC] scroll-mt-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -373,8 +383,8 @@
                 [
                 'title' => 'البرامج',
                 'badge' => null,
-                'desc' => 'دورات وورش ولقاءات تدريبية متنوّعة في مهارات ومجالات يحددها فريق الجمعية.',
-                'href' => route('public.programs.index'),
+                'desc' => 'برامج منظّمة ضمن مسارات الكفاءة الذاتية والمهنية والمجتمعية.',
+                'href' => route('home').'#programs',
                 'color' => '#fbbb2e',
                 'bg' => '#fef6e6',
                 'soon' => false,

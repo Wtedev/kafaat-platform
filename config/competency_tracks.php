@@ -1,0 +1,59 @@
+<?php
+
+use App\Enums\CompetencyTrack;
+
+return [
+
+    'intro' => [
+        'badge' => 'مسارات العمل في كفاءات',
+        'title' => 'ثلاثة مسارات لتمكين الشباب',
+        'subtitle' => 'تمثّل مسارات الكفاءة جوهر هوية جمعية كفاءات الأهلية ومفهومها التنموي المتكامل — ليست مجرد تصنيفات، بل سمات أصيلة تعكس رؤيتنا في تمكين شباب متفاعل ومنتج.',
+        'pdf_path' => 'documents/competency-tracks-visual-guide.pdf',
+    ],
+
+    'order' => [
+        CompetencyTrack::Self->value,
+        CompetencyTrack::Professional->value,
+        CompetencyTrack::Community->value,
+    ],
+
+    'tracks' => [
+        CompetencyTrack::Self->value => [
+            'color' => '#2A5683',
+            'gradient_from' => '#2A5683',
+            'gradient_to' => '#1e3d5c',
+            'description' => 'يهدف إلى بناء شخصية شابة متكاملة ومتوازنة، تمتلك الوعي الذاتي والقدرة على تطوير ذاتها باستمرار.',
+            'focus' => [
+                'مبادرات التحفيزية والتوعوية',
+                'تطوير الذات والمهارات الشخصية',
+                'مبادرات الوعي والسلوك',
+            ],
+            'stat_label' => 'تنمية شخصية',
+        ],
+        CompetencyTrack::Professional->value => [
+            'color' => '#FCB420',
+            'gradient_from' => '#FCB420',
+            'gradient_to' => '#e09a10',
+            'description' => 'يركّز على إعداد الشباب لدخول سوق العمل بكفاءة عالية عبر المهارات المهنية والتقنية والتطبيق العملي.',
+            'focus' => [
+                'مبادرات سوق العمل',
+                'البرامج التدريبية والتأهيلية',
+                'المحتوى التعليمي والتطويري',
+            ],
+            'stat_label' => 'جاهزية مهنية',
+        ],
+        CompetencyTrack::Community->value => [
+            'color' => '#009298',
+            'gradient_from' => '#009298',
+            'gradient_to' => '#006d72',
+            'description' => 'يعنى بتمكين الشباب ليكونوا قادة فاعلين في مجتمعاتهم عبر التأهيل للأدوار القيادية والمشاركة المجتمعية.',
+            'focus' => [
+                'المبادرات التطوعية',
+                'المبادرات المجتمعية',
+                'الفعاليات والأنشطة العامة',
+            ],
+            'stat_label' => 'أثر مجتمعي',
+        ],
+    ],
+
+];

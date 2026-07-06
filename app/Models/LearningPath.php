@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CompetencyTrack;
 use App\Enums\LearningPathKind;
 use App\Enums\PathStatus;
 use App\Enums\RegistrationStatus;
@@ -26,6 +27,7 @@ class LearningPath extends Model
         'title',
         'slug',
         'path_kind',
+        'competency_track',
         'description',
         'image',
         'capacity',
@@ -42,6 +44,7 @@ class LearningPath extends Model
     {
         return [
             'path_kind' => LearningPathKind::class,
+            'competency_track' => CompetencyTrack::class,
             'status' => PathStatus::class,
             'published_at' => 'datetime',
             'notify_on_publish' => 'boolean',

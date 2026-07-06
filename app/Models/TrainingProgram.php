@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CompetencyTrack;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
@@ -29,6 +30,7 @@ class TrainingProgram extends Model
         'title',
         'slug',
         'program_kind',
+        'competency_track',
         'description',
         'image',
         'capacity',
@@ -56,6 +58,7 @@ class TrainingProgram extends Model
         return [
             'status' => ProgramStatus::class,
             'program_kind' => TrainingProgramKind::class,
+            'competency_track' => CompetencyTrack::class,
             'published_at' => 'datetime',
             'notify_on_publish' => 'boolean',
             'notify_milestones' => 'boolean',
@@ -204,6 +207,15 @@ class TrainingProgram extends Model
     public function scopeStandaloneCatalog(Builder $query): void
     {
         $query->whereNull('learning_path_id');
+    }
+
+    public function scopeForCompetencyTrack(Builder $query, ?CompetencyTrack $track): void
+    {
+        if ($track === null) {
+            return;
+        }
+
+        $query->where('competency_track', $track->value);
     }
 
     public function scopeDraft(Builder $query): void

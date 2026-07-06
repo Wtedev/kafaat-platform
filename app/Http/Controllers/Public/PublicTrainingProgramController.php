@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Enums\CompetencyTrack;
 use App\Exceptions\ProgramBelongsToLearningPathException;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Exceptions\RegistrationWindowClosedException;
 use App\Http\Controllers\Controller;
 use App\Models\TrainingProgram;
+use App\Support\CompetencyTrackCatalog;
 use App\Services\ProgramRegistrationService;
 use Illuminate\Http\Request;
 
@@ -18,12 +20,20 @@ class PublicTrainingProgramController extends Controller
 
     public function index()
     {
+        $activeTrack = CompetencyTrack::tryFrom((string) request('track', ''));
+
         $programs = TrainingProgram::published()
             ->standaloneCatalog()
+            ->forCompetencyTrack($activeTrack)
             ->latest('published_at')
-            ->paginate(12);
+            ->paginate(12)
+            ->withQueryString();
 
-        return view('public.programs.index', compact('programs'));
+        return view('public.programs.index', [
+            'programs' => $programs,
+            'activeTrack' => $activeTrack,
+            'programCounts' => CompetencyTrackCatalog::publishedProgramCounts(),
+        ]);
     }
 
     public function show(TrainingProgram $trainingProgram)

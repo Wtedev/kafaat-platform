@@ -72,6 +72,9 @@
                     <li><a href="{{ $aboutHref }}" class="text-gray-400 transition-colors hover:text-white">عن كفاءات</a></li>
                     <li><a href="{{ route('public.paths.index') }}" class="text-gray-400 transition-colors hover:text-white">المسارات</a></li>
                     <li><a href="{{ route('public.programs.index') }}" class="text-gray-400 transition-colors hover:text-white">البرامج</a></li>
+                    @if(Route::has('public.tracks.index'))
+                    <li><a href="{{ route('public.tracks.index') }}" class="text-gray-400 transition-colors hover:text-white">مسارات الكفاءة</a></li>
+                    @endif
                     <li><a href="{{ route('public.volunteering.index') }}" class="text-gray-400 transition-colors hover:text-white">الفرص التطوعية</a></li>
                     @if(Route::has('public.governance.index'))
                     <li><a href="{{ route('public.governance.index') }}" class="text-gray-400 transition-colors hover:text-white">الحوكمة</a></li>
@@ -127,6 +130,30 @@
                 </ul>
             </div>
         </div>
+
+        {{-- Competency tracks intro --}}
+        @if(Route::has('public.tracks.index'))
+        <div class="mt-14 border-t border-white/10 pt-14 sm:mt-16 sm:pt-16">
+            <div class="grid items-center gap-8 rounded-3xl border border-white/10 bg-gradient-to-l from-white/[0.08] to-white/[0.02] p-6 sm:grid-cols-[1fr_auto] sm:p-8">
+                <div class="text-center sm:text-right">
+                    <p class="text-sm font-semibold uppercase tracking-widest text-[#1a9399]">مسارات الكفاءة</p>
+                    <h3 class="mt-2 text-2xl font-bold text-white">برامجنا على ثلاثة مسارات متكاملة</h3>
+                    <p class="mt-3 max-w-2xl text-sm leading-relaxed text-gray-400 sm:ms-0 mx-auto">
+                        الذاتية، المهنية، والمجتمعية — تعرّف على آلية الظهور البصري وكيف تُصنَّف مبادرات وبرامج الجمعية ضمن كل مسار.
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center justify-center gap-3 sm:justify-end">
+                    <a href="{{ route('public.tracks.index') }}" class="inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5" style="background:#335483">
+                        مسارات الكفاءة
+                        <svg class="h-4 w-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                    <a href="{{ route('public.programs.index') }}" class="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15">
+                        تصفح البرامج
+                    </a>
+                </div>
+            </div>
+        </div>
+        @endif
 
         {{-- Location + map --}}
         <div class="mt-14 border-t border-white/10 pt-14 sm:mt-16 sm:pt-16">

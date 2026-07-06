@@ -36,6 +36,7 @@ use App\Http\Controllers\Portal\PortalVolunteerController;
 use App\Http\Controllers\PublicPrivacyPolicyController;
 use App\Http\Controllers\Public\CertificateVerificationController;
 use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\PublicCompetencyTracksController;
 use App\Http\Controllers\Public\PublicGovernanceController;
 use App\Http\Controllers\Public\PublicLearningPathController;
 use App\Http\Controllers\Public\PublicMediaController;
@@ -105,6 +106,8 @@ Route::prefix('paths')->name('public.paths.')->group(function () {
     Route::get('/{learningPath:slug}', [PublicLearningPathController::class, 'show'])->name('show');
     Route::post('/{learningPath:slug}/register', [PublicLearningPathController::class, 'register'])->middleware('auth')->name('register');
 });
+
+Route::get('/tracks', PublicCompetencyTracksController::class)->name('public.tracks.index');
 
 Route::prefix('programs')->name('public.programs.')->group(function () {
     Route::get('/', [PublicTrainingProgramController::class, 'index'])->name('index');

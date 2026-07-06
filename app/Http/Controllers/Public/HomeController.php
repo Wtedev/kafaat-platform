@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Models\News;
+use App\Support\CompetencyTrackCatalog;
 use App\Models\Partner;
 use Illuminate\Http\Request;
 
@@ -21,6 +21,10 @@ class HomeController extends Controller
             ->orderBy('id')
             ->get();
 
-        return view('public.home', compact('news', 'partners'));
+        return view('public.home', [
+            'news' => $news,
+            'partners' => $partners,
+            'programCounts' => CompetencyTrackCatalog::publishedProgramCounts(),
+        ]);
     }
 }

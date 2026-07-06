@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\CompetencyTrack;
 use App\Enums\LearningPathKind;
 use App\Enums\PathStatus;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
@@ -107,6 +108,13 @@ class LearningPathResource extends Resource
                         ->native(false)
                         ->columnSpanFull(),
 
+                    Select::make('competency_track')
+                        ->label('مسار الكفاءة')
+                        ->options(CompetencyTrack::options())
+                        ->nullable()
+                        ->native(false)
+                        ->columnSpanFull(),
+
                     TrainingEntityFormSupport::descriptionField(),
                 ]),
 
@@ -135,6 +143,13 @@ class LearningPathResource extends Resource
                         ->label('نوع المسار')
                         ->options(LearningPathKind::options())
                         ->required()
+                        ->native(false)
+                        ->columnSpanFull(),
+
+                    Select::make('competency_track')
+                        ->label('مسار الكفاءة')
+                        ->options(CompetencyTrack::options())
+                        ->nullable()
                         ->native(false)
                         ->columnSpanFull(),
 

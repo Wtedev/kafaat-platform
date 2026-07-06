@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\ProgramStatus;
+use App\Enums\CompetencyTrack;
 use App\Enums\TrainingProgramKind;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\ConfiguresViewFirstTrainingResourceTable;
@@ -155,6 +156,14 @@ class TrainingProgramResource extends Resource
                         ->live()
                         ->columnSpanFull(),
 
+                    Select::make('competency_track')
+                        ->label('مسار الكفاءة')
+                        ->options(CompetencyTrack::options())
+                        ->nullable()
+                        ->native(false)
+                        ->helperText('يُستخدم في عرض البرنامج ضمن مسارات الكفاءة على الموقع العام.')
+                        ->columnSpanFull(),
+
                     TrainingEntityFormSupport::descriptionField(),
                 ]),
 
@@ -197,6 +206,13 @@ class TrainingProgramResource extends Resource
                         ->required()
                         ->native(false)
                         ->live()
+                        ->columnSpanFull(),
+
+                    Select::make('competency_track')
+                        ->label('مسار الكفاءة')
+                        ->options(CompetencyTrack::options())
+                        ->nullable()
+                        ->native(false)
                         ->columnSpanFull(),
 
                     TrainingEntityFormSupport::descriptionField(),
