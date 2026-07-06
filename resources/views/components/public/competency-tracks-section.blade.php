@@ -13,6 +13,7 @@ $tracks = CompetencyTrackCatalog::tracks();
 $order = CompetencyTrackCatalog::order();
 $totalCount = (int) $programCounts->sum();
 $activeMeta = $activeTrack ? ($tracks[$activeTrack->value] ?? []) : null;
+$activeColor = $activeMeta['color'] ?? '#335483';
 @endphp
 
 @if ($variant === 'showcase')
@@ -64,17 +65,16 @@ $activeMeta = $activeTrack ? ($tracks[$activeTrack->value] ?? []) : null;
 </section>
 @else
 <div {{ $attributes->merge(['class' => '']) }}>
-    <div class="overflow-x-auto border-b border-gray-200 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <nav class="flex min-w-max items-stretch gap-1 sm:min-w-0" aria-label="تصفية البرامج حسب مسار الكفاءة" role="tablist">
+    <div class="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <nav class="inline-flex min-w-full items-center gap-1 rounded-xl bg-[#EEF2F6] p-1 sm:min-w-0"
+             aria-label="تصفية البرامج حسب مسار الكفاءة"
+             role="tablist">
             <a href="{{ route('public.programs.index') }}"
                role="tab"
                @if ($activeTrack === null) aria-selected="true" @endif
-               class="relative px-4 py-3 text-sm font-semibold whitespace-nowrap transition {{ $activeTrack === null ? 'text-[#335483]' : 'text-gray-500 hover:text-gray-800' }}">
+               class="flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold whitespace-nowrap transition {{ $activeTrack === null ? 'bg-white text-[#335483] shadow-sm' : 'text-gray-600 hover:text-gray-900' }}">
                 الكل
-                <span class="ms-1.5 text-xs font-bold tabular-nums {{ $activeTrack === null ? 'text-[#335483]' : 'text-gray-400' }}">{{ en_num($totalCount) }}</span>
-                @if ($activeTrack === null)
-                <span class="absolute inset-x-3 bottom-0 h-0.5 rounded-full" style="background:#335483"></span>
-                @endif
+                <span class="text-[11px] font-bold tabular-nums {{ $activeTrack === null ? 'text-[#335483]/70' : 'text-gray-400' }}">{{ en_num($totalCount) }}</span>
             </a>
 
             @foreach ($order as $trackKey)
@@ -88,28 +88,35 @@ $activeMeta = $activeTrack ? ($tracks[$activeTrack->value] ?? []) : null;
                 <a href="{{ route('public.programs.index', ['track' => $trackKey]) }}"
                    role="tab"
                    @if ($isActive) aria-selected="true" @endif
-                   class="relative inline-flex items-center gap-2 px-4 py-3 text-sm font-semibold whitespace-nowrap transition {{ $isActive ? '' : 'text-gray-500 hover:text-gray-800' }}"
+                   class="flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold whitespace-nowrap transition {{ $isActive ? 'bg-white shadow-sm' : 'text-gray-600 hover:text-gray-900' }}"
                    @if ($isActive) style="color:{{ $color }}" @endif>
-                    <span class="h-2 w-2 shrink-0 rounded-full" style="background:{{ $color }}"></span>
-                    {{ $track->shortLabel() }}
-                    <span class="text-xs font-bold tabular-nums {{ $isActive ? '' : 'text-gray-400' }}" @if ($isActive) style="color:{{ $color }}" @endif>{{ en_num($count) }}</span>
-                    @if ($isActive)
-                    <span class="absolute inset-x-3 bottom-0 h-0.5 rounded-full" style="background:{{ $color }}"></span>
-                    @endif
+                    <span class="h-1.5 w-1.5 shrink-0 rounded-full" style="background:{{ $color }}"></span>
+                    <span class="hidden sm:inline">{{ $track->shortLabel() }}</span>
+                    <span class="sm:hidden">{{ str_replace('الكفاءة ', '', $track->shortLabel()) }}</span>
+                    <span class="text-[11px] font-bold tabular-nums {{ $isActive ? '' : 'text-gray-400' }}" @if ($isActive) style="color:{{ $color }}; opacity:0.75" @endif>{{ en_num($count) }}</span>
                 </a>
             @endforeach
         </nav>
     </div>
 
     @if ($activeTrack && $activeMeta)
-    <div class="mt-4 flex flex-col gap-3 rounded-xl bg-[#F8FAFC] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <div class="text-right">
-            <p class="text-sm font-semibold" style="color:#111827">{{ $activeTrack->label() }}</p>
-            <p class="mt-0.5 text-sm" style="color:#6B7280">{{ $activeMeta['description'] ?? '' }}</p>
+    <div class="mt-5 border-s-4 ps-4" style="border-color:{{ $activeColor }}">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="min-w-0 flex-1 text-right">
+                <p class="text-sm font-bold" style="color:#111827">{{ $activeTrack->label() }}</p>
+                <p class="mt-1 text-sm leading-relaxed" style="color:#6B7280">{{ $activeMeta['description'] ?? '' }}</p>
+                @if (! empty($activeMeta['focus']))
+                <div class="mt-3 flex flex-wrap justify-end gap-2">
+                    @foreach ($activeMeta['focus'] as $item)
+                    <span class="inline-flex rounded-md px-2.5 py-1 text-xs font-medium" style="background:{{ $activeColor }}10; color:{{ $activeColor }}">{{ $item }}</span>
+                    @endforeach
+                </div>
+                @endif
+            </div>
+            <a href="{{ route('public.programs.index') }}" class="shrink-0 text-xs font-semibold text-gray-400 transition hover:text-[#335483]">
+                إلغاء التصفية
+            </a>
         </div>
-        <a href="{{ route('public.programs.index') }}" class="shrink-0 text-sm font-medium text-gray-500 transition hover:text-[#335483]">
-            إلغاء التصفية
-        </a>
     </div>
     @endif
 </div>
