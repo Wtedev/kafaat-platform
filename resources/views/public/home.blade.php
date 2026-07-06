@@ -339,19 +339,12 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 5. COMPETENCY TRACKS / PROGRAMS (prominent)                         --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section id="programs" class="scroll-mt-24 bg-white py-16 sm:py-20">
+    <section id="programs" class="scroll-mt-24 bg-[#F7FAFC] py-16 sm:py-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="mb-6 text-center sm:text-right">
-                <h2 class="text-2xl font-bold sm:text-3xl" style="color:#111827">البرامج التدريبية</h2>
-                <p class="mt-2 text-sm" style="color:#6B7280">اختر مسار الكفاءة المناسب لاستكشاف برامجنا.</p>
-            </div>
-            <x-public.program-track-tabs :programCounts="$programCounts" />
-            <div class="mt-6 text-center sm:text-right">
-                <a href="{{ route('public.programs.index') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold" style="color:#335483">
-                    عرض جميع البرامج
-                    <svg class="h-4 w-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </a>
-            </div>
+            <x-public.competency-tracks-section
+                variant="showcase"
+                :programCounts="$programCounts"
+            />
         </div>
     </section>
 
