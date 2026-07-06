@@ -82,6 +82,10 @@ final class PublicDiskPath
             return $n;
         }
         if (! Storage::disk($disk)->exists($n)) {
+            if (file_exists(public_path($n))) {
+                return asset($n);
+            }
+
             return null;
         }
 

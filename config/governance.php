@@ -46,4 +46,18 @@ return [
         'periodic',
     ],
 
+    'financial_report_categories' => [
+        'financial_statements' => 'القوائم المالية',
+        'approved_budgets' => 'الميزانيات المعتمدة',
+        'estimated_budgets' => 'الموازنات التقديرية',
+        'annual_reports' => 'التقارير المالية السنوية',
+    ],
+
+    'financial_report_category_order' => [
+        'financial_statements',
+        'approved_budgets',
+        'estimated_budgets',
+        'annual_reports',
+    ],
+
 ];
