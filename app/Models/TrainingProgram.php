@@ -329,6 +329,36 @@ class TrainingProgram extends Model
         return sprintf('%d يوماً', $days);
     }
 
+    public function weekdaysLabel(): ?string
+    {
+        if (! is_array($this->weekdays) || $this->weekdays === []) {
+            return null;
+        }
+
+        $labels = [
+            0 => 'الأحد',
+            1 => 'الإثنين',
+            2 => 'الثلاثاء',
+            3 => 'الأربعاء',
+            4 => 'الخميس',
+            5 => 'الجمعة',
+            6 => 'السبت',
+        ];
+
+        return collect($this->weekdays)
+            ->map(fn ($day): string => $labels[(int) $day] ?? (string) $day)
+            ->implode('، ');
+    }
+
+    public function remainingCapacity(): ?int
+    {
+        if ($this->capacity === null) {
+            return null;
+        }
+
+        return max(0, $this->capacity - $this->approvedRegistrationsCount());
+    }
+
     public function hasCapacity(): bool
     {
         if ($this->capacity === null) {

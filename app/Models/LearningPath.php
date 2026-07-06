@@ -226,6 +226,15 @@ class LearningPath extends Model
         return $this->approvedRegistrationsCount() < $this->capacity;
     }
 
+    public function remainingCapacity(): ?int
+    {
+        if ($this->capacity === null) {
+            return null;
+        }
+
+        return max(0, $this->capacity - $this->approvedRegistrationsCount());
+    }
+
     public function isCompletedBy(User $user): bool
     {
         return $this->registrations()
