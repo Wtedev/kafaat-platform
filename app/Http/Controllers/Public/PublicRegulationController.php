@@ -15,6 +15,13 @@ class PublicRegulationController extends Controller
             ->get()
             ->groupBy('category');
 
+        $categoryOrder = config('regulations.category_order', []);
+        $regulations = $regulations->sortBy(function ($items, $category) use ($categoryOrder) {
+            $index = array_search($category, $categoryOrder, true);
+
+            return $index === false ? 999 : $index;
+        });
+
         return view('public.regulations', compact('regulations'));
     }
 }
