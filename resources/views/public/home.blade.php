@@ -174,27 +174,27 @@
 
                             @php
                             $heroAreas = [
-                                [
-                                    'title' => 'مسارات التأهيل',
-                                    'desc' => 'رحلات تعليمية متكاملة',
-                                    'href' => route('public.paths.index'),
-                                    'color' => '#1a9399',
-                                    'bg' => '#e6f5f6',
-                                ],
-                                [
-                                    'title' => 'البرامج',
-                                    'desc' => 'دورات وورش ولقاءات',
-                                    'href' => route('public.programs.index'),
-                                    'color' => '#fbbb2e',
-                                    'bg' => '#fef6e6',
-                                ],
-                                [
-                                    'title' => 'الفرص التطوعية',
-                                    'desc' => 'شارك في خدمة المجتمع',
-                                    'href' => route('public.volunteering.index'),
-                                    'color' => '#ec6056',
-                                    'bg' => '#fdeeed',
-                                ],
+                            [
+                            'title' => 'مسارات التأهيل',
+                            'desc' => 'رحلات تعليمية متكاملة',
+                            'href' => route('public.paths.index'),
+                            'color' => '#1a9399',
+                            'bg' => '#e6f5f6',
+                            ],
+                            [
+                            'title' => 'البرامج',
+                            'desc' => 'دورات وورش ولقاءات',
+                            'href' => route('public.programs.index'),
+                            'color' => '#fbbb2e',
+                            'bg' => '#fef6e6',
+                            ],
+                            [
+                            'title' => 'الفرص التطوعية',
+                            'desc' => 'شارك في خدمة المجتمع',
+                            'href' => route('public.volunteering.index'),
+                            'color' => '#ec6056',
+                            'bg' => '#fdeeed',
+                            ],
                             ];
                             @endphp
 
@@ -518,15 +518,12 @@
                     </div>
 
                     <div class="flex-shrink-0">
-                        <a href="{{ asset('reports/annual-report-2025.pdf') }}"
-                           download="kafaat-annual-report-2025.pdf"
-                           class="w-40 h-40 rounded-3xl flex flex-col items-center justify-center gap-3 text-white transition-all hover:scale-105 hover:shadow-lg"
-                           style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2)"
-                           aria-label="تنزيل التقرير السنوي 2025">
+                        <a href="{{ asset('reports/annual-report-2025.pdf') }}" target="_blank" rel="noopener noreferrer" class="w-40 h-40 rounded-3xl flex flex-col items-center justify-center gap-3 text-white transition-all hover:scale-105 hover:shadow-lg" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2)" aria-label="عرض التقرير السنوي 2025">
                             <svg class="w-10 h-10 text-white opacity-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                            <span class="text-white text-sm font-semibold">تنزيل التقرير</span>
+                            <span class="text-white text-sm font-semibold">عرض التقرير</span>
                         </a>
                     </div>
 
@@ -699,10 +696,10 @@
             function scrollToIndex(nextIndex) {
                 index = ((nextIndex % cards.length) + cards.length) % cards.length;
                 cards[index].scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'nearest',
-                    inline: 'start',
-                });
+                    behavior: 'smooth'
+                    , block: 'nearest'
+                    , inline: 'start'
+                , });
             }
 
             function syncIndexFromScroll() {
@@ -759,7 +756,9 @@
                 });
             }
 
-            track.addEventListener('scroll', syncIndexFromScroll, { passive: true });
+            track.addEventListener('scroll', syncIndexFromScroll, {
+                passive: true
+            });
             track.addEventListener('mouseenter', stopAuto);
             track.addEventListener('mouseleave', startAuto);
             track.addEventListener('focusin', stopAuto);
