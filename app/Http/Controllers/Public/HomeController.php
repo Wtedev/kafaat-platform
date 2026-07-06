@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Support\CompetencyTrackCatalog;
+use App\Models\News;
 use App\Models\Partner;
+use App\Support\CompetencyTrackCatalog;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
