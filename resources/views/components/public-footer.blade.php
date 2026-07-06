@@ -17,6 +17,7 @@
     $licenseAuthority = $license['authority'] ?? null;
     $licenseNumber = $license['number'] ?? null;
     $hasLicense = filled($licenseAuthority) && filled($licenseNumber);
+    $competencyTracks = config('competency_tracks.tracks', []);
 @endphp
 <footer class="relative min-w-0 overflow-x-hidden border-t border-white/10 bg-gradient-to-b from-[#111827] via-[#0f172a] to-[#0b1220] text-white antialiased">
     <div class="mx-auto max-w-7xl px-4 pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] pt-12 sm:px-6 sm:pb-10 sm:pt-16 lg:px-8">
@@ -72,6 +73,15 @@
                     <li><a href="{{ $aboutHref }}" class="text-gray-400 transition-colors hover:text-white">عن كفاءات</a></li>
                     <li><a href="{{ route('public.paths.index') }}" class="text-gray-400 transition-colors hover:text-white">المسارات</a></li>
                     <li><a href="{{ route('public.programs.index') }}" class="text-gray-400 transition-colors hover:text-white">البرامج</a></li>
+                    @foreach (\App\Enums\CompetencyTrack::cases() as $track)
+                        @php $trackMeta = $competencyTracks[$track->value] ?? []; @endphp
+                        <li>
+                            <a href="{{ route('public.programs.index', ['track' => $track->value]) }}" class="inline-flex items-center justify-end gap-2 text-gray-400 transition-colors hover:text-white">
+                                <span>{{ $track->shortLabel() }}</span>
+                                <span class="h-1.5 w-1.5 shrink-0 rounded-full" style="background:{{ $trackMeta['color'] ?? '#335483' }}"></span>
+                            </a>
+                        </li>
+                    @endforeach
                     <li><a href="{{ route('public.volunteering.index') }}" class="text-gray-400 transition-colors hover:text-white">الفرص التطوعية</a></li>
                     @if(Route::has('public.governance.index'))
                     <li><a href="{{ route('public.governance.index') }}" class="text-gray-400 transition-colors hover:text-white">الحوكمة</a></li>
@@ -127,27 +137,6 @@
                 </ul>
             </div>
         </div>
-
-        {{-- Competency tracks intro --}}
-        @if(Route::has('public.tracks.index'))
-        <div class="mt-14 border-t border-white/10 pt-14 sm:mt-16 sm:pt-16">
-            <div class="grid items-center gap-8 rounded-3xl border border-white/10 bg-gradient-to-l from-white/[0.08] to-white/[0.02] p-6 sm:grid-cols-[1fr_auto] sm:p-8">
-                <div class="text-center sm:text-right">
-                    <p class="text-sm font-semibold uppercase tracking-widest text-[#1a9399]">مسارات الكفاءة</p>
-                    <h3 class="mt-2 text-2xl font-bold text-white">برامجنا على ثلاثة مسارات متكاملة</h3>
-                    <p class="mt-3 max-w-2xl text-sm leading-relaxed text-gray-400 sm:ms-0 mx-auto">
-                        الذاتية، المهنية، والمجتمعية — تعرّف على آلية الظهور البصري وكيف تُصنَّف مبادرات وبرامج الجمعية ضمن كل مسار.
-                    </p>
-                </div>
-                <div class="flex flex-wrap items-center justify-center gap-3 sm:justify-end">
-                    <a href="{{ route('public.programs.index') }}" class="inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5" style="background:#335483">
-                        تصفح البرامج
-                        <svg class="h-4 w-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </a>
-                </div>
-            </div>
-        </div>
-        @endif
 
         {{-- Location + map --}}
         <div class="mt-14 border-t border-white/10 pt-14 sm:mt-16 sm:pt-16">
