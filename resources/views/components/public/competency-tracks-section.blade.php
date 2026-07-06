@@ -57,10 +57,15 @@ $activeColor = $activeMeta['color'] ?? '#335483';
             <span class="font-bold tabular-nums" style="color:#111827">{{ en_num($totalCount) }}</span>
             برنامج منشور عبر المسارات الثلاثة
         </p>
-        <a href="{{ route('public.programs.index') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:shadow-md" style="background:#335483">
-            عرض جميع البرامج
-            <svg class="h-4 w-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        </a>
+        <div class="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
+            <a href="{{ route('public.tracks.index') }}" class="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold transition hover:border-gray-300 hover:bg-gray-50" style="color:#335483">
+                تعرّف على مسارات الكفاءة
+            </a>
+            <a href="{{ route('public.programs.index') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:shadow-md" style="background:#335483">
+                عرض جميع البرامج
+                <svg class="h-4 w-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </a>
+        </div>
     </div>
 </section>
 @else

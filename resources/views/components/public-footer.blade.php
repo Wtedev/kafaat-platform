@@ -17,7 +17,6 @@
     $licenseAuthority = $license['authority'] ?? null;
     $licenseNumber = $license['number'] ?? null;
     $hasLicense = filled($licenseAuthority) && filled($licenseNumber);
-    $competencyTracks = config('competency_tracks.tracks', []);
 @endphp
 <footer class="relative min-w-0 overflow-x-hidden border-t border-white/10 bg-gradient-to-b from-[#111827] via-[#0f172a] to-[#0b1220] text-white antialiased">
     <div class="mx-auto max-w-7xl px-4 pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] pt-12 sm:px-6 sm:pb-10 sm:pt-16 lg:px-8">
@@ -73,15 +72,9 @@
                     <li><a href="{{ $aboutHref }}" class="text-gray-400 transition-colors hover:text-white">عن كفاءات</a></li>
                     <li><a href="{{ route('public.paths.index') }}" class="text-gray-400 transition-colors hover:text-white">المسارات</a></li>
                     <li><a href="{{ route('public.programs.index') }}" class="text-gray-400 transition-colors hover:text-white">البرامج</a></li>
-                    @foreach (\App\Enums\CompetencyTrack::cases() as $track)
-                        @php $trackMeta = $competencyTracks[$track->value] ?? []; @endphp
-                        <li>
-                            <a href="{{ route('public.programs.index', ['track' => $track->value]) }}" class="inline-flex items-center justify-end gap-2 text-gray-400 transition-colors hover:text-white">
-                                <span>{{ $track->shortLabel() }}</span>
-                                <span class="h-1.5 w-1.5 shrink-0 rounded-full" style="background:{{ $trackMeta['color'] ?? '#335483' }}"></span>
-                            </a>
-                        </li>
-                    @endforeach
+                    @if (Route::has('public.tracks.index'))
+                    <li><a href="{{ route('public.tracks.index') }}" class="text-gray-400 transition-colors hover:text-white">مسارات الكفاءة</a></li>
+                    @endif
                     <li><a href="{{ route('public.volunteering.index') }}" class="text-gray-400 transition-colors hover:text-white">الفرص التطوعية</a></li>
                     @if(Route::has('public.governance.index'))
                     <li><a href="{{ route('public.governance.index') }}" class="text-gray-400 transition-colors hover:text-white">الحوكمة</a></li>
