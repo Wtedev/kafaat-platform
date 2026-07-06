@@ -8,7 +8,6 @@ use App\Exceptions\ProgramCapacityExceededException;
 use App\Exceptions\RegistrationWindowClosedException;
 use App\Http\Controllers\Controller;
 use App\Models\TrainingProgram;
-use App\Support\CompetencyTrackCatalog;
 use App\Services\ProgramRegistrationService;
 use Illuminate\Http\Request;
 
@@ -20,19 +19,23 @@ class PublicTrainingProgramController extends Controller
 
     public function index()
     {
-        $activeTrack = CompetencyTrack::tryFrom((string) request('track', ''));
+        return redirect()->route('public.programs.track', CompetencyTrack::Self);
+    }
+
+    public function track(CompetencyTrack $track)
+    {
+        $meta = config('competency_tracks.tracks.'.$track->value, []);
 
         $programs = TrainingProgram::published()
             ->standaloneCatalog()
-            ->forCompetencyTrack($activeTrack)
+            ->forCompetencyTrack($track)
             ->latest('published_at')
-            ->paginate(12)
-            ->withQueryString();
+            ->paginate(12);
 
-        return view('public.programs.index', [
+        return view('public.programs.track', [
+            'track' => $track,
+            'meta' => $meta,
             'programs' => $programs,
-            'activeTrack' => $activeTrack,
-            'programCounts' => CompetencyTrackCatalog::publishedProgramCounts(),
         ]);
     }
 

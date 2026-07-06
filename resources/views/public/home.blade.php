@@ -184,7 +184,7 @@
                             [
                             'title' => 'البرامج',
                             'desc' => 'دورات وورش ولقاءات',
-                            'href' => route('public.programs.index'),
+                            'href' => route('public.programs.track', \App\Enums\CompetencyTrack::Self),
                             'color' => '#fbbb2e',
                             'bg' => '#fef6e6',
                             ],
@@ -341,10 +341,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <section id="programs" class="scroll-mt-24 bg-[#F7FAFC] py-16 sm:py-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <x-public.competency-tracks-section
-                variant="showcase"
-                :programCounts="$programCounts"
-            />
+            <x-public.competency-tracks-section :programCounts="$programCounts" />
         </div>
     </section>
 

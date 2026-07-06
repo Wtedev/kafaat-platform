@@ -71,7 +71,6 @@
                     <li><a href="{{ route('home') }}" class="text-gray-400 transition-colors hover:text-white">الرئيسية</a></li>
                     <li><a href="{{ $aboutHref }}" class="text-gray-400 transition-colors hover:text-white">عن كفاءات</a></li>
                     <li><a href="{{ route('public.paths.index') }}" class="text-gray-400 transition-colors hover:text-white">المسارات</a></li>
-                    <li><a href="{{ route('public.programs.index') }}" class="text-gray-400 transition-colors hover:text-white">البرامج</a></li>
                     @if (Route::has('public.tracks.index'))
                     <li><a href="{{ route('public.tracks.index') }}" class="text-gray-400 transition-colors hover:text-white">مسارات الكفاءة</a></li>
                     @endif

@@ -7,6 +7,9 @@ $aboutHref = request()->routeIs('home') ? '#about' : route('home') . '#about';
 $hasGovernance = Route::has('public.governance.index');
 $hasRegulations = Route::has('public.regulations.index');
 $hasMedia = Route::has('public.media.index');
+$programTracks = \App\Enums\CompetencyTrack::cases();
+$programTrackMeta = config('competency_tracks.tracks', []);
+$programsActive = request()->routeIs('public.programs.*');
 $brand = config('brand');
 $govTabs = $hasGovernance
     ? array_merge([
@@ -114,9 +117,28 @@ $govActive = request()->routeIs('public.governance.*');
                     المسارات
                 </a>
 
-                <a href="{{ route('public.programs.index') }}" class="pub-nav-link {{ request()->routeIs('public.programs.*') ? 'is-active' : '' }}">
-                    البرامج
-                </a>
+                <div class="pub-nav-dropdown group relative">
+                    <button type="button" class="pub-nav-link gap-1 {{ $programsActive ? 'is-active' : '' }}" aria-haspopup="true">
+                        البرامج
+                        <svg class="w-3.5 h-3.5 opacity-60 transition-transform duration-200 group-hover:rotate-180 group-focus-within:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div class="pub-nav-dropdown-panel absolute top-full start-0 z-50 mt-3 min-w-[14rem] rounded-2xl border border-gray-100 bg-white py-2 shadow-xl">
+                        @foreach ($programTracks as $track)
+                            @php $tMeta = $programTrackMeta[$track->value] ?? []; @endphp
+                            <a href="{{ route('public.programs.track', $track) }}"
+                               class="pub-nav-dropdown-item flex items-center justify-end gap-2.5 px-4 py-2.5 text-sm text-gray-600 {{ request()->routeIs('public.programs.track') && request()->route('track')?->value === $track->value ? 'font-semibold text-[#335483]' : '' }}">
+                                <span>{{ $track->shortLabel() }}</span>
+                                <span class="h-2 w-2 shrink-0 rounded-full" style="background:{{ $tMeta['color'] ?? '#335483' }}"></span>
+                            </a>
+                        @endforeach
+                        <div class="my-1 border-t border-gray-100"></div>
+                        <a href="{{ route('public.tracks.index') }}" class="pub-nav-dropdown-item block px-4 py-2 text-sm text-gray-500">
+                            عن مسارات الكفاءة
+                        </a>
+                    </div>
+                </div>
 
                 <a href="{{ route('public.volunteering.index') }}" class="pub-nav-link {{ request()->routeIs('public.volunteering.*') ? 'is-active' : '' }}">
                     الفرص التطوعية
@@ -190,7 +212,22 @@ $govActive = request()->routeIs('public.governance.*');
 
             <a href="{{ route('public.paths.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">المسارات</a>
 
-            <a href="{{ route('public.programs.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">البرامج</a>
+            <details class="group rounded-xl">
+                <summary class="pub-nav-mobile-link flex cursor-pointer list-none items-center justify-between px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right [&::-webkit-details-marker]:hidden">
+                    <span>البرامج</span>
+                    <svg class="w-4 h-4 opacity-50 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="mt-1 space-y-0.5 pe-2">
+                    @foreach ($programTracks as $track)
+                        @php $tMeta = $programTrackMeta[$track->value] ?? []; @endphp
+                        <a href="{{ route('public.programs.track', $track) }}" class="pub-nav-mobile-link flex items-center justify-end gap-2 rounded-lg px-6 py-2 text-sm text-gray-600 hover:bg-[#e9eff6] hover:text-[#335483] text-right">
+                            <span>{{ $track->shortLabel() }}</span>
+                            <span class="h-2 w-2 rounded-full" style="background:{{ $tMeta['color'] ?? '#335483' }}"></span>
+                        </a>
+                    @endforeach
+                    <a href="{{ route('public.tracks.index') }}" class="pub-nav-mobile-link block rounded-lg px-6 py-2 text-sm text-gray-500 hover:bg-[#e9eff6] text-right">عن مسارات الكفاءة</a>
+                </div>
+            </details>
             <a href="{{ route('public.volunteering.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">الفرص التطوعية</a>
 
             @if($hasGovernance)

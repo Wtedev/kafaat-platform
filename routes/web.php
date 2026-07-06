@@ -36,6 +36,7 @@ use App\Http\Controllers\Portal\PortalVolunteerController;
 use App\Http\Controllers\PublicPrivacyPolicyController;
 use App\Http\Controllers\Public\CertificateVerificationController;
 use App\Http\Controllers\Public\HomeController;
+use App\Enums\CompetencyTrack;
 use App\Http\Controllers\Public\PublicCompetencyTracksController;
 use App\Http\Controllers\Public\PublicGovernanceController;
 use App\Http\Controllers\Public\PublicLearningPathController;
@@ -111,6 +112,9 @@ Route::get('/tracks', PublicCompetencyTracksController::class)->name('public.tra
 
 Route::prefix('programs')->name('public.programs.')->group(function () {
     Route::get('/', [PublicTrainingProgramController::class, 'index'])->name('index');
+    Route::get('/{track}', [PublicTrainingProgramController::class, 'track'])
+        ->whereIn('track', array_column(CompetencyTrack::cases(), 'value'))
+        ->name('track');
     Route::get('/{trainingProgram:slug}', [PublicTrainingProgramController::class, 'show'])->name('show');
     Route::post('/{trainingProgram:slug}/register', [PublicTrainingProgramController::class, 'register'])->middleware('auth')->name('register');
 });

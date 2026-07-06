@@ -35,7 +35,7 @@ $order = CompetencyTrackCatalog::order();
             $from = $meta['gradient_from'] ?? '#335483';
             $to = $meta['gradient_to'] ?? '#243a55';
             @endphp
-            <a href="{{ route('public.programs.index', ['track' => $trackKey]) }}"
+            <a href="{{ route('public.programs.track', $trackKey) }}"
                class="group relative flex min-h-[22rem] flex-col overflow-hidden rounded-[1.75rem] p-6 text-right shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl {{ $isActive ? 'ring-4 ring-white/80 ring-offset-2 ring-offset-[#F7FAFC]' : '' }}"
                style="background: linear-gradient(160deg, {{ $from }} 0%, {{ $to }} 100%)">
                 <div class="absolute -left-8 -top-8 h-32 w-32 rounded-full bg-white/10"></div>
@@ -99,7 +99,7 @@ $order = CompetencyTrackCatalog::order();
             <a href="{{ route('public.tracks.index') }}" class="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold transition hover:bg-gray-50" style="color:#335483">
                 دليل مسارات العمل
             </a>
-            <a href="{{ route('public.programs.index') }}" class="inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" style="background:#335483">
+            <a href="{{ route('public.programs.track', \App\Enums\CompetencyTrack::Self) }}" class="inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" style="background:#335483">
                 عرض جميع البرامج
             </a>
         </div>
