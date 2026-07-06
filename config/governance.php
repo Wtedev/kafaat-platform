@@ -30,4 +30,20 @@ return [
         'beneficiary_satisfaction',
     ],
 
+    'executive_report_categories' => [
+        'governance_supervision' => 'تقارير الإشراف والحوكمة',
+        'initiatives' => 'تقارير المبادرات',
+        'operational' => 'الخطط والجداول التشغيلية',
+        'programs' => 'تقارير البرامج والدورات',
+        'periodic' => 'تقارير دورية',
+    ],
+
+    'executive_report_category_order' => [
+        'governance_supervision',
+        'initiatives',
+        'operational',
+        'programs',
+        'periodic',
+    ],
+
 ];
