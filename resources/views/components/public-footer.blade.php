@@ -72,9 +72,6 @@
                     <li><a href="{{ $aboutHref }}" class="text-gray-400 transition-colors hover:text-white">عن كفاءات</a></li>
                     <li><a href="{{ route('public.paths.index') }}" class="text-gray-400 transition-colors hover:text-white">المسارات</a></li>
                     <li><a href="{{ route('public.programs.index') }}" class="text-gray-400 transition-colors hover:text-white">البرامج</a></li>
-                    @if(Route::has('public.tracks.index'))
-                    <li><a href="{{ route('public.tracks.index') }}" class="text-gray-400 transition-colors hover:text-white">مسارات الكفاءة</a></li>
-                    @endif
                     <li><a href="{{ route('public.volunteering.index') }}" class="text-gray-400 transition-colors hover:text-white">الفرص التطوعية</a></li>
                     @if(Route::has('public.governance.index'))
                     <li><a href="{{ route('public.governance.index') }}" class="text-gray-400 transition-colors hover:text-white">الحوكمة</a></li>
@@ -143,12 +140,9 @@
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center justify-center gap-3 sm:justify-end">
-                    <a href="{{ route('public.tracks.index') }}" class="inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5" style="background:#335483">
-                        مسارات الكفاءة
-                        <svg class="h-4 w-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </a>
-                    <a href="{{ route('public.programs.index') }}" class="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15">
+                    <a href="{{ route('public.programs.index') }}" class="inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5" style="background:#335483">
                         تصفح البرامج
+                        <svg class="h-4 w-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
                 </div>
             </div>

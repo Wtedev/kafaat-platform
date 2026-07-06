@@ -3,43 +3,16 @@
 
 @section('content')
 
-@php
-use App\Enums\CompetencyTrack;
-@endphp
-
 <div class="mb-8 text-center">
     <h1 class="text-3xl font-bold" style="color:#111827">البرامج التدريبية</h1>
-    <p class="mt-2 text-sm sm:text-base" style="color:#6B7280">برامجنا منظّمة ضمن ثلاثة مسارات للكفاءة — اختر المسار الذي يناسبك أو استكشف الكل.</p>
+    <p class="mt-2 text-sm sm:text-base" style="color:#6B7280">اختر مسار الكفاءة المناسب لك أو استعرض جميع البرامج المتاحة.</p>
 </div>
 
-<x-public.competency-tracks-showcase
-    :programCounts="$programCounts"
+<x-public.program-track-tabs
     :activeTrack="$activeTrack"
-    compact
-    class="mb-10"
+    :programCounts="$programCounts"
+    class="mb-8"
 />
-
-<div class="mb-6 flex flex-wrap items-center justify-center gap-2">
-    <a href="{{ route('public.programs.index') }}"
-       class="rounded-full px-4 py-2 text-sm font-semibold transition {{ $activeTrack === null ? 'text-white shadow-sm' : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50' }}"
-       @if ($activeTrack === null) style="background:#335483" @endif>
-        جميع البرامج
-    </a>
-    @foreach (CompetencyTrack::cases() as $track)
-        @php $meta = config('competency_tracks.tracks.'.$track->value, []); @endphp
-        <a href="{{ route('public.programs.index', ['track' => $track->value]) }}"
-           class="rounded-full px-4 py-2 text-sm font-semibold transition {{ $activeTrack === $track ? 'text-white shadow-sm' : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50' }}"
-           @if ($activeTrack === $track) style="background:{{ $meta['color'] ?? '#335483' }}" @endif>
-            {{ $track->shortLabel() }}
-        </a>
-    @endforeach
-</div>
-
-@if ($activeTrack)
-<div class="mb-6 rounded-2xl border border-gray-100 bg-white px-5 py-4 text-center text-sm" style="color:#6B7280">
-    تعرض الآن برامج <span class="font-bold" style="color:#111827">{{ $activeTrack->label() }}</span>
-</div>
-@endif
 
 @if ($programs->isEmpty())
 <div class="rounded-2xl border border-gray-100 bg-white p-12 text-center shadow-sm" style="color:#6B7280">
@@ -83,12 +56,5 @@ use App\Enums\CompetencyTrack;
 <div class="mt-8">{{ $programs->links() }}</div>
 @endif
 @endif
-
-<div class="mt-10 text-center">
-    <a href="{{ route('public.tracks.index') }}" class="inline-flex items-center gap-2 text-sm font-semibold" style="color:#335483">
-        تعرّف أكثر على مسارات الكفاءة
-        <svg class="h-4 w-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-    </a>
-</div>
 
 @endsection
