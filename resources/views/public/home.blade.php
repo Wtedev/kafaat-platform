@@ -307,18 +307,18 @@
                 </div>
 
                 <div class="relative z-10 text-center mb-12">
-                    <h2 class="text-3xl font-bold text-white mb-2">أرقام كفاءات</h2>
+                    <h2 class="text-3xl font-bold text-white mb-2">أرقام كفاءات للسنة الماضية</h2>
                     <p class="text-sm" style="color:rgba(255,255,255,0.65)">نتائج نعتز بها</p>
                 </div>
 
                 @php
                 $stats = [
-                ['value' => '+1200', 'label' => 'المستفيدون'],
-                ['value' => '38', 'label' => 'المسارات'],
-                ['value' => '65', 'label' => 'البرامج'],
-                ['value' => '42', 'label' => 'الفرص التطوعية'],
-                ['value' => '+800', 'label' => 'الشهادات'],
-                ['value' => '25', 'label' => 'الشركاء'],
+                ['value' => '2497+', 'label' => 'مستفيد'],
+                ['value' => '+18', 'label' => 'برامج تدريبية'],
+                ['value' => '274', 'label' => 'جهة مستفيدة'],
+                ['value' => '20', 'label' => 'جهات داعمة'],
+                ['value' => '124', 'label' => 'فرص تطوعية'],
+                ['value' => '+1 مليون', 'label' => 'الظهور الإعلامي'],
                 ];
                 @endphp
 
@@ -518,12 +518,16 @@
                     </div>
 
                     <div class="flex-shrink-0">
-                        <div class="w-40 h-40 rounded-3xl flex flex-col items-center justify-center gap-3 text-white" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2)" aria-label="التقرير السنوي — قريباً">
-                            <svg class="w-10 h-10 text-white opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        <a href="{{ asset('reports/annual-report-2025.pdf') }}"
+                           download="kafaat-annual-report-2025.pdf"
+                           class="w-40 h-40 rounded-3xl flex flex-col items-center justify-center gap-3 text-white transition-all hover:scale-105 hover:shadow-lg"
+                           style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2)"
+                           aria-label="تنزيل التقرير السنوي 2025">
+                            <svg class="w-10 h-10 text-white opacity-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            <span class="text-white text-sm font-semibold">قريباً</span>
-                        </div>
+                            <span class="text-white text-sm font-semibold">تنزيل التقرير</span>
+                        </a>
                     </div>
 
                 </div>
