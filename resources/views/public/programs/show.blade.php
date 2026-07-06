@@ -45,7 +45,7 @@ $alreadyRegistered = $userRegistration !== null;
 />
 
 <div class="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
-    <div class="order-2 min-w-0 space-y-6 lg:order-1">
+    <div class="order-2 min-w-0 space-y-6 lg:order-none lg:col-start-1 lg:row-start-1">
         <div class="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
             <h2 class="mb-4 text-base font-bold" style="color:#111827">نبذة عن البرنامج</h2>
             <p class="leading-relaxed whitespace-pre-line text-gray-600">{{ $trainingProgram->description }}</p>
@@ -88,7 +88,7 @@ $alreadyRegistered = $userRegistration !== null;
         </div>
     </div>
 
-    <x-public.program-info-sidebar class="order-1 lg:order-2" :trainingProgram="$trainingProgram" />
+    <x-public.program-info-sidebar class="order-1 lg:order-none lg:col-start-2 lg:row-start-1" :trainingProgram="$trainingProgram" />
 </div>
 
 @endsection
