@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CompetencyTrack;
+use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
@@ -31,6 +32,8 @@ class TrainingProgram extends Model
         'slug',
         'program_kind',
         'competency_track',
+        'delivery_mode',
+        'venue',
         'description',
         'image',
         'capacity',
@@ -59,6 +62,7 @@ class TrainingProgram extends Model
             'status' => ProgramStatus::class,
             'program_kind' => TrainingProgramKind::class,
             'competency_track' => CompetencyTrack::class,
+            'delivery_mode' => ProgramDeliveryMode::class,
             'published_at' => 'datetime',
             'notify_on_publish' => 'boolean',
             'notify_milestones' => 'boolean',
@@ -360,6 +364,21 @@ class TrainingProgram extends Model
         return collect($this->weekdays)
             ->map(fn ($day): string => $labels[(int) $day] ?? (string) $day)
             ->implode('، ');
+    }
+
+    public function deliveryModeDescription(): ?string
+    {
+        if ($this->delivery_mode === null) {
+            return null;
+        }
+
+        if ($this->delivery_mode === ProgramDeliveryMode::InPerson) {
+            return filled($this->venue)
+                ? 'حضوري — '.$this->venue
+                : 'حضوري';
+        }
+
+        return $this->delivery_mode->label();
     }
 
     public function remainingCapacity(): ?int

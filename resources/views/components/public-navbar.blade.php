@@ -3,13 +3,15 @@
     Shared public navbar — used on the standalone homepage AND all public layout pages.
 --}}
 @php
+use App\Support\CompetencyTrackCatalog;
+
 $aboutHref = request()->routeIs('home') ? '#about' : route('home') . '#about';
 $hasGovernance = Route::has('public.governance.index');
 $hasRegulations = Route::has('public.regulations.index');
 $hasMedia = Route::has('public.media.index');
-$programTracks = \App\Enums\CompetencyTrack::cases();
+$programTrackOrder = CompetencyTrackCatalog::order();
 $programTrackMeta = config('competency_tracks.tracks', []);
-$programsActive = request()->routeIs('public.programs.*');
+$programsActive = request()->routeIs('public.programs.*') || request()->routeIs('public.tracks.*');
 $brand = config('brand');
 $govTabs = $hasGovernance
     ? array_merge([
@@ -72,35 +74,6 @@ $govActive = request()->routeIs('public.governance.*');
         transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
     }
 
-    .pub-nav-programs-panel {
-        min-width: 15.5rem;
-    }
-
-    .pub-nav-programs-item {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin: 0.125rem 0.375rem;
-        padding: 0.625rem 0.75rem;
-        border-radius: 0.75rem;
-        transition: background 0.18s ease;
-    }
-
-    .pub-nav-programs-item:hover {
-        background: #f8fafc;
-    }
-
-    .pub-nav-programs-item.is-active {
-        background: #e9eff6;
-    }
-
-    .pub-nav-programs-accent {
-        width: 0.25rem;
-        align-self: stretch;
-        border-radius: 9999px;
-        flex-shrink: 0;
-    }
-
     .pub-nav-dropdown-item {
         transition: background 0.18s ease, color 0.18s ease, padding-inline-start 0.18s ease;
     }
@@ -109,6 +82,32 @@ $govActive = request()->routeIs('public.governance.*');
         background: #e9eff6;
         color: #335483;
         padding-inline-start: 1.25rem;
+    }
+
+    .pub-nav-dropdown-item--track {
+        margin-inline: 0.5rem;
+        padding: 0.55rem 0.85rem;
+        border-radius: 0.55rem;
+        border-inline-start: 3px solid var(--track-color);
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .pub-nav-dropdown-item--track:hover {
+        color: var(--track-color) !important;
+        background: color-mix(in srgb, var(--track-color) 8%, white);
+        padding-inline-start: 0.85rem;
+    }
+
+    .pub-nav-dropdown-item--track.is-active {
+        color: var(--track-color) !important;
+        font-weight: 600;
+        background: color-mix(in srgb, var(--track-color) 10%, white);
+    }
+
+    .pub-nav-programs-panel {
+        min-width: 15rem;
     }
 
     .pub-nav-mobile-link {
@@ -153,25 +152,24 @@ $govActive = request()->routeIs('public.governance.*');
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
-                    <div class="pub-nav-dropdown-panel pub-nav-programs-panel absolute top-full end-0 z-50 mt-2 rounded-xl border border-gray-100 bg-white p-1.5 shadow-xl ring-1 ring-black/5">
-                        @foreach ($programTracks as $track)
+                    <div class="pub-nav-dropdown-panel pub-nav-programs-panel absolute top-full start-0 z-50 mt-3 rounded-2xl border border-gray-100 bg-white py-2 shadow-xl">
+                        <a href="{{ route('public.tracks.index') }}" class="pub-nav-dropdown-item block px-4 py-2.5 text-sm font-semibold text-[#335483]">
+                            عن المسارات
+                        </a>
+                        <div class="my-1 border-t border-gray-100"></div>
+                        @foreach ($programTrackOrder as $trackKey)
                             @php
-                            $tMeta = $programTrackMeta[$track->value] ?? [];
-                            $isActiveTrack = request()->routeIs('public.programs.track') && request()->route('track')?->value === $track->value;
+                            $track = \App\Enums\CompetencyTrack::from($trackKey);
+                            $tMeta = $programTrackMeta[$trackKey] ?? [];
+                            $trackColor = $tMeta['color'] ?? '#335483';
+                            $isActiveTrack = request()->routeIs('public.programs.track') && request()->route('track')?->value === $trackKey;
                             @endphp
                             <a href="{{ route('public.programs.track', $track) }}"
-                               class="pub-nav-programs-item {{ $isActiveTrack ? 'is-active' : '' }}">
-                                <span class="pub-nav-programs-accent" style="background:{{ $tMeta['color'] ?? '#335483' }}"></span>
-                                <span class="min-w-0 flex-1 text-right">
-                                    <span class="block text-sm font-semibold {{ $isActiveTrack ? 'text-[#335483]' : 'text-gray-800' }}">{{ $track->shortLabel() }}</span>
-                                    <span class="mt-0.5 block line-clamp-1 text-xs text-gray-500">{{ $tMeta['stat_label'] ?? '' }}</span>
-                                </span>
+                               class="pub-nav-dropdown-item pub-nav-dropdown-item--track block text-right {{ $isActiveTrack ? 'is-active' : '' }}"
+                               style="--track-color: {{ $trackColor }}">
+                                {{ $track->shortLabel() }}
                             </a>
                         @endforeach
-                        <div class="my-1 border-t border-gray-100"></div>
-                        <a href="{{ route('public.tracks.index') }}" class="pub-nav-dropdown-item block rounded-lg px-3 py-2 text-xs font-medium text-gray-500">
-                            عن مسارات الكفاءة
-                        </a>
                     </div>
                 </div>
 
@@ -252,18 +250,21 @@ $govActive = request()->routeIs('public.governance.*');
                     <span>البرامج</span>
                     <svg class="w-4 h-4 opacity-50 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                 </summary>
-                <div class="mt-1 space-y-1 pe-2">
-                    @foreach ($programTracks as $track)
-                        @php $tMeta = $programTrackMeta[$track->value] ?? []; @endphp
-                        <a href="{{ route('public.programs.track', $track) }}" class="pub-nav-mobile-link flex items-center gap-3 rounded-xl px-4 py-3 text-sm hover:bg-[#e9eff6] text-right">
-                            <span class="w-1 self-stretch rounded-full" style="background:{{ $tMeta['color'] ?? '#335483' }}"></span>
-                            <span class="flex-1">
-                                <span class="block font-semibold text-gray-800">{{ $track->shortLabel() }}</span>
-                                <span class="mt-0.5 block text-xs text-gray-500">{{ $tMeta['stat_label'] ?? '' }}</span>
-                            </span>
+                <div class="mt-1 space-y-0.5 pe-2">
+                    <a href="{{ route('public.tracks.index') }}" class="pub-nav-mobile-link block rounded-lg px-6 py-2 text-sm font-semibold text-[#335483] hover:bg-[#e9eff6] text-right">عن المسارات</a>
+                    @foreach ($programTrackOrder as $trackKey)
+                        @php
+                            $track = \App\Enums\CompetencyTrack::from($trackKey);
+                            $tMeta = $programTrackMeta[$trackKey] ?? [];
+                            $trackColor = $tMeta['color'] ?? '#335483';
+                            $isActiveTrack = request()->routeIs('public.programs.track') && request()->route('track')?->value === $trackKey;
+                        @endphp
+                        <a href="{{ route('public.programs.track', $track) }}"
+                           class="pub-nav-mobile-link block rounded-lg border-s-[3px] px-6 py-2 text-sm hover:bg-[#e9eff6] text-right {{ $isActiveTrack ? 'font-semibold' : 'text-gray-600' }}"
+                           style="border-color: {{ $trackColor }}; {{ $isActiveTrack ? 'color:'.$trackColor : '' }}">
+                            {{ $track->shortLabel() }}
                         </a>
                     @endforeach
-                    <a href="{{ route('public.tracks.index') }}" class="pub-nav-mobile-link block rounded-lg px-6 py-2.5 text-xs font-medium text-gray-500 hover:bg-[#e9eff6] text-right">عن مسارات الكفاءة</a>
                 </div>
             </details>
             <a href="{{ route('public.volunteering.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">الفرص التطوعية</a>

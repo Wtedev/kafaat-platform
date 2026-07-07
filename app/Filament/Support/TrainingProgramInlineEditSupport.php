@@ -32,7 +32,10 @@ final class TrainingProgramInlineEditSupport
                 ->required()
                 ->native(false)
                 ->live()
-                ->columnSpanFull(),
+                ->columnSpan(1),
+            TrainingEntityFormSupport::competencyTrackSelect()
+                ->columnSpan(1),
+            ...TrainingEntityFormSupport::programDeliveryFields(),
         ];
 
         if (TrainingEntityFormSupport::publishControlsVisibleForRecord($program, ProgramStatus::Published)) {

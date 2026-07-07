@@ -94,6 +94,7 @@ class CreateTrainingProgram extends BaseCreateRecord
 
         $data = TrainingEntityFormSupport::applyCapacityUnlimited($data);
         $data = TrainingEntityFormSupport::applyAudienceNotifications($data);
+        $data = TrainingEntityFormSupport::applyDeliveryModeFields($data);
         $data = TrainingEntityFormSupport::stampOwnerFromCreator($data);
 
         $ownerId = isset($data['owner_id']) ? (int) $data['owner_id'] : null;

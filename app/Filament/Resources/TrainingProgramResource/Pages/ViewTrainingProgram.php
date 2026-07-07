@@ -92,6 +92,7 @@ class ViewTrainingProgram extends BaseViewRecord
 
         $data = TrainingEntityFormSupport::applyCapacityUnlimited($data);
         $data = TrainingEntityFormSupport::applyAudienceNotifications($data);
+        $data = TrainingEntityFormSupport::applyDeliveryModeFields($data);
 
         if (! $linked) {
             $ownerId = isset($data['owner_id']) ? (int) $data['owner_id'] : (int) $program->owner_id;
@@ -169,6 +170,9 @@ class ViewTrainingProgram extends BaseViewRecord
         return [
             'title' => 'اسم البرنامج',
             'program_kind' => 'نوع البرنامج',
+            'competency_track' => 'مسار الكفاءة',
+            'delivery_mode' => 'طريقة التنفيذ',
+            'venue' => 'مكان الانعقاد',
             'description' => 'الوصف',
             'image' => 'صورة الغلاف',
             'is_linked_to_path' => 'تابع لمسار تدريبي',

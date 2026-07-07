@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\LearningPathResource\RelationManagers;
 
+use App\Enums\CompetencyTrack;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
 use App\Filament\Resources\TrainingProgramResource;
@@ -74,6 +75,20 @@ class TrainingProgramsRelationManager extends RelationManager
 
                         return TrainingProgramKind::tryFrom((string) $state)?->label() ?? '—';
                     }),
+
+                TextColumn::make('competency_track')
+                    ->label('مسار الكفاءة')
+                    ->formatStateUsing(function ($state): string {
+                        if ($state instanceof CompetencyTrack) {
+                            return $state->shortLabel();
+                        }
+
+                        return CompetencyTrack::tryFrom((string) $state)?->shortLabel() ?? '—';
+                    }),
+
+                TextColumn::make('delivery_mode')
+                    ->label('التنفيذ')
+                    ->getStateUsing(fn (TrainingProgram $record): string => $record->deliveryModeDescription() ?? '—'),
 
                 BadgeColumn::make('status')
                     ->label('الحالة')

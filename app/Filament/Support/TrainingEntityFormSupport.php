@@ -2,6 +2,8 @@
 
 namespace App\Filament\Support;
 
+use App\Enums\CompetencyTrack;
+use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
 use App\Filament\Forms\Components\TrainingScheduleCalendar;
@@ -993,6 +995,68 @@ final class TrainingEntityFormSupport
 
     if ($userId !== null && blank($data['owner_id'] ?? null)) {
       $data['owner_id'] = $userId;
+    }
+
+    return $data;
+  }
+
+  public static function competencyTrackSelect(): Select
+  {
+    return Select::make('competency_track')
+      ->label('مسار الكفاءة')
+      ->options(CompetencyTrack::shortOptions())
+      ->nullable()
+      ->native(false)
+      ->helperText('يُعرض في الموقع العام ضمن مسارات الكفاءة (ذاتية، مهنية، مجتمعية).');
+  }
+
+  public static function deliveryModeSelect(): Select
+  {
+    return Select::make('delivery_mode')
+      ->label('طريقة التنفيذ')
+      ->options(ProgramDeliveryMode::options())
+      ->nullable()
+      ->native(false)
+      ->live()
+      ->afterStateUpdated(function (Set $set, ?string $state): void {
+        if ($state !== ProgramDeliveryMode::InPerson->value) {
+          $set('venue', null);
+        }
+      });
+  }
+
+  public static function venueField(): TextInput
+  {
+    return TextInput::make('venue')
+      ->label('مكان الانعقاد / القاعة')
+      ->maxLength(255)
+      ->placeholder('مثال: قاعة الأمير — مقر الجمعية')
+      ->visible(fn (Get $get): bool => $get('delivery_mode') === ProgramDeliveryMode::InPerson->value)
+      ->required(fn (Get $get): bool => $get('delivery_mode') === ProgramDeliveryMode::InPerson->value)
+      ->columnSpanFull();
+  }
+
+  /**
+   * @return array<int, Select|TextInput>
+   */
+  public static function programDeliveryFields(): array
+  {
+    return [
+      self::deliveryModeSelect(),
+      self::venueField(),
+    ];
+  }
+
+  /**
+   * @param  array<string, mixed>  $data
+   * @return array<string, mixed>
+   */
+  public static function applyDeliveryModeFields(array $data): array
+  {
+    $mode = $data['delivery_mode'] ?? null;
+
+    if ($mode !== ProgramDeliveryMode::InPerson->value) {
+      $data['venue'] = null;
     }
 
     return $data;

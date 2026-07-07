@@ -2,6 +2,8 @@
 
 namespace Tests\Unit\Filament;
 
+use App\Enums\CompetencyTrack;
+use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
 use App\Filament\Support\TrainingProgramViewPresenter;
@@ -22,6 +24,9 @@ class TrainingProgramViewPresenterTest extends TestCase
         $program->fill([
             'title' => 'برنامج تجريبي',
             'program_kind' => TrainingProgramKind::Course,
+            'competency_track' => CompetencyTrack::Self,
+            'delivery_mode' => ProgramDeliveryMode::InPerson,
+            'venue' => 'قاعة التدريب',
             'status' => ProgramStatus::Published,
             'owner_id' => 1,
             'capacity' => 59,
@@ -43,6 +48,14 @@ class TrainingProgramViewPresenterTest extends TestCase
         $this->assertSame(
             'دورة تدريبية',
             collect($overviewRows)->firstWhere('label', 'نوع البرنامج')['value'],
+        );
+        $this->assertSame(
+            'مسار الكفاءة الذاتية',
+            collect($overviewRows)->firstWhere('label', 'مسار الكفاءة')['value'],
+        );
+        $this->assertSame(
+            'حضوري — قاعة التدريب',
+            collect($overviewRows)->firstWhere('label', 'طريقة التنفيذ')['value'],
         );
         $this->assertSame(
             'برنامج مستقل',

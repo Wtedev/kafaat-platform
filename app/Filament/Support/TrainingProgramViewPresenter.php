@@ -74,6 +74,16 @@ final class TrainingProgramViewPresenter
                     'heroicon-o-book-open',
                 ),
                 EntityViewPresenterSupport::row(
+                    'مسار الكفاءة',
+                    $program->competency_track?->shortLabel() ?? '—',
+                    'heroicon-o-squares-2x2',
+                ),
+                EntityViewPresenterSupport::row(
+                    'طريقة التنفيذ',
+                    $program->deliveryModeDescription() ?? '—',
+                    'heroicon-o-map-pin',
+                ),
+                EntityViewPresenterSupport::row(
                     'التبعية للمسار',
                     $program->learning_path_id === null
                         ? 'برنامج مستقل'

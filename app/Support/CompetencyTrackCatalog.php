@@ -63,4 +63,23 @@ class CompetencyTrackCatalog
             fn (string $key): array => [$key => (int) ($counts[$key] ?? 0)],
         );
     }
+
+    /**
+     * @return Collection<string, \Illuminate\Support\Collection<int, TrainingProgram>>
+     */
+    public static function featuredProgramsByTrack(int $limitPerTrack = 5): Collection
+    {
+        return collect(self::order())->mapWithKeys(function (string $key) use ($limitPerTrack): array {
+            $track = CompetencyTrack::from($key);
+
+            $programs = TrainingProgram::published()
+                ->standaloneCatalog()
+                ->forCompetencyTrack($track)
+                ->latest('published_at')
+                ->limit($limitPerTrack)
+                ->get();
+
+            return [$key => $programs];
+        });
+    }
 }

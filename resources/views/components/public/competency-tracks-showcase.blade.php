@@ -99,7 +99,7 @@ $order = CompetencyTrackCatalog::order();
             <a href="{{ route('public.tracks.index') }}" class="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold transition hover:bg-gray-50" style="color:#335483">
                 دليل مسارات العمل
             </a>
-            <a href="{{ route('public.programs.track', \App\Enums\CompetencyTrack::Self) }}" class="inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" style="background:#335483">
+            <a href="{{ route('public.programs.track', \App\Enums\CompetencyTrack::Self) }}" class="inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" style="background:{{ $tracks[CompetencyTrack::Self->value]['color'] ?? config('brand.secondary') }}">
                 عرض جميع البرامج
             </a>
         </div>

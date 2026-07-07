@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\ProgramStatus;
 use App\Enums\CompetencyTrack;
+use App\Enums\ProgramDeliveryMode;
 use App\Enums\TrainingProgramKind;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\ConfiguresViewFirstTrainingResourceTable;
@@ -154,15 +155,12 @@ class TrainingProgramResource extends Resource
                         ->required()
                         ->native(false)
                         ->live()
-                        ->columnSpanFull(),
+                        ->columnSpan(1),
 
-                    Select::make('competency_track')
-                        ->label('مسار الكفاءة')
-                        ->options(CompetencyTrack::options())
-                        ->nullable()
-                        ->native(false)
-                        ->helperText('يُستخدم في عرض البرنامج ضمن مسارات الكفاءة على الموقع العام.')
-                        ->columnSpanFull(),
+                    TrainingEntityFormSupport::competencyTrackSelect()
+                        ->columnSpan(1),
+
+                    ...TrainingEntityFormSupport::programDeliveryFields(),
 
                     TrainingEntityFormSupport::descriptionField(),
                 ]),
@@ -206,14 +204,12 @@ class TrainingProgramResource extends Resource
                         ->required()
                         ->native(false)
                         ->live()
-                        ->columnSpanFull(),
+                        ->columnSpan(1),
 
-                    Select::make('competency_track')
-                        ->label('مسار الكفاءة')
-                        ->options(CompetencyTrack::options())
-                        ->nullable()
-                        ->native(false)
-                        ->columnSpanFull(),
+                    TrainingEntityFormSupport::competencyTrackSelect()
+                        ->columnSpan(1),
+
+                    ...TrainingEntityFormSupport::programDeliveryFields(),
 
                     TrainingEntityFormSupport::descriptionField(),
                 ]),
@@ -320,6 +316,18 @@ class TrainingProgramResource extends Resource
                                 ? 'ظاهر'
                                 : 'مخفي'),
 
+                        TextEntry::make('program_kind')
+                            ->label('نوع البرنامج')
+                            ->formatStateUsing(fn (TrainingProgram $record): string => $record->program_kind?->label() ?? '—'),
+
+                        TextEntry::make('competency_track')
+                            ->label('مسار الكفاءة')
+                            ->formatStateUsing(fn (TrainingProgram $record): string => $record->competency_track?->shortLabel() ?? '—'),
+
+                        TextEntry::make('delivery_mode')
+                            ->label('طريقة التنفيذ')
+                            ->formatStateUsing(fn (TrainingProgram $record): string => $record->deliveryModeDescription() ?? '—'),
+
                         TextEntry::make('registration_window_status')
                             ->label('حالة التسجيل')
                             ->getStateUsing(fn (TrainingProgram $record): string => $record->registrationWindowStatusLabel()),
@@ -393,6 +401,22 @@ class TrainingProgramResource extends Resource
 
                         return TrainingProgramKind::tryFrom((string) $state)?->label() ?? '—';
                     }),
+
+                TextColumn::make('competency_track')
+                    ->label('مسار الكفاءة')
+                    ->formatStateUsing(function ($state): string {
+                        if ($state instanceof CompetencyTrack) {
+                            return $state->shortLabel();
+                        }
+
+                        return CompetencyTrack::tryFrom((string) $state)?->shortLabel() ?? '—';
+                    })
+                    ->toggleable(),
+
+                TextColumn::make('delivery_mode')
+                    ->label('التنفيذ')
+                    ->getStateUsing(fn (TrainingProgram $record): string => $record->deliveryModeDescription() ?? '—')
+                    ->toggleable(),
 
                 TextColumn::make('responsible_display')
                     ->label('الموظف المسؤول')

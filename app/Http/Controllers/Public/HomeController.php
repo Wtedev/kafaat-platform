@@ -26,6 +26,7 @@ class HomeController extends Controller
             'news' => $news,
             'partners' => $partners,
             'programCounts' => CompetencyTrackCatalog::publishedProgramCounts(),
+            'trackPrograms' => CompetencyTrackCatalog::featuredProgramsByTrack(5),
         ]);
     }
 }

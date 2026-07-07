@@ -20,10 +20,24 @@ enum CompetencyTrack: string
     public function shortLabel(): string
     {
         return match ($this) {
-            self::Self => 'الكفاءة الذاتية',
-            self::Professional => 'الكفاءة المهنية',
-            self::Community => 'الكفاءة المجتمعية',
+            self::Self => 'مسار الكفاءة الذاتية',
+            self::Professional => 'مسار الكفاءة المهنية',
+            self::Community => 'مسار الكفاءة المجتمعية',
         };
+    }
+
+    /**
+     * @return list<self>
+     */
+    public static function orderedCases(): array
+    {
+        $order = config('competency_tracks.order', []);
+
+        if ($order === []) {
+            return self::cases();
+        }
+
+        return array_map(fn (string $value): self => self::from($value), $order);
     }
 
     /**
@@ -32,8 +46,21 @@ enum CompetencyTrack: string
     public static function options(): array
     {
         $out = [];
-        foreach (self::cases() as $case) {
+        foreach (self::orderedCases() as $case) {
             $out[$case->value] = $case->label();
+        }
+
+        return $out;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function shortOptions(): array
+    {
+        $out = [];
+        foreach (self::orderedCases() as $case) {
+            $out[$case->value] = $case->shortLabel();
         }
 
         return $out;

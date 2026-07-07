@@ -73,6 +73,31 @@
             transform: translateY(0);
         }
 
+        .stat-counter {
+            display: inline-block;
+            min-width: 2.5ch;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-item {
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 0.65s cubic-bezier(.22, 1, .36, 1),
+                transform 0.65s cubic-bezier(.22, 1, .36, 1);
+        }
+
+        #kafaat-stats.is-visible .stat-item {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #kafaat-stats.is-visible .stat-item:nth-child(1) { transition-delay: 0.05s; }
+        #kafaat-stats.is-visible .stat-item:nth-child(2) { transition-delay: 0.12s; }
+        #kafaat-stats.is-visible .stat-item:nth-child(3) { transition-delay: 0.19s; }
+        #kafaat-stats.is-visible .stat-item:nth-child(4) { transition-delay: 0.26s; }
+        #kafaat-stats.is-visible .stat-item:nth-child(5) { transition-delay: 0.33s; }
+        #kafaat-stats.is-visible .stat-item:nth-child(6) { transition-delay: 0.4s; }
+
         .vm-card {
             transition: transform 0.35s cubic-bezier(.22, 1, .36, 1),
                 box-shadow 0.35s cubic-bezier(.22, 1, .36, 1);
@@ -98,6 +123,9 @@
 
     @php
     $homeAboutHref = request()->routeIs('home') ? '#about' : route('home') . '#about';
+    $selfTrackMeta = config('competency_tracks.tracks.self', []);
+    $selfTrackColor = $selfTrackMeta['color'] ?? config('brand.secondary');
+    $selfTrackBg = $selfTrackMeta['bg_tint'] ?? config('brand.secondary_light');
     @endphp
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
@@ -185,8 +213,8 @@
                             'title' => 'البرامج',
                             'desc' => 'دورات وورش ولقاءات',
                             'href' => route('public.programs.track', \App\Enums\CompetencyTrack::Self),
-                            'color' => '#fbbb2e',
-                            'bg' => '#fef6e6',
+                            'color' => $selfTrackColor,
+                            'bg' => $selfTrackBg,
                             ],
                             [
                             'title' => 'الفرص التطوعية',
@@ -232,71 +260,15 @@
 
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 3. INTRO / VALUE SECTION                                            --}}
+    {{-- 3. ABOUT SECTION                                                    --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section id="about" class="py-20 bg-white scroll-mt-24">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            {{-- Heading --}}
-            <div class="text-center mb-14">
-                <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:#1a9399">من نحن</p>
-                <h2 class="text-3xl sm:text-4xl font-bold mb-4" style="color:#111827">جمعية كفاءات</h2>
-                <p class="text-lg leading-relaxed max-w-2xl mx-auto" style="color:#6B7280">
-                    جمعية أهلية غير ربحية تُعنى ببناء قدرات الشباب وتأهيلهم للمشاركة الفاعلة في المجتمع، عبر برامج تدريبية نوعية وفرص تطوعية وشراكات مؤسسية محلية.
-                </p>
-            </div>
-
-            {{-- الرؤية والرسالة --}}
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 max-w-5xl mx-auto">
-
-                {{-- الرؤية --}}
-                <div class="vm-card relative overflow-hidden rounded-3xl p-8 sm:p-10 text-right border border-gray-100 bg-white shadow-sm">
-                    <div class="absolute top-0 left-0 w-full h-1 rounded-t-3xl" style="background: linear-gradient(to left, #335483, #1a9399)"></div>
-                    <div class="absolute -top-6 -left-4 text-[7rem] font-black leading-none select-none pointer-events-none" style="color:rgba(51,84,131,0.04)" aria-hidden="true">ر</div>
-
-                    <div class="relative">
-                        <div class="flex items-center justify-end gap-3 mb-6">
-                            <span class="text-xs font-bold tracking-widest uppercase px-3 py-1.5 rounded-xl" style="background:#e9eff6; color:#335483">رؤيتنا</span>
-                            <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm" style="background: linear-gradient(145deg, #e9eff6, #DCE8F5)">
-                                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#335483">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                            </div>
-                        </div>
-                        <p class="text-xl sm:text-2xl font-bold leading-relaxed" style="color:#111827">
-                            نصنع الأثر بشباب ملهم ومتمكن
-                        </p>
-                    </div>
-                </div>
-
-                {{-- الرسالة --}}
-                <div class="vm-card relative overflow-hidden rounded-3xl p-8 sm:p-10 text-right border border-gray-100 shadow-sm" style="background: linear-gradient(160deg, #ffffff 0%, #f5f8fb 55%, #e9eff6 100%)">
-                    <div class="absolute top-0 left-0 w-full h-1 rounded-t-3xl" style="background: linear-gradient(to left, #1a9399, #1a9399)"></div>
-                    <div class="absolute -top-6 -left-4 text-[7rem] font-black leading-none select-none pointer-events-none" style="color:rgba(60,184,120,0.06)" aria-hidden="true">م</div>
-
-                    <div class="relative">
-                        <div class="flex items-center justify-end gap-3 mb-6">
-                            <span class="text-xs font-bold tracking-widest uppercase px-3 py-1.5 rounded-xl bg-[#e6f5f6] text-brand-secondary">رسالتنا</span>
-                            <div class="w-14 h-14 rounded-2xl flex items-center justify-center bg-white shadow-sm">
-                                <svg class="w-7 h-7 text-brand-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                            </div>
-                        </div>
-                        <p class="text-base sm:text-lg font-medium leading-loose" style="color:#374151">
-                            بناء كفاءات الشباب وتعزيز قدراتهم وتأهيلهم للمشاركة المجتمعية وفق عمل مؤسسي وشراكات تكاملية
-                        </p>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </section>
+    <x-public.about-section />
 
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 4. STATISTICS SECTION                                               --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section class="py-6 px-4 sm:px-6">
+    <section id="kafaat-stats" class="py-6 px-4 sm:px-6">
         <div class="max-w-7xl mx-auto">
             <div class="rounded-3xl py-16 px-8 sm:px-14" style="background: linear-gradient(135deg, #243a55 0%, #335483 60%, #3d6589 100%)">
 
@@ -313,35 +285,31 @@
 
                 @php
                 $stats = [
-                ['value' => '2497+', 'label' => 'مستفيد'],
-                ['value' => '+18', 'label' => 'برامج تدريبية'],
-                ['value' => '274', 'label' => 'جهة مستفيدة'],
-                ['value' => '20', 'label' => 'جهات داعمة'],
-                ['value' => '124', 'label' => 'فرص تطوعية'],
-                ['value' => '+1 مليون', 'label' => 'الظهور الإعلامي'],
+                    ['count' => 2497, 'prefix' => '+', 'suffix' => '', 'label' => 'مستفيد'],
+                    ['count' => 18, 'prefix' => '', 'suffix' => '+', 'label' => 'برامج تدريبية'],
+                    ['count' => 274, 'prefix' => '', 'suffix' => '', 'label' => 'جهة مستفيدة'],
+                    ['count' => 20, 'prefix' => '', 'suffix' => '', 'label' => 'جهات داعمة'],
+                    ['count' => 124, 'prefix' => '', 'suffix' => '', 'label' => 'فرص تطوعية'],
+                    ['count' => 1, 'prefix' => '+', 'suffix' => ' مليون', 'label' => 'الظهور الإعلامي'],
                 ];
                 @endphp
 
                 <div class="relative z-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-8">
                     @foreach($stats as $stat)
-                    <div class="text-center">
-                        <div class="text-4xl font-bold text-white mb-1 tabular-nums">{{ $stat['value'] }}</div>
+                    <div class="stat-item text-center">
+                        <div
+                            class="stat-counter text-4xl font-bold text-white mb-1"
+                            data-stat-count="{{ $stat['count'] }}"
+                            data-stat-prefix="{{ $stat['prefix'] }}"
+                            data-stat-suffix="{{ $stat['suffix'] }}"
+                            aria-label="{{ $stat['prefix'] }}{{ number_format($stat['count']) }}{{ $stat['suffix'] }}"
+                        >{{ $stat['prefix'] }}0{{ $stat['suffix'] }}</div>
                         <div class="text-sm" style="color:rgba(255,255,255,0.65)">{{ $stat['label'] }}</div>
                     </div>
                     @endforeach
                 </div>
 
             </div>
-        </div>
-    </section>
-
-
-    {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 5. COMPETENCY TRACKS / PROGRAMS (prominent)                         --}}
-    {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section id="programs" class="scroll-mt-24 bg-[#F7FAFC] py-20 sm:py-24">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <x-public.competency-tracks-section :programCounts="$programCounts" />
         </div>
     </section>
 
@@ -385,8 +353,8 @@
                 'badge' => null,
                 'desc' => 'برامج منظّمة ضمن مسارات الكفاءة الذاتية والمهنية والمجتمعية.',
                 'href' => route('home').'#programs',
-                'color' => '#fbbb2e',
-                'bg' => '#fef6e6',
+                'color' => $selfTrackColor,
+                'bg' => $selfTrackBg,
                 'soon' => false,
                 ],
                 [
@@ -427,9 +395,19 @@
     </section>
 
 
+    {{-- ═══════════════════════════════════════════════════════════════════ --}}
+    {{-- 7. COMPETENCY TRACKS / PROGRAMS                                     --}}
+    {{-- ═══════════════════════════════════════════════════════════════════ --}}
+    <section id="programs" class="scroll-mt-24 bg-[#F7FAFC] py-20 sm:py-24">
+        <div class="mx-auto max-w-[94rem] px-4 sm:px-6 lg:px-10">
+            <x-public.competency-tracks-section :programCounts="$programCounts" :trackPrograms="$trackPrograms" />
+        </div>
+    </section>
+
+
     {{-- removed old "about platform" section --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 7. NEWS & EVENTS SECTION                                            --}}
+    {{-- 8. NEWS & EVENTS SECTION                                            --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <section id="news" class="scroll-mt-24 py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -782,6 +760,71 @@
             track.scrollLeft = 0;
             toggleControls();
             startAuto();
+        })();
+
+        // ── Stats counter (IntersectionObserver) ───────────────────────
+        (function() {
+            var section = document.getElementById('kafaat-stats');
+            if (!section) return;
+
+            var counters = section.querySelectorAll('[data-stat-count]');
+            if (!counters.length) return;
+
+            function easeOutQuart(t) {
+                return 1 - Math.pow(1 - t, 4);
+            }
+
+            function formatStatValue(value) {
+                return Math.round(value).toLocaleString('en-US');
+            }
+
+            function renderStat(el, value) {
+                var prefix = el.dataset.statPrefix || '';
+                var suffix = el.dataset.statSuffix || '';
+                el.textContent = prefix + formatStatValue(value) + suffix;
+            }
+
+            function animateStat(el, delay) {
+                var target = parseFloat(el.dataset.statCount);
+                var duration = 2600;
+                var startTime = null;
+
+                window.setTimeout(function() {
+                    function step(timestamp) {
+                        if (startTime === null) startTime = timestamp;
+                        var progress = Math.min((timestamp - startTime) / duration, 1);
+                        var eased = easeOutQuart(progress);
+                        renderStat(el, target * eased);
+
+                        if (progress < 1) {
+                            window.requestAnimationFrame(step);
+                        } else {
+                            renderStat(el, target);
+                        }
+                    }
+
+                    window.requestAnimationFrame(step);
+                }, delay);
+            }
+
+            var hasAnimated = false;
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (!entry.isIntersecting || hasAnimated) return;
+
+                    hasAnimated = true;
+                    section.classList.add('is-visible');
+
+                    counters.forEach(function(el, index) {
+                        renderStat(el, 0);
+                        animateStat(el, index * 110);
+                    });
+
+                    observer.disconnect();
+                });
+            }, { threshold: 0.3 });
+
+            observer.observe(section);
         })();
 
         // ── Scroll reveal (IntersectionObserver) ───────────────────────
