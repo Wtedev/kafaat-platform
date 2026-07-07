@@ -4,6 +4,7 @@
     'grandfatherName' => '',
     'familyName' => '',
     'birthDate' => '',
+    'gender' => '',
     'phone' => '',
     'showIdentityFields' => true,
     'identityLocked' => false,
@@ -13,6 +14,7 @@
 
 @php
 use App\Enums\IdentityType;
+use App\Enums\ProfileGender;
 
 $inputClass = 'w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/25';
 $labelClass = 'mb-1.5 block text-sm font-medium text-gray-700';
@@ -83,6 +85,16 @@ $showIdentityContact = ! $sectioned || $section === 'identity-contact';
             @error('birth_date') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
         </div>
         <div>
+            <label class="{{ $labelClass }}">الجنس <span class="text-brand-danger">*</span></label>
+            <select name="gender" required class="{{ $inputClass }} @error('gender') border-brand-danger @enderror">
+                <option value="">اختر الجنس</option>
+                @foreach (ProfileGender::cases() as $genderOption)
+                    <option value="{{ $genderOption->value }}" @selected(old('gender', $gender ?? '') === $genderOption->value)>{{ $genderOption->label() }}</option>
+                @endforeach
+            </select>
+            @error('gender') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
+        </div>
+        <div>
             <label class="{{ $labelClass }}">رقم الجوال <span class="text-brand-danger">*</span></label>
             <input type="tel" name="phone" value="{{ old('phone', $phone ?? '') }}" required placeholder="05XXXXXXXX" autocomplete="tel"
                 class="{{ $inputClass }} @error('phone') border-brand-danger @enderror" dir="ltr" />
@@ -145,6 +157,16 @@ $showIdentityContact = ! $sectioned || $section === 'identity-contact';
         <input type="date" name="birth_date" value="{{ old('birth_date', $birthDate ?? '') }}" required max="{{ now()->toDateString() }}"
             class="{{ $inputClass }} @error('birth_date') border-brand-danger @enderror" />
         @error('birth_date') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
+    </div>
+    <div>
+        <label class="{{ $labelClass }}">الجنس <span class="text-brand-danger">*</span></label>
+        <select name="gender" required class="{{ $inputClass }} @error('gender') border-brand-danger @enderror">
+            <option value="">اختر الجنس</option>
+            @foreach (ProfileGender::cases() as $genderOption)
+                <option value="{{ $genderOption->value }}" @selected(old('gender', $gender ?? '') === $genderOption->value)>{{ $genderOption->label() }}</option>
+            @endforeach
+        </select>
+        @error('gender') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
     </div>
     <div>
         <label class="{{ $labelClass }}">رقم الجوال <span class="text-brand-danger">*</span></label>

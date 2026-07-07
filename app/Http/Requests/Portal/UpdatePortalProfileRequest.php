@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Portal;
 
 use App\Enums\IdentityType;
+use App\Enums\ProfileGender;
 use App\Rules\UniqueIdentityLookupHash;
 use App\Rules\ValidIdentityNumber;
 use App\Rules\ValidPersonNamePart;
@@ -68,6 +69,7 @@ class UpdatePortalProfileRequest extends FormRequest
             'identity_type' => $identityTypeRules,
             'identity_number' => $identityNumberRules,
             'birth_date' => ['required', 'date', 'before_or_equal:today', 'after:'.now()->subYears(120)->toDateString()],
+            'gender' => ['required', Rule::enum(ProfileGender::class)],
             'phone' => ['required', 'string', new ValidSaudiMobile],
             'city' => ['nullable', 'string', 'max:100'],
             'job_title' => ['nullable', 'string', 'max:160'],

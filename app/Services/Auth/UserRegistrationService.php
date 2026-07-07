@@ -68,6 +68,7 @@ class UserRegistrationService
 
             $user->profile()->create([
                 'birth_date' => $data['birth_date'],
+                'gender' => $data['gender'],
             ]);
 
             $this->acknowledgementService->acknowledge(

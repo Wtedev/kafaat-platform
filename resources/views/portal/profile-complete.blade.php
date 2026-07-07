@@ -28,6 +28,7 @@
             :grandfather-name="old('grandfather_name', $user->grandfather_name)"
             :family-name="old('family_name', $user->family_name)"
             :birth-date="old('birth_date', optional($user->profile?->birth_date)->toDateString())"
+            :gender="old('gender', $user->profile?->gender?->value)"
             :phone="old('phone', $user->phone)"
             :show-identity-fields="! $user->hasIdentityOnRecord()"
             :identity-locked="false"

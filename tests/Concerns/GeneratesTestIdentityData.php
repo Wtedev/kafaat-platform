@@ -46,6 +46,7 @@ trait GeneratesTestIdentityData
             'identity_type' => IdentityType::NationalId->value,
             'identity_number' => $this->generateValidNationalId(),
             'birth_date' => '1995-05-15',
+            'gender' => 'male',
             'email' => 'user'.uniqid('', true).'@example.com',
             'phone' => '0501234567',
             'password' => 'SecurePass1!',

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\AccountStatus;
 use App\Enums\IdentityType;
+use App\Enums\ProfileGender;
 use App\Enums\VolunteerHoursStatus;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\Identity\PersonNameService;
@@ -162,7 +163,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
         $resolvedBirthDate = $birthDate ?? $this->profile?->birth_date?->toDateString();
 
-        return filled($resolvedBirthDate);
+        return filled($resolvedBirthDate) && $this->profile?->gender instanceof ProfileGender;
     }
 
     /**

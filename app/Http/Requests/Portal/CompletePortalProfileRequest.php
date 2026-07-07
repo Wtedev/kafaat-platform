@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Portal;
 
 use App\Enums\IdentityType;
+use App\Enums\ProfileGender;
 use App\Rules\UniqueIdentityLookupHash;
 use App\Rules\ValidIdentityNumber;
 use App\Rules\ValidPersonNamePart;
@@ -60,6 +61,7 @@ class CompletePortalProfileRequest extends FormRequest
             'identity_type' => $identityTypeRules,
             'identity_number' => $identityRules,
             'birth_date' => ['required', 'date', 'before_or_equal:today', 'after:'.now()->subYears(120)->toDateString()],
+            'gender' => ['required', Rule::enum(ProfileGender::class)],
             'phone' => ['required', 'string', new ValidSaudiMobile],
         ];
     }
@@ -78,6 +80,8 @@ class CompletePortalProfileRequest extends FormRequest
             'identity_number.required' => 'رقم الهوية أو الإقامة مطلوب.',
             'birth_date.required' => 'تاريخ الميلاد مطلوب.',
             'birth_date.before_or_equal' => 'تاريخ الميلاد لا يمكن أن يكون في المستقبل.',
+            'gender.required' => 'الجنس مطلوب.',
+            'gender.enum' => 'يرجى اختيار ذكر أو أنثى.',
         ];
     }
 }

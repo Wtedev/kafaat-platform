@@ -48,6 +48,7 @@ class TrainingProgramPathLinkSettingsTest extends TestCase
         $result = TrainingEntityFormSupport::applyProgramPathLinkSettings([
             'is_linked_to_path' => true,
             'learning_path_id' => 3,
+            'competency_track' => 'self',
             'capacity' => 10,
             'registration_start' => '2026-06-01',
             'registration_end' => '2026-06-10',

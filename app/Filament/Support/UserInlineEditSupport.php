@@ -2,6 +2,7 @@
 
 namespace App\Filament\Support;
 
+use App\Enums\ProfileGender;
 use App\Models\Profile;
 use App\Models\User;
 use App\Support\UserAccountRoleForm;
@@ -223,11 +224,8 @@ final class UserInlineEditSupport
             $fields = array_merge($fields, [
                 Select::make('gender')
                     ->label('الجنس')
-                    ->options([
-                        'male' => 'ذكر',
-                        'female' => 'أنثى',
-                    ])
-                    ->nullable()
+                    ->options(ProfileGender::options())
+                    ->required()
                     ->native(false),
                 DatePicker::make('birth_date')
                     ->label('تاريخ الميلاد')

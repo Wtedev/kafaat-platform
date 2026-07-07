@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\MembershipType;
+use App\Enums\ProfileGender;
 use App\Services\Portal\CvFormOptions;
 use App\Services\Portal\CvLanguagePresets;
 use App\Support\PublicDiskPath;
@@ -48,6 +49,7 @@ class Profile extends Model
             'cv_sections_visibility' => 'array',
             'membership_badges' => 'array',
             'membership_type' => MembershipType::class,
+            'gender' => ProfileGender::class,
         ];
     }
 

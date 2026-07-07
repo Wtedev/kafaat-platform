@@ -2,6 +2,7 @@
 
 namespace App\Filament\Support;
 
+use App\Enums\ProfileGender;
 use App\Enums\RegistrationStatus;
 use App\Filament\Resources\UserResource;
 use App\Models\User;
@@ -153,7 +154,13 @@ final class UserViewPresenter
                     ? EntityViewPresenterSupport::row('تاريخ الميلاد', EntityViewPresenterSupport::formatDate($profile->birth_date), 'heroicon-o-cake')
                     : null,
                 filled($profile->gender)
-                    ? EntityViewPresenterSupport::row('الجنس', self::genderLabel((string) $profile->gender), 'heroicon-o-user')
+                    ? EntityViewPresenterSupport::row(
+                        'الجنس',
+                        $profile->gender instanceof ProfileGender
+                            ? $profile->gender->label()
+                            : self::genderLabel((string) $profile->gender),
+                        'heroicon-o-user',
+                    )
                     : null,
                 filled($profile->iconic_skill)
                     ? EntityViewPresenterSupport::row('المهارة المميزة', (string) $profile->iconic_skill, 'heroicon-o-sparkles')
@@ -324,10 +331,6 @@ final class UserViewPresenter
 
     private static function genderLabel(string $gender): string
     {
-        return match ($gender) {
-            'male' => 'ذكر',
-            'female' => 'أنثى',
-            default => $gender,
-        };
+        return ProfileGender::tryFrom($gender)?->label() ?? $gender;
     }
 }

@@ -55,6 +55,7 @@ $p = $user->profile;
                 :grandfather-name="old('grandfather_name', $user->grandfather_name)"
                 :family-name="old('family_name', $user->family_name)"
                 :birth-date="old('birth_date', optional($p?->birth_date)->toDateString())"
+                :gender="old('gender', $p?->gender?->value)"
                 :phone="old('phone', $user->phone)"
                 :show-identity-fields="true"
                 :identity-locked="$user->hasIdentityOnRecord()"

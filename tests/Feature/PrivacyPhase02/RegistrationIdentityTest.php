@@ -45,6 +45,7 @@ class RegistrationIdentityTest extends TestCase
         $this->assertTrue(Hash::check('SecurePass1!', $user->password));
         $this->assertSame('+966501234567', $user->phone);
         $this->assertSame('1995-05-15', $user->profile?->birth_date?->toDateString());
+        $this->assertSame('male', $user->profile?->gender?->value);
 
         $this->assertNotNull($user->identity_number_ciphertext);
         $this->assertNotNull($user->identity_number_lookup_hash);

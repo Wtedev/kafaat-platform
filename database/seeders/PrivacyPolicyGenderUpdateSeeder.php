@@ -6,31 +6,34 @@ use App\Enums\PrivacyPolicyVersionStatus;
 use App\Models\PrivacyPolicyVersion;
 use App\Services\Privacy\PrivacyPolicyContentHasher;
 use App\Services\Privacy\PrivacyPolicyHtmlSanitizer;
+use App\Services\Privacy\PrivacyPolicyPublisher;
 use App\Services\Privacy\PrivacyPolicyService;
 use Illuminate\Database\Seeder;
 
-class PrivacyPolicySeeder extends Seeder
+class PrivacyPolicyGenderUpdateSeeder extends Seeder
 {
     public function run(): void
     {
-        if (PrivacyPolicyVersion::query()->where('version', '1.0')->exists()) {
+        if (PrivacyPolicyVersion::query()->where('version', '1.1')->exists()) {
             return;
         }
 
         $content = PrivacyPolicyHtmlSanitizer::sanitize(PrivacyPolicyContent::body());
-        $publishedAt = '2026-06-28 00:00:00';
+        $publishedAt = now();
 
-        PrivacyPolicyVersion::query()->create([
-            'version' => '1.0',
+        $draft = PrivacyPolicyVersion::query()->create([
+            'version' => '1.1',
             'title' => 'سياسة الخصوصية',
             'content' => $content,
             'content_hash' => PrivacyPolicyContentHasher::hash($content),
             'effective_at' => $publishedAt,
-            'published_at' => $publishedAt,
-            'status' => PrivacyPolicyVersionStatus::Active,
-            'requires_reacknowledgement' => false,
+            'published_at' => null,
+            'status' => PrivacyPolicyVersionStatus::Draft,
+            'requires_reacknowledgement' => true,
         ]);
 
-        PrivacyPolicyService::forgetCache();
+        app(PrivacyPolicyPublisher::class)->publish($draft);
+
+        $this->command?->info('PrivacyPolicyGenderUpdateSeeder: published privacy policy v1.1.');
     }
 }

@@ -7,6 +7,7 @@ use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
 use App\Filament\Forms\Components\TrainingScheduleCalendar;
+use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\StaffFilamentRoles;
@@ -210,6 +211,18 @@ final class TrainingEntityFormSupport
     $data['registration_start'] = null;
     $data['registration_end'] = null;
     $data['weekdays'] = null;
+
+    if (filled($data['learning_path_id'] ?? null) && blank($data['competency_track'] ?? null)) {
+      $inheritedTrack = LearningPath::query()
+        ->whereKey((int) $data['learning_path_id'])
+        ->value('competency_track');
+
+      if ($inheritedTrack instanceof CompetencyTrack) {
+        $data['competency_track'] = $inheritedTrack->value;
+      } elseif (filled($inheritedTrack)) {
+        $data['competency_track'] = (string) $inheritedTrack;
+      }
+    }
 
     if (filled($data['learning_path_id'] ?? null) && blank($data['path_sort_order'] ?? null)) {
       $pathId = (int) $data['learning_path_id'];
@@ -1005,7 +1018,7 @@ final class TrainingEntityFormSupport
     return Select::make('competency_track')
       ->label('مسار الكفاءة')
       ->options(CompetencyTrack::shortOptions())
-      ->nullable()
+      ->required()
       ->native(false)
       ->helperText('يُعرض في الموقع العام ضمن مسارات الكفاءة (ذاتية، مهنية، مجتمعية).');
   }
@@ -1015,7 +1028,7 @@ final class TrainingEntityFormSupport
     return Select::make('delivery_mode')
       ->label('طريقة التنفيذ')
       ->options(ProgramDeliveryMode::options())
-      ->nullable()
+      ->required()
       ->native(false)
       ->live()
       ->afterStateUpdated(function (Set $set, ?string $state): void {

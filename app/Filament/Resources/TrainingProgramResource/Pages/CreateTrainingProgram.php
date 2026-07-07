@@ -26,11 +26,22 @@ class CreateTrainingProgram extends BaseCreateRecord
             return;
         }
 
-        $this->form->fill([
+        $path = LearningPath::query()->find($pathId);
+        if ($path === null) {
+            return;
+        }
+
+        $fill = [
             ...($this->form->getState() ?? []),
             'is_linked_to_path' => true,
             'learning_path_id' => $pathId,
-        ]);
+        ];
+
+        if ($path->competency_track !== null) {
+            $fill['competency_track'] = $path->competency_track->value;
+        }
+
+        $this->form->fill($fill);
     }
 
     public function form(Schema $schema): Schema

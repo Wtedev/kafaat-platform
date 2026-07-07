@@ -60,7 +60,10 @@ class UserProfileCompletionService
 
             $user->profile()->updateOrCreate(
                 ['user_id' => $user->id],
-                ['birth_date' => $data['birth_date']],
+                [
+                    'birth_date' => $data['birth_date'],
+                    'gender' => $data['gender'],
+                ],
             );
 
             $user->load('profile');
@@ -128,6 +131,7 @@ class UserProfileCompletionService
                         ? trim((string) $data['job_title'])
                         : null,
                     'birth_date' => $data['birth_date'] ?? $user->profile?->birth_date,
+                    'gender' => $data['gender'] ?? $user->profile?->gender?->value,
                 ],
             );
 

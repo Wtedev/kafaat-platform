@@ -3,6 +3,7 @@
 namespace App\Support\Exports;
 
 use App\Enums\MembershipType;
+use App\Enums\ProfileGender;
 use App\Models\Profile;
 use App\Support\Privacy\SensitiveContactMasker;
 use App\Services\Portal\CvFormOptions;
@@ -66,11 +67,13 @@ final class BeneficiaryProfileExportColumns
             'user_phone' => $canContact ? $user?->phone : SensitiveContactMasker::maskPhone($user?->phone),
             'user_role_type' => self::roleTypeLabel($user?->role_type),
             'user_is_active' => $user === null ? null : ($user->is_active ? 'نشط' : 'موقوف'),
-            'gender' => match ($profile->gender) {
-                'male' => 'ذكر',
-                'female' => 'أنثى',
-                default => null,
-            },
+            'gender' => $profile->gender instanceof ProfileGender
+                ? $profile->gender->label()
+                : match ((string) $profile->gender) {
+                    'male' => 'ذكر',
+                    'female' => 'أنثى',
+                    default => null,
+                },
             'birth_date' => $profile->birth_date?->format('Y-m-d'),
             'city' => $profile->city,
             'job_title' => $profile->job_title,

@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('training_programs', function (Blueprint $table) {
-            $table->string('delivery_mode', 32)->nullable()->after('competency_track');
+            $table->string('delivery_mode', 32)->nullable()->after('program_kind');
             $table->string('venue', 255)->nullable()->after('delivery_mode');
         });
     }

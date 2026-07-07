@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use App\Enums\IdentityType;
+use App\Enums\ProfileGender;
 use App\Rules\UniqueIdentityLookupHash;
 use App\Rules\ValidActivePrivacyPolicyVersion;
 use App\Rules\ValidIdentityNumber;
@@ -52,6 +53,7 @@ class RegisterRequest extends FormRequest
                 new UniqueIdentityLookupHash($identityType),
             ],
             'birth_date' => ['required', 'date', 'before_or_equal:today', 'after:'.now()->subYears(120)->toDateString()],
+            'gender' => ['required', Rule::enum(ProfileGender::class)],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['required', 'string', new ValidSaudiMobile],
             'password' => ['required', 'confirmed', Password::min(8)],
@@ -73,6 +75,8 @@ class RegisterRequest extends FormRequest
             'identity_type.required' => 'نوع الهوية مطلوب.',
             'birth_date.required' => 'تاريخ الميلاد مطلوب.',
             'birth_date.before_or_equal' => 'تاريخ الميلاد لا يمكن أن يكون في المستقبل.',
+            'gender.required' => 'الجنس مطلوب.',
+            'gender.enum' => 'يرجى اختيار ذكر أو أنثى.',
             'email.unique' => 'البريد الإلكتروني مستخدم بالفعل.',
             'password.confirmed' => 'تأكيد كلمة المرور غير متطابق.',
             'privacy_policy_acknowledged.accepted' => 'يجب الإقرار بأنك اطلعت على سياسة الخصوصية.',
