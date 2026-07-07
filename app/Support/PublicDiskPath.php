@@ -83,13 +83,14 @@ final class PublicDiskPath
         }
         if (! Storage::disk($disk)->exists($n)) {
             if (file_exists(public_path($n))) {
-                return asset($n);
+                return '/'.ltrim($n, '/');
             }
 
             return null;
         }
 
-        return Storage::disk($disk)->url($n);
+        // Relative URL so logos load on the current host/port (avoids APP_URL port mismatches in local dev).
+        return '/storage/'.ltrim($n, '/');
     }
 
     /**

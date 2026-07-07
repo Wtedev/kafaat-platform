@@ -60,12 +60,14 @@
         ],
     };
 
+    $extraClass = '';
+
     if ($variant === 'hero') {
-        $heightWrap = 'rounded-2xl h-56 flex items-center justify-center mb-8';
+        $heightWrap = 'h-56 sm:h-64 flex items-center justify-center';
         $bgStyle = $heroBg;
-        $iconWrap = 'w-20 h-20 opacity-25';
-        $imgWrap = 'rounded-2xl overflow-hidden mb-8';
-        $imgClass = 'w-full max-h-[420px] object-cover';
+        $iconWrap = 'w-20 h-20 opacity-25 sm:w-24 sm:h-24';
+        $imgWrap = 'overflow-hidden';
+        $imgClass = 'w-full h-56 sm:h-72 lg:h-80 object-cover';
     } elseif ($variant === 'thumb') {
         $heightWrap = 'h-full w-full flex items-center justify-center rounded-lg';
         $bgStyle = $catalogBgs[$index % count($catalogBgs)];
