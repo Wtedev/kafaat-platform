@@ -30,6 +30,46 @@ class VolunteerOpportunitySeeder extends Seeder
 
         $items = [
             [
+                'slug' => 'nvg-26060074414',
+                'title' => 'المساهمة في تصميم الإعلانات التعريفية للقاءات الفريق التطوعي',
+                'description' => implode("\n", [
+                    'فرصة تطوعية تهدف إلى تصميم المواد إعلانية إبداعية للقاءات الفريق التطوعي بما يسهم في إبراز محتواها وتعزيز المشاركة فيها وفق الهوية المعتمدة.',
+                    '',
+                    'مجال التطوع: فني وإبداعي — تصميم الإعلانات',
+                    'المهمة: المونتاج',
+                    'نمط العمل: عن بُعد',
+                    'رقم الفرصة على المنصة الوطنية: 26060074414',
+                    'للتسجيل عبر المنصة الوطنية للعمل التطوعي:',
+                    'https://nvg.gov.sa/opportunity/view-opportunity/c88e443e-f36b-1410-8b1e-00bab6d11711',
+                ]),
+                'capacity' => 2,
+                'hours_expected' => 30.00,
+                'start_date' => Carbon::create(2026, 6, 22),
+                'end_date' => Carbon::create(2026, 6, 27),
+                'status' => OpportunityStatus::Published,
+                'assignee' => $eman,
+            ],
+            [
+                'slug' => 'nvg-26060067032',
+                'title' => 'المساهمة في تنفيذ مهام مبادرات الذكاء الاصطناعي',
+                'description' => implode("\n", [
+                    'فرصة تطوعية تتيح للمشاركين استكمال متطلبات المبادرة والمهام المرتبطة بها بما يسهم في تطوير المهارات والمعارف في مجال الذكاء الاصطناعي.',
+                    '',
+                    'مجال التطوع: تقنية المعلومات — الذكاء الاصطناعي',
+                    'المهمة: إعداد التقارير',
+                    'نمط العمل: عن بُعد',
+                    'رقم الفرصة على المنصة الوطنية: 26060067032',
+                    'للتسجيل عبر المنصة الوطنية للعمل التطوعي:',
+                    'https://nvg.gov.sa/opportunity/view-opportunity/e019443e-f36b-1410-8b1e-00bab6d11711',
+                ]),
+                'capacity' => 50,
+                'hours_expected' => 60.00,
+                'start_date' => Carbon::create(2026, 6, 16),
+                'end_date' => Carbon::create(2026, 6, 27),
+                'status' => OpportunityStatus::Published,
+                'assignee' => $eman,
+            ],
+            [
                 'title' => 'محلل بيانات تطوعي لدعم المبادرات',
                 'description' => 'دعم فرق المبادرات في جمع البيانات، تنظيمها، وإعداد ملخصات بسيطة تساعد على اتخاذ القرار، مع الالتزام بخصوصية البيانات وأخلاقيات الاستخدام.',
                 'capacity' => 10,
@@ -112,7 +152,7 @@ class VolunteerOpportunitySeeder extends Seeder
         ];
 
         foreach ($items as $data) {
-            $slug = Str::slug($data['title']) ?: 'vol-'.Str::lower(Str::random(8));
+            $slug = $data['slug'] ?? (Str::slug($data['title']) ?: 'vol-'.Str::lower(Str::random(8)));
             $assignee = $data['assignee'] ?? $eman;
 
             VolunteerOpportunity::updateOrCreate(
