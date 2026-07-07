@@ -156,6 +156,38 @@ class TrainingProgramCreationFlowTest extends TestCase
             ->assertOk();
     }
 
+    public function test_staff_can_persist_program_with_competency_and_delivery_fields(): void
+    {
+        $staff = User::factory()->create([
+            'role_type' => 'staff',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $staff->assignRole('programs_management');
+
+        $program = TrainingProgram::query()->create([
+            'title' => 'برنامج حفظ تجريبي',
+            'slug' => 'persist-test-program',
+            'description' => 'اختبار حفظ البرنامج مع مسار الكفاءة وطريقة التنفيذ.',
+            'program_kind' => TrainingProgramKind::Course,
+            'competency_track' => CompetencyTrack::Professional,
+            'delivery_mode' => ProgramDeliveryMode::Remote,
+            'status' => ProgramStatus::Draft,
+            'start_date' => Carbon::parse('2026-08-01'),
+            'end_date' => Carbon::parse('2026-08-15'),
+            'registration_start' => Carbon::parse('2026-07-15'),
+            'registration_end' => Carbon::parse('2026-08-20'),
+            'created_by' => $staff->id,
+            'owner_id' => $staff->id,
+        ]);
+
+        $this->assertDatabaseHas('training_programs', [
+            'id' => $program->id,
+            'competency_track' => CompetencyTrack::Professional->value,
+            'delivery_mode' => ProgramDeliveryMode::Remote->value,
+        ]);
+    }
+
     public function test_admin_with_notification_modal_can_open_program_create_page(): void
     {
         $admin = User::factory()->create([
