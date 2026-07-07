@@ -14,16 +14,18 @@ class VolunteerOpportunitySeeder extends Seeder
     public function run(): void
     {
         $creator = User::query()->where('email', 'lama@kafaat.org.sa')->first()
-            ?? User::role('admin')->orderBy('id')->first();
+            ?? User::role('admin')->orderBy('id')->first()
+            ?? User::query()->orderBy('id')->first();
 
-        $eman = User::query()->where('email', 'eman.almutairi@kafaat.org.sa')->first();
-        $wejdan = User::query()->where('email', 'wejdan.alsumani@kafaat.org.sa')->first();
-        $malik = User::query()->where('email', 'malik.alqasir@kafaat.org.sa')->first();
+        $eman = User::query()->where('email', 'eman.almutairi@kafaat.org.sa')->first()
+            ?? $creator;
+        $wejdan = User::query()->where('email', 'wejdan.alsumani@kafaat.org.sa')->first()
+            ?? $creator;
+        $malik = User::query()->where('email', 'malik.alqasir@kafaat.org.sa')->first()
+            ?? $creator;
 
         if ($creator === null) {
-            $this->command?->error('VolunteerOpportunitySeeder: missing admin. Run AdminUserSeeder first.');
-
-            return;
+            $this->command?->warn('VolunteerOpportunitySeeder: no users found; seeding opportunities without created_by.');
         }
 
         $y = 2026;
@@ -168,7 +170,7 @@ class VolunteerOpportunitySeeder extends Seeder
                     'published_at' => $data['status'] === OpportunityStatus::Published
                         ? now()->subDays(4)
                         : null,
-                    'created_by' => $creator->id,
+                    'created_by' => $creator?->id,
                     'assigned_to' => $assignee?->id,
                 ]
             );
