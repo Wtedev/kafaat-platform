@@ -339,7 +339,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 5. COMPETENCY TRACKS / PROGRAMS (prominent)                         --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section id="programs" class="scroll-mt-24 bg-[#F7FAFC] py-16 sm:py-20">
+    <section id="programs" class="scroll-mt-24 bg-white py-20 sm:py-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <x-public.competency-tracks-section :programCounts="$programCounts" />
         </div>
