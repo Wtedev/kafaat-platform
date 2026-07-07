@@ -7,6 +7,7 @@ use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
+use App\Support\Casts\LenientEnumCast;
 use App\Jobs\SendTrainingProgramLaunchedNotifications;
 use App\Models\Concerns\HasEntityNotes;
 use App\Models\User;
@@ -60,9 +61,9 @@ class TrainingProgram extends Model
     {
         return [
             'status' => ProgramStatus::class,
-            'program_kind' => TrainingProgramKind::class,
-            'competency_track' => CompetencyTrack::class,
-            'delivery_mode' => ProgramDeliveryMode::class,
+            'program_kind' => LenientEnumCast::class.':'.TrainingProgramKind::class,
+            'competency_track' => LenientEnumCast::class.':'.CompetencyTrack::class,
+            'delivery_mode' => LenientEnumCast::class.':'.ProgramDeliveryMode::class,
             'published_at' => 'datetime',
             'notify_on_publish' => 'boolean',
             'notify_milestones' => 'boolean',

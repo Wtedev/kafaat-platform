@@ -188,6 +188,32 @@ class TrainingProgramCreationFlowTest extends TestCase
         ]);
     }
 
+    public function test_create_page_handles_learning_path_with_invalid_competency_track_value(): void
+    {
+        $path = LearningPath::query()->create([
+            'title' => 'مسار بقيمة غير صالحة',
+            'slug' => 'invalid-competency-track-path',
+            'status' => \App\Enums\PathStatus::Draft,
+        ]);
+
+        \Illuminate\Support\Facades\DB::table('learning_paths')
+            ->where('id', $path->id)
+            ->update(['competency_track' => 'legacy-invalid']);
+
+        $staff = User::factory()->create([
+            'role_type' => 'staff',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $staff->assignRole('programs_management');
+
+        $this->withoutExceptionHandling()
+            ->actingAs($staff)
+            ->withSession(['otp_verified' => true])
+            ->get('/admin/training-programs/create')
+            ->assertOk();
+    }
+
     public function test_admin_with_notification_modal_can_open_program_create_page(): void
     {
         $admin = User::factory()->create([

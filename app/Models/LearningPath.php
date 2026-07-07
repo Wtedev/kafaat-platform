@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\CompetencyTrack;
 use App\Enums\LearningPathKind;
 use App\Enums\PathStatus;
+use App\Support\Casts\LenientEnumCast;
 use App\Enums\RegistrationStatus;
 use App\Jobs\SendLearningPathLaunchedNotifications;
 use App\Models\Concerns\HasEntityNotes;
@@ -44,7 +45,7 @@ class LearningPath extends Model
     {
         return [
             'path_kind' => LearningPathKind::class,
-            'competency_track' => CompetencyTrack::class,
+            'competency_track' => LenientEnumCast::class.':'.CompetencyTrack::class,
             'status' => PathStatus::class,
             'published_at' => 'datetime',
             'notify_on_publish' => 'boolean',

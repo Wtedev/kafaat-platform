@@ -37,7 +37,12 @@ enum CompetencyTrack: string
             return self::cases();
         }
 
-        return array_map(fn (string $value): self => self::from($value), $order);
+        $ordered = array_values(array_filter(array_map(
+            static fn (mixed $value): ?self => self::tryFrom((string) $value),
+            $order,
+        )));
+
+        return $ordered !== [] ? $ordered : self::cases();
     }
 
     /**
