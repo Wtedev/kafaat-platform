@@ -12,6 +12,7 @@ use App\Models\TrainingProgram;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
 
@@ -113,6 +114,64 @@ class TrainingProgramCreationFlowTest extends TestCase
             ->withSession(['otp_verified' => true])
             ->get('/admin/training-programs/create')
             ->assertOk();
+    }
+
+    public function test_create_page_returns_forbidden_when_program_create_permission_missing_from_database(): void
+    {
+        \Spatie\Permission\Models\Permission::query()
+            ->where('name', 'programs.create')
+            ->delete();
+
+        $staff = User::factory()->create([
+            'role_type' => 'staff',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $staff->assignRole('programs_management');
+
+        $this->actingAs($staff)
+            ->withSession(['otp_verified' => true])
+            ->get('/admin/training-programs/create')
+            ->assertForbidden();
+    }
+
+    public function test_create_page_works_after_permissions_are_reseeded(): void
+    {
+        \Spatie\Permission\Models\Permission::query()
+            ->where('name', 'programs.create')
+            ->delete();
+
+        $this->seed(RolesAndPermissionsSeeder::class);
+
+        $staff = User::factory()->create([
+            'role_type' => 'staff',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $staff->assignRole('programs_management');
+
+        $this->actingAs($staff)
+            ->withSession(['otp_verified' => true])
+            ->get('/admin/training-programs/create')
+            ->assertOk();
+    }
+
+    public function test_admin_with_notification_modal_can_open_program_create_page(): void
+    {
+        $admin = User::factory()->create([
+            'role_type' => 'admin',
+            'is_active' => true,
+            'email_verified_at' => now(),
+            'notification_prefs_set_at' => null,
+        ]);
+        $admin->assignRole('admin');
+
+        $this->withoutExceptionHandling()
+            ->actingAs($admin)
+            ->withSession(['otp_verified' => true])
+            ->get('/admin/training-programs/create')
+            ->assertOk()
+            ->assertSee('fi-training-schedule', false);
     }
 
   /**

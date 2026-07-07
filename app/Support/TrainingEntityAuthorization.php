@@ -115,7 +115,7 @@ final class TrainingEntityAuthorization
             return true;
         }
 
-        if (! $user->hasPermissionTo('programs.update')) {
+        if (! $user->checkPermissionTo('programs.update')) {
             return false;
         }
 
@@ -131,7 +131,7 @@ final class TrainingEntityAuthorization
             return true;
         }
 
-        if (! $user->hasPermissionTo('paths.update')) {
+        if (! $user->checkPermissionTo('paths.update')) {
             return false;
         }
 

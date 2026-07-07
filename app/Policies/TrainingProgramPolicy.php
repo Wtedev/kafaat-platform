@@ -18,7 +18,7 @@ class TrainingProgramPolicy
         }
 
         return TrainingEntityAuthorization::adminBypass($user)
-            || $user->hasPermissionTo('programs.view');
+            || $user->checkPermissionTo('programs.view');
     }
 
     /**
@@ -31,7 +31,7 @@ class TrainingProgramPolicy
         }
 
         return TrainingEntityAuthorization::adminBypass($user)
-            || $user->hasPermissionTo('programs.view');
+            || $user->checkPermissionTo('programs.view');
     }
 
     /**
@@ -49,7 +49,7 @@ class TrainingProgramPolicy
         }
 
         return TrainingEntityAuthorization::adminBypass($user)
-            || $user->hasPermissionTo('programs.create');
+            || $user->checkPermissionTo('programs.create');
     }
 
     public function update(User $user, TrainingProgram $program): bool
@@ -97,7 +97,7 @@ class TrainingProgramPolicy
             return true;
         }
 
-        if (! $user->hasPermissionTo($permission)) {
+        if (! $user->checkPermissionTo($permission)) {
             return false;
         }
 
