@@ -154,7 +154,7 @@ class ProgramRegistrationService
 
     public function sendProgramRegistrationApprovedNotifications(ProgramRegistration $registration, User $approvedBy): void
     {
-        $registration->loadMissing(['user', 'trainingProgram']);
+        $registration->loadMissing(['user.profile', 'trainingProgram']);
         $program = $registration->trainingProgram;
 
         $this->emailLogService->send(

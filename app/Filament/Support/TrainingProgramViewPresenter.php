@@ -4,6 +4,7 @@ namespace App\Filament\Support;
 
 use App\Enums\ProgramStatus;
 use App\Models\TrainingProgram;
+use App\Support\TrainingProgramExtrasSupport;
 
 final class TrainingProgramViewPresenter
 {
@@ -224,7 +225,9 @@ final class TrainingProgramViewPresenter
         return EntityViewPresenterSupport::proseSection(
             'نبذة عن البرنامج',
             'heroicon-o-document-text',
-            filled($program->description) ? (string) $program->description : '—',
+            filled(TrainingProgramExtrasSupport::publicDescription($program))
+                ? TrainingProgramExtrasSupport::publicDescription($program)
+                : '—',
             'description',
         );
     }

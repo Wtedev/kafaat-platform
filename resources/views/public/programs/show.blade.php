@@ -29,7 +29,7 @@ $alreadyRegistered = $userRegistration !== null;
     :backHref="$trainingProgram->competency_track ? route('public.programs.track', $trainingProgram->competency_track) : route('public.tracks.index')"
     :backLabel="$trainingProgram->competency_track?->shortLabel() ?? 'مسارات الكفاءة'"
     :title="$trainingProgram->title"
-    :description="$trainingProgram->description"
+    :description="$trainingProgram->publicDescription()"
     descriptionHeading="نبذة عن البرنامج"
     mediaContext="program"
     :programKind="$trainingProgram->program_kind"

@@ -15,6 +15,7 @@ use App\Filament\Support\TrainingEntityFormSupport;
 use App\Filament\Support\TrainingProgramInlineEditSupport;
 use App\Filament\Support\TrainingProgramViewPresenter;
 use App\Models\TrainingProgram;
+use App\Support\TrainingProgramExtrasSupport;
 use Filament\Actions\DeleteAction;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
@@ -64,6 +65,7 @@ class ViewTrainingProgram extends BaseViewRecord
             $record->editors()->pluck('users.id')->all(),
             $record->owner_id !== null ? (int) $record->owner_id : null,
         );
+        $data['session_topics'] = is_array($record->session_topics) ? $record->session_topics : [];
 
         return $data;
     }
@@ -93,6 +95,7 @@ class ViewTrainingProgram extends BaseViewRecord
         $data = TrainingEntityFormSupport::applyCapacityUnlimited($data);
         $data = TrainingEntityFormSupport::applyAudienceNotifications($data);
         $data = TrainingEntityFormSupport::applyDeliveryModeFields($data);
+        $data = TrainingProgramExtrasSupport::applyFormData($data);
 
         if (! $linked) {
             $ownerId = isset($data['owner_id']) ? (int) $data['owner_id'] : (int) $program->owner_id;
@@ -190,6 +193,11 @@ class ViewTrainingProgram extends BaseViewRecord
             'publish_immediately' => 'نشر فوراً',
             'publication_schedule' => 'جدولة النشر',
             'notify_audience' => 'إشعارات المستفيدين',
+            'session_topics_enabled' => 'محاور اللقاء',
+            'session_topics' => 'محاور البرنامج',
+            'whatsapp_groups_enabled' => 'مجموعات الواتساب',
+            'whatsapp_group_male' => 'مجموعة الذكور',
+            'whatsapp_group_female' => 'مجموعة الإناث',
             'owner_id' => 'مالك البرنامج',
             'assigned_to' => 'المسؤول',
             'editors' => 'أعضاء فريق العمل',

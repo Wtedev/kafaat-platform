@@ -12,6 +12,7 @@ use App\Models\TrainingProgram;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\FilamentUserSelectQuery;
 use App\Support\StaffFilamentRoles;
+use App\Support\TrainingProgramExtrasSupport;
 use App\Support\TrainingEntityAuthorization;
 use Closure;
 use Filament\Forms\Components\DatePicker;
@@ -61,7 +62,19 @@ final class TrainingEntityFormSupport
     return Textarea::make('description')
       ->label('الوصف')
       ->rows(4)
+      ->live(onBlur: true)
       ->columnSpanFull();
+  }
+
+  /**
+   * @return array<int, \Filament\Forms\Components\Component>
+   */
+  public static function descriptionFieldsWithPreview(): array
+  {
+    return [
+      static::descriptionField(),
+      ...TrainingProgramExtrasSupport::descriptionPreviewFields(),
+    ];
   }
 
   /**
@@ -104,6 +117,10 @@ final class TrainingEntityFormSupport
         $capacityVisible,
         includeProgramAudienceNotifications: true,
       ),
+      TrainingProgramExtrasSupport::sessionTopicsBlock(),
+      ...TrainingProgramExtrasSupport::sessionTopicsRepeaterFields(),
+      TrainingProgramExtrasSupport::whatsappGroupsBlock(),
+      ...TrainingProgramExtrasSupport::whatsappGroupUrlFields(),
       ...static::entityAdvancedStaffBlock(
         'مسؤولي البرنامج',
         static::programStaffSectionDescription(),

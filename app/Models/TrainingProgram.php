@@ -36,6 +36,11 @@ class TrainingProgram extends Model
         'delivery_mode',
         'venue',
         'description',
+        'session_topics_enabled',
+        'session_topics',
+        'whatsapp_groups_enabled',
+        'whatsapp_group_male',
+        'whatsapp_group_female',
         'image',
         'capacity',
         'auto_accept_registrations',
@@ -75,6 +80,9 @@ class TrainingProgram extends Model
             'capacity' => 'integer',
             'auto_accept_registrations' => 'boolean',
             'weekdays' => 'array',
+            'session_topics_enabled' => 'boolean',
+            'session_topics' => 'array',
+            'whatsapp_groups_enabled' => 'boolean',
         ];
     }
 
@@ -398,6 +406,11 @@ class TrainingProgram extends Model
         }
 
         return $this->approvedRegistrationsCount() < $this->capacity;
+    }
+
+    public function publicDescription(): string
+    {
+        return \App\Support\TrainingProgramExtrasSupport::publicDescription($this);
     }
 
     // ─── Relationships ────────────────────────────────────────────────────────

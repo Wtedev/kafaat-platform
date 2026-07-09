@@ -60,7 +60,7 @@ $canCheckIn = in_array($sv, [RegistrationStatus::Approved->value, RegistrationSt
 
 <div class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
     <h2 class="text-sm font-semibold text-gray-700 mb-2">نبذة عن البرنامج</h2>
-    <p class="text-gray-600 leading-relaxed whitespace-pre-line">{{ $trainingProgram->description ?: '—' }}</p>
+    <p class="text-gray-600 leading-relaxed whitespace-pre-line">{{ $trainingProgram->publicDescription() ?: '—' }}</p>
 </div>
 
 @endsection

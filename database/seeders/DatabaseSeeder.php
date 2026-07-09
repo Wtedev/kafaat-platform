@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ProgramRegistrationSeeder::class);
         $this->call(NewsSeeder::class);
         $this->call(PartnerSeeder::class);
+        $this->call(MediaPhotoSeeder::class);
     }
 
     private function envFlag(string $key, bool $default = false): bool

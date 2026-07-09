@@ -5,6 +5,7 @@ namespace App\Filament\Support;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
 use App\Models\TrainingProgram;
+use App\Support\TrainingProgramExtrasSupport;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
@@ -68,13 +69,19 @@ final class TrainingProgramInlineEditSupport
                     ),
                 ),
             ],
-            'enrollment' => TrainingEntityFormSupport::registrationAdvancedSettingsFields(
-                $capacityVisible,
-                includeProgramAudienceNotifications: true,
-            ),
+            'enrollment' => [
+                ...TrainingEntityFormSupport::registrationAdvancedSettingsFields(
+                    $capacityVisible,
+                    includeProgramAudienceNotifications: true,
+                ),
+                TrainingProgramExtrasSupport::sessionTopicsBlock(),
+                ...TrainingProgramExtrasSupport::sessionTopicsRepeaterFields(),
+                TrainingProgramExtrasSupport::whatsappGroupsBlock(),
+                ...TrainingProgramExtrasSupport::whatsappGroupUrlFields(),
+            ],
             'team' => TrainingEntityFormSupport::programStaffFieldsForEdit(),
             'description' => [
-                TrainingEntityFormSupport::descriptionField(),
+                ...TrainingEntityFormSupport::descriptionFieldsWithPreview(),
             ],
         ];
     }

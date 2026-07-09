@@ -162,7 +162,7 @@ class TrainingProgramResource extends Resource
 
                     ...TrainingEntityFormSupport::programDeliveryFields(),
 
-                    TrainingEntityFormSupport::descriptionField(),
+                    ...TrainingEntityFormSupport::descriptionFieldsWithPreview(),
                 ]),
 
             Section::make('مواعيد البرنامج')
@@ -211,7 +211,7 @@ class TrainingProgramResource extends Resource
 
                     ...TrainingEntityFormSupport::programDeliveryFields(),
 
-                    TrainingEntityFormSupport::descriptionField(),
+                    ...TrainingEntityFormSupport::descriptionFieldsWithPreview(),
                 ]),
 
             Section::make('مواعيد البرنامج')

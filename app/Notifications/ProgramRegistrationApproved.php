@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\ProgramRegistration;
+use App\Support\TrainingProgramExtrasSupport;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -24,19 +25,25 @@ class ProgramRegistrationApproved extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $program = $this->registration->trainingProgram;
+        $program->loadMissing([]);
 
         $message = (new MailMessage)
-            ->subject('Your Registration Has Been Approved — '.$program->title)
-            ->greeting('Hello, '.$notifiable->name.'!')
-            ->line('Your registration for the training program **'.$program->title.'** has been approved.');
+            ->subject('تم قبول تسجيلك — '.$program->title)
+            ->greeting('مرحباً '.$notifiable->name.'،')
+            ->line('تم قبول طلبك في البرنامج التدريبي «'.$program->title.'».');
 
         if ($program->start_date) {
-            $message->line('**Start Date:** '.$program->start_date->format('F j, Y'));
+            $message->line('تاريخ البدء: '.$program->start_date->format('Y/m/d'));
+        }
+
+        $whatsappUrl = TrainingProgramExtrasSupport::whatsappGroupUrlFor($program, $notifiable);
+        if ($whatsappUrl !== null) {
+            $message->line('رابط مجموعة الواتساب: '.$whatsappUrl);
         }
 
         return $message
-            ->action('View Program Details', url('/'))
-            ->line('We look forward to seeing you participate.')
-            ->salutation('Best regards, Kafaat Team');
+            ->action('عرض البرنامج في بوابتي', route('portal.programs.show', $program))
+            ->line('نتطلع لمشاركتك في البرنامج.')
+            ->salutation('مع تحيات فريق كفاءات');
     }
 }

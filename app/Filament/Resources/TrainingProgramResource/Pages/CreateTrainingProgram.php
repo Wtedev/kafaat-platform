@@ -8,6 +8,7 @@ use App\Filament\Resources\Pages\BaseCreateRecord;
 use App\Filament\Resources\TrainingProgramResource;
 use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\LearningPath;
+use App\Support\TrainingProgramExtrasSupport;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 
@@ -106,6 +107,7 @@ class CreateTrainingProgram extends BaseCreateRecord
         $data = TrainingEntityFormSupport::applyCapacityUnlimited($data);
         $data = TrainingEntityFormSupport::applyAudienceNotifications($data);
         $data = TrainingEntityFormSupport::applyDeliveryModeFields($data);
+        $data = TrainingProgramExtrasSupport::applyFormData($data);
         $data = TrainingEntityFormSupport::stampOwnerFromCreator($data);
 
         $ownerId = isset($data['owner_id']) ? (int) $data['owner_id'] : null;

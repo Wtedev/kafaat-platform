@@ -17,6 +17,7 @@ use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Rbac\RbacCatalog;
 use App\Models\VolunteerOpportunity;
+use App\Support\TrainingProgramExtrasSupport;
 use App\Models\VolunteerRegistration;
 use App\Notifications\InboxNotificationEmail;
 use App\Services\EmailLogService;
@@ -323,7 +324,7 @@ class InboxNotificationService
         $msg = new NotificationMessage(
             type: InboxNotificationType::RegistrationApproved,
             title: 'تم قبول تسجيلك',
-            message: 'تم قبول طلبك في البرنامج التدريبي «'.$program->title.'».',
+            message: TrainingProgramExtrasSupport::registrationApprovalMessage($program, $recipient),
             senderId: $approver?->id,
             targetType: NotificationTargetType::SingleUser,
             context: self::inboxContext('training_program', (int) $program->getKey()),

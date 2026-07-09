@@ -21,5 +21,6 @@ php artisan db:seed --class=GovernanceContentSeeder --force
 php artisan db:seed --class=RegulationsSeeder --force
 php artisan db:seed --class=VolunteerOpportunitySeeder --force
 php artisan db:seed --class=PartnerSeeder --force
+php artisan db:seed --class=MediaPhotoSeeder --force
 php artisan permission:cache-reset
 php artisan cache:clear
