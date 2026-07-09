@@ -5,11 +5,13 @@ namespace App\Filament\Resources;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Resources\MediaPhotoResource\Pages;
 use App\Models\MediaPhoto;
+use App\Support\MediaPhotoLibrarySupport;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -78,6 +80,15 @@ class MediaPhotoResource extends Resource
                         ->maxLength(255)
                         ->columnSpanFull(),
 
+                    Select::make('category')
+                        ->label('القسم')
+                        ->options(array_combine(
+                            MediaPhotoLibrarySupport::CATEGORIES,
+                            MediaPhotoLibrarySupport::CATEGORIES,
+                        ))
+                        ->nullable()
+                        ->searchable(),
+
                     TextInput::make('album')
                         ->label('الألبوم / المجموعة')
                         ->maxLength(255)
@@ -136,6 +147,12 @@ class MediaPhotoResource extends Resource
                     ->sortable()
                     ->limit(60),
 
+                TextColumn::make('category')
+                    ->label('القسم')
+                    ->badge()
+                    ->default('—')
+                    ->sortable(),
+
                 TextColumn::make('album')
                     ->label('الألبوم')
                     ->badge()
@@ -173,9 +190,9 @@ class MediaPhotoResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListMediaPhotos::route('/'),
+            'index' => Pages\ListMediaPhotos::route('/'),
             'create' => Pages\CreateMediaPhoto::route('/create'),
-            'edit'   => Pages\EditMediaPhoto::route('/{record}/edit'),
+            'edit' => Pages\EditMediaPhoto::route('/{record}/edit'),
         ];
     }
 }

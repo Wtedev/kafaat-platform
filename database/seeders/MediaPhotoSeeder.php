@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\MediaPhoto;
+use App\Support\MediaPhotoLibrarySupport;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
@@ -17,18 +18,7 @@ class MediaPhotoSeeder extends Seeder
 
     private const STORAGE_PREFIX = 'media/photos/library';
 
-    /**
-     * ترتيب عرض الأقسام الرئيسية في المركز الإعلامي.
-     *
-     * @var list<string>
-     */
-    private const CATEGORY_ORDER = [
-        'الفعاليات والمبادرات',
-        'زيارات واستضافات',
-        'مرافق الجمعية',
-    ];
-
-  /** @var list<string> */
+    /** @var list<string> */
     private array $seededImagePaths = [];
 
     public function run(): void
@@ -51,7 +41,7 @@ class MediaPhotoSeeder extends Seeder
 
         $sortOrder = 0;
 
-        foreach (self::CATEGORY_ORDER as $categoryIndex => $category) {
+        foreach (MediaPhotoLibrarySupport::CATEGORIES as $categoryIndex => $category) {
             $categoryPath = $root.DIRECTORY_SEPARATOR.$category;
 
             if (! File::isDirectory($categoryPath)) {
@@ -67,12 +57,12 @@ class MediaPhotoSeeder extends Seeder
             );
 
             foreach (File::directories($categoryPath) as $albumPath) {
-                $albumName = trim(basename($albumPath));
+                $albumName = MediaPhotoLibrarySupport::normalizeFolderName(basename($albumPath));
 
                 $sortOrder = $this->seedDirectory(
                     $albumPath,
                     category: $category,
-                    album: $category.' · '.$albumName,
+                    album: MediaPhotoLibrarySupport::albumLabel($category, $albumName),
                     categoryIndex: $categoryIndex,
                     sortOrder: $sortOrder,
                 );
@@ -105,6 +95,8 @@ class MediaPhotoSeeder extends Seeder
             ->sortByName()
             ->name('/\.(jpe?g|png|webp)$/i');
 
+        $index = 0;
+
         foreach ($finder as $file) {
             if (! $file instanceof SplFileInfo) {
                 continue;
@@ -118,13 +110,12 @@ class MediaPhotoSeeder extends Seeder
 
             $this->seededImagePaths[] = $storagePath;
 
-            $title = $this->photoTitle($file, $album);
-
             MediaPhoto::updateOrCreate(
                 ['image' => $storagePath],
                 [
-                    'title' => $title,
-                    'caption' => $album,
+                    'title' => MediaPhotoLibrarySupport::photoTitle($file->getFilename(), $album, $index),
+                    'caption' => MediaPhotoLibrarySupport::photoCaption($category, $album),
+                    'category' => $category,
                     'album' => $album,
                     'is_active' => true,
                     'sort_order' => ($categoryIndex * 10_000) + $sortOrder,
@@ -132,6 +123,7 @@ class MediaPhotoSeeder extends Seeder
             );
 
             $sortOrder++;
+            $index++;
         }
 
         return $sortOrder;
@@ -146,24 +138,86 @@ class MediaPhotoSeeder extends Seeder
         $relativePath = self::STORAGE_PREFIX.'/'.$categorySegment.'/'.$albumSegment.'/'.$filename;
 
         Storage::disk('public')->makeDirectory(dirname($relativePath));
-        Storage::disk('public')->put($relativePath, File::get($file->getPathname()));
+
+        $optimized = $this->optimizedImageBinary($file->getPathname());
+
+        if ($optimized === null) {
+            Storage::disk('public')->put($relativePath, File::get($file->getPathname()));
+
+            return $relativePath;
+        }
+
+        $relativePath = preg_replace('/\.[^.]+$/', '.jpg', $relativePath) ?? $relativePath.'.jpg';
+        Storage::disk('public')->put($relativePath, $optimized);
 
         return $relativePath;
     }
 
-    private function photoTitle(SplFileInfo $file, string $album): string
+    /**
+     * تصغير وضغط الصورة للويب (بدون تكبير الصور الصغيرة).
+     */
+    private function optimizedImageBinary(string $path): ?string
     {
-        $base = pathinfo($file->getFilename(), PATHINFO_FILENAME);
-        $humanized = Str::of($base)
-            ->replace(['_', '-'], ' ')
-            ->squish()
-            ->value();
-
-        if ($humanized === '' || preg_match('/^(img|dsc|7p0a|unnamed)/i', $humanized)) {
-            return Str::before($album, ' ·') ?: $album;
+        if (! extension_loaded('gd')) {
+            return null;
         }
 
-        return $humanized;
+        $image = $this->loadImage($path);
+
+        if ($image === null) {
+            return null;
+        }
+
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $maxEdge = 1920;
+
+        if ($width <= 0 || $height <= 0) {
+            imagedestroy($image);
+
+            return null;
+        }
+
+        $longest = max($width, $height);
+
+        if ($longest > $maxEdge) {
+            if ($width >= $height) {
+                $newWidth = $maxEdge;
+                $newHeight = (int) round($height * ($maxEdge / $width));
+            } else {
+                $newHeight = $maxEdge;
+                $newWidth = (int) round($width * ($maxEdge / $height));
+            }
+        } else {
+            $newWidth = $width;
+            $newHeight = $height;
+        }
+
+        $canvas = imagecreatetruecolor($newWidth, $newHeight);
+        imagecopyresampled($canvas, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+        imagedestroy($image);
+
+        ob_start();
+        imagejpeg($canvas, null, 82);
+        $binary = ob_get_clean() ?: null;
+        imagedestroy($canvas);
+
+        return $binary;
+    }
+
+    /**
+     * @return resource|null
+     */
+    private function loadImage(string $path)
+    {
+        $mime = mime_content_type($path) ?: '';
+
+        return match (true) {
+            str_contains($mime, 'jpeg') || str_contains($mime, 'jpg') => @imagecreatefromjpeg($path),
+            str_contains($mime, 'png') => @imagecreatefrompng($path),
+            str_contains($mime, 'webp') => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($path) : null,
+            default => null,
+        };
     }
 
     private function storageSegment(string $label): string
@@ -179,7 +233,6 @@ class MediaPhotoSeeder extends Seeder
 
     private function safeFilename(string $filename): string
     {
-        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         $basename = pathinfo($filename, PATHINFO_FILENAME);
         $slug = Str::slug($basename, '-', 'ar');
 
@@ -187,6 +240,6 @@ class MediaPhotoSeeder extends Seeder
             $slug = 'photo-'.substr(sha1($filename), 0, 10);
         }
 
-        return $slug.'.'.$extension;
+        return $slug.'.jpg';
     }
 }

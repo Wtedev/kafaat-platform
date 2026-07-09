@@ -158,35 +158,43 @@
         <p class="text-sm" style="color:#9CA3AF">سيتم إضافة الصور قريباً.</p>
     </div>
     @else
-    @foreach($photos as $album => $albumPhotos)
-    <div class="mb-10">
-        {{-- Album heading --}}
-        <div class="flex items-center gap-3 mb-5">
-            <div class="w-1 h-6 rounded-full" style="background:#335483"></div>
-            <h2 class="text-lg font-bold" style="color:#111827">{{ $album }}</h2>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background:#e9eff6; color:#335483">{{ $albumPhotos->count() }} صورة</span>
+    @foreach($photoSections as $category => $albums)
+    <section class="mb-12">
+        <div class="mb-6 text-right">
+            <h2 class="text-2xl font-bold mb-2" style="color:#111827">{{ $category }}</h2>
+            <p class="text-sm leading-relaxed max-w-3xl" style="color:#6B7280">{{ \App\Support\MediaPhotoLibrarySupport::categoryDescription($category) }}</p>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            @foreach($albumPhotos as $photo)
-            <button type="button"
-                    class="relative rounded-xl overflow-hidden bg-gray-100 aspect-square block w-full text-right js-photo"
-                    data-src="{{ $photo->imagePublicUrl() }}"
-                    data-caption="{{ $photo->title }}"
-                    aria-label="عرض الصورة: {{ $photo->title }}">
-                <img src="{{ $photo->imagePublicUrl() }}"
-                     alt="{{ $photo->title }}"
-                     loading="lazy"
-                     class="photo-thumb w-full h-full object-cover" />
-                @if($photo->caption)
-                <span class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-2 block">
-                    <span class="text-white text-xs leading-tight truncate block">{{ $photo->caption }}</span>
-                </span>
-                @endif
-            </button>
-            @endforeach
+        @foreach($albums as $album => $albumPhotos)
+        <div class="mb-10">
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-1 h-6 rounded-full" style="background:#335483"></div>
+                <h3 class="text-lg font-bold" style="color:#111827">{{ $album }}</h3>
+                <span class="text-xs px-2 py-0.5 rounded-full" style="background:#e9eff6; color:#335483">{{ $albumPhotos->count() }} صورة</span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                @foreach($albumPhotos as $photo)
+                <button type="button"
+                        class="relative rounded-xl overflow-hidden bg-gray-100 aspect-square block w-full text-right js-photo"
+                        data-src="{{ $photo->imagePublicUrl() }}"
+                        data-caption="{{ $photo->title }}"
+                        aria-label="عرض الصورة: {{ $photo->title }}">
+                    <img src="{{ $photo->imagePublicUrl() }}"
+                         alt="{{ $photo->title }}"
+                         loading="lazy"
+                         class="photo-thumb w-full h-full object-cover" />
+                    @if($photo->caption)
+                    <span class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-2 block">
+                        <span class="text-white text-xs leading-tight truncate block">{{ $photo->caption }}</span>
+                    </span>
+                    @endif
+                </button>
+                @endforeach
+            </div>
         </div>
-    </div>
+        @endforeach
+    </section>
     @endforeach
     @endif
 </div>

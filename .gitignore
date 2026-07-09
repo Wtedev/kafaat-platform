@@ -24,4 +24,8 @@
 _ide_helper.php
 Homestead.json
 Homestead.yaml
-Thumbs.db
+database/seeders/assets/media-photos/**/.DS_Store
+database/seeders/assets/media-photos/**/*.CR3
+database/seeders/assets/media-photos/**/*.cr3
+database/seeders/assets/media-photos/**/*.HEIC
+database/seeders/assets/media-photos/**/*.heic
