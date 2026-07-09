@@ -58,7 +58,7 @@ class AdminPanelProvider extends PanelProvider
                 }
 
                 $fonts = asset('css/shamel-fonts.css');
-                $href = asset('css/filament-admin-surface.css').'?v=32';
+                $href = asset('css/filament-admin-surface.css').'?v=33';
 
                 return '<script>document.documentElement.lang="ar-SA-u-nu-latn";</script>'
                     .'<link rel="stylesheet" href="'.e($fonts).'"><link rel="stylesheet" href="'.e($href).'">';
@@ -73,8 +73,10 @@ class AdminPanelProvider extends PanelProvider
                 }
 
                 $calendar = asset('js/filament/training-schedule-calendar.js').'?v=1';
+                $newsEditor = asset('js/filament/news-content-editor.js').'?v=1';
 
-                return '<script src="'.e($calendar).'"></script>';
+                return '<script src="'.e($calendar).'"></script>'
+                    .'<script src="'.e($newsEditor).'"></script>';
             },
         );
 

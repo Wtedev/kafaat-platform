@@ -6,6 +6,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
 
 final class NewsFormSupport
 {
@@ -65,9 +66,11 @@ final class NewsFormSupport
     public static function contentRichEditorField(): RichEditor
     {
         return RichEditor::make('content')
-            ->label('المحتوى')
+            ->label('نص الخبر')
             ->required()
             ->columnSpanFull()
+            ->placeholder('ابدأ بكتابة محتوى الخبر هنا…')
+            ->helperText('انقر داخل المربع وابدأ الكتابة مباشرة. استخدم شريط الأدوات للتنسيق عند الحاجة.')
             ->toolbarButtons([
                 ['bold', 'italic', 'underline', 'strike', 'subscript', 'superscript', 'textColor', 'highlight'],
                 ['link'],
@@ -86,9 +89,25 @@ final class NewsFormSupport
                 'أصفر' => '#fbbb2e',
                 'أحمر' => '#ec6056',
             ])
-            ->extraInputAttributes([
-                'dir' => 'rtl',
-                'style' => 'min-height: 18rem;',
+            ->extraAttributes([
+                'class' => 'news-content-rich-editor',
+            ]);
+    }
+
+    /**
+     * بطاقة محرر المحتوى — للإنشاء والتعديل.
+     */
+    public static function contentEditorSection(): Section
+    {
+        return Section::make('المحتوى')
+            ->description('اكتب نص الخبر كاملاً كما سيظهر في صفحة التفاصيل.')
+            ->icon('heroicon-o-document-text')
+            ->schema([
+                self::contentRichEditorField(),
+            ])
+            ->columnSpanFull()
+            ->extraAttributes([
+                'class' => 'news-content-editor-section',
             ]);
     }
 }

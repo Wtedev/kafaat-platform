@@ -175,7 +175,8 @@ class NewsResource extends Resource
             Section::make('البيانات الأساسية')
                 ->description('احفظ كمسودة أو انشر فوراً أو جدّل الموعد — دون ضبط التاريخ يدوياً هنا.')
                 ->columns(2)
-                ->schema(static::contentFieldsSchema()),
+                ->schema(static::basicFieldsSchema()),
+            NewsFormSupport::contentEditorSection(),
             TrainingEntityFormSupport::advancedNewsSettingsSection(),
         ];
     }
@@ -401,11 +402,21 @@ class NewsResource extends Resource
      */
     private static function editNewsContentCard(EditNews $page, Closure $resolveNews): Group
     {
-        $preview = Text::make(fn (): string => static::editNewsFieldPreviewText($page, $resolveNews(), 'content', 1200))
+        $previewText = fn (): string => static::editNewsFieldPreviewText($page, $resolveNews(), 'content', 1200);
+        $hasContent = fn (): bool => $previewText() !== '—';
+
+        $preview = Text::make($previewText)
+            ->visible($hasContent)
             ->size(TextSize::Small)
             ->weight(FontWeight::Normal)
             ->color('gray')
-            ->extraAttributes(['class' => 'news-edit-content-body news-edit-content-preview max-w-prose leading-relaxed line-clamp-[14] min-h-[6rem]']);
+            ->extraAttributes(['class' => 'news-edit-content-body news-edit-content-preview max-w-prose leading-relaxed line-clamp-[14]']);
+
+        $emptyState = Text::make('لم يُضف محتوى بعد. اضغط «تعديل المحتوى» لكتابة نص الخبر.')
+            ->visible(fn (): bool => ! $hasContent())
+            ->size(TextSize::Small)
+            ->color('gray')
+            ->extraAttributes(['class' => 'news-edit-content-empty rounded-xl border border-dashed px-4 py-8 text-center leading-relaxed']);
 
         return Group::make([
             Text::make('المحتوى')
@@ -413,16 +424,21 @@ class NewsResource extends Resource
                 ->weight(FontWeight::SemiBold)
                 ->color('gray')
                 ->extraAttributes(['class' => 'news-edit-card-header block']),
+            Text::make('النص الكامل للخبر كما يظهر في صفحة التفاصيل العامة.')
+                ->size(TextSize::ExtraSmall)
+                ->color('gray')
+                ->extraAttributes(['class' => 'news-edit-content-hint -mt-4 mb-1 block']),
             $preview,
+            $emptyState,
             Flex::make([
                 Action::make('news_full_content_editor')
-                    ->label('')
+                    ->label('تعديل المحتوى')
                     ->icon('heroicon-o-pencil-square')
-                    ->iconButton()
+                    ->size(Size::Small)
                     ->color('gray')
-                    ->extraAttributes(['class' => 'news-edit-pencil-btn'])
-                    ->tooltip('تعديل المحتوى')
+                    ->extraAttributes(['class' => 'news-edit-content-edit-btn'])
                     ->modalHeading('المحتوى')
+                    ->modalDescription('اكتب أو عدّل نص الخبر. انقر داخل المربع وابدأ الكتابة مباشرة.')
                     ->modalWidth('7xl')
                     ->modalSubmitActionLabel('تطبيق')
                     ->fillForm(function () use ($page, $resolveNews): array {
@@ -441,7 +457,7 @@ class NewsResource extends Resource
             ])
                 ->columnSpanFull()
                 ->alignStart()
-                ->extraAttributes(['class' => 'mt-2']),
+                ->extraAttributes(['class' => 'news-edit-content-card__actions mt-3 border-t border-zinc-200/70 pt-4 dark:border-white/10']),
         ])
             ->columnSpanFull()
             ->extraAttributes([
@@ -681,7 +697,7 @@ class NewsResource extends Resource
     /**
      * @return array<int, Component>
      */
-    protected static function contentFieldsSchema(): array
+    protected static function basicFieldsSchema(): array
     {
         return [
             TextInput::make('title')
@@ -703,12 +719,21 @@ class NewsResource extends Resource
                 ->maxLength(500)
                 ->columnSpanFull(),
 
-            NewsFormSupport::contentRichEditorField(),
-
             Select::make('category')
                 ->label('التصنيف')
                 ->options(static::categoryOptions())
                 ->nullable(),
+        ];
+    }
+
+    /**
+     * @return array<int, Component>
+     */
+    protected static function contentFieldsSchema(): array
+    {
+        return [
+            ...static::basicFieldsSchema(),
+            NewsFormSupport::contentRichEditorField(),
         ];
     }
 

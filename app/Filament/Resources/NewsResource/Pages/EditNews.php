@@ -231,9 +231,6 @@ class EditNews extends BaseEditRecord
     public static function contentModalEditorField(): RichEditor
     {
         return NewsFormSupport::contentRichEditorField()
-            ->extraInputAttributes([
-                'dir' => 'rtl',
-                'style' => 'min-height: 22rem;',
-            ]);
+            ->label('المحتوى');
     }
 }

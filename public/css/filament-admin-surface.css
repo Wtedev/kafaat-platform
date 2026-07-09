@@ -1346,3 +1346,104 @@ html.fi:not(.dark) .kafaat-entity-view__badge--gray {
         padding: 1rem;
     }
 }
+
+/* ——— محرر محتوى الأخبار ——— */
+html.fi .news-content-editor-section {
+    border-radius: 1rem;
+    padding: 0.25rem;
+}
+
+html.fi.dark .news-content-editor-section {
+    background: var(--admin-surface-elevated);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+html.fi:not(.dark) .news-content-editor-section {
+    background: #ffffff;
+    border: 1px solid #e4e4e7;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+html.fi .news-content-editor-section .fi-section-header-heading {
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+html.fi .news-content-rich-editor .fi-fo-rich-editor {
+    overflow: hidden;
+    border-radius: 0.9rem;
+}
+
+html.fi.dark .news-content-rich-editor .fi-fo-rich-editor {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #18181b;
+}
+
+html.fi:not(.dark) .news-content-rich-editor .fi-fo-rich-editor {
+    border: 1px solid #e4e4e7;
+    background: #fafafa;
+}
+
+html.fi .news-content-rich-editor .fi-fo-rich-editor-toolbar {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+    padding-inline: 0.35rem;
+}
+
+html.fi:not(.dark) .news-content-rich-editor .fi-fo-rich-editor-toolbar {
+    border-bottom-color: #e4e4e7;
+    background: #f4f4f5;
+}
+
+html.fi .news-content-rich-editor .fi-fo-rich-editor-content {
+    min-height: 18rem;
+    cursor: text;
+    display: flex;
+    flex-direction: column;
+}
+
+html.fi .news-content-rich-editor .fi-fo-rich-editor-content > .tiptap {
+    flex: 1;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+html.fi .news-content-rich-editor .ProseMirror {
+    flex: 1;
+    min-height: 16rem;
+    direction: rtl;
+    text-align: right;
+    cursor: text;
+    outline: none;
+}
+
+html.fi .news-content-rich-editor .ProseMirror:focus {
+    outline: none;
+}
+
+html.fi .news-edit-content-hint {
+    color: var(--admin-muted);
+}
+
+html.fi:not(.dark) .news-edit-content-hint {
+    color: #71717a;
+}
+
+html.fi.dark .news-edit-content-empty {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--admin-muted);
+}
+
+html.fi:not(.dark) .news-edit-content-empty {
+    border-color: #d4d4d8 !important;
+    background: #fafafa;
+    color: #71717a;
+}
+
+html.fi .news-edit-content-card__actions .news-edit-content-edit-btn.fi-btn {
+    border-radius: 0.65rem;
+}
+

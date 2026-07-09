@@ -10,6 +10,8 @@ class ListPartners extends BaseListRecords
 {
     protected static string $resource = PartnerResource::class;
 
+    public bool $isTableReordering = true;
+
     protected function getListPageToolbarActions(): array
     {
         return [

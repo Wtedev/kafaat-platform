@@ -23,6 +23,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\HtmlString;
 
 class PartnerResource extends Resource
 {
@@ -117,17 +118,19 @@ class PartnerResource extends Resource
     public static function table(Table $table): Table
     {
         return static::applyEditOnlyTable($table)
-            ->description('اضغط «ترتيب بالسحب والإفلات» ثم اسحب الصفوف لتغيير ترتيب ظهور الشركاء في الموقع.')
+            ->description('اسحب الصفوف من أيقونة السحب ≡ لتغيير ترتيب ظهور الشركاء في الموقع. يُحفظ الترتيب تلقائياً.')
             ->reorderable('sort_order')
             ->reorderRecordsTriggerAction(
-                fn (Action $action, bool $isReordering) => $action
-                    ->button()
-                    ->label($isReordering ? 'حفظ الترتيب' : 'ترتيب بالسحب والإفلات')
-                    ->icon($isReordering ? 'heroicon-o-check' : 'heroicon-o-arrows-up-down')
-                    ->color($isReordering ? 'primary' : 'gray'),
+                fn (Action $action) => $action->hidden(),
             )
             ->defaultSort('sort_order', 'asc')
             ->columns([
+                TextColumn::make('sort_order')
+                    ->label('ترتيب الظهور')
+                    ->alignCenter()
+                    ->badge()
+                    ->color('gray'),
+
                 ImageColumn::make('logo')
                     ->label('الشعار')
                     ->disk('public')
@@ -138,7 +141,13 @@ class PartnerResource extends Resource
                 TextColumn::make('name')
                     ->label('اسم الشريك')
                     ->searchable()
-                    ->sortable(),
+                    ->formatStateUsing(function (string $state, Partner $record): HtmlString {
+                        $url = static::getUrl('edit', ['record' => $record]);
+
+                        return new HtmlString(
+                            '<a href="'.e($url).'" class="font-medium text-primary-600 hover:underline dark:text-primary-400">'.e($state).'</a>'
+                        );
+                    }),
 
                 IconColumn::make('is_active')
                     ->label('نشط')
@@ -147,12 +156,6 @@ class PartnerResource extends Resource
                     ->falseIcon('heroicon-o-x-circle')
                     ->trueColor('success')
                     ->falseColor('gray'),
-
-                TextColumn::make('sort_order')
-                    ->label('ترتيب الظهور')
-                    ->alignCenter()
-                    ->badge()
-                    ->color('gray'),
 
                 TextColumn::make('created_at')
                     ->label('تاريخ الإنشاء')
