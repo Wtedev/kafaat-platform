@@ -667,11 +667,13 @@
 
             function scrollToIndex(nextIndex) {
                 index = ((nextIndex % cards.length) + cards.length) % cards.length;
-                cards[index].scrollIntoView({
-                    behavior: 'smooth'
-                    , block: 'nearest'
-                    , inline: 'start'
-                , });
+                var card = cards[index];
+                var trackRect = track.getBoundingClientRect();
+                var cardRect = card.getBoundingClientRect();
+                track.scrollBy({
+                    left: cardRect.left - trackRect.left,
+                    behavior: 'smooth',
+                });
             }
 
             function syncIndexFromScroll() {
@@ -700,9 +702,11 @@
                 scrollToIndex(index >= cards.length - 1 ? 0 : index + 1);
             }
 
+            var sectionVisible = true;
+
             function startAuto() {
                 stopAuto();
-                if (canScroll() && cards.length > 1) {
+                if (sectionVisible && canScroll() && cards.length > 1) {
                     timer = setInterval(advance, 5000);
                 }
             }
@@ -740,6 +744,19 @@
                 if (!canScroll()) stopAuto();
                 else startAuto();
             });
+
+            var newsSection = document.getElementById('news');
+            if (newsSection && 'IntersectionObserver' in window) {
+                var observer = new IntersectionObserver(function(entries) {
+                    sectionVisible = entries[0].isIntersecting;
+                    if (sectionVisible) {
+                        startAuto();
+                    } else {
+                        stopAuto();
+                    }
+                }, { threshold: 0.15 });
+                observer.observe(newsSection);
+            }
 
             track.scrollLeft = 0;
             toggleControls();

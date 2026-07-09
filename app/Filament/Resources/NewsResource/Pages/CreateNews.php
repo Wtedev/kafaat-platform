@@ -5,6 +5,7 @@ namespace App\Filament\Resources\NewsResource\Pages;
 use App\Filament\Resources\NewsResource;
 use App\Filament\Resources\NewsResource\NewsPublicationFilamentActions;
 use App\Filament\Resources\Pages\BaseCreateRecord;
+use App\Services\News\NewsImageSyncService;
 use App\Services\News\NewsPublicationService;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -19,6 +20,9 @@ class CreateNews extends BaseCreateRecord
     public bool $pendingPublishNow = false;
 
     public ?Carbon $pendingScheduleAt = null;
+
+    /** @var array<int, array<string, mixed>> */
+    public array $pendingNewsImages = [];
 
     public function form(Schema $schema): Schema
     {
@@ -44,7 +48,19 @@ class CreateNews extends BaseCreateRecord
             $data['published_at'] = null;
         }
 
+        $this->pendingNewsImages = is_array($data['news_images'] ?? null) ? $data['news_images'] : [];
+        unset($data['news_images'], $data['image']);
+
         return $data;
+    }
+
+    protected function afterCreate(): void
+    {
+        if ($this->pendingNewsImages !== []) {
+            app(NewsImageSyncService::class)->sync($this->getRecord(), $this->pendingNewsImages, allowEmpty: true);
+        }
+
+        $this->pendingNewsImages = [];
     }
 
     protected function getCreateFormAction(): Action

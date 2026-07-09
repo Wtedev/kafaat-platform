@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\News;
+use App\Services\News\NewsImageSyncService;
 
 class PublicNewsController extends Controller
 {
@@ -22,6 +23,10 @@ class PublicNewsController extends Controller
             $news->published_at === null || $news->published_at->isFuture(),
             404
         );
+
+        $news->load(['images' => fn ($query) => $query->orderBy('sort_order')]);
+
+        app(NewsImageSyncService::class)->migrateLegacyImageIfNeeded($news);
 
         return view('public.news.show', compact('news'));
     }

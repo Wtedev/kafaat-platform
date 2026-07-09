@@ -5,14 +5,14 @@ namespace App\Filament\Resources\NewsResource\Pages;
 use App\Filament\Resources\NewsResource;
 use App\Filament\Resources\Pages\BaseEditRecord;
 use App\Models\News;
+use App\Services\News\NewsImageSyncService;
+use App\Support\NewsFormSupport;
 use Filament\Actions\Action;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Size;
 use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
@@ -24,6 +24,9 @@ class EditNews extends BaseEditRecord
 
     /** الحقل المفتوح للتحرير في الواجهة (عرض ثابت ↔ حقل). */
     public ?string $editingField = null;
+
+    /** يُحدَّث بعد حفظ الصور من المودال لإعادة رسم المعاينة. */
+    public int $imagesRevision = 0;
 
     public function form(Schema $schema): Schema
     {
@@ -38,7 +41,6 @@ class EditNews extends BaseEditRecord
             $full = '/'.ltrim((string) $record->slug, '/');
         }
         $short = Str::limit($full, 96);
-        $indexUrl = NewsResource::getUrl('index');
 
         $badgeClasses = match ($record->publicationStatusLabel()) {
             'منشور' => 'bg-brand-secondary text-white ring-1 ring-[#b8e0e2]/40',
@@ -47,12 +49,7 @@ class EditNews extends BaseEditRecord
         };
 
         return new HtmlString(
-            '<div class="news-edit-header-block space-y-1">'
-            .'<p class="news-edit-breadcrumb text-xs font-medium text-zinc-500 dark:text-zinc-400">'
-            .'<a class="transition-colors hover:text-primary-400" href="'.e($indexUrl).'">الأخبار</a>'
-            .' <span class="text-zinc-500/80" aria-hidden="true">/</span> '
-            .'<span>تعديل</span>'
-            .'</p>'
+            '<div class="news-edit-header-block">'
             .'<div class="flex flex-wrap items-center gap-x-4 gap-y-2">'
             .'<h1 class="news-edit-main-title min-w-0 max-w-5xl flex-1 truncate text-2xl font-bold tracking-tight text-gray-950 dark:text-white" title="'.e($full).'">'
             .e('تعديل خبر - '.$short)
@@ -71,6 +68,14 @@ class EditNews extends BaseEditRecord
     public function getSubheading(): string|Htmlable|null
     {
         return null;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function getBreadcrumbs(): array
+    {
+        return [];
     }
 
     /**
@@ -133,6 +138,7 @@ class EditNews extends BaseEditRecord
     protected function afterSave(): void
     {
         $this->editingField = null;
+        $this->refreshRecordImagesState();
     }
 
     protected function getSavedNotification(): ?Notification
@@ -149,29 +155,39 @@ class EditNews extends BaseEditRecord
     }
 
     /**
-     * حفظ صورة من مودال دون تغيير منطق التخزين.
+     * حفظ صور الخبر من المودال — المصدر الوحيد لتعديل الصور في صفحة التعديل.
+     *
+     * @param  array<int, array<string, mixed>>  $imagesState
      */
-    public function persistImageFromModal(mixed $imageState): void
+    public function persistImagesFromModal(array $imagesState): void
     {
-        $newPath = $imageState;
-        if (is_array($newPath)) {
-            $newPath = $newPath[0] ?? null;
-        }
-
         $record = $this->getRecord();
-        $originalPath = $record->getOriginal('image');
 
-        if (filled($originalPath)
-            && is_string($originalPath)
-            && $originalPath !== $newPath
-            && ! Str::startsWith($originalPath, ['http://', 'https://'])
-            && Storage::disk('public')->exists($originalPath)) {
-            Storage::disk('public')->delete($originalPath);
-        }
+        app(NewsImageSyncService::class)->sync($record, $imagesState, allowEmpty: true);
 
-        $record->update(['image' => $newPath]);
-        $this->data['image'] = $newPath;
-        $this->fillForm();
+        $this->refreshRecordImagesState();
+
+        Notification::make()
+            ->success()
+            ->title('تم حفظ الصور')
+            ->body('صور الخبر محفوظة. يمكنك متابعة تعديل النص ثم حفظ التغييرات.')
+            ->send();
+    }
+
+    public function refreshRecordImagesState(): void
+    {
+        $this->record->refresh();
+        $this->record->unsetRelation('images');
+        $this->imagesRevision++;
+    }
+
+    public function previewPrimaryImageUrl(): ?string
+    {
+        $path = app(NewsImageSyncService::class)->primaryImagePath(
+            $this->getRecord()->fresh()
+        );
+
+        return filled($path) ? NewsResource::resolveNewsImagePublicUrl($path) : null;
     }
 
     /**
@@ -180,21 +196,7 @@ class EditNews extends BaseEditRecord
      */
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        $originalPath = $this->getRecord()->getOriginal('image');
-
-        $newPath = $data['image'] ?? null;
-        if (is_array($newPath)) {
-            $newPath = $newPath[0] ?? null;
-            $data['image'] = $newPath;
-        }
-
-        if (filled($originalPath)
-            && is_string($originalPath)
-            && $originalPath !== $newPath
-            && ! Str::startsWith($originalPath, ['http://', 'https://'])
-            && Storage::disk('public')->exists($originalPath)) {
-            Storage::disk('public')->delete($originalPath);
-        }
+        unset($data['news_images'], $data['image']);
 
         return $data;
     }
@@ -226,53 +228,9 @@ class EditNews extends BaseEditRecord
         ];
     }
 
-    /**
-     * مكوّن رفع الصورة داخل مودال تعديل الصورة المميزة.
-     */
-    public static function featuredImageModalUploadField(): FileUpload
-    {
-        return FileUpload::make('image')
-            ->label('صورة الخبر')
-            ->image()
-            ->disk('public')
-            ->directory('news/images')
-            ->visibility('public')
-            ->maxSize(4096)
-            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
-            ->imagePreviewHeight('12rem')
-            ->imageResizeMode('cover')
-            ->nullable()
-            ->helperText('JPEG أو PNG أو WebP — حتى 4 ميجابايت.')
-            ->columnSpanFull();
-    }
-
-    /**
-     * محرر المحتوى الغني داخل المودال (تنسيق مدونات: ألوان، عناوين، قوائم، جداول، …).
-     */
     public static function contentModalEditorField(): RichEditor
     {
-        return RichEditor::make('content')
-            ->label('المحتوى')
-            ->required()
-            ->columnSpanFull()
-            ->toolbarButtons([
-                ['bold', 'italic', 'underline', 'strike', 'subscript', 'superscript', 'textColor', 'highlight'],
-                ['link'],
-                ['h2', 'h3', 'h4', 'blockquote', 'code', 'codeBlock'],
-                ['alignStart', 'alignCenter', 'alignEnd', 'alignJustify'],
-                ['bulletList', 'orderedList'],
-                ['table'],
-                ['horizontalRule'],
-                ['undo', 'redo'],
-            ])
-            ->textColors([
-                'أسود' => '#18181b',
-                'رمادي' => '#71717a',
-                'أزرق غامق' => '#335483',
-                'تركواز' => '#1a9399',
-                'أصفر' => '#fbbb2e',
-                'أحمر' => '#ec6056',
-            ])
+        return NewsFormSupport::contentRichEditorField()
             ->extraInputAttributes([
                 'dir' => 'rtl',
                 'style' => 'min-height: 22rem;',

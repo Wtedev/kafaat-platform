@@ -2,7 +2,6 @@
 
 namespace App\Filament\Support;
 
-use Filament\Forms\Components\FileUpload;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
@@ -21,7 +20,7 @@ final class EntityTwoColumnFormLayout
      */
     public static function wrap(
         Schema $schema,
-        FileUpload $imageField,
+        Component $imageField,
         array $detailSections,
         string $imageColumnLabel = 'صورة الغلاف',
         string $mode = 'create',

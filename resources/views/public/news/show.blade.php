@@ -12,7 +12,7 @@
 </div>
 
 {{-- Article --}}
-<div class="max-w-3xl">
+<div class="max-w-4xl">
 
     {{-- Category + date --}}
     <div class="flex items-center gap-3 mb-4 flex-row-reverse justify-end">
@@ -32,11 +32,18 @@
     <p class="text-lg font-medium leading-relaxed mb-6 text-right" style="color:#6B7280">{{ $news->excerpt }}</p>
     @endif
 
-    {{-- Featured image --}}
-    @if ($news->image)
-    <div class="rounded-2xl overflow-hidden mb-8">
-        <img src="{{ $news->imagePublicUrl() }}" alt="{{ $news->title }}" class="w-full object-cover" style="max-height:420px">
-    </div>
+    @php
+        $primaryImage = $news->primaryImageRecord();
+        $galleryImages = $news->galleryImageRecords();
+        $hasPrimary = filled($primaryImage?->path) || filled($news->image);
+    @endphp
+
+    @if ($hasPrimary)
+        <x-news-gallery
+            :primary-url="$news->imagePublicUrl()"
+            :primary-alt="$news->title"
+            :gallery-urls="$galleryImages->map(fn ($image) => $image->publicUrl())->all()"
+        />
     @else
     <div class="rounded-2xl h-56 flex items-center justify-center mb-8" style="background: linear-gradient(135deg, #e9eff6, #DCE8F5)">
         <svg class="w-20 h-20 opacity-25" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:#335483">
@@ -50,9 +57,8 @@
             $body = (string) ($news->content ?? '');
             $isRichHtml = $body !== '' && preg_match('/<[a-z][\s\S]*>/i', $body);
         @endphp
-        <div class="news-article-body prose prose-lg max-w-none leading-relaxed text-right font-sans {{ $isRichHtml ? '' : 'whitespace-pre-line' }}" style="color:#374151; direction: rtl">
+        <div class="news-article-body prose prose-lg max-w-none leading-relaxed text-right font-sans {{ $isRichHtml ? 'prose-headings:text-[#111827] prose-a:text-[#335483] prose-strong:text-[#111827]' : 'whitespace-pre-line' }}" style="color:#374151; direction: rtl">
             @if ($isRichHtml)
-                {{-- تنقية HTML لمنع XSS المخزّن (وسوم مسموحة فقط) --}}
                 {!! clean($body) !!}
             @else
                 {!! nl2br(e($body)) !!}

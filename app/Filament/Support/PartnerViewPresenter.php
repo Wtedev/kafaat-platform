@@ -32,7 +32,7 @@ final class PartnerViewPresenter
                 'icon' => 'heroicon-o-check-circle',
             ],
             [
-                'label' => 'الترتيب',
+                'label' => 'ترتيب الظهور',
                 'value' => (string) $partner->sort_order,
                 'icon' => 'heroicon-o-arrows-up-down',
             ],

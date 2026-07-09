@@ -6,6 +6,7 @@ use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\PartnerResource\Pages;
 use App\Models\Partner;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -47,6 +48,26 @@ class PartnerResource extends Resource
         return ['manage_partners'];
     }
 
+    public static function canCreate(): bool
+    {
+        return static::canViewAny();
+    }
+
+    public static function canEdit($record): bool
+    {
+        return static::canViewAny();
+    }
+
+    public static function canDelete($record): bool
+    {
+        return static::canViewAny();
+    }
+
+    public static function canReorder(): bool
+    {
+        return static::canViewAny();
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -83,11 +104,12 @@ class PartnerResource extends Resource
                         ->inline(false),
 
                     TextInput::make('sort_order')
-                        ->label('الترتيب')
+                        ->label('ترتيب الظهور')
                         ->numeric()
                         ->default(0)
                         ->required()
-                        ->minValue(0),
+                        ->minValue(0)
+                        ->helperText('يُحدَّث تلقائياً عند السحب والإفلات من قائمة الشركاء.'),
                 ]),
         ]);
     }
@@ -95,7 +117,15 @@ class PartnerResource extends Resource
     public static function table(Table $table): Table
     {
         return static::applyEditOnlyTable($table)
+            ->description('اضغط «ترتيب بالسحب والإفلات» ثم اسحب الصفوف لتغيير ترتيب ظهور الشركاء في الموقع.')
             ->reorderable('sort_order')
+            ->reorderRecordsTriggerAction(
+                fn (Action $action, bool $isReordering) => $action
+                    ->button()
+                    ->label($isReordering ? 'حفظ الترتيب' : 'ترتيب بالسحب والإفلات')
+                    ->icon($isReordering ? 'heroicon-o-check' : 'heroicon-o-arrows-up-down')
+                    ->color($isReordering ? 'primary' : 'gray'),
+            )
             ->defaultSort('sort_order', 'asc')
             ->columns([
                 ImageColumn::make('logo')
@@ -119,9 +149,10 @@ class PartnerResource extends Resource
                     ->falseColor('gray'),
 
                 TextColumn::make('sort_order')
-                    ->label('الترتيب')
-                    ->sortable()
-                    ->alignCenter(),
+                    ->label('ترتيب الظهور')
+                    ->alignCenter()
+                    ->badge()
+                    ->color('gray'),
 
                 TextColumn::make('created_at')
                     ->label('تاريخ الإنشاء')

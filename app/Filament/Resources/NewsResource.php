@@ -8,6 +8,8 @@ use App\Filament\Resources\NewsResource\Pages\EditNews;
 use App\Filament\Support\EntityTwoColumnFormLayout;
 use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\News;
+use App\Services\News\NewsImageSyncService;
+use App\Support\NewsFormSupport;
 use App\Support\PublicDiskPath;
 use Closure;
 use Filament\Actions\Action;
@@ -18,6 +20,7 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -131,15 +134,22 @@ class NewsResource extends Resource
     }
 
     /**
-     * حقل رفع صورة الخبر — نفس المسمى في الإنشاء والتعديل.
+     * حقل صور الخبر — رفع متعدد مع قص بنسبة بطاقة الخبر.
+     */
+    public static function newsImagesRepeaterField(): Repeater
+    {
+        return NewsFormSupport::newsImagesRepeater();
+    }
+
+    /**
+     * @deprecated استخدم newsImagesRepeaterField()
      */
     public static function newsImageUploadField(): FileUpload
     {
-        return TrainingEntityFormSupport::coverImageUpload(
-            directory: 'news/images',
-            label: 'صورة الخبر',
-            helperText: 'JPEG أو PNG أو WebP — حتى 4 ميجابايت. تُحفظ في التخزين العام ويُعرض معاينة تلقائياً.',
-        );
+        return NewsFormSupport::newsImageUploadField('image')
+            ->label('صورة الخبر')
+            ->nullable()
+            ->helperText('JPEG أو PNG أو WebP — حتى 4 ميجابايت. تُحفظ في التخزين العام ويُعرض معاينة تلقائياً.');
     }
 
     /**
@@ -149,9 +159,9 @@ class NewsResource extends Resource
     {
         return EntityTwoColumnFormLayout::wrap(
             $schema,
-            static::newsImageUploadField(),
+            static::newsImagesRepeaterField(),
             static::newsCreateFormSections(),
-            imageColumnLabel: 'صورة الخبر',
+            imageColumnLabel: 'صور الخبر',
             mode: 'create',
         );
     }
@@ -217,7 +227,6 @@ class NewsResource extends Resource
             Hidden::make('content')
                 ->dehydrated()
                 ->dehydratedWhenHidden(true),
-            static::editNewsHiddenImageField(),
         ];
     }
 
@@ -226,8 +235,8 @@ class NewsResource extends Resource
      */
     private static function editNewsFeaturedImageCard(EditNews $page, Closure $resolveNews): Group
     {
-        $imageLayer = Html::make(function (News $record): HtmlString {
-            $url = filled($record->image) ? static::resolveNewsImagePublicUrl($record->image) : null;
+        $imageLayer = Html::make(function () use ($page): HtmlString {
+            $url = $page->previewPrimaryImageUrl();
 
             return new HtmlString(
                 View::make('filament.news.edit.image-preview', [
@@ -238,7 +247,7 @@ class NewsResource extends Resource
             ->columnSpanFull();
 
         $footer = Flex::make([
-            Text::make('JPEG أو PNG أو WebP — حتى 4 ميجابايت')
+            Text::make('JPEG أو PNG أو WebP — حتى 4 ميجابايت. قص ٥:٣ لبطاقة الخبر.')
                 ->size(TextSize::ExtraSmall)
                 ->color('gray')
                 ->extraAttributes(['class' => 'news-edit-image-card__hint min-w-0 flex-1 text-zinc-500 dark:text-zinc-400']),
@@ -248,15 +257,19 @@ class NewsResource extends Resource
                 ->iconButton()
                 ->color('gray')
                 ->extraAttributes(['class' => 'news-edit-pencil-btn'])
-                ->tooltip('تعديل الصورة')
-                ->modalHeading('صورة الخبر')
-                ->modalSubmitActionLabel('حفظ الصورة')
-                ->fillForm(fn (): array => ['image' => $resolveNews()->image])
+                ->tooltip('إدارة الصور')
+                ->modalHeading('صور الخبر')
+                ->modalSubmitActionLabel('حفظ الصور')
+                ->modalWidth('5xl')
+                ->fillForm(fn (): array => [
+                    'news_images' => app(NewsImageSyncService::class)
+                        ->rowsFromNews($resolveNews()),
+                ])
                 ->form([
-                    EditNews::featuredImageModalUploadField(),
+                    static::newsImagesRepeaterField(),
                 ])
                 ->action(function (array $data) use ($page): void {
-                    $page->persistImageFromModal($data['image'] ?? null);
+                    $page->persistImagesFromModal($data['news_images'] ?? []);
                 }),
         ])
             ->columnSpanFull()
@@ -267,7 +280,7 @@ class NewsResource extends Resource
             ]);
 
         return Group::make([
-            Text::make('صورة الخبر')
+            Text::make('صور الخبر')
                 ->size(TextSize::ExtraSmall)
                 ->weight(FontWeight::SemiBold)
                 ->color('gray')
@@ -276,8 +289,9 @@ class NewsResource extends Resource
             $footer,
         ])
             ->columnSpanFull()
-            ->extraAttributes([
+            ->extraAttributes(fn (): array => [
                 'class' => 'news-edit-card news-edit-image-card news-edit-mock-image-col',
+                'wire:key' => 'news-image-card-'.$page->imagesRevision,
             ]);
     }
 
@@ -433,16 +447,6 @@ class NewsResource extends Resource
             ->extraAttributes([
                 'class' => 'news-edit-card news-edit-content-card',
             ]);
-    }
-
-    /**
-     * حقل الصورة مخفى في النموذج للحفظ الجماعي (القيمة تُحدَّث من المودال أو الحفظ).
-     */
-    private static function editNewsHiddenImageField(): FileUpload
-    {
-        return static::newsImageUploadField()
-            ->hidden()
-            ->dehydrated();
     }
 
     /**
@@ -699,11 +703,7 @@ class NewsResource extends Resource
                 ->maxLength(500)
                 ->columnSpanFull(),
 
-            Textarea::make('content')
-                ->label('المحتوى')
-                ->rows(12)
-                ->required()
-                ->columnSpanFull(),
+            NewsFormSupport::contentRichEditorField(),
 
             Select::make('category')
                 ->label('التصنيف')

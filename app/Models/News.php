@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Services\News\NewsImageSyncService;
 use App\Services\News\NewsPublicationService;
 use App\Support\PublicDiskPath;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -62,12 +65,56 @@ class News extends Model
                 Auth::user() instanceof User ? Auth::user() : null,
             );
         });
+
+        static::deleting(function (self $news): void {
+            app(NewsImageSyncService::class)->purgeFilesForNews($news);
+        });
     }
 
-    /** Public URL for the featured image (or placeholder). */
+    public function images(): HasMany
+    {
+        return $this->hasMany(NewsImage::class)->orderBy('sort_order');
+    }
+
+    /** Public URL for the primary / card image (or placeholder). */
     public function imagePublicUrl(): string
     {
-        return PublicDiskPath::urlOrPlaceholder($this->image ?? null);
+        $primaryPath = $this->relationLoaded('images')
+            ? $this->images->firstWhere('is_primary', true)?->path
+            : $this->images()->where('is_primary', true)->value('path');
+
+        return PublicDiskPath::urlOrPlaceholder($primaryPath ?? $this->image ?? null);
+    }
+
+    public function primaryImageRecord(): ?NewsImage
+    {
+        if ($this->relationLoaded('images')) {
+            return $this->images->firstWhere('is_primary', true);
+        }
+
+        return $this->images()->where('is_primary', true)->first();
+    }
+
+    /**
+     * @return Collection<int, NewsImage>
+     */
+    public function galleryImageRecords(): Collection
+    {
+        if ($this->relationLoaded('images')) {
+            return $this->images
+                ->where('is_primary', false)
+                ->sortBy('sort_order')
+                ->values();
+        }
+
+        return $this->images()->where('is_primary', false)->orderBy('sort_order')->get();
+    }
+
+    public function syncPrimaryImageColumn(): void
+    {
+        $primaryPath = $this->images()->where('is_primary', true)->value('path');
+
+        $this->updateQuietly(['image' => $primaryPath]);
     }
 
     public function isDraft(): bool
