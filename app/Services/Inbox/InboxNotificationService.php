@@ -191,9 +191,7 @@ class InboxNotificationService
                 && $program->status === ProgramStatus::Published
                 ? route('public.programs.show', $program->slug)
                 : null,
-            'learning_path' => ($path = LearningPath::query()->find($id)) !== null
-                ? route('public.paths.show', $path->slug)
-                : null,
+            'learning_path' => null,
             'volunteer_opportunity' => ($opportunity = VolunteerOpportunity::query()->find($id)) !== null
                 ? route('public.volunteering.show', $opportunity->slug)
                 : null,

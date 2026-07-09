@@ -56,10 +56,10 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
     @if (! $hasActivities)
     <x-portal.empty-state
         title="لا توجد مسارات أو برامج مستقلة لعرضها"
-        description="لم يظهر عندك أي تسجيل في مسار أو برنامج مستقل، أو اقتراحات بعد. استكشف المسارات والبرامج غير المرتبطة بمسار من الموقع العام."
+        description="لم يظهر عندك أي تسجيل في مسار أو برنامج مستقل، أو اقتراحات بعد. استكشف البرامج والفرص التطوعية من الموقع العام."
     >
         <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">استكشف البرامج</a>
-        <a href="{{ route('public.paths.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">استكشف المسارات</a>
+        <a href="{{ route('public.volunteering.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">استكشف الفرص التطوعية</a>
     </x-portal.empty-state>
     @else
     <div class="-mx-1 flex gap-4 overflow-x-auto overflow-y-visible pb-2 pt-1 [scrollbar-width:thin]">

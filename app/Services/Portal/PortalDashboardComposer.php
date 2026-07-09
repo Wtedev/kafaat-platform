@@ -128,7 +128,6 @@ final class PortalDashboardComposer
         $pathRegs = $user->learningPathRegistrations;
         $progRegs = $user->programRegistrations;
 
-        $claimedPathIds = $pathRegs->pluck('learning_path_id')->unique()->filter()->values();
         $claimedProgIds = $progRegs->pluck('training_program_id')->unique()->filter()->values();
 
         $rows = collect();
@@ -147,17 +146,6 @@ final class PortalDashboardComposer
         }
 
         $discover = collect();
-
-        $extraPaths = LearningPath::query()
-            ->published()
-            ->when($claimedPathIds->isNotEmpty(), fn ($q) => $q->whereNotIn('id', $claimedPathIds))
-            ->latest('published_at')
-            ->limit(3)
-            ->get();
-
-        foreach ($extraPaths as $path) {
-            $discover->push(self::pathDiscoverRow($path));
-        }
 
         $extraProgs = TrainingProgram::query()
             ->published()
@@ -223,22 +211,6 @@ final class PortalDashboardComposer
             'progress' => $progress !== null ? min(100, max(0, $progress)) : null,
             'cta_label' => self::programCtaLabel($reg),
             'cta_url' => self::programCtaUrl($reg),
-        ];
-    }
-
-    private static function pathDiscoverRow(LearningPath $path): array
-    {
-        return [
-            'kind' => 'path',
-            'discover' => true,
-            'sort_at' => $path->published_at ?? $path->updated_at,
-            'title' => $path->title,
-            'type_label' => 'مسار',
-            'status_label' => 'غير مسجل',
-            'status_tone' => 'slate',
-            'progress' => null,
-            'cta_label' => 'تسجيل',
-            'cta_url' => route('public.paths.show', $path),
         ];
     }
 

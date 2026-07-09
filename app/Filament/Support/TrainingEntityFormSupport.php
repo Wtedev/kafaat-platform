@@ -10,6 +10,7 @@ use App\Filament\Forms\Components\TrainingScheduleCalendar;
 use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\FilamentUserSelectQuery;
 use App\Support\StaffFilamentRoles;
 use App\Support\TrainingEntityAuthorization;
 use Closure;
@@ -439,7 +440,7 @@ final class TrainingEntityFormSupport
         ->columnSpanFull(),
       Select::make('owner_id')
         ->label('مالك المسار')
-        ->relationship('owner', 'name', fn (Builder $query) => $query->where('is_active', true)->orderBy('name'))
+        ->relationship('owner', 'name', fn (Builder $query) => FilamentUserSelectQuery::activeOrderedByName($query))
         ->searchable()
         ->preload()
         ->nullable()
@@ -494,7 +495,7 @@ final class TrainingEntityFormSupport
         ->columnSpanFull(),
       Select::make('owner_id')
         ->label('مالك المسار')
-        ->relationship('owner', 'name', fn (Builder $query) => $query->where('is_active', true)->orderBy('name'))
+        ->relationship('owner', 'name', fn (Builder $query) => FilamentUserSelectQuery::activeOrderedByName($query))
         ->searchable()
         ->preload()
         ->nullable()
@@ -517,7 +518,10 @@ final class TrainingEntityFormSupport
         ->relationship(
           'assignee',
           'name',
-          modifyQueryUsing: fn (Builder $query) => $query->role(StaffFilamentRoles::assignableVolunteeringCoordinatorRoleNames()),
+          modifyQueryUsing: fn (Builder $query) => FilamentUserSelectQuery::apply(
+              $query,
+              fn (Builder $query) => $query->role(StaffFilamentRoles::assignableVolunteeringCoordinatorRoleNames()),
+          ),
         )
         ->searchable()
         ->preload()
@@ -545,7 +549,7 @@ final class TrainingEntityFormSupport
 
       Select::make('owner_id')
         ->label('مالك البرنامج')
-        ->relationship('owner', 'name', fn (Builder $query) => $query->where('is_active', true)->orderBy('name'))
+        ->relationship('owner', 'name', fn (Builder $query) => FilamentUserSelectQuery::activeOrderedByName($query))
         ->searchable()
         ->preload()
         ->nullable()
@@ -568,7 +572,7 @@ final class TrainingEntityFormSupport
         ->relationship(
           name: 'editors',
           titleAttribute: 'name',
-          modifyQueryUsing: fn (Builder $query) => $query->where('is_active', true)->orderBy('name'),
+          modifyQueryUsing: fn (Builder $query) => FilamentUserSelectQuery::activeOrderedByName($query),
         )
         ->multiple()
         ->searchable()
@@ -611,7 +615,7 @@ final class TrainingEntityFormSupport
 
       Select::make('owner_id')
         ->label('مالك البرنامج')
-        ->relationship('owner', 'name', fn (Builder $query) => $query->where('is_active', true)->orderBy('name'))
+        ->relationship('owner', 'name', fn (Builder $query) => FilamentUserSelectQuery::activeOrderedByName($query))
         ->searchable()
         ->preload()
         ->nullable()
@@ -633,7 +637,7 @@ final class TrainingEntityFormSupport
         ->relationship(
           name: 'editors',
           titleAttribute: 'name',
-          modifyQueryUsing: fn (Builder $query) => $query->where('is_active', true)->orderBy('name'),
+          modifyQueryUsing: fn (Builder $query) => FilamentUserSelectQuery::activeOrderedByName($query),
         )
         ->multiple()
         ->searchable()

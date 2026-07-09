@@ -55,11 +55,17 @@ $alreadyRegistered = $userRegistration !== null;
                     <p class="text-sm leading-relaxed text-gray-600">
                         هذا البرنامج جزء من مسار تعليمي. التسجيل يتم عبر المسار فقط، وبعد قبولك في المسار تُسجَّل تلقائياً في جميع برامجه.
                     </p>
-                    @if ($trainingProgram->learningPath)
-                        <x-public.register-cta-button :href="route('public.paths.show', $trainingProgram->learningPath->slug)">
-                            الانتقال إلى صفحة المسار
+                    @auth
+                        @if (auth()->user()->isPortalUser())
+                            <x-public.register-cta-button :href="route('portal.paths')">
+                                الانتقال إلى مساراتي
+                            </x-public.register-cta-button>
+                        @endif
+                    @else
+                        <x-public.register-cta-button :href="route('login')">
+                            سجّل الدخول للانضمام للمسار
                         </x-public.register-cta-button>
-                    @endif
+                    @endauth
                 </div>
             @elseif (! $trainingProgram->isRegistrationOpen())
                 <p class="text-sm text-gray-400">باب التسجيل في هذا البرنامج مغلق حالياً.</p>

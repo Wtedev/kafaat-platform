@@ -246,7 +246,7 @@ final class InboxNotificationRecordActions
         return match ($c['resource']) {
             'news' => ($m = News::find($id)) ? route('public.news.show', $m) : null,
             'training_program' => ($m = TrainingProgram::find($id)) ? route('public.programs.show', $m) : null,
-            'learning_path' => ($m = LearningPath::find($id)) ? route('public.paths.show', $m) : null,
+            'learning_path' => null,
             'volunteer_opportunity' => ($m = VolunteerOpportunity::find($id)) ? route('public.volunteering.show', $m) : null,
             default => null,
         };

@@ -203,13 +203,6 @@
                             @php
                             $heroAreas = [
                             [
-                            'title' => 'مسارات التأهيل',
-                            'desc' => 'رحلات تعليمية متكاملة',
-                            'href' => route('public.paths.index'),
-                            'color' => '#1a9399',
-                            'bg' => '#e6f5f6',
-                            ],
-                            [
                             'title' => 'البرامج',
                             'desc' => 'دورات وورش ولقاءات',
                             'href' => route('public.programs.track', \App\Enums\CompetencyTrack::Self),
@@ -327,7 +320,7 @@
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 @php
                 $workAreas = [
                 [
@@ -338,15 +331,6 @@
                 'color' => '#4f53a3',
                 'bg' => '#ededf7',
                 'soon' => true,
-                ],
-                [
-                'title' => 'مسارات التأهيل',
-                'badge' => null,
-                'desc' => 'مسارات تعليمية متدرّجة تجمع عدة برامج في رحلة تأهيل متكاملة للمستفيد.',
-                'href' => route('public.paths.index'),
-                'color' => '#1a9399',
-                'bg' => '#e6f5f6',
-                'soon' => false,
                 ],
                 [
                 'title' => 'البرامج',

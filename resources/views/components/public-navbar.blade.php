@@ -141,10 +141,6 @@ $govActive = request()->routeIs('public.governance.*');
                     عن كفاءات
                 </a>
 
-                <a href="{{ route('public.paths.index') }}" class="pub-nav-link {{ request()->routeIs('public.paths.*') ? 'is-active' : '' }}">
-                    المسارات
-                </a>
-
                 <div class="pub-nav-dropdown group relative">
                     <button type="button" class="pub-nav-link gap-1 {{ $programsActive ? 'is-active' : '' }}" aria-haspopup="true">
                         البرامج
@@ -242,8 +238,6 @@ $govActive = request()->routeIs('public.governance.*');
     <div id="pub-mobile-nav" class="hidden lg:hidden border-t border-gray-100 bg-white shadow-lg">
         <nav class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
             <a href="{{ $aboutHref }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">عن كفاءات</a>
-
-            <a href="{{ route('public.paths.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">المسارات</a>
 
             <details class="group rounded-xl">
                 <summary class="pub-nav-mobile-link flex cursor-pointer list-none items-center justify-between px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right [&::-webkit-details-marker]:hidden">

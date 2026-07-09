@@ -116,6 +116,22 @@ class TrainingProgramCreationFlowTest extends TestCase
             ->assertOk();
     }
 
+    public function test_create_page_works_when_staff_user_has_json_notification_settings(): void
+    {
+        $staff = User::factory()->create([
+            'role_type' => 'staff',
+            'is_active' => true,
+            'email_verified_at' => now(),
+            'notification_settings' => ['programs_new' => true, 'news' => false],
+        ]);
+        $staff->assignRole('programs_management');
+
+        $this->actingAs($staff)
+            ->withSession(['otp_verified' => true])
+            ->get('/admin/training-programs/create')
+            ->assertOk();
+    }
+
     public function test_create_page_returns_forbidden_when_program_create_permission_missing_from_database(): void
     {
         \Spatie\Permission\Models\Permission::query()

@@ -26,10 +26,10 @@ RegistrationStatus::Completed->value => 'مكتمل',
 @if ($registrations->isEmpty())
 <x-portal.empty-state
     title="لا توجد مسارات مسجّلة"
-    description="لم تسجّل في أي مسار بعد. يمكنك استكشاف المسارات المتاحة أو البرامج التدريبية والانضمام من الموقع العام."
+    description="لم تسجّل في أي مسار بعد. يمكنك استكشاف البرامج التدريبية والفرص التطوعية والانضمام من الموقع العام."
 >
-    <a href="{{ route('public.paths.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">استكشف المسارات</a>
-    <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">استكشف البرامج</a>
+    <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">استكشف البرامج</a>
+    <a href="{{ route('public.volunteering.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">استكشف الفرص التطوعية</a>
 </x-portal.empty-state>
 @else
 <div class="space-y-4">
