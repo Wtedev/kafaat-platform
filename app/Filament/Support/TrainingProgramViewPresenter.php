@@ -9,13 +9,14 @@ use App\Support\TrainingProgramExtrasSupport;
 final class TrainingProgramViewPresenter
 {
     /**
-     * @return array{stats: array<int, array{label: string, value: string, icon: string}>, sections: array<int, array<string, mixed>>}
+     * @return array{stats: array<int, array{label: string, value: string, icon: string}>, cover: array{title: string, field: string, url: string, has_custom: bool, empty_label: string}, sections: array<int, array<string, mixed>>}
      */
     public static function present(TrainingProgram $program): array
     {
         $standalone = $program->learning_path_id === null;
 
         return [
+            'cover' => self::cover($program),
             'stats' => self::stats($program),
             'sections' => array_values(array_filter([
                 self::overviewSection($program),
@@ -24,6 +25,22 @@ final class TrainingProgramViewPresenter
                 self::teamSection($program, $standalone),
                 self::descriptionSection($program),
             ])),
+        ];
+    }
+
+    /**
+     * @return array{title: string, field: string, url: string, has_custom: bool, empty_label: string}
+     */
+    private static function cover(TrainingProgram $program): array
+    {
+        $hasCustom = filled($program->image);
+
+        return [
+            'title' => 'صورة البرنامج',
+            'field' => 'cover',
+            'url' => $program->imagePublicUrl(),
+            'has_custom' => $hasCustom,
+            'empty_label' => 'لم تُرفع صورة بعد — عدّل لإضافة غلاف يظهر في الكتالوج والبوابة',
         ];
     }
 

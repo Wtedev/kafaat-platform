@@ -945,6 +945,105 @@ html.fi .kafaat-entity-view {
     gap: 1.5rem;
 }
 
+html.fi .kafaat-entity-view__cover {
+    border-radius: 1rem;
+    border: 1px solid var(--admin-border);
+    background: var(--admin-surface);
+    overflow: hidden;
+}
+
+html.fi:not(.dark) .kafaat-entity-view__cover {
+    border-color: #e4e4e7;
+    background: #fff;
+}
+
+html.fi .kafaat-entity-view__cover-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--admin-border-subtle);
+}
+
+html.fi .kafaat-entity-view__cover-frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    max-height: 22rem;
+    background:
+        linear-gradient(145deg, rgba(51, 84, 131, 0.18), transparent 55%),
+        rgba(255, 255, 255, 0.03);
+    overflow: hidden;
+}
+
+html.fi:not(.dark) .kafaat-entity-view__cover-frame {
+    background:
+        linear-gradient(145deg, rgba(51, 84, 131, 0.08), transparent 55%),
+        #f8fafc;
+}
+
+html.fi .kafaat-entity-view__cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+html.fi .kafaat-entity-view__cover.is-placeholder .kafaat-entity-view__cover-img {
+    opacity: 0.35;
+    filter: grayscale(0.35);
+}
+
+html.fi .kafaat-entity-view__cover-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    padding: 1.25rem;
+    text-align: center;
+    background: rgba(18, 18, 18, 0.28);
+    backdrop-filter: blur(2px);
+}
+
+html.fi:not(.dark) .kafaat-entity-view__cover-empty {
+    background: rgba(255, 255, 255, 0.55);
+}
+
+html.fi .kafaat-entity-view__cover-empty-icon {
+    color: #9ab4d4;
+}
+
+html.fi .kafaat-entity-view__cover-empty-text {
+    margin: 0;
+    max-width: 28rem;
+    font-size: 0.86rem;
+    line-height: 1.55;
+    color: var(--admin-heading);
+}
+
+html.fi .kafaat-entity-view__cover-empty-btn {
+    margin-top: 0.15rem;
+    border: 0;
+    border-radius: 0.7rem;
+    background: #335483;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.55rem 1rem;
+    cursor: pointer;
+}
+
+html.fi .kafaat-entity-view__cover-empty-btn:hover {
+    opacity: 0.94;
+}
+
+html.fi .kafaat-entity-view__cover.has-custom .kafaat-entity-view__cover-empty {
+    display: none;
+}
+
 html.fi .kafaat-entity-view__stats {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));

@@ -37,6 +37,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -360,6 +361,14 @@ class TrainingProgramResource extends Resource
         return static::applyViewFirstTrainingTable($table)
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['owner', 'creator', 'assignee', 'learningPath'])->withCount('registrations'))
             ->columns([
+                ImageColumn::make('image')
+                    ->label('الصورة')
+                    ->disk('public')
+                    ->defaultImageUrl(fn (TrainingProgram $record): string => $record->imagePublicUrl())
+                    ->square()
+                    ->imageSize(48)
+                    ->toggleable(),
+
                 TextColumn::make('title')
                     ->label('اسم البرنامج')
                     ->searchable()

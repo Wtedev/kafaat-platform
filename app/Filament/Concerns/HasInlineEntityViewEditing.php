@@ -59,9 +59,19 @@ trait HasInlineEntityViewEditing
     {
         return Action::make('editEntityField')
             ->modalHeading(fn (array $arguments): string => 'تعديل: '.$this->resolveInlineEditLabel((string) ($arguments['field'] ?? '')))
-            ->modalWidth(fn (array $arguments): Width => (string) ($arguments['field'] ?? '') === 'schedule'
-                ? Width::ThreeExtraLarge
-                : Width::Large)
+            ->modalWidth(function (array $arguments): Width {
+                $field = (string) ($arguments['field'] ?? '');
+
+                if ($field === 'schedule') {
+                    return Width::ThreeExtraLarge;
+                }
+
+                if (in_array($field, ['cover', 'image'], true)) {
+                    return Width::TwoExtraLarge;
+                }
+
+                return Width::Large;
+            })
             ->modalSubmitActionLabel('حفظ')
             ->modalCancelActionLabel('إلغاء')
             ->fillForm(fn (array $arguments): array => $this->resolveInlineEditFormStateForField((string) ($arguments['field'] ?? '')))

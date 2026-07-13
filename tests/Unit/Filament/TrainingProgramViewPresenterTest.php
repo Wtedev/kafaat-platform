@@ -45,6 +45,10 @@ class TrainingProgramViewPresenterTest extends TestCase
             ->firstWhere('title', 'نظرة عامة')['rows'];
 
         $this->assertSame('16', $presented['stats'][0]['value']);
+        $this->assertArrayHasKey('cover', $presented);
+        $this->assertSame('صورة البرنامج', $presented['cover']['title']);
+        $this->assertSame('cover', $presented['cover']['field']);
+        $this->assertFalse($presented['cover']['has_custom']);
         $this->assertSame(
             'دورة تدريبية',
             collect($overviewRows)->firstWhere('label', 'نوع البرنامج')['value'],
@@ -109,6 +113,7 @@ class TrainingProgramViewPresenterTest extends TestCase
         $program->shouldReceive('totalRegistrationsCount')->andReturn(16);
         $program->shouldReceive('approvedRegistrationsCount')->andReturn(8);
         $program->shouldReceive('completedRegistrationsCount')->andReturn(2);
+        $program->shouldReceive('imagePublicUrl')->andReturn('/images/training-catalog-placeholder.svg');
         $program->id = 10;
         $program->setRelation('editors', collect());
 

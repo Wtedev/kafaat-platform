@@ -4,10 +4,66 @@
 
     /** @var array<int, array{label: string, value: string, icon: string}> $stats */
     /** @var array<int, array{title: string, icon?: string, rows?: array<int, array{label: string, value: string, icon: string, badge?: string|null, field?: string|null}>, prose?: string, field?: string|null}> $sections */
+    /** @var array{title?: string, field?: string, url?: string, has_custom?: bool, empty_label?: string}|null $cover */
     $editable = $editable ?? false;
+    $cover = $cover ?? null;
 @endphp
 
 <div class="kafaat-entity-view">
+    @if (is_array($cover) && (! empty($cover['url']) || ! empty($cover['field'])))
+        <section class="kafaat-entity-view__cover {{ empty($cover['has_custom']) ? 'is-placeholder' : 'has-custom' }}">
+            <header class="kafaat-entity-view__cover-header">
+                <div class="kafaat-entity-view__section-heading">
+                    <span class="kafaat-entity-view__section-icon" aria-hidden="true">
+                        {!! generate_icon_html('heroicon-o-photo', size: IconSize::Small)?->toHtml() ?? '' !!}
+                    </span>
+                    <h3 class="kafaat-entity-view__section-title">{{ $cover['title'] ?? 'صورة الغلاف' }}</h3>
+                </div>
+                @if ($editable && ! empty($cover['field']))
+                    <button
+                        type="button"
+                        class="kafaat-entity-view__edit-btn kafaat-entity-view__edit-btn--section"
+                        title="تعديل {{ $cover['title'] ?? 'الصورة' }}"
+                        wire:click="mountAction('editEntityField', { field: @js($cover['field']) })"
+                    >
+                        {!! generate_icon_html('heroicon-o-pencil-square', size: IconSize::Small)?->toHtml() ?? '' !!}
+                    </button>
+                @endif
+            </header>
+
+            <div class="kafaat-entity-view__cover-frame">
+                @if (! empty($cover['url']))
+                    <img
+                        src="{{ $cover['url'] }}"
+                        alt=""
+                        class="kafaat-entity-view__cover-img"
+                        loading="lazy"
+                    >
+                @endif
+
+                @if (empty($cover['has_custom']))
+                    <div class="kafaat-entity-view__cover-empty">
+                        <span class="kafaat-entity-view__cover-empty-icon" aria-hidden="true">
+                            {!! generate_icon_html('heroicon-o-arrow-up-tray', size: IconSize::Large)?->toHtml() ?? '' !!}
+                        </span>
+                        <p class="kafaat-entity-view__cover-empty-text">
+                            {{ $cover['empty_label'] ?? 'لم تُرفع صورة بعد' }}
+                        </p>
+                        @if ($editable && ! empty($cover['field']))
+                            <button
+                                type="button"
+                                class="kafaat-entity-view__cover-empty-btn"
+                                wire:click="mountAction('editEntityField', { field: @js($cover['field']) })"
+                            >
+                                رفع صورة البرنامج
+                            </button>
+                        @endif
+                    </div>
+                @endif
+            </div>
+        </section>
+    @endif
+
     @if (! empty($stats))
         <div class="kafaat-entity-view__stats" role="list">
             @foreach ($stats as $stat)
