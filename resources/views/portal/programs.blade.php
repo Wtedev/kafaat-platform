@@ -55,7 +55,9 @@ $statusLabels = [
                     ? TrainingProgramExtrasSupport::whatsappGroupUrlFor($program, auth()->user())
                     : null;
                 $timingLabel = $program?->portalTimingLabel();
-                $programShowUrl = $program ? route('portal.programs.show', $program) : null;
+                $programShowUrl = ($program && filled($program->slug))
+                    ? route('public.programs.show', $program)
+                    : null;
             @endphp
             <tr class="transition hover:bg-gray-50">
                 <td class="px-5 py-4 font-medium text-gray-800">
