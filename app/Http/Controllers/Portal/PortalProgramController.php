@@ -16,6 +16,8 @@ class PortalProgramController extends Controller
             ->latest()
             ->paginate(15);
 
+        $user->loadMissing('profile');
+
         // Attach certificate (if issued) for each registration
         foreach ($registrations as $registration) {
             $program = $registration->trainingProgram;

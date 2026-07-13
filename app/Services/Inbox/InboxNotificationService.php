@@ -229,11 +229,12 @@ class InboxNotificationService
     }
 
     /**
+     * @param  array<string, mixed>  $extra
      * @return array{resource: string, id: int}
      */
-    private static function inboxContext(string $resource, int $id): array
+    private static function inboxContext(string $resource, int $id, array $extra = []): array
     {
-        return ['resource' => $resource, 'id' => $id];
+        return array_merge(['resource' => $resource, 'id' => $id], $extra);
     }
 
     public function programLaunched(TrainingProgram $program, ?User $publisher = null): void
@@ -321,13 +322,19 @@ class InboxNotificationService
 
     public function registrationApprovedProgram(User $recipient, TrainingProgram $program, ?User $approver = null): void
     {
+        $whatsappUrl = TrainingProgramExtrasSupport::whatsappGroupUrlFor($program, $recipient);
+
         $msg = new NotificationMessage(
             type: InboxNotificationType::RegistrationApproved,
             title: 'تم قبول تسجيلك',
             message: TrainingProgramExtrasSupport::registrationApprovalMessage($program, $recipient),
             senderId: $approver?->id,
             targetType: NotificationTargetType::SingleUser,
-            context: self::inboxContext('training_program', (int) $program->getKey()),
+            context: self::inboxContext(
+                'training_program',
+                (int) $program->getKey(),
+                array_filter(['whatsapp_url' => $whatsappUrl]),
+            ),
             emailable: false,
         );
         $this->dispatch($msg, [$recipient->id]);

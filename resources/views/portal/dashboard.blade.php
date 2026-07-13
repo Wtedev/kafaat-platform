@@ -37,8 +37,14 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
 </section>
 
 <section class="mb-8" aria-labelledby="inbox-heading">
-    <h2 id="inbox-heading" class="sr-only">التنبيهات</h2>
-    @include('portal.partials.inbox-notifications-panel', ['items' => $inboxPreview, 'unreadCount' => $inboxUnreadCount])
+    @include('portal.partials.inbox-notifications-panel', [
+        'items' => $inboxPreview,
+        'unreadCount' => $inboxUnreadCount,
+        'panelTitle' => 'التنبيهات',
+        'panelSubtitle' => 'آخر التحديثات على حسابك',
+        'showViewAll' => true,
+        'compact' => true,
+    ])
 </section>
 
 <section class="mb-8" aria-labelledby="programs-heading">

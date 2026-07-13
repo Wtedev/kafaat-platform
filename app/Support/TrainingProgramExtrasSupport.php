@@ -277,14 +277,7 @@ final class TrainingProgramExtrasSupport
 
     public static function registrationApprovalMessage(TrainingProgram $program, User $recipient): string
     {
-        $message = 'تم قبول طلبك في البرنامج التدريبي «'.$program->title.'».';
-
-        $whatsappUrl = self::whatsappGroupUrlFor($program, $recipient);
-        if ($whatsappUrl !== null) {
-            $message .= "\n\nرابط مجموعة الواتساب:\n".$whatsappUrl;
-        }
-
-        return $message;
+        return 'تم قبول طلبك في البرنامج التدريبي «'.$program->title.'».';
     }
 
     public static function isSessionKind(?TrainingProgramKind $kind): bool

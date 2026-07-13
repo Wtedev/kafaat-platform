@@ -66,7 +66,7 @@ class TrainingProgramExtrasSupportTest extends TestCase
         );
     }
 
-    public function test_registration_message_includes_whatsapp_link_when_enabled(): void
+    public function test_registration_message_is_clean_without_raw_whatsapp_url(): void
     {
         $program = $this->makeProgram([
             'title' => 'برنامج تجريبي',
@@ -83,7 +83,11 @@ class TrainingProgramExtrasSupportTest extends TestCase
         $message = TrainingProgramExtrasSupport::registrationApprovalMessage($program, $user->fresh('profile'));
 
         $this->assertStringContainsString('تم قبول طلبك', $message);
-        $this->assertStringContainsString('https://chat.whatsapp.com/test-group', $message);
+        $this->assertStringNotContainsString('https://chat.whatsapp.com/test-group', $message);
+        $this->assertSame(
+            'https://chat.whatsapp.com/test-group',
+            TrainingProgramExtrasSupport::whatsappGroupUrlFor($program, $user->fresh('profile')),
+        );
     }
 
     /**
