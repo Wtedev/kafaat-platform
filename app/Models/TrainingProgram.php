@@ -464,6 +464,11 @@ class TrainingProgram extends Model
         return $this->hasMany(ProgramRegistration::class);
     }
 
+    public function attendanceCheckers(): HasMany
+    {
+        return $this->hasMany(ProgramAttendanceChecker::class);
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

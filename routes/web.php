@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CertificateDownloadController;
+use App\Http\Controllers\Gate\GateAttendanceController;
 use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\Portal\PortalAttendanceCheckInController;
 use App\Http\Controllers\Portal\PortalAttendanceSessionController;
@@ -107,6 +108,23 @@ Route::post('/support-tickets', [SupportTicketController::class, 'store'])
 Route::get('/certificates/verify/{code}', CertificateVerificationController::class)
     ->middleware('throttle:certificate-verify')
     ->name('certificates.verify');
+
+// ─── Gate QR attendance (in-person programs) ──────────────────────────────────
+
+Route::prefix('gate/{program:slug}')->name('gate.')->group(function () {
+    Route::get('/', [GateAttendanceController::class, 'login'])->name('login');
+    Route::post('/login', [GateAttendanceController::class, 'authenticate'])
+        ->middleware('throttle:12,1')
+        ->name('login.store');
+
+    Route::middleware('gate.attendance')->group(function () {
+        Route::get('/scan', [GateAttendanceController::class, 'scan'])->name('scan');
+        Route::post('/scan', [GateAttendanceController::class, 'mark'])
+            ->middleware('throttle:60,1')
+            ->name('scan.store');
+        Route::post('/logout', [GateAttendanceController::class, 'logout'])->name('logout');
+    });
+});
 
 Route::prefix('paths')->name('public.paths.')->group(function () {
     Route::get('/', [PublicLearningPathController::class, 'index'])->name('index');

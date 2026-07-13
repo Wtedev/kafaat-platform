@@ -3,10 +3,13 @@
 namespace App\Services;
 
 use App\Enums\AttendanceStatus;
+use App\Enums\ProgramDeliveryMode;
 use App\Enums\RegistrationStatus;
 use App\Models\ProgramAttendance;
+use App\Models\ProgramAttendanceChecker;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
+use App\Models\User;
 
 class ProgramAttendanceService
 {
@@ -166,5 +169,147 @@ class ProgramAttendanceService
                 'notes' => $notes,
             ],
         );
+    }
+
+    /**
+     * Extract program/registration IDs from a KAFAAT pass string or QR payload URL.
+     *
+     * Accepts raw codes like `KAFAAT-P12-R34` and full URLs that include
+     * `#KAFAAT-P12-R34` (or the code anywhere in the scanned text).
+     *
+     * @return array{program_id: int, registration_id: int}|null
+     */
+    public function parsePassPayload(string $raw): ?array
+    {
+        $raw = trim($raw);
+
+        if ($raw === '') {
+            return null;
+        }
+
+        if (preg_match('/KAFAAT-P(\d+)-R(\d+)/i', $raw, $matches) !== 1) {
+            return null;
+        }
+
+        return [
+            'program_id' => (int) $matches[1],
+            'registration_id' => (int) $matches[2],
+        ];
+    }
+
+    /**
+     * Mark today's attendance Present from a scanned/typed KAFAAT pass.
+     *
+     * @return array{
+     *     ok: bool,
+     *     reason: string,
+     *     message: string,
+     *     beneficiary_name: ?string,
+     *     attendance: ?ProgramAttendance
+     * }
+     */
+    public function markPresentFromPass(
+        TrainingProgram $program,
+        string $rawPass,
+        ?ProgramAttendanceChecker $checker = null,
+        ?User $admin = null,
+    ): array {
+        $parsed = $this->parsePassPayload($rawPass);
+
+        if ($parsed === null) {
+            return $this->gateResult(false, 'invalid_pass', 'رمز المرور غير صالح.', null, null);
+        }
+
+        if ($program->delivery_mode !== ProgramDeliveryMode::InPerson) {
+            return $this->gateResult(false, 'not_in_person', 'مسح QR متاح للبرامج الحضورية فقط.', null, null);
+        }
+
+        if ($parsed['program_id'] !== (int) $program->id) {
+            return $this->gateResult(false, 'wrong_program', 'هذا المرور لا يخص هذا البرنامج.', null, null);
+        }
+
+        $registration = ProgramRegistration::query()
+            ->with('user')
+            ->whereKey($parsed['registration_id'])
+            ->where('training_program_id', $program->id)
+            ->whereIn('status', [
+                RegistrationStatus::Approved->value,
+                RegistrationStatus::Completed->value,
+            ])
+            ->first();
+
+        if ($registration === null) {
+            return $this->gateResult(false, 'not_eligible', 'لا يوجد تسجيل مقبول مرتبط بهذا المرور.', null, null);
+        }
+
+        $beneficiaryName = $registration->user?->name ?? 'مستفيدة';
+        $today = today()->toDateString();
+
+        $existing = ProgramAttendance::query()
+            ->where('program_registration_id', $registration->id)
+            ->whereDate('training_date', $today)
+            ->first();
+
+        if ($existing !== null && $existing->status === AttendanceStatus::Present) {
+            return $this->gateResult(
+                true,
+                'already_present',
+                'تم تسجيل حضور '.$beneficiaryName.' مسبقاً اليوم.',
+                $beneficiaryName,
+                $existing,
+            );
+        }
+
+        $noteParts = ['تحضير بوابة QR'];
+        if ($checker !== null) {
+            $noteParts[] = 'متحضّرة #'.$checker->id.' — '.$checker->name;
+        }
+        if ($admin !== null) {
+            $noteParts[] = 'أدمن #'.$admin->id.' — '.$admin->name;
+        }
+
+        $attendance = ProgramAttendance::updateOrCreate(
+            [
+                'program_registration_id' => $registration->id,
+                'training_date' => $today,
+            ],
+            [
+                'status' => AttendanceStatus::Present,
+                'notes' => implode(' | ', $noteParts),
+            ],
+        );
+
+        return $this->gateResult(
+            true,
+            'marked',
+            'تم تسجيل حضور '.$beneficiaryName.' بنجاح.',
+            $beneficiaryName,
+            $attendance,
+        );
+    }
+
+    /**
+     * @return array{
+     *     ok: bool,
+     *     reason: string,
+     *     message: string,
+     *     beneficiary_name: ?string,
+     *     attendance: ?ProgramAttendance
+     * }
+     */
+    private function gateResult(
+        bool $ok,
+        string $reason,
+        string $message,
+        ?string $beneficiaryName,
+        ?ProgramAttendance $attendance,
+    ): array {
+        return [
+            'ok' => $ok,
+            'reason' => $reason,
+            'message' => $message,
+            'beneficiary_name' => $beneficiaryName,
+            'attendance' => $attendance,
+        ];
     }
 }

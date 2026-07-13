@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\TrainingProgramResource\RelationManagers;
 
 use App\Enums\AttendanceStatus;
+use App\Enums\ProgramDeliveryMode;
 use App\Enums\RegistrationStatus;
 use App\Filament\Concerns\InteractsWithAttendanceLiveSession;
 use App\Filament\Support\RegistrationFilamentTableSupport;
@@ -52,7 +53,9 @@ class ProgramAttendanceRegistrationsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return RegistrationFilamentTableSupport::configureBeneficiaryRowNavigation($table)
-            ->poll(fn (): ?string => $this->attendanceLiveSessionTablePollInterval())
+            ->poll(fn (): ?string => $this->isRemoteProgram()
+                ? $this->attendanceLiveSessionTablePollInterval()
+                : null)
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->whereIn('status', [
                 RegistrationStatus::Approved->value,
                 RegistrationStatus::Completed->value,
@@ -67,15 +70,25 @@ class ProgramAttendanceRegistrationsRelationManager extends RelationManager
                 RegistrationFilamentTableSupport::attendancePercentageColumn(),
             ])
             ->headerActions([
+                Action::make('openGateScan')
+                    ->label('مسح QR للتحضير')
+                    ->icon('heroicon-o-qr-code')
+                    ->color('success')
+                    ->url(fn (): string => route('gate.scan', ['program' => $this->ownerProgram()->slug]))
+                    ->openUrlInNewTab()
+                    ->visible(fn (): bool => $this->isInPersonProgram())
+                    ->authorize(fn (): bool => auth()->user()?->can('viewOperational', $this->getOwnerRecord()) ?? false),
+
                 Action::make('startLiveSession')
                     ->label('فتح جلسة حضور (5 دقائق)')
                     ->icon('heroicon-o-signal')
                     ->color('success')
-                    ->visible(fn (): bool => $this->activeAttendanceSession() === null)
+                    ->visible(fn (): bool => $this->isRemoteProgram() && $this->activeAttendanceSession() === null)
                     ->authorize(fn (): bool => auth()->user()?->can('viewOperational', $this->getOwnerRecord()) ?? false)
                     ->action(fn (): mixed => $this->startAttendanceLiveSession()),
 
-                $this->makeAttendanceLiveSessionCountdownAction(),
+                $this->makeAttendanceLiveSessionCountdownAction()
+                    ->visible(fn (): bool => $this->isRemoteProgram() && ($this->activeAttendanceSession()?->isActive() ?? false)),
 
                 Action::make('generateAllSessions')
                     ->label('توليد جلسات البرنامج')
@@ -85,10 +98,10 @@ class ProgramAttendanceRegistrationsRelationManager extends RelationManager
                     ->modalHeading('توليد جلسات الحضور')
                     ->modalDescription('سيتم إنشاء سجلات حضور لكل أيام البرنامج المتوقعة لجميع المسجلين المقبولين.')
                     ->modalSubmitActionLabel('نعم، توليد')
+                    ->visible(fn (): bool => $this->isRemoteProgram())
                     ->authorize(fn (): bool => auth()->user()?->can('viewOperational', $this->getOwnerRecord()) ?? false)
                     ->action(function (): void {
-                        /** @var TrainingProgram $program */
-                        $program = $this->getOwnerRecord();
+                        $program = $this->ownerProgram();
                         $count = app(ProgramAttendanceService::class)->generateSessionsForAllRegistrations($program);
 
                         if ($count > 0) {
@@ -138,5 +151,23 @@ class ProgramAttendanceRegistrationsRelationManager extends RelationManager
                     }),
             ])
             ->defaultSort('user.name');
+    }
+
+    protected function ownerProgram(): TrainingProgram
+    {
+        $program = $this->getOwnerRecord();
+        assert($program instanceof TrainingProgram);
+
+        return $program;
+    }
+
+    protected function isInPersonProgram(): bool
+    {
+        return $this->ownerProgram()->delivery_mode === ProgramDeliveryMode::InPerson;
+    }
+
+    protected function isRemoteProgram(): bool
+    {
+        return $this->ownerProgram()->delivery_mode === ProgramDeliveryMode::Remote;
     }
 }
