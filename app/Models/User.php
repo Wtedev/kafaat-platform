@@ -380,6 +380,19 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     }
 
     /**
+     * هل يمكن للحساب فتح بوابة المستفيد (تسجيل برامج / تطوع / شهادات)؟
+     * الأدمن والموظف يحتفظان بلوحة الإدارة ويمكنهما أيضاً استخدام البوابة بنفس الحساب.
+     */
+    public function canAccessBeneficiaryPortal(): bool
+    {
+        if ($this->isAdminOrStaff()) {
+            return true;
+        }
+
+        return $this->isPortalUser();
+    }
+
+    /**
      * رابط صورة الموظف/المسؤول في لوحة Filament (قرص public).
      */
     public function staffPhotoUrl(): ?string

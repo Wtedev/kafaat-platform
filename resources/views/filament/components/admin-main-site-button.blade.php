@@ -5,7 +5,9 @@
     $isRtl = __('filament-panels::layout.direction') === 'rtl';
     $iconPosition = $isRtl ? IconPosition::After : IconPosition::Before;
     $user = auth()->user();
-    $showTrainingPlatform = $user && $user->isPortalUser() && \Illuminate\Support\Facades\Route::has('portal.dashboard');
+    $showTrainingPlatform = $user
+        && $user->canAccessBeneficiaryPortal()
+        && \Illuminate\Support\Facades\Route::has('portal.dashboard');
 @endphp
 
 <div class="fi-admin-main-site-btn-ctn flex shrink-0 items-center gap-2" style="margin-inline-end: 0.5rem;">

@@ -16,12 +16,7 @@ class BeneficiaryPortal
 
         $user = $request->user();
 
-        // الأدمن/الموظف يُوجَّهون للوحة الإدارة بدل 403 عند فتح روابط البوابة.
-        if ($user->isAdminOrStaff()) {
-            return redirect('/admin');
-        }
-
-        if (! $user->isPortalUser()) {
+        if (! $user->canAccessBeneficiaryPortal()) {
             abort(403, 'هذه الصفحة مخصصة للمستفيدين فقط.');
         }
 
