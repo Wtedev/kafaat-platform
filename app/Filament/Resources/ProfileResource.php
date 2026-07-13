@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\MembershipType;
+use App\Enums\ProfileGender;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Filament\Concerns\RegistersNavigationByPermission;
@@ -89,10 +90,16 @@ class ProfileResource extends Resource
 
                 TextColumn::make('gender')
                     ->label('الجنس')
-                    ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'male' => 'ذكر',
-                        'female' => 'أنثى',
-                        default => '-',
+                    ->formatStateUsing(function (mixed $state): string {
+                        if ($state instanceof ProfileGender) {
+                            return $state->label();
+                        }
+
+                        if (is_string($state) && $state !== '') {
+                            return ProfileGender::tryFrom($state)?->label() ?? '-';
+                        }
+
+                        return '-';
                     })
                     ->sortable()
                     ->toggleable(),
