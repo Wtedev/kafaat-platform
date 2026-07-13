@@ -117,6 +117,9 @@ Route::prefix('programs')->name('public.programs.')->group(function () {
         ->name('track');
     Route::get('/{trainingProgram:slug}', [PublicTrainingProgramController::class, 'show'])->name('show');
     Route::post('/{trainingProgram:slug}/register', [PublicTrainingProgramController::class, 'register'])->middleware('auth')->name('register');
+    Route::get('/{trainingProgram:slug}/registered/{registration}', [PublicTrainingProgramController::class, 'registered'])
+        ->middleware('auth')
+        ->name('registered');
 });
 
 Route::prefix('volunteering')->name('public.volunteering.')->group(function () {

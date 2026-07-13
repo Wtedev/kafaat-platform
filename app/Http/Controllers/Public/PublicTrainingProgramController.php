@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Public;
 
 use App\Enums\CompetencyTrack;
+use App\Enums\ProgramDeliveryMode;
 use App\Exceptions\ProgramBelongsToLearningPathException;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Exceptions\RegistrationWindowClosedException;
 use App\Http\Controllers\Controller;
+use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Services\ProgramRegistrationService;
+use App\Support\ProgramRegistrationSuccessPresenter;
 use Illuminate\Http\Request;
 
 class PublicTrainingProgramController extends Controller
@@ -68,10 +71,26 @@ class PublicTrainingProgramController extends Controller
             abort(403);
         }
 
-        try {
-            $this->registrationService->register($trainingProgram, $request->user());
+        $inPerson = $trainingProgram->delivery_mode === ProgramDeliveryMode::InPerson;
 
-            return back()->with('success', 'تم تسجيلك بنجاح! سيتم مراجعة طلبك قريباً.');
+        $request->validate(
+            [
+                'attendance_acknowledgement' => ['accepted'],
+            ],
+            [
+                'attendance_acknowledgement.accepted' => $inPerson
+                    ? 'يلزم الإقرار بأنك قرأت تفاصيل البرنامج وتعرف موقع انعقاده وتستطيع الحضور.'
+                    : 'يلزم الإقرار بأنك قرأت جميع تفاصيل البرنامج.',
+            ],
+        );
+
+        try {
+            $registration = $this->registrationService->register($trainingProgram, $request->user());
+
+            return redirect()->route('public.programs.registered', [
+                'trainingProgram' => $trainingProgram->slug,
+                'registration' => $registration->getKey(),
+            ]);
         } catch (ProgramBelongsToLearningPathException) {
             return back()->with('error', 'هذا البرنامج ضمن مسار تعليمي؛ التسجيل يكون من صفحة المسار فقط.');
         } catch (RegistrationWindowClosedException) {
@@ -79,5 +98,25 @@ class PublicTrainingProgramController extends Controller
         } catch (ProgramCapacityExceededException) {
             return back()->with('error', 'البرنامج وصل إلى الحد الأقصى للمشتركين.');
         }
+    }
+
+    public function registered(Request $request, TrainingProgram $trainingProgram, ProgramRegistration $registration)
+    {
+        abort_if($trainingProgram->status->value !== 'published', 404);
+        abort_unless((int) $registration->training_program_id === (int) $trainingProgram->id, 404);
+        abort_unless($request->user() !== null && (int) $request->user()->id === (int) $registration->user_id, 403);
+
+        $registration->loadMissing(['trainingProgram', 'user.profile']);
+        $success = ProgramRegistrationSuccessPresenter::present(
+            $trainingProgram,
+            $registration,
+            $request->user(),
+        );
+
+        return view('public.programs.registered', [
+            'trainingProgram' => $trainingProgram,
+            'registration' => $registration,
+            'success' => $success,
+        ]);
     }
 }

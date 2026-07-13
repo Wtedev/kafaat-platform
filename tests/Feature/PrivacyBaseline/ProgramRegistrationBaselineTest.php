@@ -37,14 +37,37 @@ class ProgramRegistrationBaselineTest extends TestCase
         $user = $this->makePortalUser();
         $program = $this->makeOpenProgram();
 
-        $this->actingAsOtpVerified($user)
-            ->post(route('public.programs.register', $program))
-            ->assertRedirect();
+        $response = $this->actingAsOtpVerified($user)
+            ->post(route('public.programs.register', $program), [
+                'attendance_acknowledgement' => '1',
+            ]);
 
-        $this->assertDatabaseHas('program_registrations', [
+        $registration = ProgramRegistration::query()
+            ->where('training_program_id', $program->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        $this->assertNotNull($registration);
+        $response->assertRedirect(route('public.programs.registered', [
+            'trainingProgram' => $program->slug,
+            'registration' => $registration->id,
+        ]));
+        $this->assertSame(RegistrationStatus::Pending, $registration->status);
+    }
+
+    public function test_registration_requires_attendance_acknowledgement(): void
+    {
+        $user = $this->makePortalUser();
+        $program = $this->makeOpenProgram();
+
+        $this->actingAsOtpVerified($user)
+            ->from(route('public.programs.show', $program))
+            ->post(route('public.programs.register', $program))
+            ->assertSessionHasErrors('attendance_acknowledgement');
+
+        $this->assertDatabaseMissing('program_registrations', [
             'training_program_id' => $program->id,
             'user_id' => $user->id,
-            'status' => RegistrationStatus::Pending->value,
         ]);
     }
 
@@ -76,7 +99,9 @@ class ProgramRegistrationBaselineTest extends TestCase
         $program = $this->makeOpenProgram();
 
         $this->actingAsOtpVerified($staff)
-            ->post(route('public.programs.register', $program))
+            ->post(route('public.programs.register', $program), [
+                'attendance_acknowledgement' => '1',
+            ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('program_registrations', [

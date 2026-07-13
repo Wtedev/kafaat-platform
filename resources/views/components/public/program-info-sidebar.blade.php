@@ -92,16 +92,6 @@ $approved = $trainingProgram->approvedRegistrationsCount();
     </x-public.info-sidebar-item>
     @endif
 
-    @if (! $viaPathOnly)
-    <x-public.info-sidebar-item
-        label="قبول التسجيل"
-        :value="$trainingProgram->auto_accept_registrations ? 'قبول تلقائي' : 'مراجعة يدوية'">
-        <x-slot:icon>
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        </x-slot:icon>
-    </x-public.info-sidebar-item>
-    @endif
-
     @if ($viaPathOnly && $trainingProgram->learningPath)
     <x-public.info-sidebar-item label="المسار التدريبي" :value="$trainingProgram->learningPath->title">
         <x-slot:icon>
