@@ -213,8 +213,9 @@ $govActive = request()->routeIs('public.governance.*');
             <div class="hidden lg:flex items-center gap-3 flex-shrink-0">
                 @auth
                 @if(auth()->user()->canAccessFilamentAdmin())
+                <a href="{{ route('portal.dashboard') }}" class="px-5 py-2 rounded-2xl text-sm font-semibold transition-all duration-200 hover:bg-[#e9eff6] hover:-translate-y-0.5" style="color:#335483; border:1.5px solid #335483">منصة التدريب</a>
                 <a href="{{ url('/admin') }}" class="px-5 py-2 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" style="background:#335483">لوحة الإدارة</a>
-                @else
+                @elseif(auth()->user()->canAccessBeneficiaryPortal())
                 <a href="{{ route('portal.dashboard') }}" class="px-5 py-2 rounded-2xl text-sm font-semibold text-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200" style="background:#335483">حسابي</a>
                 @endif
                 @else
@@ -288,8 +289,9 @@ $govActive = request()->routeIs('public.governance.*');
 
             @auth
             @if(auth()->user()->canAccessFilamentAdmin())
-            <a href="{{ url('/admin') }}" class="mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-white text-center" style="background:#335483">لوحة الإدارة</a>
-            @else
+            <a href="{{ route('portal.dashboard') }}" class="mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-center transition-colors" style="color:#335483; border:1.5px solid #335483">منصة التدريب</a>
+            <a href="{{ url('/admin') }}" class="mt-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white text-center" style="background:#335483">لوحة الإدارة</a>
+            @elseif(auth()->user()->canAccessBeneficiaryPortal())
             <a href="{{ route('portal.dashboard') }}" class="mt-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-white text-center" style="background:#335483">حسابي</a>
             @endif
             @else

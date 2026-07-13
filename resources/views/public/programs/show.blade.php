@@ -13,7 +13,7 @@ $statusColors = RegistrationStatus::badgeClasses();
 $viaPathOnly = $trainingProgram->learning_path_id !== null;
 
 $canRegister = auth()->check()
-    && auth()->user()->isPortalUser()
+    && auth()->user()->canRegisterForPublicOfferings()
     && $userRegistration === null
     && ! $viaPathOnly
     && $trainingProgram->isRegistrationOpen();
@@ -56,7 +56,7 @@ $alreadyRegistered = $userRegistration !== null;
                         هذا البرنامج جزء من مسار تعليمي. التسجيل يتم عبر المسار فقط، وبعد قبولك في المسار تُسجَّل تلقائياً في جميع برامجه.
                     </p>
                     @auth
-                        @if (auth()->user()->isPortalUser())
+                        @if (auth()->user()->canRegisterForPublicOfferings())
                             <x-public.register-cta-button :href="route('portal.paths')">
                                 الانتقال إلى مساراتي
                             </x-public.register-cta-button>

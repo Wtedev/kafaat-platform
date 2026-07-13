@@ -46,7 +46,7 @@ class PublicVolunteerOpportunityController extends Controller
             return redirect()->route('login');
         }
 
-        if (! $request->user()->isPortalUser()) {
+        if (! $request->user()->canRegisterForPublicOfferings()) {
             abort(403);
         }
 

@@ -393,6 +393,14 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     }
 
     /**
+     * التسجيل في البرامج/المسارات/الفرص من الواجهة العامة بنفس حساب البوابة.
+     */
+    public function canRegisterForPublicOfferings(): bool
+    {
+        return $this->canAccessBeneficiaryPortal();
+    }
+
+    /**
      * رابط صورة الموظف/المسؤول في لوحة Filament (قرص public).
      */
     public function staffPhotoUrl(): ?string

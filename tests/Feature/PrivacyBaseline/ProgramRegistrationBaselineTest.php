@@ -65,18 +65,24 @@ class ProgramRegistrationBaselineTest extends TestCase
         );
     }
 
-    public function test_staff_user_cannot_register_via_public_program_route(): void
+    public function test_staff_user_can_register_via_public_program_route(): void
     {
         $staff = User::factory()->create([
             'role_type' => 'staff',
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
+        $staff->assignRole('staff');
         $program = $this->makeOpenProgram();
 
         $this->actingAsOtpVerified($staff)
             ->post(route('public.programs.register', $program))
-            ->assertForbidden();
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('program_registrations', [
+            'training_program_id' => $program->id,
+            'user_id' => $staff->id,
+        ]);
     }
 
     public function test_portal_user_can_register_for_learning_path(): void
@@ -120,11 +126,11 @@ class ProgramRegistrationBaselineTest extends TestCase
     private function makePortalUser(): User
     {
         $user = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
         Profile::query()->create(['user_id' => $user->id]);
 
         return $user;

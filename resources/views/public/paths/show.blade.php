@@ -11,7 +11,7 @@ $statusLabels = [
 $statusColors = RegistrationStatus::badgeClasses();
 
 $canRegisterPath = auth()->check()
-    && auth()->user()->isPortalUser()
+    && auth()->user()->canRegisterForPublicOfferings()
     && $userRegistration === null;
 
 $alreadyRegisteredPath = $userRegistration !== null;
