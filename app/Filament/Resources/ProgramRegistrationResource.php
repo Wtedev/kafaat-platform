@@ -192,11 +192,11 @@ class ProgramRegistrationResource extends Resource
                         $attOk = (float) $record->attendance_percentage >= 80;
                         $scoreOk = $record->score === null || (float) $record->score >= 60;
 
-                        return ($attOk && $scoreOk) ? 'مؤهل ✓' : 'غير مؤهل بعد';
+                        return ($attOk && $scoreOk) ? 'مؤهل ✓' : 'غير مؤهل حتى الآن';
                     })
                     ->color(fn (string $state): string => match ($state) {
                         'مؤهل ✓' => 'success',
-                        'غير مؤهل بعد' => 'danger',
+                        'غير مؤهل حتى الآن', 'غير مؤهل بعد' => 'danger',
                         'بانتظار البيانات' => 'warning',
                         default => 'gray',
                     })
