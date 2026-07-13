@@ -280,5 +280,17 @@ class AppServiceProvider extends ServiceProvider
                     return back()->withErrors(['export' => 'لقد تجاوزت عدد محاولات التنزيل. حاول لاحقاً.']);
                 });
         });
+
+        RateLimiter::for('support-ticket', function (Request $request): Limit {
+            $key = $request->user()?->id ?? $request->ip();
+
+            return Limit::perMinutes(10, 5)
+                ->by((string) $key)
+                ->response(function () {
+                    return back()
+                        ->withInput()
+                        ->withErrors(['body' => 'لقد تجاوزت عدد التذاكر المسموح بها مؤقتاً. حاول مجدداً بعد قليل.']);
+                });
+        });
     }
 }

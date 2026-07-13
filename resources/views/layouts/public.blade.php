@@ -58,6 +58,8 @@
     {{-- Footer --}}
     <x-public-footer />
 
+    <x-support-ticket-fab />
+
     @yield('scripts')
 </body>
 </html>

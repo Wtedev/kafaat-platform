@@ -53,6 +53,7 @@
                 </button>
                 <a href="{{ route('portal.dashboard') }}" class="flex min-w-0 items-center gap-2.5 sm:gap-3" aria-label="بوابة كفاءات">
                     <img src="{{ asset(config('brand.logos.kafaat')) }}" alt="كفاءات" class="h-8 w-auto shrink-0 sm:h-9" width="119" height="36" />
+                    <span class="hidden shrink-0 rounded-full border border-[#c5d4e4] bg-[#e9eff6] px-2 py-0.5 text-[10px] font-bold text-[#335483] sm:inline-flex">إطلاق تجريبي</span>
                     <span class="hidden min-w-0 truncate border-s border-slate-200 ps-3 text-xs font-semibold text-slate-500 lg:inline">بوابة المستفيد</span>
                 </a>
             </div>
@@ -240,6 +241,8 @@
             });
         })();
     </script>
+
+    <x-support-ticket-fab />
 
     @stack('modals')
     @stack('scripts')

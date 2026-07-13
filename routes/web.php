@@ -45,6 +45,7 @@ use App\Http\Controllers\Public\PublicNewsController;
 use App\Http\Controllers\Public\PublicRegulationController;
 use App\Http\Controllers\Public\PublicTrainingProgramController;
 use App\Http\Controllers\Public\PublicVolunteerOpportunityController;
+use App\Http\Controllers\Public\SupportTicketController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Authentication ───────────────────────────────────────────────────────────
@@ -97,6 +98,11 @@ Route::middleware(['auth', 'otp.verified'])->group(function () {
 // ─── Public website ───────────────────────────────────────────────────────────
 
 Route::get('/', HomeController::class)->name('home');
+
+Route::post('/support-tickets', [SupportTicketController::class, 'store'])
+    ->middleware('throttle:support-ticket')
+    ->name('public.support-tickets.store');
+
 // Certificate verification (public, no auth required)
 Route::get('/certificates/verify/{code}', CertificateVerificationController::class)
     ->middleware('throttle:certificate-verify')

@@ -123,8 +123,8 @@ $govActive = request()->routeIs('public.governance.*');
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16 gap-6">
 
-            {{-- Logo --}}
-            <a href="{{ route('home') }}" class="flex-shrink-0 flex items-center transition-transform duration-200 hover:-translate-y-0.5" aria-label="كفاءات — الرئيسية">
+            {{-- Logo + beta label --}}
+            <a href="{{ route('home') }}" class="flex-shrink-0 flex items-center gap-2.5 transition-transform duration-200 hover:-translate-y-0.5" aria-label="كفاءات — الرئيسية">
                 <img
                     src="{{ asset($brand['logos']['kafaat']) }}"
                     alt="كفاءات"
@@ -132,6 +132,9 @@ $govActive = request()->routeIs('public.governance.*');
                     width="132"
                     height="40"
                 />
+                <span class="inline-flex items-center rounded-full border border-[#c5d4e4] bg-[#e9eff6] px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-[#335483]">
+                    إطلاق تجريبي
+                </span>
             </a>
 
             {{-- Desktop Nav --}}
