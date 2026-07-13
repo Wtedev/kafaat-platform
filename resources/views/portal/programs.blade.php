@@ -33,6 +33,7 @@ $statusLabels = [
         <thead class="bg-gray-50 text-xs text-gray-500">
             <tr>
                 <th class="px-5 py-3 text-right font-medium">البرنامج</th>
+                <th class="px-5 py-3 text-center font-medium">وقت البرنامج</th>
                 <th class="px-5 py-3 text-center font-medium">الحالة</th>
                 <th class="px-5 py-3 text-center font-medium">نسبة الحضور</th>
                 <th class="px-5 py-3 text-center font-medium">الدرجة</th>
@@ -45,17 +46,41 @@ $statusLabels = [
             @foreach ($registrations as $reg)
             @php
                 $sv = $reg->status->value;
+                $program = $reg->trainingProgram;
                 $isAccepted = in_array($sv, [
                     RegistrationStatus::Approved->value,
                     RegistrationStatus::Completed->value,
                 ], true);
-                $whatsappUrl = $isAccepted && $reg->trainingProgram
-                    ? TrainingProgramExtrasSupport::whatsappGroupUrlFor($reg->trainingProgram, auth()->user())
+                $whatsappUrl = $isAccepted && $program
+                    ? TrainingProgramExtrasSupport::whatsappGroupUrlFor($program, auth()->user())
                     : null;
+                $timingLabel = $program?->portalTimingLabel();
+                $programShowUrl = $program ? route('portal.programs.show', $program) : null;
             @endphp
             <tr class="transition hover:bg-gray-50">
                 <td class="px-5 py-4 font-medium text-gray-800">
-                    {{ optional($reg->trainingProgram)->title ?? '—' }}
+                    @if ($programShowUrl)
+                    <a href="{{ $programShowUrl }}" class="transition hover:text-[#335483] hover:underline">
+                        {{ $program->title }}
+                    </a>
+                    @else
+                    —
+                    @endif
+                </td>
+                <td class="px-5 py-4 text-center">
+                    @if ($programShowUrl && $timingLabel)
+                    <a href="{{ $programShowUrl }}" class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold transition hover:opacity-90
+                        @if (str_starts_with($timingLabel, 'متبق')) bg-[#e9eff6] text-[#335483]
+                        @elseif ($timingLabel === 'جار') bg-emerald-50 text-emerald-700
+                        @else bg-slate-100 text-slate-600
+                        @endif">
+                        {{ $timingLabel }}
+                    </a>
+                    @elseif ($timingLabel)
+                    <span class="text-xs text-gray-500">{{ $timingLabel }}</span>
+                    @else
+                    <span class="text-xs text-gray-400">—</span>
+                    @endif
                 </td>
                 <td class="px-5 py-4 text-center">
                     <span class="rounded-full px-2.5 py-1 text-xs font-medium {{ $statusColors[$sv] ?? 'bg-gray-100 text-gray-600' }}">

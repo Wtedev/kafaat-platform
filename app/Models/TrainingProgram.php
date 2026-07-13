@@ -354,6 +354,50 @@ class TrainingProgram extends Model
         return sprintf('%d يوماً', $days);
     }
 
+    /**
+     * تسمية نسبية لزمن البرنامج في بوابة المستفيد:
+     * متبق N أيام | جار | منته منذ N أيام
+     */
+    public function portalTimingLabel(?Carbon $today = null): ?string
+    {
+        $today = ($today ?? Carbon::today())->startOfDay();
+        $start = $this->start_date?->copy()->startOfDay();
+        $end = $this->end_date?->copy()->startOfDay();
+
+        if ($start === null && $end === null) {
+            return null;
+        }
+
+        if ($start !== null && $today->lt($start)) {
+            return 'متبق '.$this->formatArabicDayCount((int) $today->diffInDays($start));
+        }
+
+        if ($end !== null && $today->gt($end)) {
+            return 'منته منذ '.$this->formatArabicDayCount((int) $end->diffInDays($today));
+        }
+
+        return 'جار';
+    }
+
+    private function formatArabicDayCount(int $days): string
+    {
+        $days = max(0, $days);
+
+        if ($days === 1) {
+            return 'يوم';
+        }
+
+        if ($days === 2) {
+            return 'يومين';
+        }
+
+        if ($days >= 3 && $days <= 10) {
+            return en_num($days).' أيام';
+        }
+
+        return en_num($days).' يوماً';
+    }
+
     public function weekdaysLabel(): ?string
     {
         if (! is_array($this->weekdays) || $this->weekdays === []) {
