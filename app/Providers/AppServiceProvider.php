@@ -80,6 +80,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureEmailVerificationOnLogin();
         $this->configureUserActivityLogging();
         $this->configureSecurityLogging();
+        $this->configureAdminGateBypass();
 
         Gate::policy(PrivacyPolicyVersion::class, PrivacyPolicyVersionPolicy::class);
         Gate::policy(PrivacyRequest::class, PrivacyRequestPolicy::class);
@@ -199,6 +200,25 @@ class AppServiceProvider extends ServiceProvider
             if ($event->user instanceof User) {
                 UserActivityLogger::logLogout($event->user);
             }
+        });
+    }
+
+    /**
+     * حساب الأدمن الوحيد يتجاوز فحوصات الصلاحيات الدقيقة (باستثناء حذف حساب الأدمن المحمي).
+     */
+    private function configureAdminGateBypass(): void
+    {
+        Gate::before(function ($user, string $ability, array $arguments = []) {
+            if (! $user instanceof User || ! $user->isAdmin()) {
+                return null;
+            }
+
+            $target = $arguments[0] ?? null;
+            if ($ability === 'delete' && $target instanceof User && $target->isProtectedAdminUser()) {
+                return false;
+            }
+
+            return true;
         });
     }
 
