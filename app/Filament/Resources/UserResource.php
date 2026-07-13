@@ -66,7 +66,7 @@ class UserResource extends Resource
 
         $viewer = auth()->user();
 
-        if ($viewer !== null && ! $viewer->hasPermission('manage_roles')) {
+        if ($viewer !== null && ! $viewer->isAdmin()) {
             $visibleTabs = UserDirectoryTabs::visibleTabKeysFor($viewer);
 
             if ($visibleTabs === [UserDirectoryTabs::TAB_VOLUNTEERS]) {
@@ -151,8 +151,8 @@ class UserResource extends Resource
                             ->native(false)
                             ->searchable()
                             ->helperText(fn (): string => UserAccountRoleForm::actorCanManageAllPlatformRoles(auth()->user())
-                                ? 'موظفون يدخلون لوحة الإدارة؛ المتدرب والمتطوع يدخلون بوابة المستفيد.'
-                                : 'يمكنك تعيين متدرب أو متطوع فقط.')
+                                ? 'الأنواع: موظف (لوحة الإدارة + مصفوفة الصلاحيات) · مستفيد · فريق تطوعي. حساب الأدمن واحد فقط ولا يُعيَّن من هنا.'
+                                : 'يمكنك تعيين مستفيد أو فريق تطوعي فقط.')
                             ->dehydrated(true),
                     ]),
             ]);

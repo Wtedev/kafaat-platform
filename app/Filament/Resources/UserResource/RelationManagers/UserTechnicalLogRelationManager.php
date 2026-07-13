@@ -26,7 +26,7 @@ class UserTechnicalLogRelationManager extends RelationManager
             return false;
         }
 
-        if (! $viewer->can('manage_roles') && ! $viewer->hasRole('technical_admin')) {
+        if (! $viewer->can('manage_roles') && ! $viewer->isAdmin()) {
             return false;
         }
 

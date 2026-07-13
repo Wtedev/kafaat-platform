@@ -5,57 +5,49 @@ namespace App\Support;
 use App\Models\User;
 
 /**
- * Spatie role names for Filament / assignment visibility (training vs volunteering coordinators).
+ * تنسيق ظهور الموظفين في لوحات Filament بعد إلغاء أدوار الأقسام الفرعية.
+ * الاعتماد على الصلاحيات المباشرة + علاقات التعيين (assigned_to).
  */
 final class StaffFilamentRoles
 {
-    /** Roles scoped to assigned training programs (operational coordinator). */
-    public const TRAINING_COORDINATOR = [
-        'programs_management',
-    ];
+    public const TRAINING_COORDINATOR = ['staff'];
 
-    /** Roles scoped to assigned volunteer opportunities / teams. */
-    public const VOLUNTEERING_COORDINATOR = [
-        'volunteer_management',
-    ];
+    public const VOLUNTEERING_COORDINATOR = ['staff'];
 
-    /** Full training + volunteering access (no per-row assignee filter in list scopes). */
-    public const CROSS_PROGRAMS_ACTIVITIES = 'training_management';
+    public const CROSS_PROGRAMS_ACTIVITIES = 'staff';
 
     public static function isProgramsActivitiesManager(?User $user): bool
     {
-        return $user !== null && $user->hasRole(self::CROSS_PROGRAMS_ACTIVITIES);
+        return $user !== null && (
+            $user->isAdmin()
+            || $user->can('manage_programs')
+            || $user->can('programs.update')
+        );
     }
 
     public static function hasTrainingCoordinatorRole(User $user): bool
     {
-        return $user->hasAnyRole(self::TRAINING_COORDINATOR);
+        return $user->isAdminOrStaff() && (
+            $user->can('programs.view') || $user->can('paths.view') || $user->can('manage_programs')
+        );
     }
 
     public static function hasVolunteeringCoordinatorRole(User $user): bool
     {
-        return $user->hasAnyRole(self::VOLUNTEERING_COORDINATOR);
+        return $user->isAdminOrStaff() && (
+            $user->can('volunteering.view') || $user->can('manage_volunteers')
+        );
     }
 
-    /**
-     * @return list<string>
-     */
+    /** @return list<string> */
     public static function assignableTrainingCoordinatorRoleNames(): array
     {
-        return [
-            'programs_management',
-            'training_management',
-        ];
+        return ['staff'];
     }
 
-    /**
-     * @return list<string>
-     */
+    /** @return list<string> */
     public static function assignableVolunteeringCoordinatorRoleNames(): array
     {
-        return [
-            'volunteer_management',
-            'training_management',
-        ];
+        return ['staff'];
     }
 }

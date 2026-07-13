@@ -75,15 +75,13 @@ class CreateUser extends BaseCreateRecord
     {
         if (($this->pendingPlatformRole ?? '') !== '') {
             $this->record->syncRoles([$this->pendingPlatformRole]);
+            UserAccountRoleForm::applyRoleSideEffects($this->record, $this->pendingPlatformRole);
         } else {
-            $this->record->syncRoles(['trainee']);
-            if ($this->record->role_type !== 'beneficiary') {
-                $this->record->update(['role_type' => 'beneficiary']);
+            $this->record->syncRoles([UserAccountRoleForm::TYPE_BENEFICIARY]);
+            if ($this->record->role_type !== UserAccountRoleForm::TYPE_BENEFICIARY) {
+                $this->record->update(['role_type' => UserAccountRoleForm::TYPE_BENEFICIARY]);
             }
-        }
-
-        if ($this->record->hasRole('volunteer')) {
-            VolunteerTeam::ensureMember($this->record);
+            $this->record->syncPermissions([]);
         }
     }
 }

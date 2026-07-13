@@ -64,7 +64,7 @@ class UserRegistrationService
         $user->forceFill($userAttributes);
         $user->save();
 
-            $user->assignRole('trainee');
+            $user->assignRole(\App\Services\Rbac\RbacCatalog::ROLE_BENEFICIARY);
 
             $user->profile()->create([
                 'birth_date' => $data['birth_date'],

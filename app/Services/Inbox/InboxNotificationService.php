@@ -509,12 +509,12 @@ class InboxNotificationService
         return match ($audience) {
             NotificationTargetType::AllPortalUsers => $q->where(function ($sub): void {
                 $sub->whereIn('role_type', ['trainee', 'beneficiary', 'volunteer'])
-                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['trainee', 'volunteer']));
+                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['trainee', 'volunteer', 'beneficiary']));
             })->pluck('id')->all(),
 
             NotificationTargetType::Trainees => $q->where(function ($sub): void {
                 $sub->whereIn('role_type', ['trainee', 'beneficiary'])
-                    ->orWhereHas('roles', fn ($r) => $r->where('name', 'trainee'));
+                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['trainee', 'beneficiary']));
             })->pluck('id')->all(),
 
             NotificationTargetType::Volunteers => $q->where(function ($sub): void {

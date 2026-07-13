@@ -3,10 +3,11 @@
 namespace App\Support;
 
 use App\Models\User;
+use App\Services\Rbac\RbacCatalog;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * تبويبات قائمة المستخدمين: مسؤولو النظام / المستفيدون / الفريق التطوعي.
+ * تبويبات قائمة المستخدمين: أدمن+موظفون / مستفيدون / فريق تطوعي.
  */
 final class UserDirectoryTabs
 {
@@ -16,15 +17,13 @@ final class UserDirectoryTabs
 
     public const TAB_VOLUNTEERS = 'volunteers';
 
-    /**
-     * @return array<string, array{label: string}>
-     */
+    /** @return array<string, array{label: string}> */
     public static function tabDefinitions(): array
     {
         return [
-            self::TAB_SYSTEM => ['label' => 'مسؤولو النظام'],
-            self::TAB_TRAINEES => ['label' => 'المستفيدون (متدرب)'],
-            self::TAB_VOLUNTEERS => ['label' => 'الفريق التطوعي (متطوع)'],
+            self::TAB_SYSTEM => ['label' => 'الموظفون والأدمن'],
+            self::TAB_TRAINEES => ['label' => 'المستفيدون'],
+            self::TAB_VOLUNTEERS => ['label' => 'الفريق التطوعي'],
         ];
     }
 
@@ -39,7 +38,7 @@ final class UserDirectoryTabs
             return false;
         }
 
-        if ($actor->can('manage_roles')) {
+        if ($actor->isAdmin()) {
             return self::isValidTab($tab);
         }
 
@@ -47,16 +46,13 @@ final class UserDirectoryTabs
 
         return match ($tab) {
             self::TAB_SYSTEM => false,
-            self::TAB_TRAINEES => in_array('trainee', $allowedRoles, true)
-                || in_array('beneficiary', $allowedRoles, true),
-            self::TAB_VOLUNTEERS => in_array('volunteer', $allowedRoles, true),
+            self::TAB_TRAINEES => in_array(RbacCatalog::ROLE_BENEFICIARY, $allowedRoles, true),
+            self::TAB_VOLUNTEERS => in_array(RbacCatalog::ROLE_VOLUNTEER, $allowedRoles, true),
             default => false,
         };
     }
 
-    /**
-     * @return list<string>
-     */
+    /** @return list<string> */
     public static function visibleTabKeysFor(?User $actor): array
     {
         if ($actor === null) {
@@ -80,8 +76,9 @@ final class UserDirectoryTabs
     public static function defaultPlatformRoleForTab(string $tab): ?string
     {
         return match ($tab) {
-            self::TAB_TRAINEES => 'trainee',
-            self::TAB_VOLUNTEERS => 'volunteer',
+            self::TAB_SYSTEM => UserAccountRoleForm::TYPE_STAFF,
+            self::TAB_TRAINEES => UserAccountRoleForm::TYPE_BENEFICIARY,
+            self::TAB_VOLUNTEERS => UserAccountRoleForm::TYPE_VOLUNTEER,
             default => null,
         };
     }
@@ -98,37 +95,41 @@ final class UserDirectoryTabs
 
     public static function scopeSystemStaff(Builder $query): Builder
     {
-        $staffRoles = UserAccountRoleForm::staffSpatieRoleNames();
-
-        return $query->where(function (Builder $q) use ($staffRoles): void {
-            $q->where('role_type', 'admin')
-                ->orWhereHas('roles', fn (Builder $r) => $r->where('name', 'admin'))
-                ->orWhere('role_type', 'staff')
-                ->orWhereHas('roles', fn (Builder $r) => $r->whereIn('name', $staffRoles));
+        return $query->where(function (Builder $q): void {
+            $q->where('role_type', RbacCatalog::ROLE_ADMIN)
+                ->orWhere('role_type', RbacCatalog::ROLE_STAFF)
+                ->orWhereHas('roles', fn (Builder $r) => $r->whereIn('name', [
+                    RbacCatalog::ROLE_ADMIN,
+                    RbacCatalog::ROLE_STAFF,
+                ]));
         });
     }
 
     public static function scopeTrainees(Builder $query): Builder
     {
-        $staffRoles = UserAccountRoleForm::staffSpatieRoleNames();
-
         return $query
             ->where(function (Builder $q): void {
-                $q->whereHas('roles', fn (Builder $r) => $r->where('name', 'trainee'))
-                    ->orWhereIn('role_type', ['beneficiary', 'trainee']);
+                $q->whereHas('roles', fn (Builder $r) => $r->whereIn('name', [
+                    RbacCatalog::ROLE_BENEFICIARY,
+                    'trainee',
+                ]))
+                    ->orWhereIn('role_type', [RbacCatalog::ROLE_BENEFICIARY, 'trainee']);
             })
-            ->whereDoesntHave('roles', fn (Builder $r) => $r->where('name', 'volunteer'))
-            ->where('role_type', '!=', 'admin')
-            ->where('role_type', '!=', 'staff')
-            ->whereDoesntHave('roles', fn (Builder $r) => $r->where('name', 'admin'))
-            ->whereDoesntHave('roles', fn (Builder $r) => $r->whereIn('name', $staffRoles));
+            ->whereDoesntHave('roles', fn (Builder $r) => $r->where('name', RbacCatalog::ROLE_VOLUNTEER))
+            ->where('role_type', '!=', RbacCatalog::ROLE_ADMIN)
+            ->where('role_type', '!=', RbacCatalog::ROLE_STAFF)
+            ->where('role_type', '!=', RbacCatalog::ROLE_VOLUNTEER)
+            ->whereDoesntHave('roles', fn (Builder $r) => $r->whereIn('name', [
+                RbacCatalog::ROLE_ADMIN,
+                RbacCatalog::ROLE_STAFF,
+            ]));
     }
 
     public static function scopeVolunteers(Builder $query): Builder
     {
         return $query->where(function (Builder $q): void {
-            $q->whereHas('roles', fn (Builder $r) => $r->where('name', 'volunteer'))
-                ->orWhere('role_type', 'volunteer');
+            $q->whereHas('roles', fn (Builder $r) => $r->where('name', RbacCatalog::ROLE_VOLUNTEER))
+                ->orWhere('role_type', RbacCatalog::ROLE_VOLUNTEER);
         });
     }
 }

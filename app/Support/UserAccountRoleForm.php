@@ -3,34 +3,33 @@
 namespace App\Support;
 
 use App\Models\User;
+use App\Models\VolunteerTeam;
 use App\Services\Rbac\RbacCatalog;
-use App\Support\BeneficiaryRoleManagement;
+use App\Services\Rbac\StaffPermissionService;
 use Illuminate\Validation\ValidationException;
 
 /**
- * أدوار المنصة الموحّدة في واجهة المستخدم (حقل واحد بدل نوع حساب + دور Spatie).
+ * أنواع الحساب الأربعة: أدمن / موظف / مستفيد / فريق تطوعي.
  */
 final class UserAccountRoleForm
 {
-    public const TYPE_STAFF = 'staff';
+    public const TYPE_ADMIN = RbacCatalog::ROLE_ADMIN;
 
-    public const TYPE_BENEFICIARY = 'beneficiary';
+    public const TYPE_STAFF = RbacCatalog::ROLE_STAFF;
+
+    public const TYPE_BENEFICIARY = RbacCatalog::ROLE_BENEFICIARY;
+
+    public const TYPE_VOLUNTEER = RbacCatalog::ROLE_VOLUNTEER;
 
     /**
-     * الأدوار القابلة للتعيين من الواجهة (مفتاح واحد → دور Spatie + role_type).
+     * الأدوار القابلة للتعيين من الواجهة (الأدمن لا يُعيَّن من هنا).
      *
      * @var array<string, array{spatie: string, role_type: string}>
      */
     public const PLATFORM_ROLES = [
-        'technical_admin' => ['spatie' => 'technical_admin', 'role_type' => self::TYPE_STAFF],
-        'training_management' => ['spatie' => 'training_management', 'role_type' => self::TYPE_STAFF],
-        'volunteer_management' => ['spatie' => 'volunteer_management', 'role_type' => self::TYPE_STAFF],
-        'programs_management' => ['spatie' => 'programs_management', 'role_type' => self::TYPE_STAFF],
-        'media_management' => ['spatie' => 'media_management', 'role_type' => self::TYPE_STAFF],
-        'public_relations' => ['spatie' => 'public_relations', 'role_type' => self::TYPE_STAFF],
-        'visual_identity' => ['spatie' => 'visual_identity', 'role_type' => self::TYPE_STAFF],
-        'trainee' => ['spatie' => 'trainee', 'role_type' => self::TYPE_BENEFICIARY],
-        'volunteer' => ['spatie' => 'volunteer', 'role_type' => self::TYPE_BENEFICIARY],
+        self::TYPE_STAFF => ['spatie' => self::TYPE_STAFF, 'role_type' => self::TYPE_STAFF],
+        self::TYPE_BENEFICIARY => ['spatie' => self::TYPE_BENEFICIARY, 'role_type' => self::TYPE_BENEFICIARY],
+        self::TYPE_VOLUNTEER => ['spatie' => self::TYPE_VOLUNTEER, 'role_type' => self::TYPE_VOLUNTEER],
     ];
 
     /**
@@ -55,12 +54,12 @@ final class UserAccountRoleForm
 
     public static function actorCanManageAllPlatformRoles(?User $actor): bool
     {
-        return $actor?->can('manage_roles') ?? false;
+        return $actor?->isAdmin() ?? false;
     }
 
     public static function actorCanAssignBeneficiaryRoles(?User $actor): bool
     {
-        return $actor?->can('assign_beneficiary_roles') ?? false;
+        return $actor?->can('assign_beneficiary_roles') || ($actor?->isAdmin() ?? false);
     }
 
     public static function canActorEditRoleSection(?User $actor, ?User $target = null): bool
@@ -69,11 +68,11 @@ final class UserAccountRoleForm
             return false;
         }
 
-        if (self::actorCanManageAllPlatformRoles($actor)) {
-            if ($target?->isProtectedAdminUser()) {
-                return false;
-            }
+        if ($target?->isProtectedAdminUser()) {
+            return false;
+        }
 
+        if (self::actorCanManageAllPlatformRoles($actor)) {
             return true;
         }
 
@@ -81,36 +80,7 @@ final class UserAccountRoleForm
             return false;
         }
 
-        if ($target === null) {
-            return true;
-        }
-
-        return $target->isPortalUser() && ! $target->isProtectedAdminUser();
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    public static function platformRoleOptionsForActor(?User $actor): array
-    {
-        if (self::actorCanManageAllPlatformRoles($actor)) {
-            return self::platformRoleSelectOptionsAr();
-        }
-
-        $allowedSpatie = BeneficiaryRoleManagement::allowedSpatieRoleNamesForManager($actor);
-        if ($allowedSpatie === []) {
-            return [];
-        }
-
-        $options = [];
-        foreach (array_keys(self::PLATFORM_ROLES) as $key) {
-            $spatie = self::PLATFORM_ROLES[$key]['spatie'];
-            if (in_array($spatie, $allowedSpatie, true)) {
-                $options[$key] = self::platformRoleLabelAr($key);
-            }
-        }
-
-        return $options;
+        return $target === null || $target->isPortalUser();
     }
 
     /**
@@ -118,215 +88,26 @@ final class UserAccountRoleForm
      */
     public static function resolvePlatformRole(string $platformRole): array
     {
-        $config = self::PLATFORM_ROLES[$platformRole] ?? null;
-        if ($config === null) {
+        if (! isset(self::PLATFORM_ROLES[$platformRole])) {
             throw ValidationException::withMessages([
                 'data.platform_role' => 'الدور المحدد غير صالح.',
             ]);
         }
 
-        return $config;
+        return self::PLATFORM_ROLES[$platformRole];
     }
 
-    public static function platformRoleFromUser(User $user): ?string
-    {
-        if ($user->isProtectedAdminUser()) {
-            return null;
-        }
-
-        $roleNames = $user->relationLoaded('roles')
-            ? $user->roles->pluck('name')->all()
-            : $user->roles()->pluck('name')->all();
-
-        foreach (array_keys(self::PLATFORM_ROLES) as $key) {
-            $spatie = self::PLATFORM_ROLES[$key]['spatie'];
-            if (in_array($spatie, $roleNames, true)) {
-                return $key;
-            }
-        }
-
-        foreach (RbacCatalog::legacyRoleMigrationMap() as $legacy => $platformSpatie) {
-            if (! in_array($legacy, $roleNames, true)) {
-                continue;
-            }
-
-            foreach (self::PLATFORM_ROLES as $key => $config) {
-                if ($config['spatie'] === $platformSpatie) {
-                    return $key;
-                }
-            }
-        }
-
-        if ($user->role_type === self::TYPE_STAFF) {
-            return null;
-        }
-
-        return 'trainee';
-    }
-
-    public static function tablePlatformRoleLabelAr(User $user): string
-    {
-        if ($user->role_type === 'admin' || $user->hasRole('admin')) {
-            return RbacCatalog::roleArabicLabel('admin');
-        }
-
-        $platform = self::platformRoleFromUser($user);
-        if ($platform !== null) {
-            return self::platformRoleLabelAr($platform);
-        }
-
-        return self::tablePrimaryRoleLabelAr($user);
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    public static function accountTypeOptionsAr(): array
-    {
-        return [
-            self::TYPE_STAFF => 'موظف',
-            self::TYPE_BENEFICIARY => 'مستفيد',
-        ];
-    }
-
-    /**
-     * @return list<string>
-     */
-    public static function staffSpatieRoleNames(): array
-    {
-        return RbacCatalog::staffRoleNames();
-    }
-
-    /**
-     * @return list<string>
-     */
-    public static function beneficiarySpatieRoleNames(): array
-    {
-        return ['trainee', 'volunteer'];
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    public static function staffRoleSelectOptionsAr(): array
-    {
-        $out = [];
-        foreach (self::staffSpatieRoleNames() as $name) {
-            $out[$name] = RbacCatalog::roleArabicLabel($name);
-        }
-
-        return $out;
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    public static function beneficiaryRoleSelectOptionsAr(): array
-    {
-        $out = [];
-        foreach (self::beneficiarySpatieRoleNames() as $name) {
-            $out[$name] = RbacCatalog::roleArabicLabel($name);
-        }
-
-        return $out;
-    }
-
-    public static function formAccountTypeFromUser(User $user): string
-    {
-        if ($user->role_type === self::TYPE_STAFF) {
-            return self::TYPE_STAFF;
-        }
-
-        return self::TYPE_BENEFICIARY;
-    }
-
-    public static function resolvedSpatieRoleFromUser(User $user): ?string
-    {
-        $platform = self::platformRoleFromUser($user);
-        if ($platform !== null) {
-            return self::PLATFORM_ROLES[$platform]['spatie'] ?? null;
-        }
-
-        if ($user->role_type === self::TYPE_STAFF) {
-            foreach (self::staffSpatieRoleNames() as $name) {
-                if ($user->hasRole($name)) {
-                    return $name;
-                }
-            }
-
-            return null;
-        }
-
-        foreach (self::beneficiarySpatieRoleNames() as $name) {
-            if ($user->hasRole($name)) {
-                return $name;
-            }
-        }
-
-        return null;
-    }
-
-    public static function tablePrimaryRoleLabelAr(User $user): string
-    {
-        $names = $user->relationLoaded('roles')
-            ? $user->roles->pluck('name')->all()
-            : $user->roles()->pluck('name')->all();
-
-        $priority = [
-            'admin',
-            ...RbacCatalog::staffRoleNames(),
-            ...array_keys(RbacCatalog::legacyRoleMigrationMap()),
-            ...self::beneficiarySpatieRoleNames(),
-        ];
-
-        foreach ($priority as $name) {
-            if (in_array($name, $names, true)) {
-                return RbacCatalog::roleArabicLabel($name);
-            }
-        }
-
-        return '—';
-    }
-
-    public static function tableAccountTypeLabelAr(User $user): string
-    {
-        if ($user->role_type === 'admin' || $user->hasRole('admin')) {
-            return 'مدير النظام';
-        }
-
-        if ($user->role_type === self::TYPE_STAFF) {
-            return 'موظف';
-        }
-
-        return 'مستفيد';
-    }
-
-    /**
-     * @throws ValidationException
-     */
-    public static function assertValidCombination(string $accountType, string $spatieRole): void
-    {
-        $allowed = match ($accountType) {
-            self::TYPE_STAFF => self::staffSpatieRoleNames(),
-            self::TYPE_BENEFICIARY => self::beneficiarySpatieRoleNames(),
-            default => [],
-        };
-
-        if (! in_array($spatieRole, $allowed, true)) {
-            throw ValidationException::withMessages([
-                'data.assigned_role' => 'الدور المحدد لا يتوافق مع نوع الحساب.',
-            ]);
-        }
-    }
-
-    /**
-     * @throws ValidationException
-     */
     public static function assertActorMayAssign(?User $actor, string $platformRole): void
     {
         if ($actor === null) {
             throw ValidationException::withMessages([
-                'data.platform_role' => 'غير مصرح بتعيين الدور.',
+                'data.platform_role' => 'غير مصرح.',
+            ]);
+        }
+
+        if ($platformRole === self::TYPE_ADMIN) {
+            throw ValidationException::withMessages([
+                'data.platform_role' => 'لا يمكن تعيين حساب أدمن من الواجهة. يوجد أدمن واحد فقط.',
             ]);
         }
 
@@ -334,15 +115,91 @@ final class UserAccountRoleForm
             return;
         }
 
-        $allowedSpatie = BeneficiaryRoleManagement::allowedSpatieRoleNamesForManager($actor);
-        $resolved = self::PLATFORM_ROLES[$platformRole]['spatie'] ?? null;
-
-        if ($resolved !== null && in_array($resolved, $allowedSpatie, true)) {
+        if (in_array($platformRole, [self::TYPE_BENEFICIARY, self::TYPE_VOLUNTEER], true)
+            && self::actorCanAssignBeneficiaryRoles($actor)) {
             return;
         }
 
         throw ValidationException::withMessages([
-            'data.platform_role' => 'تعيين هذا الدور غير متاح لحسابك.',
+            'data.platform_role' => 'ليس لديك صلاحية تعيين هذا الدور.',
         ]);
+    }
+
+    public static function platformRoleFromUser(User $user): ?string
+    {
+        if ($user->isProtectedAdminUser() || $user->isAdmin()) {
+            return self::TYPE_ADMIN;
+        }
+
+        $user->loadMissing('roles');
+        $name = $user->roles->pluck('name')->first();
+
+        if ($name === self::TYPE_STAFF || $user->role_type === self::TYPE_STAFF) {
+            return self::TYPE_STAFF;
+        }
+
+        if ($name === self::TYPE_VOLUNTEER || $user->role_type === self::TYPE_VOLUNTEER) {
+            return self::TYPE_VOLUNTEER;
+        }
+
+        $map = RbacCatalog::legacyRoleMigrationMap();
+        if (is_string($name) && isset($map[$name])) {
+            return $map[$name];
+        }
+
+        return self::TYPE_BENEFICIARY;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function platformRoleOptionsForActor(?User $actor): array
+    {
+        if ($actor === null) {
+            return [];
+        }
+
+        if (self::actorCanManageAllPlatformRoles($actor)) {
+            return self::platformRoleSelectOptionsAr();
+        }
+
+        if (self::actorCanAssignBeneficiaryRoles($actor)) {
+            return [
+                self::TYPE_BENEFICIARY => self::platformRoleLabelAr(self::TYPE_BENEFICIARY),
+                self::TYPE_VOLUNTEER => self::platformRoleLabelAr(self::TYPE_VOLUNTEER),
+            ];
+        }
+
+        return [];
+    }
+
+    /** @return list<string> */
+    public static function staffSpatieRoleNames(): array
+    {
+        return RbacCatalog::staffRoleNames();
+    }
+
+    public static function applyRoleSideEffects(User $record, string $spatieRole): void
+    {
+        if ($spatieRole === self::TYPE_STAFF) {
+            app(StaffPermissionService::class)->grantAllAssignable($record);
+        } else {
+            $record->syncPermissions([]);
+        }
+
+        if ($spatieRole === self::TYPE_VOLUNTEER) {
+            VolunteerTeam::ensureMember($record);
+        }
+    }
+
+    public static function tablePlatformRoleLabelAr(User $user): string
+    {
+        if ($user->isProtectedAdminUser() || $user->isAdmin()) {
+            return self::platformRoleLabelAr(self::TYPE_ADMIN);
+        }
+
+        $key = self::platformRoleFromUser($user);
+
+        return self::platformRoleLabelAr($key ?? self::TYPE_BENEFICIARY);
     }
 }

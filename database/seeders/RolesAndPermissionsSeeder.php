@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Services\Rbac\RbacCatalog;
+use App\Services\Rbac\StaffPermissionService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
@@ -38,9 +39,12 @@ class RolesAndPermissionsSeeder extends Seeder
                 'guard_name' => RbacCatalog::GUARD_WEB,
             ]);
 
-            $names = $matrix[$roleName] ?? [];
-            $role->syncPermissions($names);
+            $role->syncPermissions($matrix[$roleName] ?? []);
         }
+
+        // احتفظ بالأدوار القديمة مؤقتاً حتى ترحيل المستخدمين، ثم احذفها
+        app(StaffPermissionService::class)->migrateUsersToFourRoleModel();
+        app(StaffPermissionService::class)->enforceSingleAdmin();
 
         $obsoleteRoles = Role::query()
             ->where('guard_name', RbacCatalog::GUARD_WEB)
@@ -48,14 +52,8 @@ class RolesAndPermissionsSeeder extends Seeder
             ->pluck('name', 'id');
 
         foreach ($obsoleteRoles as $roleId => $roleName) {
-            DB::table('model_has_roles')
-                ->where('role_id', $roleId)
-                ->delete();
-
-            DB::table('role_has_permissions')
-                ->where('role_id', $roleId)
-                ->delete();
-
+            DB::table('model_has_roles')->where('role_id', $roleId)->delete();
+            DB::table('role_has_permissions')->where('role_id', $roleId)->delete();
             Role::query()->whereKey($roleId)->delete();
         }
 

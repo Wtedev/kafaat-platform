@@ -354,15 +354,15 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             return true;
         }
 
-        return $this->hasAnyRole(RbacCatalog::staffRoleNames());
+        return $this->hasRole(RbacCatalog::ROLE_STAFF);
     }
 
     /**
-     * مستخدمو البوابة (متدرب / متطوع / قيمة role_type القديمة beneficiary).
+     * مستخدمو البوابة (مستفيد / متطوع / قيم قديمة).
      */
     public function isPortalUser(): bool
     {
-        if ($this->hasAnyRole(['trainee', 'volunteer'])) {
+        if ($this->hasAnyRole([RbacCatalog::ROLE_BENEFICIARY, RbacCatalog::ROLE_VOLUNTEER, 'trainee'])) {
             return true;
         }
 
@@ -436,14 +436,14 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             return false;
         }
 
-        // role_type يكفي وحده لمنح الوصول، دون الحاجة لـ Spatie role
+        // دور admin أو staff كافٍ للوصول للوحة
         if (in_array($this->role_type, ['admin', 'staff'], true)) {
             return true;
         }
 
         return $this->hasAnyRole([
-            'admin',
-            ...RbacCatalog::staffRoleNames(),
+            RbacCatalog::ROLE_ADMIN,
+            RbacCatalog::ROLE_STAFF,
         ]);
     }
 

@@ -79,6 +79,11 @@ class UserPolicy
 
     public function delete(User $actor, User $target): bool
     {
+        // لا يمكن لأي أحد حذف حساب الأدمن أو الحذف المباشر للمستخدمين من الواجهة
+        if ($target->isProtectedAdminUser() || $target->isAdmin()) {
+            return false;
+        }
+
         return false;
     }
 

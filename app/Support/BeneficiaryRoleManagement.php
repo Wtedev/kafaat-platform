@@ -3,59 +3,55 @@
 namespace App\Support;
 
 use App\Models\User;
+use App\Services\Rbac\RbacCatalog;
 use Illuminate\Validation\ValidationException;
-use Spatie\Permission\Models\Role;
 
 /**
- * قيود أدوار المستفيدين (متدرب / متطوع) لمديري التدريب والتطوع.
+ * قيود تعيين مستفيد / فريق تطوعي للموظفين المخوّلين.
  */
 final class BeneficiaryRoleManagement
 {
-    /**
-     * @return list<string>
-     */
+    /** @return list<string> */
     public static function allowedRoleTypesForManager(User $actor): array
     {
-        if (StaffFilamentRoles::isProgramsActivitiesManager($actor)) {
-            return ['trainee', 'beneficiary', 'volunteer'];
+        if ($actor->isAdmin()) {
+            return [RbacCatalog::ROLE_BENEFICIARY, RbacCatalog::ROLE_VOLUNTEER, 'trainee'];
         }
 
-        if ($actor->hasAnyRole(StaffFilamentRoles::TRAINING_COORDINATOR)) {
-            return ['trainee', 'beneficiary'];
+        if (! $actor->can('assign_beneficiary_roles')) {
+            return [];
         }
 
-        if ($actor->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR)) {
-            return ['volunteer'];
+        $types = [];
+        if (StaffFilamentRoles::hasTrainingCoordinatorRole($actor)) {
+            $types[] = RbacCatalog::ROLE_BENEFICIARY;
+            $types[] = 'trainee';
+        }
+        if (StaffFilamentRoles::hasVolunteeringCoordinatorRole($actor)) {
+            $types[] = RbacCatalog::ROLE_VOLUNTEER;
         }
 
-        return [];
+        return array_values(array_unique($types));
     }
 
-    /**
-     * @return list<string>
-     */
+    /** @return list<string> */
     public static function allowedSpatieRoleNamesForManager(User $actor): array
     {
-        if (StaffFilamentRoles::isProgramsActivitiesManager($actor)) {
-            return ['trainee', 'volunteer'];
+        if ($actor->isAdmin()) {
+            return [RbacCatalog::ROLE_BENEFICIARY, RbacCatalog::ROLE_VOLUNTEER];
         }
 
-        if ($actor->hasAnyRole(StaffFilamentRoles::TRAINING_COORDINATOR)) {
-            return ['trainee', 'beneficiary'];
+        $roles = [];
+        if (StaffFilamentRoles::hasTrainingCoordinatorRole($actor) && $actor->can('assign_beneficiary_roles')) {
+            $roles[] = RbacCatalog::ROLE_BENEFICIARY;
+        }
+        if (StaffFilamentRoles::hasVolunteeringCoordinatorRole($actor) && $actor->can('assign_beneficiary_roles')) {
+            $roles[] = RbacCatalog::ROLE_VOLUNTEER;
         }
 
-        if ($actor->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR)) {
-            return ['volunteer'];
-        }
-
-        return [];
+        return $roles;
     }
 
-    /**
-     * @param  mixed  $roleIds  معرفات أدوار Spatie من النموذج
-     *
-     * @throws ValidationException
-     */
     public static function validateManagerAssignment(User $actor, ?string $roleType, mixed $roleIds): void
     {
         if (FilamentAssignmentVisibility::bypasses($actor)) {
@@ -63,12 +59,11 @@ final class BeneficiaryRoleManagement
         }
 
         $allowedTypes = self::allowedRoleTypesForManager($actor);
-        $allowedRoles = self::allowedSpatieRoleNamesForManager($actor);
 
         if ($allowedTypes === []) {
             if ($actor->can('assign_beneficiary_roles')) {
                 throw ValidationException::withMessages([
-                    'data.roles' => 'تعيين أدوار المستفيدين غير مرتبط بدور مدير تدريب أو مدير تطوع في حسابك.',
+                    'data.roles' => 'تعيين أدوار المستفيدين غير متاح لحسابك.',
                 ]);
             }
 
@@ -79,27 +74,6 @@ final class BeneficiaryRoleManagement
             throw ValidationException::withMessages([
                 'data.role_type' => 'نوع الحساب غير مسموح لصلاحياتك.',
             ]);
-        }
-
-        if ($roleIds === null || $roleIds === [] || $roleIds === '') {
-            return;
-        }
-
-        $ids = is_array($roleIds) ? $roleIds : [$roleIds];
-        $ids = array_values(array_filter($ids, fn ($v) => $v !== null && $v !== ''));
-
-        if ($ids === []) {
-            return;
-        }
-
-        $names = Role::query()->whereIn('id', $ids)->pluck('name')->all();
-
-        foreach ($names as $name) {
-            if (! in_array($name, $allowedRoles, true)) {
-                throw ValidationException::withMessages([
-                    'data.roles' => 'أحد الأدوار المختارة غير مسموح لصلاحياتك.',
-                ]);
-            }
         }
     }
 }

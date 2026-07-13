@@ -24,7 +24,7 @@
                 <p class="mb-3 text-sm font-semibold" style="color:#335483">
                     {{ $about['vision']['label'] ?? 'الرؤية' }}
                 </p>
-                <p class="text-base font-bold leading-relaxed sm:text-lg" style="color:#111827">
+                <p class="text-sm leading-relaxed sm:text-base" style="color:#374151">
                     {{ $about['vision']['text'] ?? '' }}
                 </p>
             </article>

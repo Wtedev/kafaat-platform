@@ -19,11 +19,7 @@ final class FilamentAssignmentVisibility
 {
     public static function bypasses(?User $user): bool
     {
-        return $user !== null && (
-            $user->isAdmin()
-            || $user->hasAnyRole(['admin', 'technical_admin', 'visual_identity'])
-            || $user->can('manage_roles')
-        );
+        return $user !== null && $user->isAdmin();
     }
 
     /**

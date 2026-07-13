@@ -136,13 +136,14 @@ trait ManagesUserAccountForm
 
         if ($this->pendingPlatformRole !== null && $this->pendingPlatformRole !== '') {
             $record->syncRoles([$this->pendingPlatformRole]);
+            UserAccountRoleForm::applyRoleSideEffects($record, $this->pendingPlatformRole);
         }
 
         if ($this->pendingRoleType !== null && (string) $record->role_type !== $this->pendingRoleType) {
             $record->update(['role_type' => $this->pendingRoleType]);
         }
 
-        if ($record->hasRole('volunteer')) {
+        if ($record->hasRole(UserAccountRoleForm::TYPE_VOLUNTEER)) {
             VolunteerTeam::ensureMember($record);
         }
     }

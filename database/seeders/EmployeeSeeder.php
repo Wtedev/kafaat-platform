@@ -5,11 +5,12 @@ namespace Database\Seeders;
 use App\Models\Profile;
 use App\Models\User;
 use App\Services\Rbac\RbacCatalog;
+use App\Services\Rbac\StaffPermissionService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 /**
- * Staff accounts for Filament (password: password). Roles use Spatie names from {@see RbacCatalog}.
+ * حسابات موظفين للتجربة المحلية (كلمة المرور: password).
  */
 class EmployeeSeeder extends Seeder
 {
@@ -18,13 +19,15 @@ class EmployeeSeeder extends Seeder
     public function run(): void
     {
         $rows = [
-            ['name' => 'حسام التويجري', 'email' => 'husam.altuwaijri@kafaat.org.sa', 'role' => 'public_relations'],
-            ['name' => 'عبدالله السعوي', 'email' => 'abdullah.alsuwayyi@kafaat.org.sa', 'role' => 'media'],
-            ['name' => 'آمنة البطي', 'email' => 'amna.albatti@kafaat.org.sa', 'role' => 'training_management'],
-            ['name' => 'وجدان الصمعاني', 'email' => 'wejdan.alsumani@kafaat.org.sa', 'role' => 'programs_management'],
-            ['name' => 'مالك القصير', 'email' => 'malik.alqasir@kafaat.org.sa', 'role' => 'programs_management'],
-            ['name' => 'إيمان المطيري', 'email' => 'eman.almutairi@kafaat.org.sa', 'role' => 'volunteer_manager'],
+            ['name' => 'حسام التويجري', 'email' => 'husam.altuwaijri@kafaat.org.sa'],
+            ['name' => 'عبدالله السعوي', 'email' => 'abdullah.alsuwayyi@kafaat.org.sa'],
+            ['name' => 'آمنة البطي', 'email' => 'amna.albatti@kafaat.org.sa'],
+            ['name' => 'وجدان الصمعاني', 'email' => 'wejdan.alsumani@kafaat.org.sa'],
+            ['name' => 'مالك القصير', 'email' => 'malik.alqasir@kafaat.org.sa'],
+            ['name' => 'إيمان المطيري', 'email' => 'eman.almutairi@kafaat.org.sa'],
         ];
+
+        $service = app(StaffPermissionService::class);
 
         foreach ($rows as $row) {
             $user = User::updateOrCreate(
@@ -32,13 +35,14 @@ class EmployeeSeeder extends Seeder
                 [
                     'name' => $row['name'],
                     'password' => Hash::make(self::PASSWORD),
-                    'role_type' => 'staff',
+                    'role_type' => RbacCatalog::ROLE_STAFF,
                     'is_active' => true,
                 ]
             );
-            $user->syncRoles([$row['role']]);
+            $user->syncRoles([RbacCatalog::ROLE_STAFF]);
+            $service->grantAllAssignable($user);
             Profile::firstOrCreate(['user_id' => $user->id]);
-            $this->command?->info("  Employee ready: {$row['email']} ({$row['role']})");
+            $this->command?->info("  Employee ready: {$row['email']} (موظف)");
         }
     }
 }
