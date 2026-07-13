@@ -1,4 +1,5 @@
 @php
+use App\Enums\ProgramDeliveryMode;
 use App\Enums\RegistrationStatus;
 use App\Support\TrainingProgramExtrasSupport;
 
@@ -35,6 +36,7 @@ $statusLabels = [
                 <th class="px-5 py-3 text-right font-medium">البرنامج</th>
                 <th class="px-5 py-3 text-center font-medium">وقت البرنامج</th>
                 <th class="px-5 py-3 text-center font-medium">الحالة</th>
+                <th class="px-5 py-3 text-center font-medium">التحضير</th>
                 <th class="px-5 py-3 text-center font-medium">نسبة الحضور</th>
                 <th class="px-5 py-3 text-center font-medium">الدرجة</th>
                 <th class="px-5 py-3 text-center font-medium">أهلية الشهادة</th>
@@ -58,6 +60,8 @@ $statusLabels = [
                 $programShowUrl = ($program && filled($program->slug))
                     ? route('public.programs.show', $program)
                     : null;
+                $checkInUrl = $program ? route('portal.programs.show', $program) : null;
+                $isInPerson = $program?->delivery_mode === ProgramDeliveryMode::InPerson;
             @endphp
             <tr class="transition hover:bg-gray-50">
                 <td class="px-5 py-4 font-medium text-gray-800">
@@ -88,6 +92,25 @@ $statusLabels = [
                     <span class="rounded-full px-2.5 py-1 text-xs font-medium {{ $statusColors[$sv] ?? 'bg-gray-100 text-gray-600' }}">
                         {{ $statusLabels[$sv] ?? $sv }}
                     </span>
+                </td>
+                <td class="px-5 py-4 text-center">
+                    @if ($isAccepted && $checkInUrl)
+                    <a
+                        href="{{ $checkInUrl }}"
+                        class="inline-flex items-center justify-center gap-1 rounded-xl px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:opacity-95"
+                        style="background:#335483"
+                    >
+                        @if ($isInPerson)
+                            QR الحضور
+                        @else
+                            التحضير
+                        @endif
+                    </a>
+                    @elseif ($checkInUrl)
+                    <span class="text-xs text-gray-400">بعد القبول</span>
+                    @else
+                    <span class="text-xs text-gray-400">—</span>
+                    @endif
                 </td>
                 <td class="px-5 py-4 text-center text-gray-600">
                     @if ($reg->attendance_percentage !== null)

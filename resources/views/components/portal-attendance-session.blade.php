@@ -14,15 +14,15 @@
     data-initial-expires-at="{{ $initialExpiresAtMs ?? '' }}"
     @if (! $initialActive) hidden @endif
 >
-    <h2 class="mb-1 text-base font-semibold text-[#335483]">جلسة حضور مفتوحة</h2>
+    <h2 class="mb-1 text-base font-semibold text-[#335483]">جلسة تحضير مفتوحة</h2>
     <p class="mb-4 text-sm text-gray-700">
-        يمكنك تسجيل حضورك الآن. الوقت المتبقي:
+        يمكنك تسجيل تحضيرك الآن. الوقت المتبقي:
         <span class="font-mono text-lg font-bold text-[#335483]" data-portal-attendance-countdown>5:00</span>
     </p>
     <form method="POST" action="{{ $checkInUrl }}">
         @csrf
         <button type="submit" class="inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-white" style="background:#335483">
-            تسجيل حضوري لهذا اليوم
+            تسجيل التحضير لهذا اليوم
         </button>
     </form>
 </div>

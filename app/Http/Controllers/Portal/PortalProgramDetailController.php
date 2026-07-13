@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Services\AttendanceLiveSessionService;
+use App\Support\ProgramRegistrationSuccessPresenter;
 use Illuminate\Http\Request;
 
 class PortalProgramDetailController extends Controller
@@ -23,11 +24,17 @@ class PortalProgramDetailController extends Controller
         abort_if($registration === null, 404);
 
         $liveSession = app(AttendanceLiveSessionService::class)->activeSessionFor($trainingProgram);
+        $attendancePass = ProgramRegistrationSuccessPresenter::present(
+            $trainingProgram,
+            $registration,
+            $user,
+        );
 
         return view('portal.program-show', [
             'trainingProgram' => $trainingProgram,
             'registration' => $registration,
             'liveSession' => $liveSession,
+            'attendancePass' => $attendancePass,
         ]);
     }
 }
