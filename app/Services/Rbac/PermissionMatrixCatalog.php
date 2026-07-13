@@ -241,6 +241,81 @@ final class PermissionMatrixCatalog
         return ['view', 'create', 'update', 'delete'];
     }
 
+    /**
+     * أقسام العرض في واجهة المصفوفة (لتجميع المجموعات بصرياً).
+     *
+     * @return list<array{key: string, label: string, description: string, group_keys: list<string>}>
+     */
+    public static function sections(): array
+    {
+        return [
+            [
+                'key' => 'training',
+                'label' => 'التدريب والبرامج',
+                'description' => 'المسارات والبرامج والدورات والتسجيلات والشهادات',
+                'group_keys' => ['paths', 'programs', 'courses', 'registrations', 'certificates'],
+            ],
+            [
+                'key' => 'volunteer',
+                'label' => 'التطوع',
+                'description' => 'الفرص وساعات التطوع',
+                'group_keys' => ['volunteering', 'volunteer_hours'],
+            ],
+            [
+                'key' => 'content',
+                'label' => 'المحتوى والنشر',
+                'description' => 'الأخبار والإعلام والشركاء والحوكمة',
+                'group_keys' => ['news', 'media', 'partners', 'governance', 'brand'],
+            ],
+            [
+                'key' => 'people',
+                'label' => 'المستخدمون والمستفيدون',
+                'description' => 'إدارة الحسابات وبيانات المستفيدين والمرشحين',
+                'group_keys' => ['users', 'beneficiaries', 'identity_sensitive', 'candidate_pool', 'exports'],
+            ],
+            [
+                'key' => 'compliance',
+                'label' => 'الخصوصية والأمان',
+                'description' => 'سياسات الخصوصية والاحتفاظ والسجلات والتنبيهات',
+                'group_keys' => ['privacy', 'retention', 'logs', 'comms'],
+            ],
+        ];
+    }
+
+    /**
+     * @return list<array{section: array{key: string, label: string, description: string}, groups: list<array>}>
+     */
+    public static function sectionsWithGroups(): array
+    {
+        $byKey = [];
+        foreach (self::groups() as $group) {
+            $byKey[$group['key']] = $group;
+        }
+
+        $out = [];
+        foreach (self::sections() as $section) {
+            $groups = [];
+            foreach ($section['group_keys'] as $key) {
+                if (isset($byKey[$key])) {
+                    $groups[] = $byKey[$key];
+                }
+            }
+            if ($groups === []) {
+                continue;
+            }
+            $out[] = [
+                'section' => [
+                    'key' => $section['key'],
+                    'label' => $section['label'],
+                    'description' => $section['description'],
+                ],
+                'groups' => $groups,
+            ];
+        }
+
+        return $out;
+    }
+
     /** @return array<string, string> */
     public static function actionLabelsAr(): array
     {

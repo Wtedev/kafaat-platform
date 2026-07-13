@@ -11,9 +11,6 @@ use Filament\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Collection;
 
-/**
- * @property-read Collection<int, User> $staffUsers
- */
 class StaffPermissionMatrix extends Page
 {
     protected static ?string $slug = 'staff-permissions';
@@ -32,10 +29,19 @@ class StaffPermissionMatrix extends Page
 
     public ?int $activeStaffId = null;
 
+    public string $staffSearch = '';
+
+    public bool $isDirty = false;
+
     /**
      * @var array<string, array<string, bool>>
      */
     public array $matrix = [];
+
+    /**
+     * @var array<string, array<string, bool>>
+     */
+    public array $savedMatrix = [];
 
     public static function canAccess(): bool
     {
@@ -69,7 +75,7 @@ class StaffPermissionMatrix extends Page
      */
     public function staffUsers(): Collection
     {
-        return User::query()
+        $query = User::query()
             ->where('is_active', true)
             ->where(function ($q): void {
                 $q->where('role_type', RbacCatalog::ROLE_STAFF)
@@ -78,15 +84,53 @@ class StaffPermissionMatrix extends Page
             ->whereDoesntHave('roles', fn ($r) => $r->where('name', RbacCatalog::ROLE_ADMIN))
             ->where('role_type', '!=', RbacCatalog::ROLE_ADMIN)
             ->orderBy('name')
-            ->get(['id', 'name', 'email', 'role_type']);
+            ->orderBy('email');
+
+        $search = trim($this->staffSearch);
+        if ($search !== '') {
+            $query->where(function ($q) use ($search): void {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        return $query->get(['id', 'name', 'email', 'role_type', 'staff_photo']);
+    }
+
+    public function updatedStaffSearch(): void
+    {
+        // البحث يعيد رسم القائمة فقط
     }
 
     public function selectStaff(int $staffId): void
     {
+        if ($this->isDirty && $this->activeStaffId !== null && $this->activeStaffId !== $staffId) {
+            Notification::make()
+                ->warning()
+                ->title('توجد تعديلات غير محفوظة')
+                ->body('احفظ الصلاحيات أولاً أو ألغِ التعديلات قبل الانتقال لموظف آخر.')
+                ->send();
+
+            return;
+        }
+
         $staff = $this->resolveStaff($staffId);
         $this->activeStaffId = $staff->id;
-        $owned = $staff->getAllPermissions()->pluck('name')->all();
+        $owned = $staff->getPermissionNames()->all();
         $this->matrix = PermissionMatrixCatalog::checkboxStateFromPermissions($owned);
+        $this->savedMatrix = $this->matrix;
+        $this->isDirty = false;
+    }
+
+    public function discardChanges(): void
+    {
+        $this->matrix = $this->savedMatrix;
+        $this->isDirty = false;
+
+        Notification::make()
+            ->info()
+            ->title('تم التراجع عن التعديلات')
+            ->send();
     }
 
     public function toggleGroup(string $groupKey): void
@@ -110,6 +154,7 @@ class StaffPermissionMatrix extends Page
         }
 
         $this->refreshGroupAll($groupKey);
+        $this->isDirty = true;
     }
 
     public function toggleAction(string $groupKey, string $action): void
@@ -125,6 +170,7 @@ class StaffPermissionMatrix extends Page
 
         $this->matrix[$groupKey][$action] = ! ($this->matrix[$groupKey][$action] ?? false);
         $this->refreshGroupAll($groupKey);
+        $this->isDirty = true;
     }
 
     public function save(): void
@@ -144,13 +190,14 @@ class StaffPermissionMatrix extends Page
             auth()->user(),
         );
 
+        $this->savedMatrix = $this->matrix;
+        $this->isDirty = false;
+
         Notification::make()
             ->success()
-            ->title('تم حفظ صلاحيات الموظف')
-            ->body('تم تحديث مصفوفة الصلاحيات لـ '.$staff->name)
+            ->title('تم حفظ الصلاحيات')
+            ->body('تم تحديث صلاحيات «'.$staff->name.'» بنجاح.')
             ->send();
-
-        $this->selectStaff($staff->id);
     }
 
     public function grantAll(): void
@@ -170,6 +217,8 @@ class StaffPermissionMatrix extends Page
             }
             $this->refreshGroupAll($group['key']);
         }
+
+        $this->isDirty = true;
     }
 
     public function clearAll(): void
@@ -185,20 +234,43 @@ class StaffPermissionMatrix extends Page
             }
             $this->refreshGroupAll($group['key']);
         }
+
+        $this->isDirty = true;
     }
 
     /**
-     * @return list<array{key: string, label: string, actions: array}>
+     * @return list<array{section: array{key: string, label: string, description: string}, groups: list<array>}>
      */
-    public function groups(): array
+    public function sectionsWithGroups(): array
     {
-        return PermissionMatrixCatalog::groups();
+        return PermissionMatrixCatalog::sectionsWithGroups();
     }
 
     /** @return array<string, string> */
     public function actionLabels(): array
     {
         return PermissionMatrixCatalog::actionLabelsAr();
+    }
+
+    public function activePermissionCount(): int
+    {
+        return count(PermissionMatrixCatalog::permissionsFromCheckboxState($this->matrix));
+    }
+
+    public function totalAssignableCount(): int
+    {
+        return count(PermissionMatrixCatalog::assignablePermissionNames());
+    }
+
+    public function activeStaff(): ?User
+    {
+        if ($this->activeStaffId === null) {
+            return null;
+        }
+
+        return User::query()
+            ->select(['id', 'name', 'email', 'role_type', 'staff_photo'])
+            ->find($this->activeStaffId);
     }
 
     private function refreshGroupAll(string $groupKey): void
