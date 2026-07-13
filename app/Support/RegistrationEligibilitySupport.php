@@ -28,7 +28,7 @@ class RegistrationEligibilitySupport
             return 'بانتظار البيانات';
         }
 
-        return self::isEligible($attendancePercentage, $score) ? 'مؤهل' : 'غير مؤهل';
+        return self::isEligible($attendancePercentage, $score) ? 'مؤهل' : 'غير مؤهل حتى الآن';
     }
 
     public static function eligibilityColor(?float $attendancePercentage, ?float $score): string
@@ -37,7 +37,7 @@ class RegistrationEligibilitySupport
 
         return match ($label) {
             'مؤهل' => 'success',
-            'غير مؤهل' => 'danger',
+            'غير مؤهل حتى الآن', 'غير مؤهل' => 'danger',
             default => 'warning',
         };
     }

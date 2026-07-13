@@ -15,6 +15,8 @@
         <p class="mt-2 max-w-2xl text-sm leading-relaxed text-gray-600">ملفك المهني — أضف خبراتك ومؤهلاتك، وادمج إنجازاتك من المنصة، ثم صدّر سيرتك بصيغة PDF.</p>
     </section>
 
+    @include('portal.competency.partials.completion-banner')
+
     @if ($errors->any())
     <div class="mb-5 rounded-2xl {{ config('brand.classes.alert_danger') }}">
         <ul class="list-inside list-disc space-y-1 text-right">
@@ -26,7 +28,9 @@
     @endif
 
     @include('portal.competency.partials.hero')
-    @include('portal.competency.partials.sections-builder')
+    <div id="competency-sections">
+        @include('portal.competency.partials.sections-builder')
+    </div>
 
     @php $cvL = $cvLabels ?? []; $platVis = $profile?->cvSectionVisible('platform') ?? true; @endphp
     <section class="mb-5 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">

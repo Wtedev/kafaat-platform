@@ -73,7 +73,7 @@ RegistrationStatus::Completed->value => 'مكتمل',
                     @if ($attOk && $scoreOk)
                     <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ config('brand.classes.badge_secondary') }}">مؤهل ✓</span>
                     @else
-                    <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ config('brand.classes.badge_danger') }}">غير مؤهل</span>
+                    <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ config('brand.classes.badge_danger') }}">غير مؤهل حتى الآن</span>
                     @endif
                     @else
                     <span class="text-xs text-gray-400">—</span>

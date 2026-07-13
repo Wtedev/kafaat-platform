@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\VolunteerOpportunity;
 use App\Services\CandidatePool\CandidatePoolConsentService;
 use App\Services\CandidatePool\CandidatePoolConsentVersionService;
+use App\Support\CompetencyDataCompleteness;
 
 final class CompetencyProfilePresenter
 {
@@ -91,6 +92,7 @@ final class CompetencyProfilePresenter
             'employmentConsentGranted' => $user->candidatePoolPreference?->current_status?->value === 'granted',
             'employmentConsentAvailable' => CandidatePoolConsentVersionService::activeVersion() !== null,
             'employmentConsentText' => app(CandidatePoolConsentService::class)->consentText(),
+            'competencyCompleteness' => CompetencyDataCompleteness::forUser($user),
         ];
     }
 
