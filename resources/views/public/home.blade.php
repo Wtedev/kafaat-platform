@@ -117,6 +117,188 @@
             box-shadow: 0 24px 48px rgba(37, 59, 91, 0.12);
         }
 
+        /* ── Homepage hero ─────────────────────────────────────────────── */
+        .home-hero {
+            --hero-navy: #243a55;
+            --hero-brand: #335483;
+            --hero-teal: #1a9399;
+            position: relative;
+            isolation: isolate;
+            min-height: min(92vh, 820px);
+            display: flex;
+            align-items: flex-end;
+            overflow: hidden;
+            color: #fff;
+            background: var(--hero-navy);
+        }
+
+        .home-hero__media {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+        }
+
+        .home-hero__img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: 28% 40%;
+            transform: scale(1.06);
+            animation: home-hero-ken 18s ease-out forwards;
+        }
+
+        .home-hero__veil {
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(105deg,
+                    rgba(36, 58, 85, 0.22) 0%,
+                    rgba(36, 58, 85, 0.55) 42%,
+                    rgba(36, 58, 85, 0.88) 68%,
+                    rgba(27, 44, 66, 0.94) 100%),
+                linear-gradient(180deg,
+                    rgba(36, 58, 85, 0.35) 0%,
+                    transparent 28%,
+                    rgba(36, 58, 85, 0.5) 100%);
+        }
+
+        .home-hero__glow {
+            position: absolute;
+            width: 42vw;
+            max-width: 480px;
+            height: 42vw;
+            max-height: 480px;
+            border-radius: 50%;
+            right: -8%;
+            bottom: -18%;
+            background: radial-gradient(circle, rgba(26, 147, 153, 0.28) 0%, transparent 68%);
+            pointer-events: none;
+            animation: home-hero-glow 7s ease-in-out infinite alternate;
+        }
+
+        .home-hero__content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            padding: clamp(5.5rem, 12vh, 7.5rem) 0 clamp(3.25rem, 8vh, 5.5rem);
+        }
+
+        .home-hero__brand {
+            opacity: 0;
+            transform: translateY(18px);
+            animation: home-hero-rise 0.85s cubic-bezier(.22, 1, .36, 1) 0.12s forwards;
+        }
+
+        .home-hero__brand-rule {
+            width: 2.75rem;
+            height: 3px;
+            border-radius: 9999px;
+            background: linear-gradient(90deg, var(--hero-teal), rgba(26, 147, 153, 0.15));
+            transform-origin: right center;
+            animation: home-hero-rule 0.9s cubic-bezier(.22, 1, .36, 1) 0.45s both;
+        }
+
+        .home-hero__copy {
+            opacity: 0;
+            transform: translateY(22px);
+            animation: home-hero-rise 0.9s cubic-bezier(.22, 1, .36, 1) 0.28s forwards;
+        }
+
+        .home-hero__actions {
+            opacity: 0;
+            transform: translateY(18px);
+            animation: home-hero-rise 0.9s cubic-bezier(.22, 1, .36, 1) 0.48s forwards;
+        }
+
+        .home-hero__cta-primary {
+            background: #fff;
+            color: var(--hero-brand);
+            box-shadow: 0 10px 28px rgba(16, 30, 48, 0.22);
+        }
+
+        .home-hero__cta-primary:hover {
+            background: #f3f7fb;
+            transform: translateY(-2px);
+            box-shadow: 0 14px 32px rgba(16, 30, 48, 0.28);
+        }
+
+        .home-hero__cta-secondary {
+            color: #fff;
+            border: 1.5px solid rgba(255, 255, 255, 0.55);
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(6px);
+        }
+
+        .home-hero__cta-secondary:hover {
+            background: rgba(255, 255, 255, 0.14);
+            border-color: rgba(255, 255, 255, 0.85);
+            transform: translateY(-2px);
+        }
+
+        @keyframes home-hero-ken {
+            from { transform: scale(1.06); }
+            to { transform: scale(1); }
+        }
+
+        @keyframes home-hero-rise {
+            from { opacity: 0; transform: translateY(22px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes home-hero-rule {
+            from { transform: scaleX(0); opacity: 0; }
+            to { transform: scaleX(1); opacity: 1; }
+        }
+
+        @keyframes home-hero-glow {
+            from { opacity: 0.55; transform: translateY(0); }
+            to { opacity: 1; transform: translateY(-12px); }
+        }
+
+        @media (max-width: 1023px) {
+            .home-hero {
+                min-height: min(88vh, 720px);
+                align-items: flex-end;
+            }
+
+            .home-hero__img {
+                object-position: 22% 35%;
+            }
+
+            .home-hero__veil {
+                background:
+                    linear-gradient(180deg,
+                        rgba(36, 58, 85, 0.35) 0%,
+                        rgba(36, 58, 85, 0.55) 38%,
+                        rgba(27, 44, 66, 0.92) 72%,
+                        rgba(27, 44, 66, 0.97) 100%);
+            }
+
+            .home-hero__glow {
+                width: 70vw;
+                height: 70vw;
+                right: -20%;
+                bottom: -10%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .home-hero__img,
+            .home-hero__brand,
+            .home-hero__brand-rule,
+            .home-hero__copy,
+            .home-hero__actions,
+            .home-hero__glow {
+                animation: none !important;
+                opacity: 1;
+                transform: none;
+            }
+
+            .home-hero__img {
+                transform: scale(1);
+            }
+        }
+
     </style>
 </head>
 <body class="bg-[#F7FAFC] text-[#111827] antialiased font-sans">
@@ -151,116 +333,58 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 2. HERO SECTION                                                     --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section style="background: linear-gradient(150deg, #EEF5FB 0%, #F3F7FB 55%, #e9eff6 100%)">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
-            <div class="flex flex-col lg:flex-row items-center gap-16">
+    <section class="home-hero" aria-label="مقدمة الصفحة">
+        <div class="home-hero__media" aria-hidden="true">
+            <img
+                class="home-hero__img"
+                src="{{ asset('images/home/hero.jpg') }}"
+                alt=""
+                width="1920"
+                height="1280"
+                fetchpriority="high"
+                decoding="async"
+            />
+            <div class="home-hero__veil"></div>
+            <div class="home-hero__glow"></div>
+        </div>
 
-                {{-- ── Text (first child = RIGHT in RTL) ── --}}
-                <div class="w-full lg:w-[54%] text-right">
+        <div class="home-hero__content">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="max-w-xl lg:max-w-2xl text-right">
 
-                    {{-- Pill badge --}}
-                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-medium mb-6 border" style="background:#e9eff6; color:#335483; border-color:#c5d4e4">
-                        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#1a9399"></span>
-                        جمعية كفاءات لبناء قدرات الشباب
+                    <div class="home-hero__brand mb-7">
+                        <img
+                            src="{{ asset(config('brand.logos.kafaat_white')) }}"
+                            alt="كفاءات"
+                            class="h-14 sm:h-16 lg:h-[4.5rem] w-auto"
+                            width="200"
+                            height="72"
+                        />
+                        <p class="mt-4 text-sm sm:text-base font-medium tracking-wide text-white/80">
+                            جمعية كفاءات لبناء قدرات الشباب
+                        </p>
+                        <div class="home-hero__brand-rule mt-4" aria-hidden="true"></div>
                     </div>
 
-                    {{-- Headline --}}
-                    <h1 class="text-4xl sm:text-5xl lg:text-[3.4rem] font-bold leading-snug mb-5" style="color:#111827">
-                        نُمكّن الشباب… و<span style="color:#335483">نصنع الأثر</span>
-                    </h1>
+                    <div class="home-hero__copy">
+                        <h1 class="text-4xl sm:text-5xl lg:text-[3.55rem] font-bold leading-[1.25] text-white mb-5">
+                            نُمكّن الشباب… ونصنع الأثر
+                        </h1>
+                        <p class="text-base sm:text-lg leading-relaxed text-white/75 max-w-lg mb-9">
+                            نؤهّل الشباب ونبني مهاراتهم، ونوسّع مشاركتهم المجتمعية عبر برامج تدريبية وفرص تطوعية وشراكات مستدامة.
+                        </p>
+                    </div>
 
-                    {{-- Subtitle --}}
-                    <p class="text-lg leading-relaxed mb-8 max-w-lg" style="color:#6B7280">
-                        جمعية أهلية تعمل على تأهيل الشباب وبناء مهاراتهم، وتوسيع مشاركتهم المجتمعية عبر برامج تدريبية وفرص تطوعية وشراكات مؤسسية في خدمة المجتمع.
-                    </p>
-
-                    {{-- CTA Buttons --}}
-                    <div class="flex flex-wrap gap-4 mb-10">
-                        <a href="#programs" class="px-7 py-3.5 rounded-2xl text-base font-semibold text-white shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5" style="background: linear-gradient(135deg, #335483 0%, #406688 100%)">
+                    <div class="home-hero__actions flex flex-wrap gap-3 sm:gap-4">
+                        <a href="#programs" class="home-hero__cta-primary inline-flex items-center justify-center px-7 py-3.5 rounded-2xl text-base font-semibold transition-all duration-200">
                             استكشف برامجنا
                         </a>
-                        <a href="{{ $homeAboutHref }}" class="px-7 py-3.5 rounded-2xl text-base font-semibold border-2 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#e9eff6]" style="color:#335483; border-color:#c5d4e4">
+                        <a href="{{ $homeAboutHref }}" class="home-hero__cta-secondary inline-flex items-center justify-center px-7 py-3.5 rounded-2xl text-base font-semibold transition-all duration-200">
                             عن الجمعية
                         </a>
                     </div>
 
-                    {{-- Trust indicators --}}
-                    <div class="flex flex-wrap gap-5 text-sm" style="color:#6B7280">
-                        @foreach(['برامج تأهيل وتدريب', 'فرص تطوع مجتمعي', 'شراكات وأثر مستدام'] as $trust)
-                        <div class="flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#1a9399"></span>
-                            {{ $trust }}
-                        </div>
-                        @endforeach
-                    </div>
                 </div>
-
-                {{-- ── مجالات عمل الجمعية (second child = LEFT in RTL) ── --}}
-                <div class="w-full lg:w-[46%] flex justify-center lg:justify-start">
-                    <div class="relative w-full max-w-md">
-
-                        <div class="absolute inset-6 rounded-3xl blur-2xl opacity-50" style="background:radial-gradient(ellipse,#c5d4e4,transparent)"></div>
-
-                        <div class="relative bg-white rounded-3xl shadow-2xl p-7 space-y-4 border border-white">
-
-                            <div class="flex items-center justify-between pb-4 border-b border-gray-100">
-                                <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:#e9eff6">
-                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#335483">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-xs mb-0.5" style="color:#6B7280">مجالات عملنا</p>
-                                    <p class="text-sm font-bold" style="color:#111827">في خدمة الشباب والمجتمع</p>
-                                </div>
-                            </div>
-
-                            @php
-                            $heroAreas = [
-                            [
-                            'title' => 'البرامج',
-                            'desc' => 'دورات وورش ولقاءات',
-                            'href' => route('public.programs.track', \App\Enums\CompetencyTrack::Self),
-                            'color' => $selfTrackColor,
-                            'bg' => $selfTrackBg,
-                            ],
-                            [
-                            'title' => 'الفرص التطوعية',
-                            'desc' => 'شارك في خدمة المجتمع',
-                            'href' => route('public.volunteering.index'),
-                            'color' => '#ec6056',
-                            'bg' => '#fdeeed',
-                            ],
-                            ];
-                            @endphp
-
-                            @foreach($heroAreas as $area)
-                            <a href="{{ $area['href'] }}" class="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 transition-all hover:border-[#c5d4e4] hover:shadow-sm group">
-                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style="background:{{ $area['bg'] }}">
-                                    <span class="h-3 w-3 rounded-full" style="background:{{ $area['color'] }}"></span>
-                                </div>
-                                <div class="min-w-0 flex-1 text-right">
-                                    <p class="text-sm font-bold" style="color:#111827">{{ $area['title'] }}</p>
-                                    <p class="mt-0.5 text-xs" style="color:#6B7280">{{ $area['desc'] }}</p>
-                                </div>
-                                <svg class="h-4 w-4 rotate-180 opacity-30 transition-opacity group-hover:opacity-70" style="color:{{ $area['color'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                            </a>
-                            @endforeach
-                        </div>
-
-                        <div class="absolute -bottom-4 -left-4 bg-white rounded-2xl shadow-lg px-4 py-3 flex items-center gap-3 border border-gray-50">
-                            <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#e9eff6">
-                                <svg class="w-4 h-4" style="color:#335483" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                            </div>
-                            <div>
-                                <p class="text-xs font-semibold text-gray-800">منذ تأسيسنا</p>
-                                <p class="text-xs" style="color:#6B7280">نخدم الشباب والمجتمع</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
     </section>
