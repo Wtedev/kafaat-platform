@@ -13,7 +13,7 @@ use App\Models\User;
 final class InboxNotificationDisplay
 {
     /**
-     * @return array{message: string|null, whatsapp_url: string|null}
+     * @return array{heading: string, message: string|null, whatsapp_url: string|null}
      */
     public static function present(InboxNotification $notification, ?User $viewer = null): array
     {
@@ -35,9 +35,24 @@ final class InboxNotificationDisplay
         }
 
         return [
+            'heading' => self::heading($notification),
             'message' => $message,
             'whatsapp_url' => $whatsapp,
         ];
+    }
+
+    /**
+     * Small top-line label for notification rows: prefer title; fall back to type label.
+     * Avoids duplicating type label when it matches the title.
+     */
+    public static function heading(InboxNotification $notification): string
+    {
+        $title = is_string($notification->title) ? trim($notification->title) : '';
+        if ($title !== '') {
+            return $title;
+        }
+
+        return $notification->type->arabicLabel();
     }
 
     private static function whatsappUrlFromContext(InboxNotification $notification): ?string

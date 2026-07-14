@@ -6,6 +6,7 @@ use App\Support\InboxNotificationDisplay;
 $display = InboxNotificationDisplay::present($n, auth()->user());
 $displayMessage = $display['message'];
 $whatsappUrl = $display['whatsapp_url'];
+$heading = $display['heading'];
 
 $inboxOpenUrl = \App\Filament\Support\InboxNotificationRecordActions::inboxOpenUrl(auth()->user(), $n);
 $inboxOpenLabel = \App\Filament\Support\InboxNotificationRecordActions::inboxOpenLabel(auth()->user(), $n);
@@ -92,7 +93,7 @@ $typeIconKind = match ($n->type) {
         <div class="min-w-0 flex-1 text-right">
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <div class="flex flex-wrap items-center gap-1.5">
-                    <span class="text-[11px] font-semibold text-gray-500">{{ $n->type->arabicLabel() }}</span>
+                    <span class="text-[11px] font-medium text-gray-500">{{ $heading }}</span>
                     @if ($isUnread)
                         <span class="inline-flex items-center gap-1 rounded-md bg-[#e6f5f6] px-1.5 py-0.5 text-[10px] font-bold text-brand-secondary">
                             <span class="h-1.5 w-1.5 rounded-full bg-brand-secondary" aria-hidden="true"></span>
@@ -105,13 +106,11 @@ $typeIconKind = match ($n->type) {
                 </time>
             </div>
 
-            <h2 @class(['font-bold leading-snug text-gray-900', 'mt-1 text-sm' => $compact, 'mt-1.5 text-base sm:text-[1.05rem]' => ! $compact])>{{ $n->title }}</h2>
-
             @if ($displayMessage)
                 <p @class([
                     'leading-relaxed text-gray-600 whitespace-pre-wrap',
                     'mt-1 line-clamp-2 text-xs' => $compact,
-                    'mt-2 text-sm' => ! $compact,
+                    'mt-1.5 text-sm' => ! $compact,
                 ])>{{ $displayMessage }}</p>
             @endif
 
