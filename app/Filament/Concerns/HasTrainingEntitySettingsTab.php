@@ -416,21 +416,42 @@ trait HasTrainingEntitySettingsTab
 
             $this->callHook('beforeValidate');
 
-            $data = $this->form->getState(afterValidate: function (): void {
+            $scopedFieldKeys = method_exists($this, 'resolveInlineEditPersistFieldKeys')
+                ? $this->resolveInlineEditPersistFieldKeys()
+                : null;
+
+            if ($scopedFieldKeys !== null) {
                 $this->callHook('afterValidate');
                 $this->callHook('beforeSave');
-            });
 
-            $data = TrainingEntityFormSupport::mergeNonDehydratedFormFlags(
-                $data,
-                $this->form->getRawState(),
-                [
-                    'is_linked_to_path',
-                    'capacity_unlimited',
-                    'notify_audience',
-                    'publish_immediately',
-                ],
-            );
+                $raw = is_array($this->form->getRawState()) ? $this->form->getRawState() : [];
+                $data = TrainingEntityFormSupport::mergeNonDehydratedFormFlags(
+                    array_merge($raw, $this->pendingInlineEditOverrides ?? []),
+                    $raw,
+                    [
+                        'is_linked_to_path',
+                        'capacity_unlimited',
+                        'notify_audience',
+                        'publish_immediately',
+                    ],
+                );
+            } else {
+                $data = $this->form->getState(afterValidate: function (): void {
+                    $this->callHook('afterValidate');
+                    $this->callHook('beforeSave');
+                });
+
+                $data = TrainingEntityFormSupport::mergeNonDehydratedFormFlags(
+                    $data,
+                    $this->form->getRawState(),
+                    [
+                        'is_linked_to_path',
+                        'capacity_unlimited',
+                        'notify_audience',
+                        'publish_immediately',
+                    ],
+                );
+            }
 
             $data = $this->mutateFormDataBeforeSave($data);
 

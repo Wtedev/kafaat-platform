@@ -86,6 +86,36 @@ class TrainingProgramDescriptionInlineEditTest extends TestCase
         );
     }
 
+    public function test_description_inline_edit_save_persists_tiptap_json(): void
+    {
+        $staff = $this->staffUser();
+        $program = $this->createProgram([
+            'description' => self::TIPTAP_JSON,
+            'created_by' => $staff->id,
+            'owner_id' => $staff->id,
+        ]);
+
+        $updatedJson = '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"نص محدّث","marks":[{"type":"bold"}]}]}]}';
+
+        $this->withSession(['otp_verified' => true]);
+
+        Livewire::actingAs($staff)
+            ->test(ViewTrainingProgram::class, ['record' => $program->getKey()])
+            ->assertSuccessful()
+            ->mountAction('editEntityField', ['field' => 'description'])
+            ->setActionData(['description' => $updatedJson])
+            ->callMountedAction()
+            ->assertHasNoActionErrors()
+            ->assertNotified('تم حفظ الإعدادات بنجاح')
+            ->assertSee('نص محدّث');
+
+        $program->refresh();
+
+        $this->assertStringContainsString('"type":"doc"', (string) $program->description);
+        $this->assertStringContainsString('bold', (string) $program->description);
+        $this->assertNotSame(self::TIPTAP_JSON, $program->description);
+    }
+
     public function test_view_panel_renders_description_as_html_not_raw_json(): void
     {
         $staff = $this->staffUser();
@@ -134,7 +164,7 @@ class TrainingProgramDescriptionInlineEditTest extends TestCase
             'start_date' => Carbon::parse('2026-08-01'),
             'end_date' => Carbon::parse('2026-08-15'),
             'registration_start' => Carbon::parse('2026-07-15'),
-            'registration_end' => Carbon::parse('2026-08-20'),
+            'registration_end' => Carbon::parse('2026-08-14'),
             'capacity' => 30,
             'auto_accept_registrations' => true,
             'created_by' => $ownerId,

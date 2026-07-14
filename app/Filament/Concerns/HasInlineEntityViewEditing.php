@@ -18,6 +18,13 @@ use Throwable;
  */
 trait HasInlineEntityViewEditing
 {
+    protected ?string $pendingInlineEditField = null;
+
+    /**
+     * @var array<string, mixed>|null
+     */
+    protected ?array $pendingInlineEditOverrides = null;
+
     public function canInlineEditEntityView(): bool
     {
         return auth()->user()?->can('update', $this->getRecord()) ?? false;
@@ -183,6 +190,7 @@ trait HasInlineEntityViewEditing
         abort_if(! in_array($field, $this->getInlineEditableFieldKeys(), true), 404);
 
         try {
+            $this->pendingInlineEditField = $field;
             $this->pendingInlineEditOverrides = null;
             $this->primePendingInlineEditOverrides($data);
 
@@ -194,28 +202,34 @@ trait HasInlineEntityViewEditing
             $this->afterInlineEntityFieldEdited($field);
             $this->forceRender();
         } catch (Halt) {
-            $this->pendingInlineEditOverrides = null;
-
             return;
         } catch (ValidationException $exception) {
-            $this->pendingInlineEditOverrides = null;
-
             throw $exception;
         } catch (Throwable $exception) {
-            $this->pendingInlineEditOverrides = null;
-
             Notification::make()
                 ->title('تعذّر حفظ التعديل')
                 ->body($exception->getMessage())
                 ->danger()
                 ->send();
+        } finally {
+            $this->pendingInlineEditField = null;
+            $this->pendingInlineEditOverrides = null;
         }
     }
 
     /**
-     * @var array<string, mixed>|null
+     * When set, {@see saveTrainingEntitySettings()} validates only these keys
+     * instead of the full page form (e.g. description must not re-validate schedule).
+     *
+     * @return list<string>|null
      */
-    protected ?array $pendingInlineEditOverrides = null;
+    protected function resolveInlineEditPersistFieldKeys(): ?array
+    {
+        return match ($this->pendingInlineEditField) {
+            'description' => ['description'],
+            default => null,
+        };
+    }
 
     /**
      * @param  array<string, mixed>  $submitted

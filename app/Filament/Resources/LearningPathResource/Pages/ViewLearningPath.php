@@ -71,6 +71,14 @@ class ViewLearningPath extends BaseViewRecord
     {
         /** @var LearningPath $path */
         $path = $this->getRecord();
+        $data = $this->mergePendingInlineEditOverrides($data);
+
+        if ($this->pendingInlineEditField === 'description') {
+            return $this->stampTrainingEntityAuditFields([
+                'description' => $data['description'] ?? $path->description,
+            ]);
+        }
+
         $wantPublished = TrainingEntityFormSupport::wantsPublishedStatus($data);
 
         $data['status'] = $this->resolvePathPublicationStatus($path, $wantPublished)->value;

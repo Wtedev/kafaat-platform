@@ -88,6 +88,12 @@ class ViewTrainingProgram extends BaseViewRecord
         /** @var TrainingProgram $program */
         $program = $this->getRecord();
         $data = $this->mergePendingInlineEditOverrides($data);
+
+        if ($this->pendingInlineEditField === 'description') {
+            return $this->stampTrainingEntityAuditFields([
+                'description' => $data['description'] ?? $program->description,
+            ]);
+        }
         $wantPublished = TrainingEntityFormSupport::wantsPublishedStatus($data);
 
         $data = TrainingEntityFormSupport::mergeNonDehydratedFormFlags($data, $this->data ?? []);
