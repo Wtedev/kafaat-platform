@@ -84,12 +84,13 @@ class PartnerResource extends Resource
                     FileUpload::make('logo')
                         ->label('الشعار')
                         ->image()
-                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                        ->acceptedFileTypes(['image/png', 'image/webp', 'image/jpeg'])
                         ->maxSize(2048)
                         ->disk('public')
                         ->directory('partners')
                         ->visibility('public')
                         ->nullable()
+                        ->helperText('يفضّل PNG أو WebP بخلفية شفافة. تجنّب تحويل الشعارات الشفافة إلى JPEG (يفقد الشفافية ويملأ الخلفية بالأسود).')
                         ->columnSpanFull(),
 
                     TextInput::make('website_url')

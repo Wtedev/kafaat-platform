@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Partner;
+use App\Support\PartnerLogoNormalizer;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
@@ -128,7 +129,9 @@ class PartnerSeeder extends Seeder
 
         Storage::disk('public')->makeDirectory('partners');
 
-        Storage::disk('public')->put($relativePath, File::get($source));
+        $binary = File::get($source);
+        $normalized = PartnerLogoNormalizer::normalizeBinary($binary);
+        Storage::disk('public')->put($relativePath, $normalized ?? $binary);
 
         return $relativePath;
     }

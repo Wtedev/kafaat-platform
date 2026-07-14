@@ -354,6 +354,9 @@
             max-width: 100%;
             object-fit: contain;
             opacity: 0.92;
+            background: transparent;
+            mix-blend-mode: normal;
+            filter: none;
         }
 
         a.partners-marquee__card:hover img {
