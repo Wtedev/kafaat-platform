@@ -129,9 +129,9 @@
             align-items: flex-end;
             overflow: hidden;
             color: #fff;
-            /* Year of Impact 2026 — section background only (not foreground content) */
+            /* Abstract teal hero art — section background only (not foreground content) */
             background-color: var(--hero-navy);
-            background-image: url("{{ asset('images/home/hero-year-of-impact.jpg') }}");
+            background-image: url("{{ asset('images/home/hero-year-of-impact.png') }}");
             background-size: cover;
             background-position: left center;
             background-repeat: no-repeat;
@@ -147,17 +147,17 @@
         .home-hero__veil {
             position: absolute;
             inset: 0;
-            /* Light on the left (baked title); stronger scrim on the right for UI copy */
+            /* Soft scrim only — keep teal gradients vivid; right side is already dark in the art */
             background:
                 linear-gradient(105deg,
-                    rgba(12, 40, 48, 0.12) 0%,
-                    rgba(12, 40, 48, 0.28) 36%,
-                    rgba(18, 42, 58, 0.72) 66%,
-                    rgba(20, 38, 55, 0.88) 100%),
+                    rgba(12, 40, 48, 0.04) 0%,
+                    rgba(12, 40, 48, 0.08) 40%,
+                    rgba(18, 42, 58, 0.32) 72%,
+                    rgba(20, 38, 55, 0.48) 100%),
                 linear-gradient(180deg,
-                    rgba(12, 40, 48, 0.15) 0%,
-                    transparent 32%,
-                    rgba(18, 42, 58, 0.55) 100%);
+                    transparent 0%,
+                    transparent 48%,
+                    rgba(18, 42, 58, 0.28) 100%);
         }
 
         .home-hero__glow {
@@ -252,17 +252,17 @@
             .home-hero {
                 min-height: min(88vh, 720px);
                 align-items: flex-end;
-                background-image: url("{{ asset('images/home/hero-year-of-impact-mobile.jpg') }}");
+                background-image: url("{{ asset('images/home/hero-year-of-impact-mobile.png') }}");
                 background-position: center top;
             }
 
             .home-hero__veil {
                 background:
                     linear-gradient(180deg,
-                        rgba(12, 40, 48, 0.08) 0%,
-                        rgba(12, 40, 48, 0.2) 28%,
-                        rgba(18, 42, 58, 0.78) 62%,
-                        rgba(16, 34, 48, 0.94) 100%);
+                        transparent 0%,
+                        transparent 42%,
+                        rgba(18, 42, 58, 0.28) 68%,
+                        rgba(16, 34, 48, 0.52) 100%);
             }
 
             .home-hero__glow {
@@ -498,7 +498,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <section class="home-hero" aria-label="مقدمة الصفحة">
         <div class="home-hero__media" aria-hidden="true">
-            {{-- Section CSS background-image carries Year of Impact art; veil keeps copy readable --}}
+            {{-- Section CSS background-image; light veil keeps copy readable without muddying the teal --}}
             <div class="home-hero__veil"></div>
             <div class="home-hero__glow"></div>
         </div>
