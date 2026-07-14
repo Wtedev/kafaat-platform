@@ -327,8 +327,7 @@
             align-items: center;
             justify-content: center;
             width: 9.5rem;
-            min-height: 6.75rem;
-            padding: 0.75rem 0.5rem;
+            padding: 0.5rem 0.5rem;
             border: none;
             border-radius: 0;
             background: transparent;
@@ -345,33 +344,12 @@
         /* Logos as uploaded — object-contain only, no blend/filter/tiles. */
         .partners-marquee__card img {
             display: block;
-            max-height: 2.75rem;
+            max-height: 3rem;
             width: auto;
             max-width: 100%;
             height: auto;
             object-fit: contain;
             object-position: center;
-        }
-
-        .partners-marquee__name {
-            margin-top: 0.65rem;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-align: center;
-            font-size: 0.7rem;
-            line-height: 1.35;
-            font-weight: 500;
-            color: #6B7280;
-        }
-
-        .partners-marquee__name--solo {
-            margin-top: 0;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #335483;
-            -webkit-line-clamp: 3;
         }
 
         @keyframes partners-marquee-scroll {
@@ -387,16 +365,11 @@
 
             .partners-marquee__card {
                 width: 11rem;
-                min-height: 7.5rem;
-                padding: 0.9rem 0.65rem;
+                padding: 0.65rem 0.65rem;
             }
 
             .partners-marquee__card img {
-                max-height: 3.25rem;
-            }
-
-            .partners-marquee__name {
-                font-size: 0.75rem;
+                max-height: 3.5rem;
             }
         }
 
@@ -407,7 +380,6 @@
 
             .partners-marquee__card {
                 width: 12rem;
-                min-height: 8rem;
             }
         }
 
@@ -872,6 +844,7 @@
                         $logoUrl = $partner->logoPublicUrl();
                         $hasLink = filled($partner->website_url) && ! $isClone;
                     @endphp
+                    @if ($logoUrl)
                     @if ($hasLink)
                     <a
                         href="{{ $partner->website_url }}"
@@ -880,22 +853,13 @@
                         class="partners-marquee__card"
                         dir="rtl"
                     >
-                        @if ($logoUrl)
                         <img src="{{ $logoUrl }}" alt="{{ $partner->name }}" loading="lazy" decoding="async" />
-                        <span class="partners-marquee__name">{{ $partner->name }}</span>
-                        @else
-                        <span class="partners-marquee__name partners-marquee__name--solo">{{ $partner->name }}</span>
-                        @endif
                     </a>
                     @else
                     <div class="partners-marquee__card" dir="rtl" @if ($isClone) tabindex="-1" @endif>
-                        @if ($logoUrl)
                         <img src="{{ $logoUrl }}" alt="{{ $isClone ? '' : $partner->name }}" loading="lazy" decoding="async" />
-                        <span class="partners-marquee__name">{{ $partner->name }}</span>
-                        @else
-                        <span class="partners-marquee__name partners-marquee__name--solo">{{ $partner->name }}</span>
-                        @endif
                     </div>
+                    @endif
                     @endif
                     @endforeach
                 </div>
