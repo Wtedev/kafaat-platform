@@ -7,29 +7,13 @@ use App\Services\Operations\ErrorPageHitRecorder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+/**
+ * Legacy daily counter helpers remain for historical rows in error_page_hits.
+ * New HTML error traffic is recorded in error_page_visits (see ErrorPageVisitsSystemTest).
+ */
 class ErrorPageHitRecordingTest extends TestCase
 {
     use RefreshDatabase;
-
-    public function test_html_404_increments_daily_counter(): void
-    {
-        $this->get('/this-route-definitely-does-not-exist-'.uniqid())
-            ->assertNotFound();
-
-        $row = ErrorPageHit::query()->where('status', 404)->first();
-
-        $this->assertNotNull($row);
-        $this->assertSame(1, (int) $row->hits);
-        $this->assertTrue($row->day->isToday());
-    }
-
-    public function test_json_404_is_not_counted(): void
-    {
-        $this->getJson('/api-missing-'.uniqid())
-            ->assertNotFound();
-
-        $this->assertSame(0, ErrorPageHit::query()->count());
-    }
 
     public function test_summarize_groups_gateway_and_server_statuses(): void
     {
@@ -45,6 +29,7 @@ class ErrorPageHitRecordingTest extends TestCase
         $this->assertSame(1, $summary['not_found']);
         $this->assertSame(2, $summary['server_error']);
         $this->assertSame(2, $summary['gateway']);
+        $this->assertSame(5, ErrorPageHit::query()->count());
     }
 
     public function test_static_gateway_unavailable_page_exists_for_edge_proxy_use(): void

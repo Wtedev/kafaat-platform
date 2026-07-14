@@ -2,15 +2,16 @@
 
 namespace App\Http\Middleware;
 
-use App\Services\Operations\ErrorPageHitRecorder;
+use App\Services\Operations\ErrorPageVisitRecorder;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class RecordErrorPageHit
 {
     public function __construct(
-        private readonly ErrorPageHitRecorder $recorder,
+        private readonly ErrorPageVisitRecorder $recorder,
     ) {}
 
     public function handle(Request $request, Closure $next): Response
@@ -18,34 +19,17 @@ class RecordErrorPageHit
         /** @var Response $response */
         $response = $next($request);
 
-        if ($this->shouldRecord($request, $response)) {
-            $this->recorder->record($response->getStatusCode());
+        try {
+            $exception = $request->attributes->get(ErrorPageVisitRecorder::EXCEPTION_ATTRIBUTE);
+            $this->recorder->recordFromResponse(
+                $request,
+                $response,
+                $exception instanceof Throwable ? $exception : null,
+            );
+        } catch (Throwable) {
+            // Never break the response over metrics.
         }
 
         return $response;
-    }
-
-    private function shouldRecord(Request $request, Response $response): bool
-    {
-        if (! $this->recorder->shouldTrack($response->getStatusCode())) {
-            return false;
-        }
-
-        // Health / probe traffic must never pollute visitor error stats.
-        if ($request->is('up')) {
-            return false;
-        }
-
-        // Count browser-style HTML error pages, not JSON/API or asset probes.
-        if ($request->expectsJson()) {
-            return false;
-        }
-
-        $contentType = (string) $response->headers->get('Content-Type', '');
-        if ($contentType !== '' && ! str_contains($contentType, 'text/html')) {
-            return false;
-        }
-
-        return true;
     }
 }

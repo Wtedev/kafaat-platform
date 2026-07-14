@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ar-SA-u-nu-latn" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <!-- Optional auto-retry when origin may be recovering -->
+    <meta http-equiv="refresh" content="120" />
+    <title>الخدمة غير متاحة مؤقتًا — كفاءات</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <!--
+      EMERGENCY FALLBACK (static)
+
+      This page is intentionally independent of Laravel, Redis, and the database.
+      Railway does NOT serve this file when the container is unreachable.
+
+      To replace Railway’s black «Application failed to respond» interstitial you MUST
+      put Cloudflare (Worker / Custom Error Page) or another reverse proxy in front of
+      the origin and serve this HTML from storage that stays up when the app is down.
+
+      See RAILWAY_ERROR_HANDLING_SETUP.md for the architecture outline (no fake config).
+    -->
+    <main class="shell" role="main">
+        <p class="brand-name">كفاءات</p>
+        <p class="brand-sub">جمعية كفاءات لبناء قدرات الشباب</p>
+
+        <div class="card">
+            <div class="code" aria-hidden="true">503</div>
+            <h1>الخدمة غير متاحة مؤقتًا</h1>
+            <p class="message">
+                نعمل على استعادة المنصة. يرجى المحاولة بعد لحظات.
+            </p>
+            <p class="hint">
+                غالبًا ما يعود الموقع للعمل خلال دقيقتين. شكراً لصبركم.
+            </p>
+            <div class="actions">
+                <a class="btn" href="/" onclick="location.reload(); return false;">إعادة المحاولة</a>
+            </div>
+        </div>
+
+        <p class="footer">منصة كفاءات</p>
+        <p class="architecture-note">
+            هذه صفحة طوارئ ثابتة للاستضافة خارج تطبيق Railway (مثل Cloudflare).
+            لا يمكن لـ Laravel استبدال صفحة الحافة عندما يكون التطبيق نفسه متوقفًا.
+        </p>
+    </main>
+</body>
+</html>

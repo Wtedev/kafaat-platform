@@ -4,7 +4,7 @@
 
 | Situation | Who serves the page | Branded Arabic page? | Counted in Filament stats? |
 |-----------|---------------------|----------------------|----------------------------|
-| Laravel returns 404 / 500 / 502 / 503 / 504 / 505 | App (`resources/views/errors/*`) | Yes | Yes |
+| Laravel returns 403 / 404 / 419 / 429 / 500 / 503 (+ 502/504/505) | App (`resources/views/errors/*`) | Yes | Yes (`error_page_visits`) |
 | Container is down, cold, or times out at the edge | **Railway edge** («Application failed to respond») | **No** (platform interstitial) | **No** — Laravel never runs |
 
 Railway does **not** natively support a custom static edge error page via `railway.toml` / `public/*.html`. When the upstream container does not respond, the proxy shows Railway’s own page before any app code runs.
@@ -18,13 +18,17 @@ Railway does **not** natively support a custom static edge error page via `railw
 
 Static branded fallback (for an **external** proxy/CDN only):
 
-- `public/gateway-unavailable.html` — copy of the Arabic wait-and-reload look.
+- `emergency-fallback/` — standalone Arabic RTL page + CSS
+- `public/gateway-unavailable.html` — same look for proxy storage
 
-Wire it with Cloudflare (or similar) Custom Error when Railway’s response includes `x-railway-fallback: true`, serving this HTML from storage that stays up when the app is down. Serving it only from this Railway volume does **not** help when the container itself is unreachable.
+Wire it with Cloudflare (or similar) Custom Error / Worker when the origin fails, serving HTML from storage that stays up when the app is down. Serving it only from this Railway volume does **not** help when the container itself is unreachable.
+
+Full setup notes: [`RAILWAY_ERROR_HANDLING_SETUP.md`](../../RAILWAY_ERROR_HANDLING_SETUP.md).
 
 ## In-app counting
 
-- Middleware `RecordErrorPageHit` increments daily rows in `error_page_hits` for HTML responses with status 404, 500–505 (tracked set).
+- `ErrorPageVisitRecorder` + middleware / exception `respond` write one row per HTML error response (once per request).
+- Sensitive query parameters are redacted; request bodies, cookies, and auth headers are never stored.
 - Staff page: **لوحة الإدارة → الأمان والامتثال → إحصاءات صفحات الأخطاء** (`/admin/error-page-stats`).
-- Cards: 404 · 500 (includes 505) · تعذّر الاستجابة / بوابة (502+503+504).
-- True Railway edge downtime cannot be beacons-counted from that page; there is no Railway logs API integration in this repo.
+- Prune: `php artisan error-pages:prune --days=90` (scheduled daily).
+- True Railway edge downtime cannot be counted from inside the app.

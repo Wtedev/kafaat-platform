@@ -9,7 +9,7 @@
 | Failed jobs | health check `failed_jobs` | count ≥ threshold |
 | Scheduler | `privacy:retention-status` | stale execute |
 
-Visitor HTML error pages (404 / 500 / gateway) are counted in `error_page_hits` and shown at `/admin/error-page-stats`. Railway’s own «Application failed to respond» edge page is **not** counted — see `docs/operations/custom-error-pages.md`.
+Visitor HTML error pages (403 / 404 / 419 / 429 / 500 / 503, plus gateway statuses) are stored in `error_page_visits` and shown at `/admin/error-page-stats`. Railway’s own «Application failed to respond» edge page is **not** counted — see `docs/operations/custom-error-pages.md` and `RAILWAY_ERROR_HANDLING_SETUP.md`.
 
 ## Security metrics (no PII)
 
