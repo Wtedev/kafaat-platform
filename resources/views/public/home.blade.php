@@ -510,15 +510,12 @@
 
                     <div class="home-hero__brand mb-6">
                         <img
-                            src="{{ asset(config('brand.logos.kafaat_white')) }}"
-                            alt="كفاءات"
-                            class="h-12 sm:h-14 lg:h-16 w-auto"
-                            width="200"
-                            height="72"
+                            src="{{ asset('images/home/hero-year-of-impact-badge.png') }}"
+                            alt="عام الأثر 2026 — The year of impact"
+                            class="h-12 sm:h-14 lg:h-16 w-auto max-w-full"
+                            width="339"
+                            height="99"
                         />
-                        <p class="mt-3 text-sm sm:text-base font-medium tracking-wide text-white/80">
-                            جمعية كفاءات لبناء قدرات الشباب
-                        </p>
                         <div class="home-hero__brand-rule mt-4" aria-hidden="true"></div>
                     </div>
 
