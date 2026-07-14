@@ -597,18 +597,42 @@
 
                 @php
                 $stats = [
-                    ['count' => 2497, 'prefix' => '+', 'suffix' => '', 'label' => 'مستفيد'],
-                    ['count' => 18, 'prefix' => '', 'suffix' => '+', 'label' => 'برامج تدريبية'],
-                    ['count' => 274, 'prefix' => '', 'suffix' => '', 'label' => 'جهة مستفيدة'],
-                    ['count' => 20, 'prefix' => '', 'suffix' => '', 'label' => 'جهات داعمة'],
-                    ['count' => 124, 'prefix' => '', 'suffix' => '', 'label' => 'فرص تطوعية'],
-                    ['count' => 1, 'prefix' => '+', 'suffix' => ' مليون', 'label' => 'الظهور الإعلامي'],
+                    ['count' => 2497, 'prefix' => '+', 'suffix' => '', 'label' => 'مستفيد', 'icon' => 'users'],
+                    ['count' => 18, 'prefix' => '', 'suffix' => '+', 'label' => 'برامج تدريبية', 'icon' => 'academic-cap'],
+                    ['count' => 274, 'prefix' => '', 'suffix' => '', 'label' => 'جهة مستفيدة', 'icon' => 'building'],
+                    ['count' => 20, 'prefix' => '', 'suffix' => '', 'label' => 'جهات داعمة', 'icon' => 'link'],
+                    ['count' => 124, 'prefix' => '', 'suffix' => '', 'label' => 'فرص تطوعية', 'icon' => 'heart-hand'],
+                    ['count' => 1, 'prefix' => '+', 'suffix' => ' مليون', 'label' => 'الظهور الإعلامي', 'icon' => 'megaphone'],
                 ];
                 @endphp
 
                 <div class="relative z-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-8">
                     @foreach($stats as $stat)
                     <div class="stat-item text-center">
+                        <div class="mx-auto mb-3 flex h-9 w-9 items-center justify-center text-white/90" aria-hidden="true">
+                            <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                @switch($stat['icon'])
+                                    @case('users')
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                                        @break
+                                    @case('academic-cap')
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-5.25 6.557a.75.75 0 001.5 0m0 0v-1.07c0-.924.357-1.806.977-2.431.62-.626 1.454-.974 2.324-.974h.898c.87 0 1.704.348 2.324.974.62.625.977 1.507.977 2.43v1.07" />
+                                        @break
+                                    @case('building')
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                                        @break
+                                    @case('link')
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                                        @break
+                                    @case('heart-hand')
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                                        @break
+                                    @case('megaphone')
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 01-1.44-4.918m3.102.085C13.001 7.55 13.5 5.68 13.5 3.75c0-.828.672-1.5 1.5-1.5h.008c.828 0 1.5.672 1.5 1.5 0 1.93.499 3.8 1.41 5.425m-4.078 7.665a20.88 20.88 0 001.44-4.918m0 0a48.116 48.116 0 015.345-.315c.55-.036.945.438.855.98a48.11 48.11 0 01-.32 2.693c-.088.495-.53.83-1.03.83h-2.87m-5.345-.315A48.3 48.3 0 007.5 15.75" />
+                                        @break
+                                @endswitch
+                            </svg>
+                        </div>
                         <div
                             class="stat-counter text-4xl font-bold text-white mb-1"
                             data-stat-count="{{ $stat['count'] }}"
