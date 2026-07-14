@@ -86,6 +86,23 @@ class TrainingProgramCreationFlowTest extends TestCase
             ->assertDontSee('"type":"doc"', false);
     }
 
+    public function test_public_show_page_hides_registration_date_range_but_keeps_status(): void
+    {
+        $program = $this->createPublishedProgram([
+            'title' => 'برنامج بفترة تسجيل',
+            'slug' => 'registration-window-hidden',
+            'registration_start' => Carbon::parse('2026-06-01'),
+            'registration_end' => Carbon::parse('2026-08-01'),
+        ]);
+
+        $this->get(route('public.programs.show', $program->slug))
+            ->assertOk()
+            ->assertSee('حالة التسجيل')
+            ->assertSee($program->registrationWindowStatusLabel())
+            ->assertDontSee('فترة التسجيل')
+            ->assertDontSee('موعد التسجيل');
+    }
+
     public function test_public_show_page_renders_program_presenters_section(): void
     {
         $program = $this->createPublishedProgram([
