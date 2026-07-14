@@ -165,14 +165,16 @@ class ViewTrainingProgram extends BaseViewRecord
      */
     protected function resolveInlineEditFormStateForFieldFromRecord(string $field): ?array
     {
-        if ($field !== 'schedule') {
-            return null;
-        }
-
         /** @var TrainingProgram $program */
         $program = $this->getRecord();
 
-        return TrainingEntityFormSupport::scheduleFormState($program);
+        return match ($field) {
+            'schedule' => TrainingEntityFormSupport::scheduleFormState($program),
+            'description' => [
+                'description' => $program->description,
+            ],
+            default => null,
+        };
     }
 
     protected function canAccessSettingsTab(): bool

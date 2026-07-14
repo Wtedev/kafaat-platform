@@ -70,6 +70,10 @@ trait HasInlineEntityViewEditing
                     return Width::TwoExtraLarge;
                 }
 
+                if ($field === 'description') {
+                    return Width::ThreeExtraLarge;
+                }
+
                 return Width::Large;
             })
             ->modalSubmitActionLabel('حفظ')

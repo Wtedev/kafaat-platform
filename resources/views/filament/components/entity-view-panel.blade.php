@@ -99,7 +99,7 @@
                                 </a>
                             @endforeach
                         @endif
-                        @if (! empty($section['field']))
+                        @if ($editable && ! empty($section['field']))
                             <button
                                 type="button"
                                 class="kafaat-entity-view__edit-btn kafaat-entity-view__edit-btn--section"
