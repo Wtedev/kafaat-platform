@@ -94,7 +94,7 @@ class TrainingProgramCreationFlowTest extends TestCase
             'competency_track' => CompetencyTrack::Community,
             'delivery_mode' => ProgramDeliveryMode::Remote,
             'program_presenters' => [
-                ['name' => 'أحمد الرفاعي', 'role' => ''],
+                ['name' => 'د. أحمد الرفاعي', 'role' => ''],
                 ['name' => 'د. محمد النصار', 'role' => ''],
             ],
         ]);
@@ -102,7 +102,7 @@ class TrainingProgramCreationFlowTest extends TestCase
         $this->get(route('public.programs.show', $program->slug))
             ->assertOk()
             ->assertSee('مقدمو البرنامج')
-            ->assertSee('أحمد الرفاعي')
+            ->assertSee('د. أحمد الرفاعي')
             ->assertSee('د. محمد النصار');
     }
 

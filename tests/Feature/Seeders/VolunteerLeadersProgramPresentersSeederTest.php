@@ -37,6 +37,31 @@ class VolunteerLeadersProgramPresentersSeederTest extends TestCase
         );
     }
 
+    public function test_updates_presenters_when_canonical_list_changes(): void
+    {
+        $program = TrainingProgram::query()->create([
+            'title' => 'قادة التطوع',
+            'program_kind' => TrainingProgramKind::Course,
+            'competency_track' => CompetencyTrack::Community,
+            'status' => ProgramStatus::Published,
+            'program_presenters' => [
+                ['name' => 'أحمد الرفاعي', 'role' => ''],
+                ['name' => 'د. محمد النصار', 'role' => ''],
+            ],
+        ]);
+
+        $this->seed(VolunteerLeadersProgramPresentersSeeder::class);
+
+        $program->refresh();
+
+        $this->assertSame(
+            TrainingProgramExtrasSupport::normalizeProgramPresenters(
+                VolunteerLeadersProgramPresentersSeeder::PRESENTERS,
+            ),
+            $program->program_presenters,
+        );
+    }
+
     public function test_re_run_is_idempotent_when_presenters_already_set(): void
     {
         $canonical = TrainingProgramExtrasSupport::normalizeProgramPresenters(

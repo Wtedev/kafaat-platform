@@ -18,7 +18,7 @@ class VolunteerLeadersProgramPresentersSeeder extends Seeder
      * @var list<array{name: string, role: string}>
      */
     public const PRESENTERS = [
-        ['name' => 'أحمد الرفاعي', 'role' => ''],
+        ['name' => 'د. أحمد الرفاعي', 'role' => ''],
         ['name' => 'د. محمد النصار', 'role' => ''],
     ];
 
