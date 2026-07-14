@@ -125,7 +125,7 @@
                                     <div class="track-program-body">
                                         <h4 class="track-program-title">{{ $program->title }}</h4>
                                         @if (filled($program->description))
-                                            <p class="track-program-desc">{{ $program->description }}</p>
+                                            <p class="track-program-desc">{{ \Illuminate\Support\Str::limit(trim(strip_tags((string) $program->description)), 140) }}</p>
                                         @endif
                                         <div class="track-program-cta">
                                             عرض البرنامج

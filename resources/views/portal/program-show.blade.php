@@ -114,7 +114,19 @@ $showQr = $isAccepted && $isInPerson && ! empty($attendance['qr_data_uri']);
 
 <div class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
     <h2 class="text-sm font-semibold text-gray-700 mb-2">نبذة عن البرنامج</h2>
-    <p class="text-gray-600 leading-relaxed whitespace-pre-line">{{ $trainingProgram->publicDescription() ?: '—' }}</p>
+    <div class="text-gray-600 leading-relaxed text-right font-sans">
+        @php
+            $programBody = (string) ($trainingProgram->publicDescription() ?: '');
+            $programIsRichHtml = $programBody !== '' && preg_match('/<[a-z][\s\S]*>/i', $programBody);
+        @endphp
+        @if ($programBody === '')
+            —
+        @elseif ($programIsRichHtml)
+            <div class="prose prose-lg max-w-none prose-headings:text-[#111827] prose-a:text-[#335483] prose-strong:text-[#111827]">{!! clean($programBody) !!}</div>
+        @else
+            <div class="whitespace-pre-line">{!! nl2br(e($programBody)) !!}</div>
+        @endif
+    </div>
 </div>
 
 @endsection

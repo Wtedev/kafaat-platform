@@ -36,6 +36,23 @@ class TrainingProgramExtrasSupportTest extends TestCase
         $this->assertStringContainsString('العمل الجماعي', $text);
     }
 
+    public function test_appends_session_topics_as_html_when_description_is_rich(): void
+    {
+        $text = TrainingProgramExtrasSupport::formatPublicDescription(
+            '<p><strong>نبذة</strong> منسّقة</p>',
+            true,
+            [
+                ['title' => 'المحور الأول', 'facilitators' => 'أ. سارة'],
+            ],
+        );
+
+        $this->assertTrue(TrainingProgramExtrasSupport::looksLikeHtml($text));
+        $this->assertStringContainsString('<p><strong>نبذة</strong> منسّقة</p>', $text);
+        $this->assertStringContainsString('program-session-topics', $text);
+        $this->assertStringContainsString('المحور الأول', $text);
+        $this->assertStringContainsString('أ. سارة', $text);
+    }
+
     public function test_resolves_whatsapp_group_by_gender_with_fallback(): void
     {
         $program = $this->makeProgram([

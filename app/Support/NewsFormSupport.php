@@ -69,14 +69,21 @@ final class NewsFormSupport
             ->helperText('قص الصور بنسبة ٥:٣ لتطابق بطاقة الخبر. يمكن رفع أكثر من صورة.');
     }
 
-    public static function contentRichEditorField(): RichEditor
-    {
-        return RichEditor::make('content')
-            ->label('نص الخبر')
-            ->required()
+    /**
+     * محرّر نص منسّق موحّد (Filament RichEditor / TipTap) — يُستخدم في الأخبار وبرامج التدريب.
+     */
+    public static function brandedRichEditorField(
+        string $name,
+        string $label,
+        bool $required = false,
+        ?string $placeholder = null,
+        ?string $helperText = null,
+    ): RichEditor {
+        $field = RichEditor::make($name)
+            ->label($label)
             ->columnSpanFull()
-            ->placeholder('ابدأ بكتابة محتوى الخبر هنا…')
-            ->helperText('انقر داخل المربع وابدأ الكتابة مباشرة. استخدم شريط الأدوات للتنسيق عند الحاجة.')
+            ->placeholder($placeholder ?? 'ابدأ الكتابة هنا…')
+            ->helperText($helperText ?? 'انقر داخل المربع وابدأ الكتابة مباشرة. استخدم شريط الأدوات للتنسيق عند الحاجة.')
             ->toolbarButtons([
                 ['bold', 'italic', 'underline', 'strike', 'subscript', 'superscript', 'textColor', 'highlight'],
                 ['link'],
@@ -98,6 +105,22 @@ final class NewsFormSupport
             ->extraAttributes([
                 'class' => 'news-content-rich-editor',
             ]);
+
+        if ($required) {
+            $field->required();
+        }
+
+        return $field;
+    }
+
+    public static function contentRichEditorField(): RichEditor
+    {
+        return self::brandedRichEditorField(
+            'content',
+            'نص الخبر',
+            required: true,
+            placeholder: 'ابدأ بكتابة محتوى الخبر هنا…',
+        );
     }
 
     /**

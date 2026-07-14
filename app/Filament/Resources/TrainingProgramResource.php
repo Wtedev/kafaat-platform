@@ -316,8 +316,21 @@ class TrainingProgramResource extends Resource
                             ->columnSpanFull(),
 
                         TextEntry::make('description')
-                            ->label('الوصف')
+                            ->label('نبذة عن البرنامج')
                             ->placeholder('—')
+                            ->html()
+                            ->formatStateUsing(function (?string $state): string {
+                                $body = trim((string) $state);
+                                if ($body === '') {
+                                    return '—';
+                                }
+
+                                if (preg_match('/<[a-z][\s\S]*>/i', $body)) {
+                                    return clean($body);
+                                }
+
+                                return nl2br(e($body));
+                            })
                             ->columnSpanFull(),
 
                         TextEntry::make('site_visibility_status')

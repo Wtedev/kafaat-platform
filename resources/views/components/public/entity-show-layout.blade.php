@@ -34,7 +34,7 @@ $hasMediaBadges = isset($mediaBadges) && ! $mediaBadges->isEmpty();
 <div class="relative mb-8 overflow-hidden rounded-3xl">
     <x-public.card-media variant="hero" :mediaContext="$mediaContext" :programKind="$programKind" :hasImage="$hasImage" :imageUrl="$imageUrl" :objectFit="$objectFit" :alt="$title" />
     @if ($hasMediaBadges)
-    <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/10 to-transparent px-4 pb-4 pt-8 sm:px-5 sm:pb-5">
+    <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 via-black/25 to-transparent px-4 pb-4 pt-16 sm:px-5 sm:pb-5">
         <div class="pointer-events-auto flex flex-wrap items-center gap-2">
             {{ $mediaBadges }}
         </div>
@@ -53,11 +53,21 @@ $hasMediaBadges = isset($mediaBadges) && ! $mediaBadges->isEmpty();
         <article class="overflow-hidden rounded-2xl bg-white">
             <div class="p-6 sm:p-8">
                 @if (filled($descriptionHeading))
-                <h2 class="mb-5 text-lg font-bold text-gray-900">{{ $descriptionHeading }}</h2>
+                <h2 class="mb-5 text-lg font-medium text-gray-900">{{ $descriptionHeading }}</h2>
                 @endif
 
                 @if (filled($description))
-                <div class="max-w-none text-[15px] leading-8 text-gray-600 sm:text-base whitespace-pre-line">{{ $description }}</div>
+                @php
+                    $descriptionBody = (string) $description;
+                    $isRichHtml = $descriptionBody !== '' && preg_match('/<[a-z][\s\S]*>/i', $descriptionBody);
+                @endphp
+                <div class="max-w-none text-[15px] leading-8 text-gray-600 sm:text-base text-right font-sans {{ $isRichHtml ? 'prose prose-lg prose-headings:text-[#111827] prose-a:text-[#335483] prose-strong:text-[#111827]' : 'whitespace-pre-line' }}" style="direction: rtl">
+                    @if ($isRichHtml)
+                        {!! clean($descriptionBody) !!}
+                    @else
+                        {!! nl2br(e($descriptionBody)) !!}
+                    @endif
+                </div>
                 @else
                 <div class="max-w-none text-[15px] leading-8 text-gray-600 sm:text-base">
                     {{ $descriptionSlot ?? '' }}

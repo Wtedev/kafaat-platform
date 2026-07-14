@@ -22,7 +22,7 @@ final class TrainingProgramExtrasSupport
     {
         return [
             Placeholder::make('public_description_preview')
-                ->label('معاينة الوصف المنشور')
+                ->label('معاينة النبذة المنشورة')
                 ->content(function (Get $get): HtmlString {
                     $text = self::formatPublicDescription(
                         (string) ($get('description') ?? ''),
@@ -30,9 +30,17 @@ final class TrainingProgramExtrasSupport
                         is_array($get('session_topics')) ? $get('session_topics') : [],
                     );
 
+                    if ($text === '') {
+                        $inner = e('—');
+                    } elseif (self::looksLikeHtml($text)) {
+                        $inner = clean($text);
+                    } else {
+                        $inner = nl2br(e($text));
+                    }
+
                     return new HtmlString(
-                        '<div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm leading-7 text-gray-700 whitespace-pre-line">'
-                        .e($text !== '' ? $text : '—')
+                        '<div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm leading-7 text-gray-700 prose prose-sm max-w-none">'
+                        .$inner
                         .'</div>'
                     );
                 })
@@ -219,6 +227,11 @@ final class TrainingProgramExtrasSupport
         return trim(implode("\n", $lines));
     }
 
+    public static function looksLikeHtml(string $value): bool
+    {
+        return $value !== '' && (bool) preg_match('/<[a-z][\s\S]*>/i', $value);
+    }
+
     /**
      * @param  list<array{title?: string, facilitators?: string}>|null  $topics
      */
@@ -230,6 +243,8 @@ final class TrainingProgramExtrasSupport
         $parts = [];
 
         $description = trim((string) $description);
+        $descriptionIsHtml = self::looksLikeHtml($description);
+
         if ($description !== '') {
             $parts[] = $description;
         }
@@ -237,11 +252,15 @@ final class TrainingProgramExtrasSupport
         if ($topicsEnabled) {
             $block = self::formatSessionTopicsBlock($topics);
             if ($block !== '') {
-                $parts[] = $block;
+                if ($descriptionIsHtml) {
+                    $parts[] = '<div class="program-session-topics whitespace-pre-line">'.nl2br(e($block)).'</div>';
+                } else {
+                    $parts[] = $block;
+                }
             }
         }
 
-        return trim(implode("\n\n", $parts));
+        return trim(implode($descriptionIsHtml ? "\n" : "\n\n", $parts));
     }
 
     public static function publicDescription(TrainingProgram $program): string

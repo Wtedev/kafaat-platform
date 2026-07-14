@@ -54,7 +54,7 @@
 
         <div class="p-5">
             <h3 class="mb-2 font-bold leading-snug transition-colors group-hover:text-[#335483]" style="color:#111827">{{ $program->title }}</h3>
-            <p class="line-clamp-2 text-sm leading-relaxed" style="color:#6B7280">{{ $program->description }}</p>
+            <p class="line-clamp-2 text-sm leading-relaxed" style="color:#6B7280">{{ \Illuminate\Support\Str::limit(trim(strip_tags((string) $program->description)), 140) }}</p>
             <div class="mt-4 flex items-center justify-end gap-1.5 text-xs font-semibold" style="color:#335483">
                 عرض البرنامج
                 <svg class="h-3.5 w-3.5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>

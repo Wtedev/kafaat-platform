@@ -12,6 +12,7 @@ use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\FilamentUserSelectQuery;
+use App\Support\NewsFormSupport;
 use App\Support\ProgramAcceptanceConditions;
 use App\Support\StaffFilamentRoles;
 use App\Support\TrainingProgramExtrasSupport;
@@ -22,6 +23,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
@@ -71,12 +73,26 @@ final class TrainingEntityFormSupport
   }
 
   /**
+   * نبذة البرنامج — نفس محرّر TipTap / Filament RichEditor المستخدم في نص الخبر.
+   */
+  public static function programDescriptionRichEditorField(): RichEditor
+  {
+    return NewsFormSupport::brandedRichEditorField(
+      'description',
+      'نبذة عن البرنامج',
+      required: false,
+      placeholder: 'اكتب نبذة البرنامج كما ستظهر في صفحة التفاصيل…',
+      helperText: 'انقر داخل المربع وابدأ الكتابة مباشرة. استخدم شريط الأدوات للتنسيق عند الحاجة.',
+    )->live(onBlur: true);
+  }
+
+  /**
    * @return array<int, \Filament\Forms\Components\Component>
    */
   public static function descriptionFieldsWithPreview(): array
   {
     return [
-      static::descriptionField(),
+      static::programDescriptionRichEditorField(),
       ...TrainingProgramExtrasSupport::descriptionPreviewFields(),
     ];
   }

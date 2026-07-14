@@ -121,7 +121,15 @@
                 </header>
 
                 @if (! empty($section['prose']))
-                    <div class="kafaat-entity-view__prose">{{ $section['prose'] }}</div>
+                    @php
+                        $proseBody = (string) $section['prose'];
+                        $proseIsRichHtml = $proseBody !== '' && $proseBody !== '—' && preg_match('/<[a-z][\s\S]*>/i', $proseBody);
+                    @endphp
+                    @if ($proseIsRichHtml)
+                        <div class="kafaat-entity-view__prose prose max-w-none">{!! clean($proseBody) !!}</div>
+                    @else
+                        <div class="kafaat-entity-view__prose">{{ $proseBody }}</div>
+                    @endif
                 @elseif (! empty($section['rows']))
                     <dl class="kafaat-entity-view__rows">
                         @foreach ($section['rows'] as $row)
