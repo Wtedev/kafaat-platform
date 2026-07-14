@@ -26,7 +26,13 @@ final class ProductionEnvironmentValidator
         }
 
         foreach ((array) config('security.production.required_env', []) as $key) {
-            if (blank(env($key))) {
+            // IDENTITY_LOOKUP_KEY is read via config/identity.php; after config:cache,
+            // env() is null outside config files — check the resolved config value.
+            $missing = $key === 'IDENTITY_LOOKUP_KEY'
+                ? blank(config('identity.lookup_key'))
+                : blank(env($key));
+
+            if ($missing) {
                 $issues[] = "Required environment variable {$key} is missing.";
             }
         }

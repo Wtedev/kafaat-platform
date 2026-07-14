@@ -6,6 +6,9 @@ use App\Enums\IdentityType;
 use App\Services\Identity\IdentityNumberService;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class UniqueIdentityLookupHash implements ValidationRule
 {
@@ -25,8 +28,24 @@ class UniqueIdentityLookupHash implements ValidationRule
             if (IdentityNumberService::isDuplicate((string) $value, $this->ignoreUserId)) {
                 $fail(IdentityNumberService::DUPLICATE_MESSAGE);
             }
-        } catch (\RuntimeException) {
-            $fail('تعذر التحقق من تفرّد رقم الهوية حالياً. يرجى المحاولة لاحقاً.');
+        } catch (QueryException $exception) {
+            Log::error('Identity uniqueness DB check failed.', [
+                'attribute' => $attribute,
+                'sql_state' => $exception->errorInfo[0] ?? null,
+                'exception' => $exception::class,
+                'dedicated_lookup_key' => IdentityNumberService::hasDedicatedLookupKey(),
+            ]);
+
+            $fail(IdentityNumberService::AVAILABILITY_CHECK_FAILED_MESSAGE);
+        } catch (Throwable $exception) {
+            Log::error('Identity uniqueness check failed unexpectedly.', [
+                'attribute' => $attribute,
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+                'dedicated_lookup_key' => IdentityNumberService::hasDedicatedLookupKey(),
+            ]);
+
+            $fail(IdentityNumberService::AVAILABILITY_CHECK_FAILED_MESSAGE);
         }
     }
 }

@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class IdentityNumberService
@@ -15,15 +16,56 @@ class IdentityNumberService
 
     public const DUPLICATE_MESSAGE = 'رقم الهوية مستخدم مسبقاً.';
 
+    public const AVAILABILITY_CHECK_FAILED_MESSAGE = 'تعذر التحقق من تفرّد رقم الهوية حالياً. يرجى المحاولة لاحقاً.';
+
+    private static bool $reportedLookupKeyFallback = false;
+
+    /**
+     * Resolve HMAC material for identity_number_lookup_hash.
+     *
+     * Prefers IDENTITY_LOOKUP_KEY. When missing, falls back to a stable
+     * APP_KEY-derived secret so uniqueness checks still work against the DB
+     * (with a critical log for operators). Throws only when both are unavailable.
+     */
     public static function lookupKey(): string
     {
         $key = config('identity.lookup_key');
 
-        if (! is_string($key) || trim($key) === '') {
-            throw new RuntimeException('IDENTITY_LOOKUP_KEY is not configured.');
+        if (is_string($key) && trim($key) !== '') {
+            return $key;
         }
 
-        return $key;
+        $appKey = config('app.key');
+
+        if (is_string($appKey) && trim($appKey) !== '') {
+            if (! self::$reportedLookupKeyFallback) {
+                self::$reportedLookupKeyFallback = true;
+                Log::critical(
+                    'IDENTITY_LOOKUP_KEY is not configured; using APP_KEY-derived fallback for identity lookup hashes. Set IDENTITY_LOOKUP_KEY in environment secrets to avoid hash drift if APP_KEY is rotated.'
+                );
+            }
+
+            return hash_hmac('sha256', 'kafaat|identity-lookup-key|v1', $appKey);
+        }
+
+        throw new RuntimeException(
+            'IDENTITY_LOOKUP_KEY is not configured and APP_KEY is unavailable; cannot compute identity lookup hashes.'
+        );
+    }
+
+    public static function hasDedicatedLookupKey(): bool
+    {
+        $key = config('identity.lookup_key');
+
+        return is_string($key) && trim($key) !== '';
+    }
+
+    /**
+     * @internal Reset process-local fallback notice (tests).
+     */
+    public static function resetLookupKeyFallbackNotice(): void
+    {
+        self::$reportedLookupKeyFallback = false;
     }
 
     public static function normalize(?string $value): ?string
