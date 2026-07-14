@@ -199,32 +199,109 @@ final class TrainingProgramExtrasSupport
 
     /**
      * @param  list<array{title?: string, facilitators?: string}>|null  $topics
+     * @return list<array{title: string, facilitators: string}>
+     */
+    public static function normalizeSessionTopics(?array $topics): array
+    {
+        if ($topics === null || $topics === []) {
+            return [];
+        }
+
+        return collect($topics)
+            ->map(static function (mixed $row): ?array {
+                if (! is_array($row)) {
+                    return null;
+                }
+
+                $title = trim((string) ($row['title'] ?? ''));
+                if ($title === '') {
+                    return null;
+                }
+
+                return [
+                    'title' => $title,
+                    'facilitators' => trim((string) ($row['facilitators'] ?? '')),
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{title: string, facilitators: string}>
+     */
+    public static function publicSessionTopics(TrainingProgram $program): array
+    {
+        if (! (bool) $program->session_topics_enabled) {
+            return [];
+        }
+
+        return self::normalizeSessionTopics(
+            is_array($program->session_topics) ? $program->session_topics : null,
+        );
+    }
+
+    /**
+     * Plain-text fallback (exports / plain previews).
+     *
+     * @param  list<array{title?: string, facilitators?: string}>|null  $topics
      */
     public static function formatSessionTopicsBlock(?array $topics): string
     {
-        if ($topics === null || $topics === []) {
+        $topics = self::normalizeSessionTopics($topics);
+        if ($topics === []) {
             return '';
         }
 
         $lines = ['محاور البرنامج:', str_repeat('─', 18)];
 
         foreach ($topics as $index => $topic) {
-            $title = trim((string) ($topic['title'] ?? ''));
-            if ($title === '') {
-                continue;
-            }
+            $lines[] = ($index + 1).'. '.$topic['title'];
 
-            $lines[] = ($index + 1).'. '.$title;
-
-            $facilitators = trim((string) ($topic['facilitators'] ?? ''));
-            if ($facilitators !== '') {
-                $lines[] = '   المسؤولون / المدربون: '.$facilitators;
+            if ($topic['facilitators'] !== '') {
+                $lines[] = '   المسؤولون / المدربون: '.$topic['facilitators'];
             }
 
             $lines[] = '';
         }
 
         return trim(implode("\n", $lines));
+    }
+
+    /**
+     * Semantic HTML for admin/Filament preview (survives HTMLPurifier).
+     *
+     * @param  list<array{title?: string, facilitators?: string}>|null  $topics
+     */
+    public static function formatSessionTopicsHtml(?array $topics): string
+    {
+        $topics = self::normalizeSessionTopics($topics);
+        if ($topics === []) {
+            return '';
+        }
+
+        $items = '';
+        foreach ($topics as $topic) {
+            $items .= '<li style="margin-bottom:0.75rem">'
+                .'<p style="margin:0;font-weight:600;color:#111827">'.e($topic['title']).'</p>';
+
+            if ($topic['facilitators'] !== '') {
+                $items .= '<p style="margin:0.35rem 0 0;color:#4b5563;font-size:0.95em">'
+                    .'<span style="color:#335483;font-weight:600">المسؤولون / المدربون</span>'
+                    .' · '.e($topic['facilitators'])
+                    .'</p>';
+            }
+
+            $items .= '</li>';
+        }
+
+        return '<div class="program-session-topics">'
+            .'<p style="margin:0 0 0.75rem;font-weight:700;color:#335483">محاور البرنامج</p>'
+            .'<ol style="margin:0;padding-inline-start:1.25rem;list-style:decimal">'
+            .$items
+            .'</ol>'
+            .'</div>';
     }
 
     public static function looksLikeHtml(string $value): bool
@@ -244,23 +321,24 @@ final class TrainingProgramExtrasSupport
 
         $description = trim((string) $description);
         $descriptionIsHtml = self::looksLikeHtml($description);
+        $topicsHtml = $topicsEnabled ? self::formatSessionTopicsHtml($topics) : '';
+        $hasTopicsHtml = $topicsHtml !== '';
 
         if ($description !== '') {
-            $parts[] = $description;
-        }
-
-        if ($topicsEnabled) {
-            $block = self::formatSessionTopicsBlock($topics);
-            if ($block !== '') {
-                if ($descriptionIsHtml) {
-                    $parts[] = '<div class="program-session-topics whitespace-pre-line">'.nl2br(e($block)).'</div>';
-                } else {
-                    $parts[] = $block;
-                }
+            if ($hasTopicsHtml && ! $descriptionIsHtml) {
+                $parts[] = '<div class="program-description-text">'.nl2br(e($description)).'</div>';
+            } else {
+                $parts[] = $description;
             }
         }
 
-        return trim(implode($descriptionIsHtml ? "\n" : "\n\n", $parts));
+        if ($hasTopicsHtml) {
+            $parts[] = $topicsHtml;
+        }
+
+        $separator = ($descriptionIsHtml || $hasTopicsHtml) ? "\n" : "\n\n";
+
+        return trim(implode($separator, $parts));
     }
 
     public static function publicDescription(TrainingProgram $program): string

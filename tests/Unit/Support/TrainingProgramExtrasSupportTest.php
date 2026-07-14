@@ -29,11 +29,14 @@ class TrainingProgramExtrasSupportTest extends TestCase
             ],
         );
 
+        $this->assertTrue(TrainingProgramExtrasSupport::looksLikeHtml($text));
         $this->assertStringContainsString('وصف البرنامج الأساسي.', $text);
-        $this->assertStringContainsString('محاور البرنامج:', $text);
+        $this->assertStringContainsString('محاور البرنامج', $text);
+        $this->assertStringContainsString('program-session-topics', $text);
         $this->assertStringContainsString('مهارات التواصل', $text);
         $this->assertStringContainsString('أ. أحمد، د. سارة', $text);
         $this->assertStringContainsString('العمل الجماعي', $text);
+        $this->assertStringContainsString('<ol', $text);
     }
 
     public function test_appends_session_topics_as_html_when_description_is_rich(): void
@@ -51,6 +54,39 @@ class TrainingProgramExtrasSupportTest extends TestCase
         $this->assertStringContainsString('program-session-topics', $text);
         $this->assertStringContainsString('المحور الأول', $text);
         $this->assertStringContainsString('أ. سارة', $text);
+        $this->assertStringContainsString('#335483', $text);
+    }
+
+    public function test_formats_session_topics_plain_text_block(): void
+    {
+        $text = TrainingProgramExtrasSupport::formatSessionTopicsBlock([
+            ['title' => 'المحور الأول', 'facilitators' => 'أ. سارة'],
+        ]);
+
+        $this->assertStringContainsString('محاور البرنامج:', $text);
+        $this->assertStringContainsString('1. المحور الأول', $text);
+        $this->assertStringContainsString('أ. سارة', $text);
+    }
+
+    public function test_public_session_topics_respects_enabled_flag(): void
+    {
+        $enabled = $this->makeProgram([
+            'session_topics_enabled' => true,
+            'session_topics' => [
+                ['title' => 'محور نشط', 'facilitators' => 'أ. علي'],
+            ],
+        ]);
+
+        $disabled = $this->makeProgram([
+            'slug' => 'test-program-disabled-'.uniqid(),
+            'session_topics_enabled' => false,
+            'session_topics' => [
+                ['title' => 'محور مخفي', 'facilitators' => 'أ. علي'],
+            ],
+        ]);
+
+        $this->assertCount(1, TrainingProgramExtrasSupport::publicSessionTopics($enabled));
+        $this->assertSame([], TrainingProgramExtrasSupport::publicSessionTopics($disabled));
     }
 
     public function test_resolves_whatsapp_group_by_gender_with_fallback(): void

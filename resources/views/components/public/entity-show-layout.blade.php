@@ -68,10 +68,14 @@ $hasMediaBadges = isset($mediaBadges) && ! $mediaBadges->isEmpty();
                         {!! nl2br(e($descriptionBody)) !!}
                     @endif
                 </div>
-                @else
+                @elseif (isset($descriptionSlot) && ! $descriptionSlot->isEmpty())
                 <div class="max-w-none text-[15px] leading-8 text-gray-600 sm:text-base">
-                    {{ $descriptionSlot ?? '' }}
+                    {{ $descriptionSlot }}
                 </div>
+                @endif
+
+                @if (isset($afterDescription) && ! $afterDescription->isEmpty())
+                    {{ $afterDescription }}
                 @endif
             </div>
 

@@ -116,16 +116,29 @@ $showQr = $isAccepted && $isInPerson && ! empty($attendance['qr_data_uri']);
     <h2 class="text-sm font-semibold text-gray-700 mb-2">نبذة عن البرنامج</h2>
     <div class="text-gray-600 leading-relaxed text-right font-sans">
         @php
-            $programBody = (string) ($trainingProgram->publicDescription() ?: '');
+            $programBody = trim((string) ($trainingProgram->description ?: ''));
             $programIsRichHtml = $programBody !== '' && preg_match('/<[a-z][\s\S]*>/i', $programBody);
+            $hasSessionTopics = (bool) $trainingProgram->session_topics_enabled
+                && filled(\App\Support\TrainingProgramExtrasSupport::publicSessionTopics($trainingProgram));
         @endphp
-        @if ($programBody === '')
+        @if ($programBody === '' && ! $hasSessionTopics)
             —
-        @elseif ($programIsRichHtml)
-            <div class="prose prose-lg max-w-none prose-headings:text-[#111827] prose-a:text-[#335483] prose-strong:text-[#111827]">{!! clean($programBody) !!}</div>
-        @else
-            <div class="whitespace-pre-line">{!! nl2br(e($programBody)) !!}</div>
+        @elseif ($programBody !== '')
+            @if ($programIsRichHtml)
+                <div class="prose prose-lg max-w-none prose-headings:text-[#111827] prose-a:text-[#335483] prose-strong:text-[#111827]">{!! clean($programBody) !!}</div>
+            @else
+                <div class="whitespace-pre-line">{!! nl2br(e($programBody)) !!}</div>
+            @endif
         @endif
+
+        <x-public.program-session-topics
+            :enabled="(bool) $trainingProgram->session_topics_enabled"
+            :topics="$trainingProgram->session_topics"
+            @class([
+                'mt-6 border-t border-[#c5d4e4]/70 pt-6' => $programBody !== '',
+                'mt-0 border-0 pt-0' => $programBody === '',
+            ])
+        />
     </div>
 </div>
 

@@ -37,7 +37,7 @@ $ackLabel = $inPerson
 @section('title', $trainingProgram->title)
 @section('content')
 
-<x-public.entity-show-layout :backHref="$trainingProgram->competency_track ? route('public.programs.track', $trainingProgram->competency_track) : route('public.tracks.index')" :backLabel="$trainingProgram->competency_track?->shortLabel() ?? 'مسارات الكفاءة'" :title="$trainingProgram->title" :description="$trainingProgram->publicDescription()" descriptionHeading="نبذة عن البرنامج" mediaContext="program" :programKind="$trainingProgram->program_kind" :hasImage="filled($trainingProgram->image)" :imageUrl="$trainingProgram->imagePublicUrl()" objectFit="cover">
+<x-public.entity-show-layout :backHref="$trainingProgram->competency_track ? route('public.programs.track', $trainingProgram->competency_track) : route('public.tracks.index')" :backLabel="$trainingProgram->competency_track?->shortLabel() ?? 'مسارات الكفاءة'" :title="$trainingProgram->title" :description="$trainingProgram->description" descriptionHeading="نبذة عن البرنامج" mediaContext="program" :programKind="$trainingProgram->program_kind" :hasImage="filled($trainingProgram->image)" :imageUrl="$trainingProgram->imagePublicUrl()" objectFit="cover">
     <x-slot:mediaBadges>
         <span class="inline-flex items-center rounded-lg bg-white/95 px-2.5 py-1 text-xs font-medium text-[#335483] shadow-sm ring-1 ring-white/60 backdrop-blur-sm">
             {{ $trainingProgram->program_kind->label() }}
@@ -48,6 +48,17 @@ $ackLabel = $inPerson
         </span>
         @endif
     </x-slot:mediaBadges>
+
+    <x-slot:afterDescription>
+        <x-public.program-session-topics
+            :enabled="(bool) $trainingProgram->session_topics_enabled"
+            :topics="$trainingProgram->session_topics"
+            @class([
+                'mt-8 border-t border-[#c5d4e4]/70 pt-8' => filled($trainingProgram->description),
+                'mt-0 border-0 pt-0' => blank($trainingProgram->description),
+            ])
+        />
+    </x-slot:afterDescription>
 
     <x-slot:sidebar>
         <x-public.program-info-sidebar :trainingProgram="$trainingProgram" />
