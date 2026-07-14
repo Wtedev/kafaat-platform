@@ -110,12 +110,29 @@
 
                     @if ($programs->isNotEmpty())
                         <div class="track-program-grid">
-                            @foreach ($programs as $program)
+                            @foreach ($programs as $index => $program)
                                 <a href="{{ route('public.programs.show', $program->slug) }}" class="track-program-card group">
-                                    <span class="track-program-title">{{ $program->title }}</span>
-                                    <svg class="track-program-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                                    </svg>
+                                    <x-public.card-media
+                                        variant="catalog"
+                                        mediaContext="program"
+                                        :programKind="$program->program_kind"
+                                        :hasImage="filled($program->image)"
+                                        :imageUrl="$program->imagePublicUrl()"
+                                        :alt="$program->title"
+                                        :index="$index"
+                                    />
+                                    <div class="track-program-body">
+                                        <h4 class="track-program-title">{{ $program->title }}</h4>
+                                        @if (filled($program->description))
+                                            <p class="track-program-desc">{{ $program->description }}</p>
+                                        @endif
+                                        <div class="track-program-cta">
+                                            عرض البرنامج
+                                            <svg class="h-3.5 w-3.5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </a>
                             @endforeach
                         </div>
@@ -489,43 +506,69 @@
 
         .track-program-card {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.75rem;
-            padding: 0.85rem 1rem;
-            border-radius: 0.75rem;
+            flex-direction: column;
+            overflow: hidden;
+            border-radius: 1rem;
             background: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.55);
+            border: 1px solid #f3f4f6;
             color: #111827;
+            text-align: right;
             text-decoration: none;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-            transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .track-program-card:hover {
-            background: #fff;
-            border-color: rgba(255, 255, 255, 0.85);
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+            transform: translateY(-0.25rem);
+            box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.1);
+        }
+
+        /* Slightly shorter cover than full catalog pages so cards fit the accordion panel. */
+        .track-program-card .h-48 {
+            height: 8.5rem;
+        }
+
+        .track-program-body {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            padding: 1rem 1.15rem 1.15rem;
         }
 
         .track-program-title {
-            font-size: 0.875rem;
+            margin-bottom: 0.4rem;
+            font-size: 0.9375rem;
+            font-weight: 700;
+            line-height: 1.4;
+            color: #111827;
+            transition: color 0.2s ease;
+        }
+
+        .track-program-card:hover .track-program-title {
+            color: #335483;
+        }
+
+        .track-program-desc {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            margin: 0;
+            font-size: 0.8125rem;
+            line-height: 1.55;
+            color: #6b7280;
+        }
+
+        .track-program-cta {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.35rem;
+            margin-top: auto;
+            padding-top: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 600;
-            line-height: 1.45;
-            min-width: 0;
-        }
-
-        .track-program-chevron {
-            width: 1rem;
-            height: 1rem;
-            flex-shrink: 0;
-            opacity: 0.75;
-            transition: opacity 0.2s ease, transform 0.2s ease;
-        }
-
-        .track-program-card:hover .track-program-chevron {
-            opacity: 1;
-            transform: translateX(-2px);
+            color: #335483;
         }
 
         .track-view-all {
