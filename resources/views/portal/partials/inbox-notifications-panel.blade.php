@@ -5,8 +5,8 @@
     $compact = $compact ?? false;
 @endphp
 
-<div class="npm overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-    <div class="flex flex-wrap items-start justify-between gap-3 border-b border-gray-100 bg-white px-4 py-4 sm:px-5">
+<div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+    <div class="flex flex-wrap items-start justify-between gap-3 border-b border-[#c5d4e4]/70 bg-[#e9eff6] px-4 py-4 sm:px-5">
         <div class="text-right">
             @if ($panelTitle)
                 <h2 class="text-base font-bold text-[#335483] sm:text-lg">{{ $panelTitle }}</h2>
@@ -14,9 +14,9 @@
                 <h2 class="text-base font-bold text-[#335483] sm:text-lg">التنبيهات</h2>
             @endif
             @if ($panelSubtitle)
-                <p class="mt-0.5 text-xs text-gray-500 sm:text-sm">{{ $panelSubtitle }}</p>
+                <p class="mt-0.5 text-xs text-slate-500 sm:text-sm">{{ $panelSubtitle }}</p>
             @else
-                <p class="mt-0.5 text-xs text-gray-500 sm:text-sm">
+                <p class="mt-0.5 text-xs text-slate-500 sm:text-sm">
                     غير مقروء:
                     <span class="font-bold tabular-nums text-[#335483]">{{ en_num($unreadCount) }}</span>
                 </p>
@@ -29,7 +29,7 @@
                     @csrf
                     <button
                         type="submit"
-                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#335483] transition hover:bg-[#e9eff6]"
+                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#335483] transition hover:bg-white/70"
                         aria-label="تعليم الكل كمقروء"
                         title="تعليم الكل كمقروء"
                     >
@@ -52,8 +52,8 @@
 
     <div class="@if($compact) max-h-[28rem] overflow-y-auto @endif p-2.5 sm:p-3">
         @if ($items->isEmpty())
-            <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-4 py-8 text-center">
-                <p class="text-sm font-semibold text-gray-700">لا توجد تنبيهات</p>
+            <div class="rounded-2xl border border-dashed border-[#c5d4e4] bg-[#e9eff6]/40 px-4 py-8 text-center">
+                <p class="text-sm font-semibold text-[#335483]">لا توجد تنبيهات</p>
                 <p class="mt-1 text-xs text-gray-500">عند حدوث نشاط يخص حسابك سيظهر هنا.</p>
             </div>
         @else

@@ -28,7 +28,7 @@
     default => 'bg-gray-100 text-gray-600',
     };
     @endphp
-    <div class="flex flex-col gap-3 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+    <div class="flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
         <x-portal.card-header variant="bar" />
         <div class="flex flex-col gap-3 p-5 pt-4">
         <div class="flex items-start justify-between gap-2">

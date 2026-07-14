@@ -66,8 +66,8 @@ $hasCurrent = $hasActivities || $hasVolunteering;
                     <p class="mt-0.5 text-xs text-gray-500 sm:text-sm">برامج ومسارات وفرص تطوعية مسجّل فيها</p>
                 </div>
                 <div class="flex shrink-0 gap-2">
-                    <a href="{{ route('portal.programs') }}" class="rounded-lg px-2.5 py-1 text-xs font-semibold text-gray-600 ring-1 ring-gray-200 transition hover:bg-gray-50">البرامج</a>
-                    <a href="{{ route('portal.volunteering') }}" class="rounded-lg px-2.5 py-1 text-xs font-semibold text-gray-600 ring-1 ring-gray-200 transition hover:bg-gray-50">التطوع</a>
+                    <a href="{{ route('portal.programs') }}" class="rounded-lg px-2.5 py-1 text-xs font-semibold text-[#335483] ring-1 ring-[#c5d4e4] transition hover:bg-[#e9eff6]">البرامج</a>
+                    <a href="{{ route('portal.volunteering') }}" class="rounded-lg px-2.5 py-1 text-xs font-semibold text-[#335483] ring-1 ring-[#c5d4e4] transition hover:bg-[#e9eff6]">التطوع</a>
                 </div>
             </div>
 
@@ -82,9 +82,7 @@ $hasCurrent = $hasActivities || $hasVolunteering;
             @else
             <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
                 @if ($hasActivities)
-                <div class="border-b border-gray-100 px-4 py-3 sm:px-5">
-                    <h3 class="text-sm font-bold text-[#335483]">برامج حالية</h3>
-                </div>
+                <x-portal.card-header title="برامج حالية" heading="h3" class="!py-3" />
                 <ul class="divide-y divide-gray-100" role="list">
                     @foreach ($activities as $activity)
                     @include('portal.partials.dashboard-activity-card', ['activity' => $activity])
@@ -93,12 +91,14 @@ $hasCurrent = $hasActivities || $hasVolunteering;
                 @endif
 
                 @if ($hasVolunteering)
-                <div @class([
-                    'border-b border-gray-100 px-4 py-3 sm:px-5' => true,
-                    'border-t border-gray-100' => $hasActivities,
-                ])>
-                    <h3 class="text-sm font-bold text-[#335483]">فرص تطوعية حالية</h3>
-                </div>
+                <x-portal.card-header
+                    title="فرص تطوعية حالية"
+                    heading="h3"
+                    @class([
+                        '!py-3',
+                        'border-t border-[#c5d4e4]/70' => $hasActivities,
+                    ])
+                />
                 <ul class="divide-y divide-gray-100" role="list">
                     @foreach ($volunteerRows as $row)
                     @include('portal.partials.dashboard-volunteer-card', ['row' => $row])
@@ -130,8 +130,9 @@ $hasCurrent = $hasActivities || $hasVolunteering;
             @else
             <div class="grid gap-3 sm:grid-cols-2">
                 @foreach ($volunteerTeamMemberRows as $m)
-                <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <p class="text-right text-sm font-bold text-gray-900">{{ $m['name'] }}</p>
+                <div class="relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                    <span class="absolute inset-y-0 start-0 w-1 bg-[#335483]" aria-hidden="true"></span>
+                    <p class="text-right text-sm font-bold text-[#335483]">{{ $m['name'] }}</p>
                     @if (! empty($m['email']))
                     <p class="mt-1 text-right text-xs text-gray-500">{{ $m['email'] }}</p>
                     @endif
@@ -156,9 +157,10 @@ $hasCurrent = $hasActivities || $hasVolunteering;
             @else
             <ul class="space-y-3">
                 @foreach ($volunteerTeamNotifications as $n)
-                <li class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                <li class="relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                    <span class="absolute inset-y-0 start-0 w-1 bg-[#335483]" aria-hidden="true"></span>
                     <div class="flex flex-wrap items-start justify-between gap-2">
-                        <h3 class="text-right text-sm font-bold text-gray-900">{{ $n['title'] }}</h3>
+                        <h3 class="text-right text-sm font-bold text-[#335483]">{{ $n['title'] }}</h3>
                         @if (! empty($n['published_at']))
                         <time class="shrink-0 text-xs text-gray-500" datetime="{{ $n['published_at']->toIso8601String() }}">{{ ar_date_time($n['published_at']) }}</time>
                         @endif
