@@ -95,18 +95,26 @@ $alreadyRegisteredPath = $userRegistration !== null;
                 </div>
             @elseif ($canRegisterPath)
                 <p class="text-sm leading-relaxed text-gray-500 sm:max-w-md">سجّل في المسار للانضمام إلى جميع برامجه التدريبية.</p>
-                <form method="POST" action="{{ route('public.paths.register', $learningPath->slug) }}" class="shrink-0">
+                <form method="POST" action="{{ route('public.paths.register', $learningPath->slug) }}" id="path-register-form" class="shrink-0">
                     @csrf
-                    <x-public.register-cta-button type="submit">سجّل في المسار</x-public.register-cta-button>
+                    <x-public.register-cta-button type="submit" class="hidden md:inline-flex">سجّل في المسار</x-public.register-cta-button>
                 </form>
             @elseif (! auth()->check())
                 <p class="text-sm leading-relaxed text-gray-500 sm:max-w-md">يجب تسجيل الدخول كمستفيد للتسجيل في المسار.</p>
-                <x-public.register-cta-button :href="route('login')">سجّل الدخول للتسجيل</x-public.register-cta-button>
+                <x-public.register-cta-button :href="route('login')" class="hidden md:inline-flex">سجّل الدخول للتسجيل</x-public.register-cta-button>
             @else
                 <p class="text-sm text-gray-400">التسجيل متاح للمستفيدين فقط.</p>
             @endif
         </div>
     </x-slot:action>
+
+    <x-slot:mobileStickyAction>
+        @if ($canRegisterPath)
+            <x-public.register-cta-button type="submit" form="path-register-form" class="w-full">سجّل في المسار</x-public.register-cta-button>
+        @elseif (! auth()->check())
+            <x-public.register-cta-button :href="route('login')" class="w-full">سجّل الدخول للتسجيل</x-public.register-cta-button>
+        @endif
+    </x-slot:mobileStickyAction>
 </x-public.entity-show-layout>
 
 @endsection

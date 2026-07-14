@@ -3,7 +3,7 @@
 
 @section('content')
 <x-portal.settings-shell title="تغيير كلمة المرور" subtitle="أدخل كلمة المرور الحالية ثم الجديدة." back-route="portal.settings.account" back-label="بيانات الدخول">
-    <form method="POST" action="{{ route('portal.settings.password.update') }}" class="space-y-4">
+    <form method="POST" action="{{ route('portal.settings.password.update') }}" id="portal-password-form" class="space-y-4">
         @csrf
         @method('PATCH')
 
@@ -34,11 +34,13 @@
             </div>
         </x-portal.settings-card>
 
-        <div class="flex justify-end">
+        <div class="hidden justify-end md:flex">
             <button type="submit" class="rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">
-                حفظ
+                حفظ التعديلات
             </button>
         </div>
     </form>
+
+    <x-portal.mobile-form-submit-bar form="portal-password-form" label="حفظ التعديلات" />
 </x-portal.settings-shell>
 @endsection

@@ -2,7 +2,7 @@
 $p = $user->profile;
 @endphp
 
-<form method="POST" action="{{ route('portal.profile.update') }}" enctype="multipart/form-data" novalidate>
+<form method="POST" action="{{ route('portal.profile.update') }}" enctype="multipart/form-data" id="portal-profile-form" novalidate>
     @csrf
     @method('PATCH')
 
@@ -83,12 +83,14 @@ $p = $user->profile;
         </div>
     </x-portal.settings-card>
 
-    <div class="flex justify-end">
+    <div class="hidden justify-end md:flex">
         <button type="submit" class="rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">
-            حفظ التغييرات
+            حفظ التعديلات
         </button>
     </div>
 </form>
+
+<x-portal.mobile-form-submit-bar form="portal-profile-form" label="حفظ التعديلات" />
 
 @push('scripts')
 <script>

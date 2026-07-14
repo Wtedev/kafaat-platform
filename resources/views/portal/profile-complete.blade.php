@@ -9,7 +9,7 @@
 </p>
 
 <div class="max-w-3xl rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
-    <form method="POST" action="{{ route('portal.profile.complete.store') }}" novalidate>
+    <form method="POST" action="{{ route('portal.profile.complete.store') }}" id="portal-profile-complete-form" novalidate>
         @csrf
 
         @if ($errors->any())
@@ -34,7 +34,7 @@
             :identity-locked="false"
         />
 
-        <div class="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-6">
+        <div class="mt-8 hidden flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-6 md:flex">
             <a href="{{ route('portal.dashboard') }}" class="text-sm text-gray-500 hover:text-gray-700">تخطي الآن</a>
             <button type="submit" class="rounded-xl px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">
                 حفظ البيانات
@@ -42,4 +42,6 @@
         </div>
     </form>
 </div>
+
+<x-portal.mobile-form-submit-bar form="portal-profile-complete-form" label="حفظ البيانات" />
 @endsection

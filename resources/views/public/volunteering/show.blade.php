@@ -47,18 +47,26 @@ $alreadyRegistered = $userRegistration !== null;
                 </div>
             @elseif ($canRegister)
                 <p class="text-sm leading-relaxed text-gray-500 sm:max-w-md">سجّل طلبك الآن للمشاركة في هذه الفرصة التطوعية.</p>
-                <form method="POST" action="{{ route('public.volunteering.register', $volunteerOpportunity->slug) }}" class="shrink-0">
+                <form method="POST" action="{{ route('public.volunteering.register', $volunteerOpportunity->slug) }}" id="volunteer-register-form" class="shrink-0">
                     @csrf
-                    <x-public.register-cta-button type="submit">قدّم طلبك</x-public.register-cta-button>
+                    <x-public.register-cta-button type="submit" class="hidden md:inline-flex">قدّم طلبك</x-public.register-cta-button>
                 </form>
             @elseif (! auth()->check())
                 <p class="text-sm leading-relaxed text-gray-500 sm:max-w-md">يجب تسجيل الدخول كمستفيد لتقديم طلب التطوع.</p>
-                <x-public.register-cta-button :href="route('login')">سجّل الدخول للتسجيل</x-public.register-cta-button>
+                <x-public.register-cta-button :href="route('login')" class="hidden md:inline-flex">سجّل الدخول للتسجيل</x-public.register-cta-button>
             @else
                 <p class="text-sm text-gray-400">التسجيل متاح للمستفيدين فقط.</p>
             @endif
         </div>
     </x-slot:action>
+
+    <x-slot:mobileStickyAction>
+        @if ($canRegister)
+            <x-public.register-cta-button type="submit" form="volunteer-register-form" class="w-full">قدّم طلبك</x-public.register-cta-button>
+        @elseif (! auth()->check())
+            <x-public.register-cta-button :href="route('login')" class="w-full">سجّل الدخول للتسجيل</x-public.register-cta-button>
+        @endif
+    </x-slot:mobileStickyAction>
 </x-public.entity-show-layout>
 
 @endsection

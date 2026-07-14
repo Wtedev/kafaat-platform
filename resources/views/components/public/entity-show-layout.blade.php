@@ -16,6 +16,7 @@ $hasSidebar = isset($sidebar) && ! $sidebar->isEmpty();
 $hasAction = isset($action) && ! $action->isEmpty();
 $hasExtra = isset($extra) && ! $extra->isEmpty();
 $hasMediaBadges = isset($mediaBadges) && ! $mediaBadges->isEmpty();
+$hasMobileStickyAction = isset($mobileStickyAction) && ! $mobileStickyAction->isEmpty();
 @endphp
 
 <nav class="mb-5" aria-label="مسار التنقل">
@@ -89,4 +90,10 @@ $hasMediaBadges = isset($mediaBadges) && ! $mediaBadges->isEmpty();
 <div class="mt-6 lg:mt-8">
     {{ $extra }}
 </div>
+@endif
+
+@if ($hasMobileStickyAction)
+<x-public.mobile-sticky-action-bar>
+    {{ $mobileStickyAction }}
+</x-public.mobile-sticky-action-bar>
 @endif

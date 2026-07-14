@@ -67,12 +67,14 @@
             </label>
         </x-portal.settings-card>
 
-        <div class="flex justify-end">
+        <div class="hidden justify-end md:flex">
             <button type="submit" class="rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">
-                حفظ
+                حفظ التعديلات
             </button>
         </div>
     </form>
+
+    <x-portal.mobile-form-submit-bar form="notif-settings-form" label="حفظ التعديلات" />
 </x-portal.settings-shell>
 
 @push('scripts')
