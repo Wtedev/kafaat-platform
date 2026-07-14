@@ -83,7 +83,23 @@ final class TrainingEntityFormSupport
       required: false,
       placeholder: 'اكتب نبذة البرنامج كما ستظهر في صفحة التفاصيل…',
       helperText: 'انقر داخل المربع وابدأ الكتابة مباشرة. استخدم شريط الأدوات للتنسيق عند الحاجة.',
-    )->live(onBlur: true);
+    )
+      ->json()
+      ->live(onBlur: true);
+  }
+
+  /**
+   * Inline modal editor — no live sync (avoids deep TipTap nesting in Livewire paths during typing).
+   */
+  public static function programDescriptionInlineRichEditorField(): RichEditor
+  {
+    return NewsFormSupport::brandedRichEditorField(
+      'description',
+      'نبذة عن البرنامج',
+      required: false,
+      placeholder: 'اكتب نبذة البرنامج كما ستظهر في صفحة التفاصيل…',
+      helperText: 'انقر داخل المربع وابدأ الكتابة مباشرة. استخدم شريط الأدوات للتنسيق عند الحاجة.',
+    )->json();
   }
 
   /**

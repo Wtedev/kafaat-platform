@@ -116,6 +116,65 @@ class TrainingProgramDescriptionInlineEditTest extends TestCase
         $this->assertNotSame(self::TIPTAP_JSON, $program->description);
     }
 
+    public function test_description_inline_edit_save_with_invalid_schedule_calendar(): void
+    {
+        $staff = $this->staffUser();
+        $program = $this->createProgram([
+            'description' => self::TIPTAP_JSON,
+            'created_by' => $staff->id,
+            'owner_id' => $staff->id,
+            'registration_end' => Carbon::parse('2026-09-01'),
+            'end_date' => Carbon::parse('2026-08-15'),
+        ]);
+
+        $updatedJson = '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"حفظ رغم جدول غير صالح","marks":[{"type":"bold"}]}]}]}';
+
+        $this->withSession(['otp_verified' => true]);
+
+        Livewire::actingAs($staff)
+            ->test(ViewTrainingProgram::class, ['record' => $program->getKey()])
+            ->assertSuccessful()
+            ->mountAction('editEntityField', ['field' => 'description'])
+            ->setActionData(['description' => $updatedJson])
+            ->callMountedAction()
+            ->assertHasNoActionErrors()
+            ->assertNotified('تم حفظ الإعدادات بنجاح')
+            ->assertSee('حفظ رغم جدول غير صالح');
+
+        $program->refresh();
+
+        $this->assertStringContainsString('حفظ رغم جدول غير صالح', (string) $program->description);
+    }
+
+    public function test_description_inline_edit_save_with_deeply_nested_tiptap_document(): void
+    {
+        $staff = $this->staffUser();
+        $deepJson = self::deeplyNestedTipTapJson();
+        $program = $this->createProgram([
+            'description' => $deepJson,
+            'created_by' => $staff->id,
+            'owner_id' => $staff->id,
+        ]);
+
+        $updatedJson = self::deeplyNestedTipTapJson('نص محدّث عميق');
+
+        $this->withSession(['otp_verified' => true]);
+
+        Livewire::actingAs($staff)
+            ->test(ViewTrainingProgram::class, ['record' => $program->getKey()])
+            ->assertSuccessful()
+            ->mountAction('editEntityField', ['field' => 'description'])
+            ->setActionData(['description' => $updatedJson])
+            ->callMountedAction()
+            ->assertHasNoActionErrors()
+            ->assertNotified('تم حفظ الإعدادات بنجاح')
+            ->assertSee('نص محدّث عميق');
+
+        $program->refresh();
+
+        $this->assertStringContainsString('نص محدّث عميق', (string) $program->description);
+    }
+
     public function test_view_panel_renders_description_as_html_not_raw_json(): void
     {
         $staff = $this->staffUser();
@@ -132,6 +191,33 @@ class TrainingProgramDescriptionInlineEditTest extends TestCase
             ->assertSuccessful()
             ->assertSee('تجربة')
             ->assertDontSee('"type":"doc"');
+    }
+
+    private static function deeplyNestedTipTapJson(string $text = 'فقرة'): string
+    {
+        $content = [];
+
+        for ($index = 0; $index < 10; $index++) {
+            $content[] = [
+                'type' => 'bulletList',
+                'content' => [[
+                    'type' => 'listItem',
+                    'content' => [[
+                        'type' => 'paragraph',
+                        'content' => [[
+                            'type' => 'text',
+                            'text' => "{$text} {$index}",
+                            'marks' => [['type' => 'bold']],
+                        ]],
+                    ]],
+                ]],
+            ];
+        }
+
+        return json_encode([
+            'type' => 'doc',
+            'content' => $content,
+        ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
     }
 
     private function staffUser(): User

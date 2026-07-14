@@ -3,6 +3,7 @@
 namespace App\Filament\Concerns;
 
 use App\Filament\Support\TrainingEntityFormSupport;
+use App\Support\RichContentSupport;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Html;
@@ -194,10 +195,17 @@ trait HasInlineEntityViewEditing
             $this->pendingInlineEditOverrides = null;
             $this->primePendingInlineEditOverrides($data);
 
-            $this->fillSettingsForm();
-            $current = is_array($this->form->getRawState()) ? $this->form->getRawState() : [];
-            $this->form->fill(array_merge($current, $data, $this->pendingInlineEditOverrides ?? []));
-            $this->absorbLiveFormStateIntoPendingOverrides($field);
+            if ($field === 'description') {
+                $this->pendingInlineEditOverrides = [
+                    'description' => RichContentSupport::normalizeForStorage($data['description'] ?? null),
+                ];
+            } else {
+                $this->fillSettingsForm();
+                $current = is_array($this->form->getRawState()) ? $this->form->getRawState() : [];
+                $this->form->fill(array_merge($current, $data, $this->pendingInlineEditOverrides ?? []));
+                $this->absorbLiveFormStateIntoPendingOverrides($field);
+            }
+
             $this->saveTrainingEntitySettings();
             $this->afterInlineEntityFieldEdited($field);
             $this->forceRender();

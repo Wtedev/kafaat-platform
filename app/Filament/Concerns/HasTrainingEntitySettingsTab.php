@@ -491,8 +491,12 @@ trait HasTrainingEntitySettingsTab
 
         $this->getRecord()->refresh();
         $this->afterTrainingEntitySettingsSaved();
-        $this->fillSettingsForm();
-        $this->captureSettingsBaseline();
+
+        if ($scopedFieldKeys !== ['description']) {
+            $this->fillSettingsForm();
+            $this->captureSettingsBaseline();
+        }
+
         $this->settingsFormDirty = false;
 
         if ($shouldSendSavedNotification) {

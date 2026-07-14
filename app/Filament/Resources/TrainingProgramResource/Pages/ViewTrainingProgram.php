@@ -16,6 +16,7 @@ use App\Filament\Support\TrainingProgramInlineEditSupport;
 use App\Filament\Support\TrainingProgramViewPresenter;
 use App\Models\TrainingProgram;
 use App\Support\ProgramAcceptanceConditions;
+use App\Support\RichContentSupport;
 use App\Support\TrainingProgramExtrasSupport;
 use Filament\Actions\DeleteAction;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -91,7 +92,8 @@ class ViewTrainingProgram extends BaseViewRecord
 
         if ($this->pendingInlineEditField === 'description') {
             return $this->stampTrainingEntityAuditFields([
-                'description' => $data['description'] ?? $program->description,
+                'description' => RichContentSupport::normalizeForStorage($data['description'] ?? null)
+                    ?? $program->description,
             ]);
         }
         $wantPublished = TrainingEntityFormSupport::wantsPublishedStatus($data);

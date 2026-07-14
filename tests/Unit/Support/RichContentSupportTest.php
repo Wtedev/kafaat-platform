@@ -45,6 +45,25 @@ class RichContentSupportTest extends TestCase
         $this->assertLessThanOrEqual(43, mb_strlen($excerpt));
     }
 
+    public function test_normalize_for_storage_encodes_tiptap_array(): void
+    {
+        $document = [
+            'type' => 'doc',
+            'content' => [[
+                'type' => 'paragraph',
+                'content' => [[
+                    'type' => 'text',
+                    'text' => 'تجربة',
+                ]],
+            ]],
+        ];
+
+        $stored = RichContentSupport::normalizeForStorage($document);
+
+        $this->assertIsString($stored);
+        $this->assertTrue(RichContentSupport::isTipTapJson($stored));
+    }
+
     public function test_format_public_description_renders_tiptap_json(): void
     {
         $json = '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"\u062a\u062c\u0631\u0628\u0629","marks":[{"type":"bold"}]}]}]}';

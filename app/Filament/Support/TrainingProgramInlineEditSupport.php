@@ -35,7 +35,7 @@ final class TrainingProgramInlineEditSupport
             'enrollment' => self::enrollmentFields(),
             'team' => TrainingEntityFormSupport::programStaffFieldsForEdit(),
             'description' => [
-                TrainingEntityFormSupport::programDescriptionRichEditorField(),
+                TrainingEntityFormSupport::programDescriptionInlineRichEditorField(),
             ],
             default => [],
         };

@@ -48,6 +48,28 @@ final class RichContentSupport
     }
 
     /**
+     * Persist RichEditor / TipTap state as a DB string (JSON document, HTML, or plain text).
+     */
+    public static function normalizeForStorage(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_array($value)) {
+            if ($value === []) {
+                return null;
+            }
+
+            return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        }
+
+        $string = trim((string) $value);
+
+        return $string === '' ? null : $string;
+    }
+
+    /**
      * Render stored rich content (TipTap JSON, HTML, or plain text) as sanitized HTML.
      */
     public static function toDisplayHtml(?string $value): string
