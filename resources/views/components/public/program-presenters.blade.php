@@ -38,7 +38,7 @@
                         {{ $initials }}
                     </span>
                     <div class="min-w-0 flex-1">
-                        <p class="text-[15px] font-semibold leading-7 text-gray-900 sm:text-base">
+                        <p class="text-xs font-medium leading-5 text-gray-800 sm:text-sm">
                             {{ $presenter['name'] }}
                         </p>
                         @if ($presenter['role'] !== '')
