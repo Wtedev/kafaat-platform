@@ -45,12 +45,12 @@ $hasMobileStickyAction = isset($mobileStickyAction) && ! $mobileStickyAction->is
 
 <div @class([ 'grid gap-6' , 'grid-cols-1' , $hasSidebar ? 'md:grid-cols-[minmax(0,1fr)_minmax(0,3fr)]' : '' , ])>
     @if ($hasSidebar)
-    <div class="order-2 md:order-none md:col-start-1 md:row-start-1 md:self-start">
+    <div class="order-1 md:order-none md:col-start-1 md:row-start-1 md:self-start">
         {{ $sidebar }}
     </div>
     @endif
 
-    <div @class([ 'order-1 min-w-0 md:order-none' , $hasSidebar ? 'md:col-start-2 md:row-start-1' : '' , ])>
+    <div @class([ 'order-2 min-w-0 md:order-none' , $hasSidebar ? 'md:col-start-2 md:row-start-1' : '' , ])>
         <article class="overflow-hidden rounded-2xl bg-white">
             <div class="p-6 sm:p-8">
                 @if (filled($descriptionHeading))
