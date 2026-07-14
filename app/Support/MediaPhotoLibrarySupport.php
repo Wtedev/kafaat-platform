@@ -18,7 +18,19 @@ final class MediaPhotoLibrarySupport
     ];
 
     /**
-     * Category used for homepage/marketing surfaces that must not show people.
+     * Media-center album preferred for the homepage hero banner.
+     * Youth Day photos have a polished editorial look (branded cups / soft focus).
+     */
+    public const HOMEPAGE_HERO_ALBUM = 'يوم الشباب';
+
+    /**
+     * Preferred basename within {@see HOMEPAGE_HERO_ALBUM} for the homepage hero
+     * (wide 3:2 frame, cup toward camera — strongest banner read).
+     */
+    public const HOMEPAGE_HERO_PREFERRED_BASENAME = '7p0a2679';
+
+    /**
+     * Category used for marketing surfaces that must not show people.
      * Facility interiors are curated empty spaces (no faces/crowds).
      */
     public const PEOPLE_FREE_CATEGORY = 'مرافق الجمعية';

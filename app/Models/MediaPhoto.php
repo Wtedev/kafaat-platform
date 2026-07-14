@@ -33,7 +33,7 @@ class MediaPhoto extends Model
     }
 
     /**
-     * Active media-center photos suitable for hero/marketing (no people).
+     * Active media-center photos suitable for people-free marketing (facility interiors).
      *
      * Preference: facility category «مرافق الجمعية», then exclude albums whose
      * names match known people-centric event/visit keywords.
@@ -52,12 +52,27 @@ class MediaPhoto extends Model
     }
 
     /**
-     * Public URL for the homepage hero: first people-free library photo, else static fallback.
+     * Active photos from the homepage hero album («يوم الشباب»).
+     */
+    public function scopeForHomepageHero(Builder $query): void
+    {
+        $query->active()
+            ->where('album', MediaPhotoLibrarySupport::HOMEPAGE_HERO_ALBUM);
+    }
+
+    /**
+     * Public URL for the homepage hero: Youth Day library photo, else static fallback.
+     *
+     * Prefers the curated basename within «يوم الشباب», then any photo in that album
+     * (professional Media Center look wins over the people-free facility rule).
      */
     public static function homepageHeroUrl(string $fallbackRelativeToPublic = 'images/home/hero.jpg'): string
     {
+        $preferred = MediaPhotoLibrarySupport::HOMEPAGE_HERO_PREFERRED_BASENAME;
+
         $photo = static::query()
-            ->withoutPeople()
+            ->forHomepageHero()
+            ->orderByRaw('CASE WHEN LOWER(image) LIKE ? THEN 0 ELSE 1 END', ['%'.$preferred.'%'])
             ->orderBy('sort_order')
             ->orderBy('id')
             ->first();
