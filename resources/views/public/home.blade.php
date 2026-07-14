@@ -506,7 +506,7 @@
         <div class="home-hero__content">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 {{-- Content on the RTL start (visual right) — clear of left/top baked title --}}
-                <div class="max-w-xl text-right">
+                <div class="max-w-2xl text-right">
 
                     <div class="home-hero__brand mb-6">
                         <img
@@ -520,9 +520,9 @@
                     </div>
 
                     <div class="home-hero__copy">
-                        {{-- Softened: art already carries «عام الأثر 2026» — avoid a competing mega-headline --}}
-                        <h1 class="text-xl sm:text-2xl lg:text-[1.65rem] font-semibold leading-relaxed text-white/90 mb-4">
-                            نُمكّن الشباب ونبني قدراتهم
+                        <h1 class="home-hero__headline text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-[1.15] tracking-tight text-white mb-5">
+                            نمكن الشباب..<br>
+                            ونصنع الأثر
                         </h1>
                         <p class="text-sm sm:text-base leading-relaxed text-white/70 max-w-md mb-8">
                             نؤهّل الشباب ونوسّع مشاركتهم المجتمعية عبر برامج تدريبية وفرص تطوعية وشراكات مستدامة.
