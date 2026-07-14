@@ -21,6 +21,7 @@ final class NewsFormSupport
             ->disk('public')
             ->directory('news/images')
             ->visibility('public')
+            ->storeFiles()
             ->maxSize(4096)
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
             ->imagePreviewHeight('10rem')
@@ -32,6 +33,11 @@ final class NewsFormSupport
                 self::CARD_ASPECT_RATIO => 'بطاقة الخبر (٥:٣)',
             ])
             ->automaticallyResizeImagesMode('cover')
+            ->afterStateUpdated(function (FileUpload $component): void {
+                // Persist to the public disk as soon as FilePond finishes uploading,
+                // so modal/create saves never keep a Livewire temporary preview URL.
+                $component->saveUploadedFiles();
+            })
             ->required()
             ->columnSpanFull();
     }

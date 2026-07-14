@@ -133,4 +133,77 @@ class NewsImageSyncServiceTest extends TestCase
             'is_primary' => true,
         ]);
     }
+
+    public function test_sync_rejects_ephemeral_livewire_preview_urls_without_temp_file(): void
+    {
+        $news = News::create([
+            'title' => 'خبر رابط مؤقت',
+            'slug' => 'test-news-temp-url',
+            'content' => 'نص',
+        ]);
+
+        Storage::fake('tmp-for-tests');
+
+        $expires = now()->addMinutes(2)->getTimestamp();
+        $tempUrl = 'https://example.test/livewire/preview-file/missing-temp.jpg?expires='.$expires.'&signature=abc123';
+
+        app(NewsImageSyncService::class)->sync($news, [
+            ['path' => $tempUrl, 'is_primary' => true],
+        ], allowEmpty: true);
+
+        $news->refresh();
+
+        $this->assertCount(0, $news->images);
+        $this->assertNull($news->image);
+    }
+
+    public function test_sync_converts_absolute_storage_urls_to_public_disk_paths(): void
+    {
+        $news = News::create([
+            'title' => 'خبر رابط تخزين',
+            'slug' => 'test-news-storage-url',
+            'content' => 'نص',
+        ]);
+
+        $this->seedFile('news/images/from-url.jpg');
+
+        app(NewsImageSyncService::class)->sync($news, [
+            [
+                'path' => 'https://kafaat.example/storage/news/images/from-url.jpg',
+                'is_primary' => true,
+            ],
+        ], allowEmpty: true);
+
+        $news->refresh();
+
+        $this->assertCount(1, $news->images);
+        $this->assertSame('news/images/from-url.jpg', $news->image);
+        $this->assertSame('news/images/from-url.jpg', $news->images()->value('path'));
+    }
+
+    public function test_sync_persists_livewire_temp_relative_path_onto_public_disk(): void
+    {
+        $news = News::create([
+            'title' => 'خبر من livewire-tmp',
+            'slug' => 'test-news-livewire-tmp',
+            'content' => 'نص',
+        ]);
+
+        Storage::fake('tmp-for-tests');
+        config(['livewire.temporary_file_upload.directory' => 'livewire-tmp']);
+
+        Storage::disk('tmp-for-tests')->put('livewire-tmp/tmp-upload.jpg', 'temporary-image-bytes');
+
+        app(NewsImageSyncService::class)->sync($news, [
+            ['path' => 'livewire-tmp/tmp-upload.jpg', 'is_primary' => true],
+        ], allowEmpty: true);
+
+        $news->refresh();
+
+        $this->assertCount(1, $news->images);
+        $this->assertNotNull($news->image);
+        $this->assertStringStartsWith('news/images/', (string) $news->image);
+        $this->assertTrue(Storage::disk('public')->exists((string) $news->image));
+        $this->assertSame('temporary-image-bytes', Storage::disk('public')->get((string) $news->image));
+    }
 }

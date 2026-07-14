@@ -4,12 +4,17 @@ namespace App\Services\News;
 
 use App\Models\News;
 use App\Models\NewsImage;
+use App\Support\PublicDiskPath;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use League\Flysystem\UnableToCheckFileExistence;
 
 final class NewsImageSyncService
 {
+    private const PUBLIC_DIRECTORY = 'news/images';
+
     public function purgeFilesForNews(News $news): void
     {
         $paths = $news->images()->pluck('path')->all();
@@ -205,19 +210,110 @@ final class NewsImageSyncService
             $path = $path[0] ?? null;
         }
 
+        if ($path instanceof TemporaryUploadedFile) {
+            return $this->persistTemporaryUpload($path);
+        }
+
         if (! is_string($path) || blank($path)) {
             return null;
         }
 
-        if (Str::startsWith($path, ['http://', 'https://'])) {
-            return $path;
+        $path = trim($path);
+
+        if (Str::startsWith($path, 'livewire-file:')) {
+            return $this->persistTemporaryUpload(
+                TemporaryUploadedFile::createFromLivewire(Str::after($path, 'livewire-file:'))
+            );
         }
 
-        if (! Storage::disk('public')->exists($path)) {
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            return $this->resolveHttpPath($path);
+        }
+
+        $normalized = PublicDiskPath::normalize($path);
+        if ($normalized === null) {
             return null;
         }
 
-        return $path;
+        if ($this->isLivewireTemporaryRelativePath($normalized)) {
+            return $this->persistTemporaryUpload(
+                TemporaryUploadedFile::createFromLivewire(basename($normalized))
+            );
+        }
+
+        if (! $this->publicDiskExists($normalized)) {
+            return null;
+        }
+
+        return $normalized;
+    }
+
+    private function resolveHttpPath(string $url): ?string
+    {
+        if (PublicDiskPath::isEphemeralUploadUrl($url)) {
+            $filename = PublicDiskPath::livewirePreviewFilename($url);
+            if ($filename === null) {
+                return null;
+            }
+
+            return $this->persistTemporaryUpload(
+                TemporaryUploadedFile::createFromLivewire($filename)
+            );
+        }
+
+        $relative = PublicDiskPath::relativePathFromPublicUrl($url);
+        if ($relative !== null && $this->publicDiskExists($relative)) {
+            return $relative;
+        }
+
+        // Durable external absolute URLs (CDN / remote assets) are kept as-is.
+        return $url;
+    }
+
+    private function persistTemporaryUpload(TemporaryUploadedFile $file): ?string
+    {
+        try {
+            if (! $file->exists()) {
+                return null;
+            }
+
+            $extension = strtolower((string) ($file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'jpg'));
+            $extension = preg_replace('/[^a-z0-9]+/', '', $extension) ?: 'jpg';
+            $filename = (string) Str::ulid().'.'.$extension;
+
+            $stored = $file->storeAs(self::PUBLIC_DIRECTORY, $filename, 'public');
+            if (! is_string($stored) || blank($stored)) {
+                return null;
+            }
+
+            rescue(fn () => Storage::disk('public')->setVisibility($stored, 'public'), report: false);
+
+            try {
+                $file->delete();
+            } catch (\Throwable) {
+                // Temp cleanup is best-effort; the permanent public copy already exists.
+            }
+
+            return $stored;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function publicDiskExists(string $path): bool
+    {
+        try {
+            return Storage::disk('public')->exists($path);
+        } catch (UnableToCheckFileExistence) {
+            return false;
+        }
+    }
+
+    private function isLivewireTemporaryRelativePath(string $path): bool
+    {
+        return Str::startsWith($path, ['livewire-tmp/', 'livewire-tmp\\'])
+            || str_contains($path, '/livewire-tmp/')
+            || str_contains($path, '\\livewire-tmp\\');
     }
 
     /**

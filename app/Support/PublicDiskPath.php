@@ -33,6 +33,10 @@ final class PublicDiskPath
         }
 
         if (Str::startsWith($p, ['http://', 'https://'])) {
+            if (self::isEphemeralUploadUrl($p)) {
+                return null;
+            }
+
             return $p;
         }
 
@@ -69,6 +73,79 @@ final class PublicDiskPath
     }
 
     /**
+     * Detect short-lived Livewire/Filament preview or signed temporary upload URLs.
+     * These must never be treated as permanent media paths.
+     */
+    public static function isEphemeralUploadUrl(?string $url): bool
+    {
+        if ($url === null || $url === '') {
+            return false;
+        }
+
+        if (! Str::startsWith($url, ['http://', 'https://'])) {
+            return false;
+        }
+
+        $path = (string) (parse_url($url, PHP_URL_PATH) ?? '');
+        $query = (string) (parse_url($url, PHP_URL_QUERY) ?? '');
+
+        if (str_contains($path, '/preview-file/')) {
+            return true;
+        }
+
+        if (str_contains($path, '/livewire/') && str_contains($path, 'upload')) {
+            return true;
+        }
+
+        // Livewire / Laravel temporary signed URLs include both expires + signature.
+        if ($query !== '' && str_contains($query, 'expires=') && str_contains($query, 'signature=')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Extract the Livewire temp filename from a preview-file URL, if present.
+     */
+    public static function livewirePreviewFilename(?string $url): ?string
+    {
+        if ($url === null || $url === '') {
+            return null;
+        }
+
+        $path = (string) (parse_url($url, PHP_URL_PATH) ?? '');
+        if (! preg_match('#/preview-file/([^/]+)$#', $path, $matches)) {
+            return null;
+        }
+
+        $filename = rawurldecode($matches[1]);
+
+        return $filename !== '' ? $filename : null;
+    }
+
+    /**
+     * Convert an absolute /storage/... URL (any host) to a public-disk relative path.
+     */
+    public static function relativePathFromPublicUrl(?string $url): ?string
+    {
+        if ($url === null || $url === '') {
+            return null;
+        }
+
+        $path = (string) (parse_url($url, PHP_URL_PATH) ?? '');
+        if ($path === '') {
+            return null;
+        }
+
+        if (! preg_match('#(?:^|/)storage/(.+)$#', $path, $matches)) {
+            return null;
+        }
+
+        return self::normalize(rawurldecode($matches[1]));
+    }
+
+    /**
      * Public URL for a file on disk "public", or the remote URL if stored as absolute.
      * Returns null if the relative path does not exist on disk.
      */
@@ -79,6 +156,10 @@ final class PublicDiskPath
             return null;
         }
         if (Str::startsWith($n, ['http://', 'https://'])) {
+            if (self::isEphemeralUploadUrl($n)) {
+                return null;
+            }
+
             return $n;
         }
         if (! Storage::disk($disk)->exists($n)) {
@@ -102,11 +183,6 @@ final class PublicDiskPath
         $resolved = self::url($path);
         if ($resolved !== null) {
             return $resolved;
-        }
-
-        $n = self::normalize($path);
-        if ($n !== null && Str::startsWith($n, ['http://', 'https://'])) {
-            return $n;
         }
 
         return $fallback;
