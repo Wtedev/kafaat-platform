@@ -731,8 +731,8 @@
                 </div>
                 <a href="{{ route('public.news.index') }}" class="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold hover:underline" style="color:#335483">
                     عرض كل الأخبار
-                    <svg class="h-4 w-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                 </a>
             </div>
 
@@ -746,13 +746,13 @@
             </div>
             @else
             <div class="relative">
-                <button type="button" id="news-slider-prev" class="absolute top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-[#335483] shadow-md transition hover:bg-[#e9eff6] end-0 sm:flex" aria-label="الأحدث">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                <button type="button" id="news-slider-prev" class="absolute top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-[#335483] shadow-md transition hover:bg-[#e9eff6] end-0 sm:flex" aria-label="الأقدم">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                 </button>
-                <button type="button" id="news-slider-next" class="absolute top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-[#335483] shadow-md transition hover:bg-[#e9eff6] start-0 sm:flex" aria-label="الأقدم">
-                    <svg class="h-5 w-5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <button type="button" id="news-slider-next" class="absolute top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-[#335483] shadow-md transition hover:bg-[#e9eff6] start-0 sm:flex" aria-label="الأحدث">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                 </button>
@@ -1069,14 +1069,14 @@
 
             if (prevBtn) {
                 prevBtn.addEventListener('click', function() {
-                    scrollToIndex(index - 1);
+                    scrollToIndex(index + 1);
                     startAuto();
                 });
             }
 
             if (nextBtn) {
                 nextBtn.addEventListener('click', function() {
-                    scrollToIndex(index + 1);
+                    scrollToIndex(index - 1);
                     startAuto();
                 });
             }
