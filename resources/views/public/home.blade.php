@@ -202,6 +202,12 @@
             animation: home-hero-rise 0.9s cubic-bezier(.22, 1, .36, 1) 0.28s forwards;
         }
 
+        /* Modest tracking for large Arabic display — avoids tracking-tight crush */
+        .home-hero__headline {
+            letter-spacing: 0.06em;
+            padding-inline: 0.15em;
+        }
+
         .home-hero__actions {
             opacity: 0;
             transform: translateY(18px);
@@ -520,7 +526,7 @@
                     </div>
 
                     <div class="home-hero__copy">
-                        <h1 class="home-hero__headline text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-[1.15] tracking-tight text-white mb-5">
+                        <h1 class="home-hero__headline text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-[1.15] text-white mb-5">
                             نمكن الشباب..<br>
                             ونصنع الأثر
                         </h1>
