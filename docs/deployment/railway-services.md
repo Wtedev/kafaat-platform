@@ -8,8 +8,11 @@
 | poetic-reprieve | Worker attempt | `main` | Deploy failed | queue:work only — not production-ready |
 | Postgres | PostgreSQL | — | Online | Shared by production web |
 | Bucket | — | — | **None** | CV on local/ephemeral disk |
+| Public media volume | Volume | — | **Must attach** | Mount `/app/storage/app/public` or news/Filament images vanish on redeploy |
 
 Production start (Web): migrate in legacy config; current repo branch uses `railway/run-web.sh` without inline migrate.
+
+**Public uploads:** see `docs/deployment/public-media-storage.md` (Railway volume at `/app/storage/app/public`, or `PUBLIC_DISK_DRIVER=s3`).
 
 Production **does not** run a dedicated Scheduler service — scheduled tasks (`news:publish-scheduled`, retention, export purge) may not run reliably.
 

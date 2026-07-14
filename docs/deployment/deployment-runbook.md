@@ -20,4 +20,6 @@
 
 **Never:** `migrate:fresh`, `db:wipe`, `composer update` in production deploy.
 
+**Public media (news images):** Railway’s container disk is ephemeral. Before production traffic that uploads Filament media, attach a volume at `/app/storage/app/public` (or set `PUBLIC_DISK_DRIVER=s3`). Ops steps: `docs/deployment/public-media-storage.md`.
+
 See `docs/deployment/production-readiness-checklist.md`.

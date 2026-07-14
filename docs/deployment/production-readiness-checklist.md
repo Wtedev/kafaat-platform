@@ -20,6 +20,7 @@
 - [ ] `TRUSTED_HOSTS` set if using host pinning
 - [ ] Trusted proxy CIDRs documented (Railway/load balancer)
 - [ ] Private storage volume persistent
+- [ ] Public media durable (`/app/storage/app/public` volume **or** `PUBLIC_DISK_DRIVER=s3`) — see `docs/deployment/public-media-storage.md`
 
 ## Privacy operations
 

@@ -170,6 +170,13 @@ final class PublicDiskPath
             return null;
         }
 
+        $driver = (string) config("filesystems.disks.{$disk}.driver", 'local');
+
+        // Object storage (S3/R2): use the disk URL (CDN / bucket public URL).
+        if ($driver !== 'local') {
+            return Storage::disk($disk)->url($n);
+        }
+
         // Relative URL so logos load on the current host/port (avoids APP_URL port mismatches in local dev).
         return '/storage/'.ltrim($n, '/');
     }

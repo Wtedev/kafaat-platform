@@ -20,6 +20,7 @@ Target architecture inside the existing Railway project (no new project).
 | Scheduler | Cron loop | `bash railway/run-scheduler.sh` | No |
 | PostgreSQL | Database | template | No |
 | Bucket | Private CV/exports | S3-compatible | No |
+| Volume (web) | Public media (`storage/app/public`) | Mount `/app/storage/app/public` | No |
 
 ## Isolation rules
 
@@ -27,6 +28,7 @@ Target architecture inside the existing Railway project (no new project).
 - Staging Bucket must **not** share Production credentials.
 - `APP_ENV=staging`, `APP_DEBUG=false`.
 - `PRIVATE_DOCUMENTS_DISK=s3` with Railway Bucket credentials (Web + Worker share bucket).
+- Public Filament/news media: volume at `/app/storage/app/public` + `PUBLIC_STORAGE_PERSISTENT=1` (or `PUBLIC_DISK_DRIVER=s3`). See `docs/deployment/public-media-storage.md`.
 - `TRUSTED_HOSTS` = staging domain only.
 - Separate `APP_KEY` and `IDENTITY_LOOKUP_KEY` from Production.
 - Mail: Resend with test inbox or sandbox — never real beneficiaries.

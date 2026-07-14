@@ -12,6 +12,10 @@ use Illuminate\Support\Str;
 use SplFileInfo;
 use Symfony\Component\Finder\Finder;
 
+/**
+ * Publishes curated media-center assets under media/photos/library/ only.
+ * Never touches storage/app/public/news/images (staff Filament news uploads).
+ */
 class MediaPhotoSeeder extends Seeder
 {
     private const ASSETS_ROOT = 'seeders/assets/media-photos';

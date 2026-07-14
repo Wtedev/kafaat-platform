@@ -13,7 +13,10 @@
 | `SESSION_SAME_SITE` | `lax` | `lax` (verify flows) |
 | `QUEUE_CONNECTION` | `database` | **`database`/`redis` + worker** |
 | `CACHE_STORE` | `file` | `redis` recommended |
-| `PRIVATE_DOCUMENTS_DISK` | `private_documents` | persistent volume |
+| `PRIVATE_DOCUMENTS_DISK` | `private_documents` | persistent volume / S3 |
+| `PUBLIC_DISK_DRIVER` | `local` | `local` + Railway volume **or** `s3` |
+| `PUBLIC_STORAGE_PERSISTENT` | unset | `1` after volume attach (local driver) |
+| `PUBLIC_DISK_ROOT` | unset | only if volume mount ≠ `storage/app/public` |
 | `IDENTITY_LOOKUP_KEY` | empty | **required** |
 | `PRIVACY_EXPORT_TTL_DAYS` | `7` | approved value |
 | `PRIVACY_RETENTION_*` | see `.env.example` | reviewed |

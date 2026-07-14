@@ -9,7 +9,7 @@ return [
     |
     | Here you may specify the default filesystem disk that should be used
     | by the framework. The "local" disk, as well as a variety of cloud
-    | based disks are available to your application for file storage.
+    | based disks are available for your application for file storage.
     |
     */
 
@@ -25,6 +25,11 @@ return [
     | most supported storage drivers are configured here for reference.
     |
     | Supported drivers: "local", "ftp", "sftp", "s3"
+    |
+    | Public disk durability (Railway):
+    | - Prefer a Railway Volume mounted at /app/storage/app/public, or
+    | - Set PUBLIC_DISK_DRIVER=s3 with a public-readable bucket.
+    | See docs/deployment/public-media-storage.md.
     |
     */
 
@@ -47,12 +52,22 @@ return [
         ],
 
         'public' => [
-            'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            'driver' => env('PUBLIC_DISK_DRIVER', 'local'),
+            // Local root (ignored by the S3 driver). Override only if the Railway
+            // volume is mounted somewhere other than storage/app/public.
+            'root' => env('PUBLIC_DISK_ROOT') ?: storage_path('app/public'),
+            'url' => env('PUBLIC_DISK_URL')
+                ?: (rtrim(env('APP_URL', 'http://localhost'), '/').'/storage'),
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
+            // Used when PUBLIC_DISK_DRIVER=s3 (public-readable media bucket).
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION'),
+            'bucket' => env('AWS_PUBLIC_BUCKET', env('AWS_BUCKET')),
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
         ],
 
         's3' => [
@@ -82,7 +97,7 @@ return [
     */
 
     'links' => [
-        public_path('storage') => storage_path('app/public'),
+        public_path('storage') => env('PUBLIC_DISK_ROOT') ?: storage_path('app/public'),
     ],
 
 ];

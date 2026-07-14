@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 # Web-only: migrations, permissions, and governance content (Railway preDeploy + staging web boot).
+#
+# Do NOT seed NewsSeeder / CleanDemoDataSeeder here — they are opt-in and destructive.
+# PartnerSeeder / MediaPhotoSeeder only upsert their own public-disk prefixes; they never
+# delete storage/app/public/news/images (staff news uploads). See docs/deployment/public-media-storage.md
 set -euo pipefail
 
 if [[ "${RAILWAY_ENVIRONMENT_NAME:-}" == "staging" && "${APP_ENV:-}" != "staging" ]]; then

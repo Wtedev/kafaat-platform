@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Upserts partner rows and logos under partners/ only.
+ * Never deletes or overwrites storage/app/public/news/images.
+ */
 class PartnerSeeder extends Seeder
 {
     /**

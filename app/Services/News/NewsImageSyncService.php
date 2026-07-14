@@ -11,9 +11,15 @@ use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use League\Flysystem\UnableToCheckFileExistence;
 
+/**
+ * Persists news gallery files on the durable Laravel "public" disk.
+ * On Railway that disk must be a volume or S3 — see docs/deployment/public-media-storage.md.
+ */
 final class NewsImageSyncService
 {
     private const PUBLIC_DIRECTORY = 'news/images';
+
+    private const DISK = 'public';
 
     public function purgeFilesForNews(News $news): void
     {
@@ -281,12 +287,12 @@ final class NewsImageSyncService
             $extension = preg_replace('/[^a-z0-9]+/', '', $extension) ?: 'jpg';
             $filename = (string) Str::ulid().'.'.$extension;
 
-            $stored = $file->storeAs(self::PUBLIC_DIRECTORY, $filename, 'public');
+            $stored = $file->storeAs(self::PUBLIC_DIRECTORY, $filename, self::DISK);
             if (! is_string($stored) || blank($stored)) {
                 return null;
             }
 
-            rescue(fn () => Storage::disk('public')->setVisibility($stored, 'public'), report: false);
+            rescue(fn () => Storage::disk(self::DISK)->setVisibility($stored, 'public'), report: false);
 
             try {
                 $file->delete();
@@ -303,7 +309,7 @@ final class NewsImageSyncService
     private function publicDiskExists(string $path): bool
     {
         try {
-            return Storage::disk('public')->exists($path);
+            return Storage::disk(self::DISK)->exists($path);
         } catch (UnableToCheckFileExistence) {
             return false;
         }
@@ -338,8 +344,8 @@ final class NewsImageSyncService
                 continue;
             }
 
-            if (Storage::disk('public')->exists($path)) {
-                Storage::disk('public')->delete($path);
+            if (Storage::disk(self::DISK)->exists($path)) {
+                Storage::disk(self::DISK)->delete($path);
             }
         }
     }
