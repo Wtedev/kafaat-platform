@@ -66,15 +66,13 @@
     $containSurface = 'background:#eef2f6';
 
     if ($variant === 'hero') {
+        // Detail hero is always full-bleed cover so logos/photos span the whole top card.
         $heightWrap = 'h-56 sm:h-64 flex items-center justify-center';
         $bgStyle = $heroBg;
         $iconWrap = 'w-20 h-20 opacity-25 sm:w-24 sm:h-24';
-        $imgWrap = $fitContain
-            ? 'h-56 sm:h-72 lg:h-80 overflow-hidden flex items-center justify-center'
-            : 'overflow-hidden';
-        $imgClass = $fitContain
-            ? 'max-h-full max-w-full w-full h-full object-contain p-4 sm:p-6'
-            : 'w-full h-56 sm:h-72 lg:h-80 object-cover';
+        $imgWrap = 'overflow-hidden';
+        $imgClass = 'w-full h-56 sm:h-72 lg:h-80 object-cover';
+        $fitContain = false;
     } elseif ($variant === 'thumb') {
         $heightWrap = 'h-full w-full flex items-center justify-center rounded-lg';
         $bgStyle = $catalogBgs[$index % count($catalogBgs)];

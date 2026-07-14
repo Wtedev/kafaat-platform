@@ -53,7 +53,7 @@ $hasMediaBadges = isset($mediaBadges) && ! $mediaBadges->isEmpty();
         <article class="overflow-hidden rounded-2xl bg-white">
             <div class="p-6 sm:p-8">
                 @if (filled($descriptionHeading))
-                <h2 class="mb-5 text-lg font-medium text-gray-900">{{ $descriptionHeading }}</h2>
+                <h2 class="mb-5 text-lg font-bold text-gray-900">{{ $descriptionHeading }}</h2>
                 @endif
 
                 @if (filled($description))
