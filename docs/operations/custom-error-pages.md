@@ -16,6 +16,17 @@ Railway does **not** natively support a custom static edge error page via `railw
 3. **Restart on failure** — `restartPolicyType: ON_FAILURE`.
 4. Avoid serverless sleep / long cold starts when possible.
 
+## Filament / Livewire (admin uploads)
+
+Branded 5xx pages auto-refresh after **120 seconds**. Livewire embeds HTTP error bodies in a dialog (`#livewire-error`). If a News image upload/save failed and returned our Arabic wait page, staff saw a “popup” that sat for ~two minutes then vanished when the countdown reloaded.
+
+Mitigation in app code:
+
+- `PrefersJsonErrorResponse` — Livewire / `livewire/*` requests get JSON errors, not branded HTML.
+- Error layout skips auto-refresh when the page is embedded in an iframe (belt-and-suspenders).
+
+Images on the News **edit** page are saved from a dedicated Filament modal («حفظ الصور»), not from the main Save button. Create still attaches images on the create form submit. That modal itself is intentional; the ~2 minute disappear was the error overlay, not normal save UX.
+
 Static branded fallback (for an **external** proxy/CDN only):
 
 - `emergency-fallback/` — standalone Arabic RTL page + CSS

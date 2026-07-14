@@ -25,8 +25,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <title>{{ $title }} — كفاءات</title>
+    {{-- Meta refresh only for top-level navigations. Livewire embeds error HTML in an iframe;
+         refreshing there caused a ~120s "popup then vanish" in Filament admin uploads. --}}
     @if($autoRefreshSeconds > 0)
-        <meta http-equiv="refresh" content="{{ $autoRefreshSeconds }}">
+        <script>
+            if (window === window.top) {
+                var meta = document.createElement('meta');
+                meta.httpEquiv = 'refresh';
+                meta.content = '{{ $autoRefreshSeconds }}';
+                document.head.appendChild(meta);
+            }
+        </script>
     @endif
     <style>
         @font-face {
@@ -271,6 +280,14 @@
     @if($autoRefreshSeconds > 0)
         <script>
             (function () {
+                // Do not auto-reload when embedded (Livewire #livewire-error iframe).
+                if (window !== window.top) {
+                    var wrap = document.getElementById('error-countdown');
+                    if (wrap) {
+                        wrap.textContent = 'أغلق هذه النافذة ثم أعد المحاولة من لوحة الإدارة.';
+                    }
+                    return;
+                }
                 var el = document.getElementById('error-countdown-value');
                 var wrap = document.getElementById('error-countdown');
                 if (!el || !wrap) return;

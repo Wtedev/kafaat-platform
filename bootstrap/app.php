@@ -9,6 +9,7 @@ use App\Http\Middleware\EnsureGateAttendanceAccess;
 use App\Http\Middleware\EnsureOtpVerified;
 use App\Http\Middleware\RecordErrorPageHit;
 use App\Services\Operations\ErrorPageVisitRecorder;
+use App\Support\Http\PrefersJsonErrorResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -78,11 +79,11 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Prefer branded Blade error pages for browser requests when APP_DEBUG=false.
-        // Filament/Livewire keep their own in-panel error UI for component failures;
-        // these views only cover HTTP status responses rendered by Laravel.
+        // Prefer branded Blade error pages for normal browser navigations when APP_DEBUG=false.
+        // Never return those HTML pages (with 120s auto-refresh) to Livewire/Filament AJAX —
+        // Livewire embeds the body in an error dialog, which looked like a 2-minute "popup".
         $exceptions->shouldRenderJsonWhen(function (Request $request, Throwable $e): bool {
-            return $request->expectsJson();
+            return PrefersJsonErrorResponse::matches($request);
         });
 
         // Attach the throwable so RecordErrorPageHit can store exception_class once.
@@ -102,7 +103,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Fallback branded Arabic pages for uncommon 4xx/5xx without a dedicated view.
         $exceptions->render(function (HttpExceptionInterface $e, Request $request) {
-            if ($request->expectsJson()) {
+            if (PrefersJsonErrorResponse::matches($request)) {
                 return null;
             }
 

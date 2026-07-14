@@ -322,4 +322,56 @@ class ErrorPageVisitsSystemTest extends TestCase
         $this->assertFileExists($path);
         $this->assertStringContainsString('الخدمة غير جاهزة حالياً', (string) file_get_contents($path));
     }
+
+    public function test_livewire_header_gets_json_not_branded_500_html(): void
+    {
+        try {
+            abort(500, 'simulated failure');
+        } catch (HttpException $e) {
+            $request = Request::create('/admin/news/1/edit', 'POST');
+            $request->headers->set('X-Livewire', 'true');
+            $request->headers->set('Accept', 'text/html, application/xhtml+xml');
+            $request->headers->set('Content-Type', 'application/json');
+
+            $rendered = $this->app[ExceptionHandler::class]->render($request, $e);
+
+            $this->assertSame(500, $rendered->getStatusCode());
+            $this->assertStringNotContainsString('ستُحدَّث الصفحة تلقائياً', $rendered->getContent());
+            $this->assertStringNotContainsString('autoRefreshSeconds', $rendered->getContent());
+            $this->assertTrue(
+                str_contains((string) $rendered->headers->get('Content-Type'), 'json')
+                || str_starts_with(ltrim($rendered->getContent()), '{')
+                || str_starts_with(ltrim($rendered->getContent()), '['),
+                'Expected JSON-style error body for Livewire, got: '.substr($rendered->getContent(), 0, 200)
+            );
+        }
+    }
+
+    public function test_livewire_upload_path_gets_json_not_branded_502_html(): void
+    {
+        try {
+            abort(502);
+        } catch (HttpException $e) {
+            $request = Request::create('/livewire/upload-file', 'POST');
+            $request->headers->set('Accept', 'text/html');
+
+            $rendered = $this->app[ExceptionHandler::class]->render($request, $e);
+
+            $this->assertSame(502, $rendered->getStatusCode());
+            $this->assertStringNotContainsString('يرجى الانتظار نحو دقيقتين', $rendered->getContent());
+            $this->assertTrue(
+                str_contains((string) $rendered->headers->get('Content-Type'), 'json')
+                || str_starts_with(ltrim($rendered->getContent()), '{'),
+                'Expected JSON for livewire upload errors'
+            );
+        }
+    }
+
+    public function test_error_layout_disables_auto_refresh_script_when_not_top_window(): void
+    {
+        $html = $this->app['view']->make('errors.500')->render();
+
+        $this->assertStringContainsString('window !== window.top', $html);
+        $this->assertStringContainsString('أغلق هذه النافذة', $html);
+    }
 }
