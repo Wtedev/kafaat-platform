@@ -18,6 +18,8 @@ Railway containers use an **ephemeral filesystem**. A normal redeploy starts a n
 
 Deploy seeders (`PartnerSeeder`, `MediaPhotoSeeder`) rewrite only their own prefixes (`partners/`, `media/photos/library/`). They do **not** delete `news/images/`. `NewsSeeder` is **not** run on Railway boot.
 
+`NewsCoverAssetsSeeder` publishes a small set of **git-backed** named article covers under `public/images/news/` (and mirrors them to `news/images/` on the public disk when writable). It only updates matching news rows by title; it does not wipe staff gallery uploads.
+
 ## Required production setup (choose one)
 
 ### Option A — Railway Volume (preferred for local `public` disk)

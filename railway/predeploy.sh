@@ -5,6 +5,7 @@
 # PartnerSeeder / MediaPhotoSeeder only upsert their own public-disk prefixes; they never
 # delete storage/app/public/news/images (staff news uploads). See docs/deployment/public-media-storage.md
 # VolunteerLeadersProgramCoverSeeder only sets image=images/programs/... for «قادة التطوع».
+# NewsCoverAssetsSeeder only sets image=images/news/... for named articles (git-backed covers).
 set -euo pipefail
 
 if [[ "${RAILWAY_ENVIRONMENT_NAME:-}" == "staging" && "${APP_ENV:-}" != "staging" ]]; then
@@ -28,5 +29,6 @@ php artisan db:seed --class=VolunteerOpportunitySeeder --force
 php artisan db:seed --class=PartnerSeeder --force
 php artisan db:seed --class=MediaPhotoSeeder --force
 php artisan db:seed --class=VolunteerLeadersProgramCoverSeeder --force
+php artisan db:seed --class=NewsCoverAssetsSeeder --force
 php artisan permission:cache-reset
 php artisan cache:clear
