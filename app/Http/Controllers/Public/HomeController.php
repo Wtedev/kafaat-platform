@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Models\MediaPhoto;
 use App\Models\News;
 use App\Models\Partner;
 use App\Support\CompetencyTrackCatalog;
@@ -28,7 +27,6 @@ class HomeController extends Controller
             'partners' => $partners,
             'programCounts' => CompetencyTrackCatalog::publishedProgramCounts(),
             'trackPrograms' => CompetencyTrackCatalog::featuredProgramsByTrack(5),
-            'heroImageUrl' => MediaPhoto::homepageHeroUrl(),
         ]);
     }
 }
