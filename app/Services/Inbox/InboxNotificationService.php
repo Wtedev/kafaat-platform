@@ -239,25 +239,27 @@ class InboxNotificationService
 
     public function programLaunched(TrainingProgram $program, ?User $publisher = null): void
     {
-        $staffIds = collect($this->resolveStaffUserIds());
-        $portalIds = collect($this->resolveRecipientIds(NotificationTargetType::AllPortalUsers));
-        $beneficiaryIds = $portalIds->diff($staffIds)->values()->all();
+        // برامج المسار: لا بثّ للمستفيدين (التسجيل عبر المسار فقط). نسخة إدارية فقط.
+        if ($program->learning_path_id === null) {
+            $beneficiaryIds = $this->resolveTrainingAnnouncementAudienceIds();
 
-        $msg = $this->creatorAudienceMessage(
-            type: InboxNotificationType::ProgramLaunched,
-            title: 'إطلاق برنامج: '.$program->title,
-            message: 'تم نشر برنامج تدريبي جديد. يمكنك الاطلاع على التفاصيل والتسجيل من صفحة البرامج.',
-            senderId: $publisher?->id,
-            targetType: NotificationTargetType::AllPortalUsers,
-            context: self::inboxContext('training_program', (int) $program->getKey()),
-        );
-        $this->dispatch($msg, $beneficiaryIds);
+            $msg = $this->creatorAudienceMessage(
+                type: InboxNotificationType::ProgramLaunched,
+                title: 'إطلاق برنامج: '.$program->title,
+                message: 'تم نشر برنامج تدريبي جديد. يمكنك الاطلاع على التفاصيل والتسجيل من صفحة البرامج.',
+                // لا تُعرض أسماء الموظفين/المنشئين للمستفيدين.
+                senderId: null,
+                targetType: NotificationTargetType::Trainees,
+                context: self::inboxContext('training_program', (int) $program->getKey()),
+            );
+            $this->dispatch($msg, $beneficiaryIds);
+        }
 
         $staffMsg = new NotificationMessage(
             type: InboxNotificationType::StaffTrainingEntityCreated,
             title: 'برنامج تدريبي جديد: '.$program->title,
             message: 'تم إنشاء أو نشر برنامج تدريبي جديد على المنصة.',
-            senderId: $publisher?->id,
+            senderId: null,
             targetType: NotificationTargetType::DirectRecipients,
             context: self::inboxContext('training_program', (int) $program->getKey()),
         );
@@ -569,16 +571,14 @@ class InboxNotificationService
 
     public function learningPathLaunched(LearningPath $path, ?User $publisher = null): void
     {
-        $staffIds = collect($this->resolveStaffUserIds());
-        $portalIds = collect($this->resolveRecipientIds(NotificationTargetType::AllPortalUsers));
-        $beneficiaryIds = $portalIds->diff($staffIds)->values()->all();
+        $beneficiaryIds = $this->resolveTrainingAnnouncementAudienceIds();
 
         $msg = $this->creatorAudienceMessage(
             type: InboxNotificationType::LearningPathLaunched,
             title: 'مسار تعليمي جديد: '.$path->title,
             message: 'تم نشر مسار تعليمي جديد. يمكنك الاطلاع على التفاصيل والتسجيل من صفحة المسارات.',
-            senderId: $publisher?->id,
-            targetType: NotificationTargetType::AllPortalUsers,
+            senderId: null,
+            targetType: NotificationTargetType::Trainees,
             context: self::inboxContext('learning_path', (int) $path->getKey()),
         );
         $this->dispatch($msg, $beneficiaryIds);
@@ -587,7 +587,7 @@ class InboxNotificationService
             type: InboxNotificationType::StaffTrainingEntityCreated,
             title: 'مسار تعليمي جديد: '.$path->title,
             message: 'تم إنشاء أو نشر مسار تعليمي جديد على المنصة.',
-            senderId: $publisher?->id,
+            senderId: null,
             targetType: NotificationTargetType::DirectRecipients,
             context: self::inboxContext('learning_path', (int) $path->getKey()),
         );
@@ -687,16 +687,15 @@ class InboxNotificationService
 
     public function registrationWindowOpenedForProgram(TrainingProgram $program): void
     {
-        $staffIds = collect($this->resolveStaffUserIds());
-        $portalIds = collect($this->resolveRecipientIds(NotificationTargetType::AllPortalUsers));
-        $beneficiaryIds = $portalIds->diff($staffIds)->values()->all();
+        // جمهور فتح التسجيل: متدربون ومستفيدون فقط (لا متطوعون ولا بثّ لكل مستخدمي البوابة).
+        $beneficiaryIds = $this->resolveTrainingAnnouncementAudienceIds();
 
         $msg = new NotificationMessage(
             type: InboxNotificationType::RegistrationWindowOpened,
             title: 'بدء التسجيل: '.$program->title,
             message: 'بدأت فترة التسجيل في البرنامج «'.$program->title.'».',
             senderId: null,
-            targetType: NotificationTargetType::AllPortalUsers,
+            targetType: NotificationTargetType::Trainees,
             context: self::inboxContext('training_program', (int) $program->getKey()),
         );
         $this->dispatch($msg, $beneficiaryIds);
@@ -714,19 +713,28 @@ class InboxNotificationService
 
     public function registrationWindowClosedForProgram(TrainingProgram $program): void
     {
-        $staffIds = collect($this->resolveStaffUserIds());
-        $portalIds = collect($this->resolveRecipientIds(NotificationTargetType::AllPortalUsers));
-        $beneficiaryIds = $portalIds->diff($staffIds)->values()->all();
+        // انتهاء التسجيل يخص المسجّلين فعلياً فقط — لا بثّ لجميع المستفيدين.
+        $registrantIds = $program->registrations()
+            ->whereIn('status', [
+                RegistrationStatus::Pending->value,
+                RegistrationStatus::Approved->value,
+            ])
+            ->pluck('user_id')
+            ->unique()
+            ->values()
+            ->all();
 
-        $msg = new NotificationMessage(
-            type: InboxNotificationType::RegistrationWindowClosed,
-            title: 'انتهاء التسجيل: '.$program->title,
-            message: 'انتهت فترة التسجيل في البرنامج «'.$program->title.'».',
-            senderId: null,
-            targetType: NotificationTargetType::AllPortalUsers,
-            context: self::inboxContext('training_program', (int) $program->getKey()),
-        );
-        $this->dispatch($msg, $beneficiaryIds);
+        if ($registrantIds !== []) {
+            $msg = new NotificationMessage(
+                type: InboxNotificationType::RegistrationWindowClosed,
+                title: 'انتهاء التسجيل: '.$program->title,
+                message: 'انتهت فترة التسجيل في البرنامج «'.$program->title.'».',
+                senderId: null,
+                targetType: NotificationTargetType::ProgramRegistrants,
+                context: self::inboxContext('training_program', (int) $program->getKey()),
+            );
+            $this->dispatch($msg, $registrantIds);
+        }
 
         $staffMsg = new NotificationMessage(
             type: InboxNotificationType::RegistrationWindowClosed,
@@ -783,6 +791,22 @@ class InboxNotificationService
             context: self::inboxContext('training_program', (int) $program->getKey()),
         );
         $this->dispatch($staffMsg, $this->resolveAdminAndTrainingManagerIds());
+    }
+
+    /**
+     * جمهور إعلانات البرامج/المسارات وفتح التسجيل:
+     * متدربون ومستفيدون نشطون فقط — بدون متطوعين وبدون موظفين.
+     *
+     * @return list<int>
+     */
+    public function resolveTrainingAnnouncementAudienceIds(): array
+    {
+        $staffIds = collect($this->resolveStaffUserIds());
+
+        return collect($this->resolveRecipientIds(NotificationTargetType::Trainees))
+            ->diff($staffIds)
+            ->values()
+            ->all();
     }
 
     /**
