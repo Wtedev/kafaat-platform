@@ -23,4 +23,13 @@ class LocaleFormatTest extends TestCase
         $this->assertStringNotContainsString('١', $formatted);
         $this->assertStringContainsString('2025', $formatted);
     }
+
+    #[Test]
+    public function test_diff_for_humans_uses_arabic_relative_phrases(): void
+    {
+        $formatted = LocaleFormat::diffForHumans(now()->subMinutes(5));
+
+        $this->assertStringStartsWith('منذ', $formatted);
+        $this->assertStringContainsString('دقائق', $formatted);
+    }
 }

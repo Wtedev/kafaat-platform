@@ -29,3 +29,10 @@ if (! function_exists('ar_date_time')) {
         return LocaleFormat::dateTime($value);
     }
 }
+
+if (! function_exists('ar_diff_for_humans')) {
+    function ar_diff_for_humans(\DateTimeInterface|\Carbon\CarbonInterface|string|null $value): string
+    {
+        return LocaleFormat::diffForHumans($value);
+    }
+}

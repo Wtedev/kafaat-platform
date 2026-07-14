@@ -44,15 +44,7 @@ $typeIconKind = match ($n->type) {
 };
 @endphp
 
-<li @class([
-    'npm-card group relative overflow-hidden rounded-2xl border bg-white transition',
-    'border-[#335483]/25 bg-[#f7f9fc] shadow-sm ring-1 ring-[#335483]/5' => $isUnread,
-    'border-gray-100 hover:border-gray-200 hover:bg-slate-50/60' => ! $isUnread,
-])>
-    @if ($isUnread)
-        <span class="absolute inset-y-0 end-0 w-1 bg-[#335483]" aria-hidden="true"></span>
-    @endif
-
+<li class="npm-card group relative overflow-hidden rounded-2xl border border-gray-100 bg-white transition hover:border-gray-200 hover:bg-slate-50/60">
     <div @class([
         'flex items-start gap-3',
         'p-3.5 sm:gap-3.5 sm:p-4' => $compact,
@@ -92,17 +84,9 @@ $typeIconKind = match ($n->type) {
 
         <div class="min-w-0 flex-1 text-right">
             <div class="flex flex-wrap items-center justify-between gap-2">
-                <div class="flex flex-wrap items-center gap-1.5">
-                    <span class="text-[11px] font-medium text-gray-500">{{ $heading }}</span>
-                    @if ($isUnread)
-                        <span class="inline-flex items-center gap-1 rounded-md bg-[#e6f5f6] px-1.5 py-0.5 text-[10px] font-bold text-brand-secondary">
-                            <span class="h-1.5 w-1.5 rounded-full bg-brand-secondary" aria-hidden="true"></span>
-                            جديد
-                        </span>
-                    @endif
-                </div>
-                <time class="shrink-0 text-[11px] text-gray-400" datetime="{{ $n->created_at->toIso8601String() }}">
-                    {{ ar_date_time($n->created_at) }}
+                <span class="text-[11px] font-semibold text-gray-800">{{ $heading }}</span>
+                <time class="shrink-0 text-[11px] text-gray-400" datetime="{{ $n->created_at->toIso8601String() }}" title="{{ ar_date_time($n->created_at) }}">
+                    {{ ar_diff_for_humans($n->created_at) }}
                 </time>
             </div>
 

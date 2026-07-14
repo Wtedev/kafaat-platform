@@ -58,6 +58,25 @@ final class LocaleFormat
         return self::date($value, 'd MMMM y — HH:mm');
     }
 
+    /**
+     * Arabic relative time (e.g. منذ 5 دقائق / منذ ساعة / منذ يومين).
+     */
+    public static function diffForHumans(DateTimeInterface|CarbonInterface|string|null $value): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
+        $date = $value instanceof CarbonInterface
+            ? $value->copy()
+            : Carbon::parse($value);
+
+        return $date
+            ->timezone(config('app.timezone'))
+            ->locale('ar')
+            ->diffForHumans();
+    }
+
     /** Maps common Carbon translatedFormat patterns used in the app. */
     public static function fromCarbonFormat(DateTimeInterface|CarbonInterface|string|null $value, string $carbonFormat): string
     {
