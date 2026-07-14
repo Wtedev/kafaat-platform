@@ -24,20 +24,48 @@ $hasCurrent = $hasActivities || $hasVolunteering;
     <h2 id="stats-heading" class="sr-only">إحصائيات</h2>
     <div class="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <p class="text-xs font-medium text-gray-500">مسارات وبرامج مسجّلة</p>
-            <p class="mt-2 text-2xl font-bold tabular-nums sm:text-3xl" style="color:#335483">{{ $programsRegistered }}</p>
+            <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0 text-right">
+                    <p class="text-xs font-medium leading-snug text-gray-500">مسارات وبرامج مسجّلة</p>
+                    <p class="mt-1.5 text-2xl font-bold tabular-nums tracking-tight sm:text-3xl" style="color:#335483">{{ $programsRegistered }}</p>
+                </div>
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e9eff6] text-[#335483]" aria-hidden="true">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+                </span>
+            </div>
         </div>
         <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <p class="text-xs font-medium text-gray-500">مكتملة</p>
-            <p class="mt-2 text-2xl font-bold tabular-nums text-brand-secondary sm:text-3xl">{{ $programsCompleted }}</p>
+            <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0 text-right">
+                    <p class="text-xs font-medium leading-snug text-gray-500">مكتملة</p>
+                    <p class="mt-1.5 text-2xl font-bold tabular-nums tracking-tight text-brand-secondary sm:text-3xl">{{ $programsCompleted }}</p>
+                </div>
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e6f5f6] text-brand-secondary" aria-hidden="true">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </span>
+            </div>
         </div>
         <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <p class="text-xs font-medium text-gray-500">ساعات تطوع معتمدة</p>
-            <p class="mt-2 text-2xl font-bold tabular-nums text-brand sm:text-3xl">{{ en_num($approvedHours, 1) }}</p>
+            <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0 text-right">
+                    <p class="text-xs font-medium leading-snug text-gray-500">ساعات تطوع معتمدة</p>
+                    <p class="mt-1.5 text-2xl font-bold tabular-nums tracking-tight text-brand sm:text-3xl">{{ en_num($approvedHours, 1) }}</p>
+                </div>
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e9eff6] text-[#335483]" aria-hidden="true">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </span>
+            </div>
         </div>
         <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <p class="text-xs font-medium text-gray-500">الشهادات</p>
-            <p class="mt-2 text-2xl font-bold tabular-nums text-brand-accent sm:text-3xl">{{ $certificatesCount }}</p>
+            <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0 text-right">
+                    <p class="text-xs font-medium leading-snug text-gray-500">الشهادات</p>
+                    <p class="mt-1.5 text-2xl font-bold tabular-nums tracking-tight text-brand-accent sm:text-3xl">{{ $certificatesCount }}</p>
+                </div>
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fef6e6] text-[#c99316]" aria-hidden="true">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12.75L11.25 15 15 9.75M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                </span>
+            </div>
         </div>
     </div>
 </section>

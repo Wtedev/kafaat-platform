@@ -49,7 +49,7 @@
         @else
             <ul class="space-y-3">
                 @foreach ($items as $n)
-                    @include('portal.partials.inbox-notification-item', ['n' => $n])
+                    @include('portal.partials.inbox-notification-item', ['n' => $n, 'compact' => $compact])
                 @endforeach
             </ul>
         @endif
