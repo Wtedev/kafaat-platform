@@ -17,7 +17,7 @@ Production **does not** run a dedicated Scheduler service — scheduled tasks (`
 
 | Component | Decision |
 |-----------|----------|
-| Web | `bash railway/run-web.sh`, health `/up`, preDeploy `railway/predeploy.sh` |
+| Web | `bash railway/run-web.sh`, health `/up` (also in `railway.json` healthcheckPath), preDeploy `railway/predeploy.sh` |
 | Worker | `bash railway/run-worker.sh`, persistent, no domain |
 | Scheduler | `bash railway/run-scheduler.sh` (every-minute tasks) |
 | PostgreSQL | New instance in `staging` environment |

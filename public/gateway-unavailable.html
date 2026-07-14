@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ar-SA-u-nu-latn" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta http-equiv="refresh" content="120">
+    <title>الخدمة غير جاهزة حالياً — كفاءات</title>
+    <style>
+        @font-face {
+            font-family: 'FF Shamel';
+            src: url('/fonts/shamel/FFShamelFamily-SansOneBook.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'FF Shamel';
+            src: url('/fonts/shamel/FFShamelFamily-SansOneBold.ttf') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+        :root {
+            --brand: #335483;
+            --brand-dark: #243a55;
+            --brand-light: #e9eff6;
+            --brand-border: #c5d4e4;
+            --ink: #111827;
+            --muted: #6B7280;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1.25rem;
+            font-family: 'FF Shamel', 'Segoe UI', Tahoma, sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(ellipse 80% 50% at 100% 0%, rgba(51, 84, 131, 0.12), transparent 55%),
+                radial-gradient(ellipse 60% 40% at 0% 100%, rgba(26, 147, 153, 0.08), transparent 50%),
+                linear-gradient(150deg, #EEF5FB 0%, #F3F7FB 55%, #e9eff6 100%);
+            -webkit-font-smoothing: antialiased;
+        }
+        .shell { width: 100%; max-width: 28rem; text-align: center; }
+        .brand {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.75rem;
+            text-decoration: none;
+            color: inherit;
+        }
+        .brand img { height: 3.25rem; width: auto; }
+        .brand-sub { margin: 0.35rem 0 0; font-size: 0.875rem; color: var(--muted); }
+        .card {
+            background: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            border-radius: 1.5rem;
+            box-shadow: 0 18px 40px rgba(36, 58, 85, 0.10);
+            padding: 2rem 1.75rem 1.75rem;
+        }
+        .code {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 4.5rem;
+            padding: 0.35rem 0.85rem;
+            margin-bottom: 1rem;
+            border-radius: 999px;
+            border: 1px solid var(--brand-border);
+            background: var(--brand-light);
+            color: var(--brand);
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        h1 {
+            margin: 0 0 0.65rem;
+            font-size: 1.35rem;
+            font-weight: 700;
+            line-height: 1.45;
+            color: var(--brand-dark);
+        }
+        .message {
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.75;
+            color: #374151;
+        }
+        .hint {
+            margin: 1rem 0 0;
+            padding: 0.85rem 1rem;
+            border-radius: 1rem;
+            border: 1px solid var(--brand-border);
+            background: var(--brand-light);
+            font-size: 0.875rem;
+            line-height: 1.7;
+            color: var(--brand-dark);
+        }
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 2.75rem;
+            padding: 0.7rem 1.35rem;
+            border-radius: 0.9rem;
+            border: none;
+            font: inherit;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .btn-primary {
+            color: #fff;
+            background: linear-gradient(135deg, var(--brand) 0%, #406688 100%);
+            box-shadow: 0 8px 18px rgba(51, 84, 131, 0.22);
+        }
+        .btn-secondary {
+            color: var(--brand);
+            background: #fff;
+            border: 1.5px solid var(--brand-border);
+        }
+        .countdown {
+            margin: 1.15rem 0 0;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        .countdown strong { color: var(--brand); font-variant-numeric: tabular-nums; }
+        .footer { margin-top: 1.35rem; font-size: 0.8rem; color: var(--muted); }
+    </style>
+</head>
+<body>
+    <main class="shell" role="main">
+        <a class="brand" href="/" aria-label="كفاءات — الرئيسية">
+            <img src="/images/brand/kafaat-logo.svg" alt="كفاءات" width="185" height="56" />
+            <p class="brand-sub">جمعية كفاءات لبناء قدرات الشباب</p>
+        </a>
+        <div class="card">
+            <div class="code" aria-hidden="true">503</div>
+            <h1>الخدمة غير جاهزة حالياً</h1>
+            <p class="message">تعذّر الوصول إلى المنصة في هذه اللحظة، وغالباً ما يحدث ذلك أثناء التحديث أو إعادة التشغيل.</p>
+            <p class="hint">يرجى الانتظار نحو دقيقتين ثم إعادة تحميل الصفحة.</p>
+            <div class="actions">
+                <button type="button" class="btn btn-primary" onclick="window.location.reload()">إعادة تحميل</button>
+                <a class="btn btn-secondary" href="/">العودة للرئيسية</a>
+            </div>
+            <p class="countdown" id="error-countdown" data-seconds="120">
+                ستُحدَّث الصفحة تلقائياً خلال <strong id="error-countdown-value">120</strong> ثانية
+            </p>
+        </div>
+        <p class="footer">منصة كفاءات</p>
+    </main>
+    <script>
+        (function () {
+            var el = document.getElementById('error-countdown-value');
+            var wrap = document.getElementById('error-countdown');
+            if (!el || !wrap) return;
+            var remaining = parseInt(wrap.getAttribute('data-seconds'), 10) || 0;
+            var timer = setInterval(function () {
+                remaining -= 1;
+                if (remaining <= 0) {
+                    clearInterval(timer);
+                    el.textContent = '0';
+                    window.location.reload();
+                    return;
+                }
+                el.textContent = String(remaining);
+            }, 1000);
+        })();
+    </script>
+</body>
+</html>
