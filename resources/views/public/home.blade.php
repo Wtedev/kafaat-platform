@@ -597,7 +597,7 @@
                     ['count' => 2497, 'prefix' => '+', 'suffix' => '', 'label' => 'مستفيد', 'icon' => 'users'],
                     ['count' => 18, 'prefix' => '', 'suffix' => '+', 'label' => 'برامج تدريبية', 'icon' => 'academic-cap'],
                     ['count' => 274, 'prefix' => '', 'suffix' => '', 'label' => 'جهة مستفيدة', 'icon' => 'building'],
-                    ['count' => 20, 'prefix' => '', 'suffix' => '', 'label' => 'جهات داعمة', 'icon' => 'link'],
+                    ['count' => 20, 'prefix' => '', 'suffix' => '', 'label' => 'جهات داعمة', 'icon' => 'handshake'],
                     ['count' => 124, 'prefix' => '', 'suffix' => '', 'label' => 'فرص تطوعية', 'icon' => 'heart-hand'],
                     ['count' => 1, 'prefix' => '+', 'suffix' => ' مليون', 'label' => 'الظهور الإعلامي', 'icon' => 'megaphone'],
                 ];
@@ -618,14 +618,18 @@
                                     @case('building')
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
                                         @break
-                                    @case('link')
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                                    @case('handshake')
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m11 17 2 2a1 1 0 1 0 3-3" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 3 1 11h-2" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h8" />
                                         @break
                                     @case('heart-hand')
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                                         @break
                                     @case('megaphone')
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 01-1.44-4.918m3.102.085C13.001 7.55 13.5 5.68 13.5 3.75c0-.828.672-1.5 1.5-1.5h.008c.828 0 1.5.672 1.5 1.5 0 1.93.499 3.8 1.41 5.425m-4.078 7.665a20.88 20.88 0 001.44-4.918m0 0a48.116 48.116 0 015.345-.315c.55-.036.945.438.855.98a48.11 48.11 0 01-.32 2.693c-.088.495-.53.83-1.03.83h-2.87m-5.345-.315A48.3 48.3 0 007.5 15.75" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
                                         @break
                                 @endswitch
                             </svg>
