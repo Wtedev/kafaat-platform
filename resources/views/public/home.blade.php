@@ -331,9 +331,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center;
             width: 9.5rem;
-            padding: 0;
+            min-height: 6.75rem;
+            padding: 0.75rem 0.5rem;
             border: none;
             border-radius: 0;
             background: transparent;
@@ -347,40 +348,15 @@
             transform: translateY(-2px);
         }
 
-        /*
-         * Fixed-height logo slot (no tile/frame). Seed JPEGs often bake black
-         * mats; #partners-logo-knockout + multiply knock those out against the
-         * white section background without drawing bordered cards.
-         */
-        .partners-marquee__logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 4.25rem;
-            padding: 0;
-            background: transparent;
-            border: none;
-            border-radius: 0;
-            box-shadow: none;
-            isolation: isolate;
-        }
-
-        .partners-marquee__logo img {
+        /* Logos as uploaded — object-contain only, no blend/filter/tiles. */
+        .partners-marquee__card img {
             display: block;
-            width: 100%;
-            height: 100%;
+            max-height: 2.75rem;
+            width: auto;
+            max-width: 100%;
+            height: auto;
             object-fit: contain;
             object-position: center;
-            mix-blend-mode: multiply;
-            filter: url(#partners-logo-knockout);
-        }
-
-        .partners-marquee__filters {
-            position: absolute;
-            width: 0;
-            height: 0;
-            overflow: hidden;
         }
 
         .partners-marquee__name {
@@ -417,10 +393,12 @@
 
             .partners-marquee__card {
                 width: 11rem;
+                min-height: 7.5rem;
+                padding: 0.9rem 0.65rem;
             }
 
-            .partners-marquee__logo {
-                height: 4.75rem;
+            .partners-marquee__card img {
+                max-height: 3.25rem;
             }
 
             .partners-marquee__name {
@@ -435,10 +413,7 @@
 
             .partners-marquee__card {
                 width: 12rem;
-            }
-
-            .partners-marquee__logo {
-                height: 5rem;
+                min-height: 8rem;
             }
         }
 
@@ -904,27 +879,6 @@
             }
         @endphp
         <div class="partners-marquee" dir="ltr" aria-label="شريط شركاء الجمعية">
-            <svg class="partners-marquee__filters" aria-hidden="true" focusable="false">
-                <defs>
-                    <filter id="partners-logo-knockout" color-interpolation-filters="sRGB" x="-2%" y="-2%" width="104%" height="104%">
-                        <feColorMatrix
-                            in="SourceGraphic"
-                            type="matrix"
-                            values="0 0 0 0 0
-                                    0 0 0 0 0
-                                    0 0 0 0 0
-                                    0.2126 0.7152 0.0722 0 0"
-                            result="luma"
-                        />
-                        <feComponentTransfer in="luma" result="hardKey">
-                            <feFuncA type="linear" slope="18" intercept="-0.35" />
-                        </feComponentTransfer>
-                        <feFlood flood-color="#ffffff" result="white" />
-                        <feComposite in="white" in2="hardKey" operator="in" result="alphaMask" />
-                        <feComposite in="SourceGraphic" in2="alphaMask" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" />
-                    </filter>
-                </defs>
-            </svg>
             <div class="partners-marquee__track">
                 @foreach ([false, true] as $isClone)
                 <div class="partners-marquee__group" @if ($isClone) data-marquee-clone="true" aria-hidden="true" @endif>
@@ -942,9 +896,7 @@
                         dir="rtl"
                     >
                         @if ($logoUrl)
-                        <span class="partners-marquee__logo">
-                            <img src="{{ $logoUrl }}" alt="{{ $partner->name }}" loading="lazy" decoding="async" />
-                        </span>
+                        <img src="{{ $logoUrl }}" alt="{{ $partner->name }}" loading="lazy" decoding="async" />
                         <span class="partners-marquee__name">{{ $partner->name }}</span>
                         @else
                         <span class="partners-marquee__name partners-marquee__name--solo">{{ $partner->name }}</span>
@@ -953,9 +905,7 @@
                     @else
                     <div class="partners-marquee__card" dir="rtl" @if ($isClone) tabindex="-1" @endif>
                         @if ($logoUrl)
-                        <span class="partners-marquee__logo">
-                            <img src="{{ $logoUrl }}" alt="{{ $isClone ? '' : $partner->name }}" loading="lazy" decoding="async" />
-                        </span>
+                        <img src="{{ $logoUrl }}" alt="{{ $isClone ? '' : $partner->name }}" loading="lazy" decoding="async" />
                         <span class="partners-marquee__name">{{ $partner->name }}</span>
                         @else
                         <span class="partners-marquee__name partners-marquee__name--solo">{{ $partner->name }}</span>
