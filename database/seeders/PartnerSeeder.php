@@ -76,6 +76,41 @@ class PartnerSeeder extends Seeder
                 'logo_file' => 'tvtc.png',
                 'website_url' => 'https://www.tvtc.gov.sa',
             ],
+            [
+                'name' => 'أوقاف الضحيان',
+                'type' => 'شريك استراتيجي',
+                'sort_order' => 9,
+                'logo_file' => 'alduhian.png',
+                'website_url' => null,
+            ],
+            [
+                'name' => 'عبدالله الراجحي الخيرية',
+                'type' => 'شريك استراتيجي',
+                'sort_order' => 10,
+                'logo_file' => 'alrajhi.png',
+                'website_url' => null,
+            ],
+            [
+                'name' => 'مؤسسة عبدالعزيز بن عبدالله الجميح الخيرية',
+                'type' => 'شريك استراتيجي',
+                'sort_order' => 11,
+                'logo_file' => 'aljomaih.png',
+                'website_url' => null,
+            ],
+            [
+                'name' => 'غيث',
+                'type' => 'شريك استراتيجي',
+                'sort_order' => 12,
+                'logo_file' => 'ghaith.png',
+                'website_url' => null,
+            ],
+            [
+                'name' => 'بيت الثقافة',
+                'type' => 'شريك استراتيجي',
+                'sort_order' => 13,
+                'logo_file' => 'cultural-house.png',
+                'website_url' => null,
+            ],
         ];
     }
 
