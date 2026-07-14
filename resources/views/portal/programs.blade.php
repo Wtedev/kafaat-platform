@@ -19,94 +19,36 @@ $statusLabels = [
 
 @push('styles')
 <style>
-    .portal-programs-page {
-        --pp-brand: #335483;
-        --pp-brand-soft: #e9eff6;
-        --pp-brand-mid: #c5d4e4;
-        --pp-ink: #0f172a;
-        --pp-muted: #64748b;
-    }
-
-    .portal-programs-hero {
-        position: relative;
-        overflow: hidden;
-        border-radius: 1.5rem;
-        border: 1px solid rgba(197, 212, 228, 0.65);
-        background:
-            radial-gradient(120% 140% at 100% 0%, rgba(51, 84, 131, 0.14), transparent 55%),
-            radial-gradient(90% 120% at 0% 100%, rgba(51, 84, 131, 0.06), transparent 50%),
-            linear-gradient(165deg, #ffffff 0%, #f4f7fb 58%, #eef3f8 100%);
-        box-shadow: 0 10px 36px -18px rgba(51, 84, 131, 0.28);
-        animation: portal-programs-hero-in 0.55s cubic-bezier(.22, 1, .36, 1) both;
-    }
-
-    .portal-programs-hero::before {
-        content: '';
-        position: absolute;
-        inset-inline-end: -12%;
-        top: -40%;
-        width: 14rem;
-        height: 14rem;
-        border-radius: 9999px;
-        background: radial-gradient(circle, rgba(51, 84, 131, 0.12), transparent 70%);
-        pointer-events: none;
-    }
-
     .portal-program-card {
-        position: relative;
-        overflow: hidden;
-        border-radius: 1.25rem;
-        border: 1px solid rgba(197, 212, 228, 0.55);
-        background:
-            linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 252, 0.94));
-        box-shadow: 0 8px 28px -16px rgba(51, 84, 131, 0.22);
-        transition:
-            transform 0.28s cubic-bezier(.22, 1, .36, 1),
-            box-shadow 0.28s ease,
-            border-color 0.28s ease;
-        animation: portal-program-card-in 0.5s cubic-bezier(.22, 1, .36, 1) both;
-    }
-
-    .portal-program-card::before {
-        content: '';
-        position: absolute;
-        inset-block: 0;
-        inset-inline-start: 0;
-        width: 3px;
-        background: linear-gradient(180deg, var(--pp-brand), rgba(51, 84, 131, 0.35));
-        opacity: 0.85;
+        border-radius: 1rem;
+        border: 1px solid rgb(243 244 246);
+        background: #fff;
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .portal-program-card:hover {
-        transform: translateY(-2px);
-        border-color: rgba(51, 84, 131, 0.28);
-        box-shadow: 0 14px 36px -14px rgba(51, 84, 131, 0.28);
+        border-color: #c5d4e4;
+        box-shadow: 0 8px 24px -16px rgba(51, 84, 131, 0.28);
     }
 
-    .portal-program-card:nth-child(1) { animation-delay: 0.04s; }
-    .portal-program-card:nth-child(2) { animation-delay: 0.1s; }
-    .portal-program-card:nth-child(3) { animation-delay: 0.16s; }
-    .portal-program-card:nth-child(4) { animation-delay: 0.22s; }
-    .portal-program-card:nth-child(n+5) { animation-delay: 0.26s; }
-
     .portal-program-metric {
-        border-radius: 1rem;
-        border: 1px solid rgba(226, 232, 240, 0.9);
-        background: linear-gradient(180deg, #ffffff, #f8fafc);
+        border-radius: 0.75rem;
+        border: 1px solid rgb(243 244 246);
+        background: #f9fafb;
         padding: 0.75rem 0.875rem;
         min-width: 0;
     }
 
     .portal-program-metric__label {
-        color: var(--pp-muted);
+        color: #6b7280;
         font-size: 0.6875rem;
         font-weight: 600;
-        letter-spacing: 0.02em;
     }
 
     .portal-program-metric__value {
         margin-top: 0.35rem;
-        color: var(--pp-ink);
+        color: #111827;
         font-size: 0.875rem;
         font-weight: 700;
         line-height: 1.35;
@@ -119,49 +61,26 @@ $statusLabels = [
         gap: 0.5rem;
         align-items: center;
     }
-
-    @keyframes portal-programs-hero-in {
-        from { opacity: 0; transform: translateY(8px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes portal-program-card-in {
-        from { opacity: 0; transform: translateY(12px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .portal-programs-hero,
-        .portal-program-card {
-            animation: none;
-        }
-        .portal-program-card:hover {
-            transform: none;
-        }
-    }
 </style>
 @endpush
 
 @section('content')
-<div class="portal-programs-page">
-    <header class="portal-programs-hero mb-6 px-5 py-5 sm:px-6 sm:py-6">
-        <div class="relative z-[1] flex flex-wrap items-end justify-between gap-4">
-            <div class="min-w-0 text-right">
-                <p class="text-xs font-semibold text-[#335483]/80">التعلّم</p>
-                <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-[1.7rem]">البرامج واللقاءات</h1>
-                <p class="mt-2 max-w-xl text-sm leading-relaxed text-slate-600">
-                    متابعة تسجيلاتك، مواعيد البرامج، التحضير، الحضور، ومجموعات الواتساب والشهادات في مكان واحد.
-                </p>
-            </div>
-            <a
-                href="{{ route('public.programs.index') }}"
-                class="inline-flex shrink-0 items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
-                style="background:#335483"
-            >
-                استكشف البرامج
-            </a>
+<div>
+    <section class="mb-6 flex flex-wrap items-end justify-between gap-3 text-right">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">البرامج واللقاءات</h1>
+            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-gray-600">
+                متابعة تسجيلاتك، مواعيد البرامج، التحضير، الحضور، ومجموعات الواتساب والشهادات في مكان واحد.
+            </p>
         </div>
-    </header>
+        <a
+            href="{{ route('public.programs.index') }}"
+            class="inline-flex shrink-0 items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
+            style="background:#335483"
+        >
+            استكشف البرامج
+        </a>
+    </section>
 
 @if ($registrations->isEmpty())
     <x-portal.empty-state
@@ -385,7 +304,7 @@ $statusLabels = [
     </div>
 
     @if ($registrations->hasPages())
-    <div class="mt-6 rounded-2xl border border-[#c5d4e4]/50 bg-white/90 px-5 py-4 shadow-sm">
+    <div class="mt-6 rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-sm">
         {{ $registrations->links() }}
     </div>
     @endif
