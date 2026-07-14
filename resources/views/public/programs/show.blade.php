@@ -56,17 +56,11 @@ $ackLabel = $inPerson
         <div class="flex flex-col gap-4">
             @if ($alreadyRegistered)
                 @php $sv = $userRegistration->status->value; @endphp
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div class="flex flex-wrap items-center gap-3">
-                        <span class="rounded-full px-3 py-1 text-sm font-medium {{ $statusColors[$sv] ?? 'bg-gray-100 text-gray-600' }}">
-                            {{ $statusLabels[$sv] ?? $sv }}
-                        </span>
-                        <span class="text-sm text-gray-500">لقد سجّلت في هذا البرنامج بالفعل.</span>
-                    </div>
-                    <a href="{{ route('public.programs.registered', [$trainingProgram->slug, $userRegistration]) }}"
-                       class="text-sm font-semibold text-[#335483] hover:underline">
-                        عرض صفحة التأكيد
-                    </a>
+                <div class="flex flex-wrap items-center gap-3">
+                    <span class="rounded-full px-3 py-1 text-sm font-medium {{ $statusColors[$sv] ?? 'bg-gray-100 text-gray-600' }}">
+                        {{ $statusLabels[$sv] ?? $sv }}
+                    </span>
+                    <span class="text-sm text-gray-500">لقد سجّلت في هذا البرنامج بالفعل.</span>
                 </div>
             @elseif ($viaPathOnly)
                 <div class="space-y-3 sm:max-w-xl">
