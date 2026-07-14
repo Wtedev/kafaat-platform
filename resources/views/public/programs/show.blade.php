@@ -48,6 +48,17 @@ $ackLabel = $inPerson
     :hasImage="filled($trainingProgram->image)"
     :imageUrl="$trainingProgram->imagePublicUrl()"
 >
+    <x-slot:mediaBadges>
+        <span class="inline-flex items-center rounded-lg bg-white/95 px-2.5 py-1 text-xs font-semibold text-[#335483] shadow-sm ring-1 ring-white/60 backdrop-blur-sm">
+            {{ $trainingProgram->program_kind->label() }}
+        </span>
+        @if ($trainingProgram->competency_track)
+            <span class="inline-flex items-center rounded-lg bg-[#335483]/92 px-2.5 py-1 text-xs font-semibold text-white shadow-sm backdrop-blur-sm">
+                {{ $trainingProgram->competency_track->shortLabel() }}
+            </span>
+        @endif
+    </x-slot:mediaBadges>
+
     <x-slot:sidebar>
         <x-public.program-info-sidebar :trainingProgram="$trainingProgram" />
     </x-slot:sidebar>

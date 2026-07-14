@@ -14,6 +14,7 @@
     $hasSidebar = isset($sidebar) && ! $sidebar->isEmpty();
     $hasAction = isset($action) && ! $action->isEmpty();
     $hasExtra = isset($extra) && ! $extra->isEmpty();
+    $hasMediaBadges = isset($mediaBadges) && ! $mediaBadges->isEmpty();
 @endphp
 
 <nav class="mb-5" aria-label="مسار التنقل">
@@ -33,7 +34,7 @@
     <h1 class="text-2xl font-bold leading-tight tracking-tight text-gray-900 sm:text-3xl lg:text-[2rem]">{{ $title }}</h1>
 </header>
 
-<div class="mb-8 overflow-hidden rounded-3xl">
+<div class="relative mb-8 overflow-hidden rounded-3xl">
     <x-public.card-media
         variant="hero"
         :mediaContext="$mediaContext"
@@ -42,6 +43,13 @@
         :imageUrl="$imageUrl"
         :alt="$title"
     />
+    @if ($hasMediaBadges)
+        <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 via-black/25 to-transparent px-4 pb-4 pt-16 sm:px-5 sm:pb-5">
+            <div class="pointer-events-auto flex flex-wrap items-center gap-2">
+                {{ $mediaBadges }}
+            </div>
+        </div>
+    @endif
 </div>
 
 <div @class([
