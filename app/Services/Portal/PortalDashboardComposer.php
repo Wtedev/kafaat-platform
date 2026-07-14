@@ -265,8 +265,8 @@ final class PortalDashboardComposer
     private static function programCtaUrl(ProgramRegistration $reg): string
     {
         $program = $reg->trainingProgram;
-        if ($program !== null) {
-            return route('portal.programs.show', $program);
+        if ($program !== null && filled($program->slug)) {
+            return route('public.programs.show', $program->slug);
         }
 
         return route('portal.programs');

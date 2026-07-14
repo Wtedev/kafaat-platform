@@ -269,10 +269,7 @@ final class InboxNotificationRecordActions
         $id = (int) $c['id'];
 
         return match ($c['resource']) {
-            'training_program' => ($p = TrainingProgram::find($id)) !== null
-                && $user->programRegistrations()->where('training_program_id', $p->id)->exists()
-                ? route('portal.programs.show', $p)
-                : null,
+            'training_program' => null,
             'learning_path' => ($path = LearningPath::find($id)) !== null
                 && PathRegistration::query()
                     ->where('user_id', $user->id)
@@ -283,7 +280,7 @@ final class InboxNotificationRecordActions
             'program_registration' => ($r = ProgramRegistration::find($id)) !== null
                 && (int) $r->user_id === (int) $user->id
                 && $r->trainingProgram !== null
-                ? route('portal.programs.show', $r->trainingProgram)
+                ? route('portal.programs', ['open_attendance' => $r->trainingProgram->id])
                 : null,
             'path_registration' => ($r = PathRegistration::find($id)) !== null
                 && (int) $r->user_id === (int) $user->id

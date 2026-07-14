@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Services\AttendanceLiveSessionService;
+use App\Support\ProgramRegistrationSuccessPresenter;
 use Illuminate\Http\Request;
 
 class PortalProgramController extends Controller
@@ -17,8 +19,8 @@ class PortalProgramController extends Controller
             ->paginate(15);
 
         $user->loadMissing('profile');
+        $liveSessionService = app(AttendanceLiveSessionService::class);
 
-        // Attach certificate (if issued) for each registration
         foreach ($registrations as $registration) {
             $program = $registration->trainingProgram;
             if ($program) {
@@ -26,11 +28,22 @@ class PortalProgramController extends Controller
                     ->where('certificateable_type', get_class($program))
                     ->where('certificateable_id', $program->id)
                     ->first();
+                $registration->attendance_pass = ProgramRegistrationSuccessPresenter::present(
+                    $program,
+                    $registration,
+                    $user,
+                );
+                $registration->live_session = $liveSessionService->activeSessionFor($program);
             } else {
                 $registration->certificate = null;
+                $registration->attendance_pass = null;
+                $registration->live_session = null;
             }
         }
 
-        return view('portal.programs', compact('registrations'));
+        return view('portal.programs', [
+            'registrations' => $registrations,
+            'openAttendanceProgramId' => $request->integer('open_attendance') ?: null,
+        ]);
     }
 }

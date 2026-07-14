@@ -5,36 +5,32 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
-use App\Services\AttendanceLiveSessionService;
-use App\Support\ProgramRegistrationSuccessPresenter;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class PortalProgramDetailController extends Controller
 {
-    public function __invoke(Request $request, TrainingProgram $trainingProgram)
+    public function __invoke(Request $request, TrainingProgram $trainingProgram): RedirectResponse
     {
         $user = $request->user();
 
         $registration = ProgramRegistration::query()
             ->where('user_id', $user->id)
             ->where('training_program_id', $trainingProgram->id)
-            ->with(['trainingProgram'])
             ->first();
 
         abort_if($registration === null, 404);
 
-        $liveSession = app(AttendanceLiveSessionService::class)->activeSessionFor($trainingProgram);
-        $attendancePass = ProgramRegistrationSuccessPresenter::present(
-            $trainingProgram,
-            $registration,
-            $user,
-        );
+        if ($request->boolean('attendance') || $request->query('open') === 'attendance') {
+            return redirect()->route('portal.programs', [
+                'open_attendance' => $trainingProgram->id,
+            ]);
+        }
 
-        return view('portal.program-show', [
-            'trainingProgram' => $trainingProgram,
-            'registration' => $registration,
-            'liveSession' => $liveSession,
-            'attendancePass' => $attendancePass,
-        ]);
+        if (filled($trainingProgram->slug)) {
+            return redirect()->route('public.programs.show', $trainingProgram->slug);
+        }
+
+        return redirect()->route('portal.programs');
     }
 }

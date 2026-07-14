@@ -41,8 +41,12 @@ class ProgramRegistrationApproved extends Notification implements ShouldQueue
             $message->line('رابط مجموعة الواتساب: '.$whatsappUrl);
         }
 
+        $programUrl = filled($program->slug)
+            ? route('public.programs.show', $program->slug)
+            : route('portal.programs');
+
         return $message
-            ->action('عرض البرنامج في بوابتي', route('portal.programs.show', $program))
+            ->action('عرض البرنامج', $programUrl)
             ->line('نتطلع لمشاركتك في البرنامج.')
             ->salutation('مع تحيات فريق كفاءات');
     }

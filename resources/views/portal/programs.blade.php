@@ -35,6 +35,18 @@ $statusLabels = [
         </a>
     </section>
 
+@if (session('attendance_success'))
+<div class="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+    {{ session('attendance_success') }}
+</div>
+@endif
+
+@if (session('attendance_error'))
+<div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+    {{ session('attendance_error') }}
+</div>
+@endif
+
 @if ($registrations->isEmpty())
     <x-portal.empty-state
         title="لا توجد برامج مسجّلة"
@@ -66,8 +78,16 @@ $statusLabels = [
             $programShowUrl = ($program && filled($program->slug))
                 ? route('public.programs.show', $program)
                 : null;
-            $checkInUrl = $program ? route('portal.programs.show', $program) : null;
             $isInPerson = $program?->delivery_mode === ProgramDeliveryMode::InPerson;
+            $attendancePass = $reg->attendance_pass ?? [];
+            $liveSession = $reg->live_session ?? null;
+            $canOpenAttendance = $isAccepted && $program;
+            $attendanceModalId = $program ? ($isInPerson ? 'program-attendance-qr-'.$program->id : 'program-attendance-remote-'.$program->id) : null;
+            $showQrModal = $canOpenAttendance && $isInPerson && ! empty($attendancePass['qr_data_uri']);
+            $canRemoteCheckIn = $canOpenAttendance
+                && ! $isInPerson
+                && $liveSession !== null
+                && $liveSession->isActive();
 
             $showElig = in_array($reg->status->value, [
                 RegistrationStatus::Approved->value,
@@ -192,9 +212,9 @@ $statusLabels = [
                                 </span>
                                 <span class="min-w-0 flex-1 text-xs font-medium text-gray-500">التحضير</span>
                                 <span class="shrink-0 text-xs font-bold text-gray-900">
-                                    @if ($checkInUrl && $isAccepted)
+                                    @if ($canOpenAttendance && $attendanceModalId)
                                     {{ $checkInMeta }}
-                                    @elseif ($checkInUrl)
+                                    @elseif ($program)
                                     <span class="font-medium text-gray-400">{{ $checkInMeta }}</span>
                                     @else
                                     <span class="font-medium text-gray-400">—</span>
@@ -204,18 +224,19 @@ $statusLabels = [
                         </ul>
 
                         <div class="mt-3.5 flex flex-wrap items-center gap-2">
-                            @if ($isAccepted && $checkInUrl)
-                            <a
-                                href="{{ $checkInUrl }}"
-                                class="inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:opacity-95"
+                            @if ($canOpenAttendance && $attendanceModalId && ($showQrModal || ! $isInPerson))
+                            <button
+                                type="button"
+                                class="portal-attendance-open inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:opacity-95"
                                 style="background:#335483"
+                                data-attendance-modal="{{ $attendanceModalId }}"
                             >
                                 @if ($isInPerson)
                                     <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                                 @endif
                                 {{ $checkInLabel }}
-                            </a>
-                            @elseif ($checkInUrl)
+                            </button>
+                            @elseif ($program)
                             <span class="inline-flex items-center rounded-xl px-3 py-2 text-xs font-medium text-gray-400 ring-1 ring-gray-200">
                                 التحضير: بعد القبول
                             </span>
@@ -272,4 +293,124 @@ $statusLabels = [
     @endif
 @endif
 </div>
+
+@if ($registrations->isNotEmpty())
+@push('styles')
+<style>
+    .portal-attendance-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        margin: auto;
+        width: min(calc(100% - 2rem), 28rem);
+        max-height: calc(100vh - 2rem);
+        overflow: auto;
+        border: 1px solid #c5d4e4;
+        padding: 0;
+        border-radius: 1rem;
+        background: #fff;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    .portal-attendance-modal::backdrop {
+        background: rgba(15, 23, 42, 0.45);
+    }
+</style>
+@endpush
+
+@push('modals')
+    @foreach ($registrations as $reg)
+        @php
+            $program = $reg->trainingProgram;
+            if (! $program) {
+                continue;
+            }
+            $sv = $reg->status->value;
+            $isAccepted = in_array($sv, [
+                \App\Enums\RegistrationStatus::Approved->value,
+                \App\Enums\RegistrationStatus::Completed->value,
+            ], true);
+            if (! $isAccepted) {
+                continue;
+            }
+            $isInPerson = $program->delivery_mode === \App\Enums\ProgramDeliveryMode::InPerson;
+            $attendancePass = $reg->attendance_pass ?? [];
+            $liveSession = $reg->live_session ?? null;
+            $canRemoteCheckIn = ! $isInPerson
+                && $liveSession !== null
+                && $liveSession->isActive();
+        @endphp
+        @if ($isInPerson && ! empty($attendancePass['qr_data_uri']))
+            <x-portal.program-attendance-qr-modal
+                :program-id="$program->id"
+                :qr-data-uri="$attendancePass['qr_data_uri']"
+                :pass-code="$attendancePass['pass_code'] ?? null"
+                :venue-label="$attendancePass['venue_label'] ?? null"
+            />
+        @elseif (! $isInPerson)
+            <x-portal.program-attendance-remote-modal
+                :program-id="$program->id"
+                :program-title="$program->title"
+                :status-url="route('portal.programs.attendance.session', $program)"
+                :check-in-url="route('portal.programs.attendance.check-in', $program)"
+                :initial-active="$canRemoteCheckIn"
+                :initial-expires-at-ms="$canRemoteCheckIn ? $liveSession->expires_at->getTimestamp() * 1000 : null"
+            />
+        @endif
+    @endforeach
+@endpush
+
+@push('scripts')
+<script>
+(function () {
+    function openPortalAttendanceModal(modalId) {
+        var modal = document.getElementById(modalId);
+        if (!modal || typeof modal.showModal !== 'function') {
+            return;
+        }
+        modal.showModal();
+    }
+
+    document.querySelectorAll('.portal-attendance-open').forEach(function (button) {
+        button.addEventListener('click', function () {
+            openPortalAttendanceModal(button.dataset.attendanceModal);
+        });
+    });
+
+    document.querySelectorAll('.portal-attendance-modal').forEach(function (modal) {
+        modal.querySelectorAll('.portal-attendance-modal-close').forEach(function (closeBtn) {
+            closeBtn.addEventListener('click', function () {
+                modal.close();
+            });
+        });
+        modal.addEventListener('click', function (event) {
+            if (event.target === modal) {
+                modal.close();
+            }
+        });
+
+        var waiting = modal.querySelector('[data-portal-attendance-waiting]');
+        var sessionBox = modal.querySelector('[data-portal-attendance-session]');
+        if (waiting && sessionBox) {
+            var observer = new MutationObserver(function () {
+                waiting.hidden = !sessionBox.hidden;
+            });
+            observer.observe(sessionBox, { attributes: true, attributeFilter: ['hidden'] });
+            waiting.hidden = !sessionBox.hidden;
+        }
+    });
+
+    @if (! empty($openAttendanceProgramId))
+    var qrModal = document.getElementById('program-attendance-qr-{{ $openAttendanceProgramId }}');
+    var remoteModal = document.getElementById('program-attendance-remote-{{ $openAttendanceProgramId }}');
+    if (qrModal && typeof qrModal.showModal === 'function') {
+        qrModal.showModal();
+    } else if (remoteModal && typeof remoteModal.showModal === 'function') {
+        remoteModal.showModal();
+    }
+    @endif
+})();
+</script>
+@endpush
+@endif
 @endsection
