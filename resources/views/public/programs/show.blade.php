@@ -53,7 +53,15 @@ $ackLabel = $inPerson
             {{ $trainingProgram->program_kind->label() }}
         </span>
         @if ($trainingProgram->competency_track)
-            <span class="inline-flex items-center rounded-lg bg-[#335483]/92 px-2.5 py-1 text-xs font-semibold text-white shadow-sm backdrop-blur-sm">
+            @php
+                $trackMeta = \App\Support\CompetencyTrackCatalog::trackConfig($trainingProgram->competency_track) ?? [];
+                $trackColor = $trackMeta['color'] ?? '#335483';
+                $trackBg = $trackMeta['bg_tint'] ?? '#e9eff6';
+            @endphp
+            <span
+                class="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold shadow-sm ring-1 ring-black/5 backdrop-blur-sm"
+                style="background: {{ $trackBg }}; color: {{ $trackColor }}"
+            >
                 {{ $trainingProgram->competency_track->shortLabel() }}
             </span>
         @endif
