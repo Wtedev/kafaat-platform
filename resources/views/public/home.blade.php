@@ -348,11 +348,9 @@
         }
 
         /*
-         * Soft white logo tile — uniform slot so mixed aspect ratios align.
-         * Seed assets are often JPEG payloads with black mats; SVG filter
-         * #partners-logo-knockout thresholds near-black to transparent, then
-         * multiply blends residual dark crumbs into the white tile.
-         * Real transparent PNGs (e.g. education) keep their original alpha.
+         * Fixed-height logo slot (no tile/frame). Seed JPEGs often bake black
+         * mats; #partners-logo-knockout + multiply knock those out against the
+         * white section background without drawing bordered cards.
          */
         .partners-marquee__logo {
             display: flex;
@@ -360,10 +358,11 @@
             justify-content: center;
             width: 100%;
             height: 4.25rem;
-            padding: 0.55rem 0.7rem;
-            border-radius: 0.9rem;
-            background: #ffffff;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+            padding: 0;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
             isolation: isolate;
         }
 
@@ -422,7 +421,6 @@
 
             .partners-marquee__logo {
                 height: 4.75rem;
-                padding: 0.65rem 0.8rem;
             }
 
             .partners-marquee__name {
@@ -882,7 +880,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 9. PARTNERS SECTION                                                 --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section class="overflow-hidden bg-[#F5F7FA] py-16 sm:py-20" dir="rtl" aria-labelledby="partners-heading">
+    <section class="overflow-hidden bg-white py-16 sm:py-20" dir="rtl" aria-labelledby="partners-heading">
         <div class="mx-auto mb-10 max-w-7xl px-4 text-center sm:mb-12 sm:px-6 lg:px-8">
             <p class="mb-2 text-sm font-semibold" style="color:#1a9399">شركاء النجاح</p>
             <h2 id="partners-heading" class="text-2xl font-bold sm:text-3xl" style="color:#111827">شركاؤنا</h2>
@@ -891,7 +889,7 @@
 
         @if ($partners->isEmpty())
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="mx-auto max-w-2xl rounded-3xl border border-dashed border-gray-200 bg-white px-6 py-14 text-center text-sm" style="color:#6B7280">
+            <div class="mx-auto max-w-2xl rounded-3xl border border-dashed border-gray-200 bg-[#F7FAFC] px-6 py-14 text-center text-sm" style="color:#6B7280">
                 سيتم عرض شعارات الشركاء هنا عند إضافتهم من لوحة التحكم.
             </div>
         </div>
