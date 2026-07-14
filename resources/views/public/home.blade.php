@@ -518,7 +518,7 @@
         <div class="home-hero__media" aria-hidden="true">
             <img
                 class="home-hero__img"
-                src="{{ asset('images/home/hero.jpg') }}"
+                src="{{ $heroImageUrl ?? asset('images/home/hero.jpg') }}"
                 alt=""
                 width="1920"
                 height="1280"

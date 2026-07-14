@@ -18,6 +18,35 @@ final class MediaPhotoLibrarySupport
     ];
 
     /**
+     * Category used for homepage/marketing surfaces that must not show people.
+     * Facility interiors are curated empty spaces (no faces/crowds).
+     */
+    public const PEOPLE_FREE_CATEGORY = 'مرافق الجمعية';
+
+    /**
+     * Album name fragments that typically depict people (events, visits, celebrations).
+     * Used as a defensive filter when selecting people-free assets.
+     *
+     * @var list<string>
+     */
+    public const PEOPLE_CENTRIC_ALBUM_KEYWORDS = [
+        'يوم الشباب',
+        'يوم مهارات الشباب',
+        'معايدة',
+        'استضافة',
+        'زيارة',
+        'ورشة',
+        'ملتقى',
+        'فعالية',
+        'مبادرة',
+        'منتدى',
+        'تدشين',
+        'احتفالية',
+        'تطوع',
+        'تأسيس',
+    ];
+
+    /**
      * @var array<string, string>
      */
     private const ALBUM_ALIASES = [
@@ -86,5 +115,20 @@ final class MediaPhotoLibrarySupport
             'مرافق الجمعية' => 'جولة في مقر ومرافق جمعية كفاءات.',
             default => 'صور من أرشيف جمعية كفاءات.',
         };
+    }
+
+    public static function isPeopleCentricAlbum(?string $album): bool
+    {
+        if ($album === null || trim($album) === '') {
+            return false;
+        }
+
+        foreach (self::PEOPLE_CENTRIC_ALBUM_KEYWORDS as $keyword) {
+            if (str_contains($album, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
