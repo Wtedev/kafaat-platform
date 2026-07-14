@@ -88,7 +88,6 @@ $statusLabels = [
         description="لم تسجّل في أي برنامج تدريبي بعد. تصفّح البرامج المنشورة وسجّل عند توفر مقعد."
     >
         <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">استكشف البرامج</a>
-        <a href="{{ route('portal.paths') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">مساراتي</a>
     </x-portal.empty-state>
 @else
     <div class="mb-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
@@ -96,7 +95,6 @@ $statusLabels = [
             <span class="font-semibold text-slate-700 tabular-nums">{{ $registrations->total() }}</span>
             {{ $registrations->total() === 1 ? 'برنامج مسجّل' : 'برامج مسجّلة' }}
         </p>
-        <a href="{{ route('portal.paths') }}" class="font-semibold text-[#335483] transition hover:underline">مساراتي ←</a>
     </div>
 
     <div class="space-y-4">
