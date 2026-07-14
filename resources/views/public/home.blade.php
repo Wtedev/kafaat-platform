@@ -121,8 +121,7 @@
         .home-hero {
             --hero-navy: #243a55;
             --hero-brand: #335483;
-            --hero-deep: #1b2c42;
-            --hero-soft: #3d6589;
+            --hero-teal: #1a9399;
             position: relative;
             isolation: isolate;
             min-height: min(92vh, 820px);
@@ -130,21 +129,53 @@
             align-items: flex-end;
             overflow: hidden;
             color: #fff;
+            background: var(--hero-navy);
+        }
+
+        .home-hero__media {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+        }
+
+        .home-hero__img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* Keep baked-in «عام الأثر 2026» on the left of the landscape art */
+            object-position: left center;
+            transform: scale(1.03);
+            animation: home-hero-ken 20s ease-out forwards;
+        }
+
+        .home-hero__veil {
+            position: absolute;
+            inset: 0;
+            /* Light on the left (baked title); stronger scrim on the right for UI copy */
             background:
-                radial-gradient(ellipse 70% 55% at 12% 18%, rgba(61, 101, 137, 0.45) 0%, transparent 58%),
-                radial-gradient(ellipse 55% 50% at 88% 78%, rgba(36, 58, 85, 0.55) 0%, transparent 62%),
-                linear-gradient(145deg, var(--hero-soft) 0%, var(--hero-brand) 42%, var(--hero-navy) 78%, var(--hero-deep) 100%);
+                linear-gradient(105deg,
+                    rgba(12, 40, 48, 0.12) 0%,
+                    rgba(12, 40, 48, 0.28) 36%,
+                    rgba(18, 42, 58, 0.72) 66%,
+                    rgba(20, 38, 55, 0.88) 100%),
+                linear-gradient(180deg,
+                    rgba(12, 40, 48, 0.15) 0%,
+                    transparent 32%,
+                    rgba(18, 42, 58, 0.55) 100%);
         }
 
         .home-hero__glow {
             position: absolute;
-            inset: 0;
-            z-index: 0;
+            width: 42vw;
+            max-width: 480px;
+            height: 42vw;
+            max-height: 480px;
+            border-radius: 50%;
+            right: -8%;
+            bottom: -18%;
+            background: radial-gradient(circle, rgba(26, 147, 153, 0.28) 0%, transparent 68%);
             pointer-events: none;
-            background:
-                radial-gradient(circle at 78% 28%, rgba(255, 255, 255, 0.08) 0%, transparent 42%),
-                radial-gradient(circle at 18% 72%, rgba(51, 84, 131, 0.35) 0%, transparent 48%);
-            animation: home-hero-glow 8s ease-in-out infinite alternate;
+            animation: home-hero-glow 7s ease-in-out infinite alternate;
         }
 
         .home-hero__content {
@@ -154,16 +185,31 @@
             padding: clamp(5.5rem, 12vh, 7.5rem) 0 clamp(3.25rem, 8vh, 5.5rem);
         }
 
+        .home-hero__brand {
+            opacity: 0;
+            transform: translateY(18px);
+            animation: home-hero-rise 0.85s cubic-bezier(.22, 1, .36, 1) 0.12s forwards;
+        }
+
+        .home-hero__brand-rule {
+            width: 2.75rem;
+            height: 3px;
+            border-radius: 9999px;
+            background: linear-gradient(90deg, var(--hero-teal), rgba(26, 147, 153, 0.15));
+            transform-origin: right center;
+            animation: home-hero-rule 0.9s cubic-bezier(.22, 1, .36, 1) 0.45s both;
+        }
+
         .home-hero__copy {
             opacity: 0;
             transform: translateY(22px);
-            animation: home-hero-rise 0.9s cubic-bezier(.22, 1, .36, 1) 0.18s forwards;
+            animation: home-hero-rise 0.9s cubic-bezier(.22, 1, .36, 1) 0.28s forwards;
         }
 
         .home-hero__actions {
             opacity: 0;
             transform: translateY(18px);
-            animation: home-hero-rise 0.9s cubic-bezier(.22, 1, .36, 1) 0.38s forwards;
+            animation: home-hero-rise 0.9s cubic-bezier(.22, 1, .36, 1) 0.48s forwards;
         }
 
         .home-hero__cta-primary {
@@ -191,33 +237,68 @@
             transform: translateY(-2px);
         }
 
+        @keyframes home-hero-ken {
+            from { transform: scale(1.03); }
+            to { transform: scale(1); }
+        }
+
         @keyframes home-hero-rise {
             from { opacity: 0; transform: translateY(22px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
+        @keyframes home-hero-rule {
+            from { transform: scaleX(0); opacity: 0; }
+            to { transform: scaleX(1); opacity: 1; }
+        }
+
         @keyframes home-hero-glow {
-            from { opacity: 0.7; }
-            to { opacity: 1; }
+            from { opacity: 0.55; transform: translateY(0); }
+            to { opacity: 1; transform: translateY(-12px); }
         }
 
         @media (max-width: 1023px) {
             .home-hero {
                 min-height: min(88vh, 720px);
                 align-items: flex-end;
+            }
+
+            /* Portrait art: title sits top-center — pin top, leave bottom for UI */
+            .home-hero__img {
+                object-position: center top;
+            }
+
+            .home-hero__veil {
                 background:
-                    radial-gradient(ellipse 80% 45% at 50% 0%, rgba(61, 101, 137, 0.4) 0%, transparent 55%),
-                    linear-gradient(180deg, var(--hero-soft) 0%, var(--hero-brand) 45%, var(--hero-navy) 82%, var(--hero-deep) 100%);
+                    linear-gradient(180deg,
+                        rgba(12, 40, 48, 0.08) 0%,
+                        rgba(12, 40, 48, 0.2) 28%,
+                        rgba(18, 42, 58, 0.78) 62%,
+                        rgba(16, 34, 48, 0.94) 100%);
+            }
+
+            .home-hero__glow {
+                width: 70vw;
+                height: 70vw;
+                right: -20%;
+                bottom: -10%;
             }
         }
 
         @media (prefers-reduced-motion: reduce) {
+            .home-hero__img,
+            .home-hero__brand,
+            .home-hero__brand-rule,
             .home-hero__copy,
             .home-hero__actions,
             .home-hero__glow {
                 animation: none !important;
                 opacity: 1;
                 transform: none;
+            }
+
+            .home-hero__img {
+                transform: scale(1);
             }
         }
 
@@ -433,19 +514,53 @@
     {{-- 2. HERO SECTION                                                     --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <section class="home-hero" aria-label="مقدمة الصفحة">
-        <div class="home-hero__glow" aria-hidden="true"></div>
+        <div class="home-hero__media" aria-hidden="true">
+            {{-- Landscape default; portrait under 1024px so baked title stays visible --}}
+            <picture>
+                <source
+                    media="(max-width: 1023px)"
+                    srcset="{{ $heroImageMobileUrl ?? asset('images/home/hero-year-of-impact-mobile.jpg') }}"
+                />
+                <img
+                    class="home-hero__img"
+                    src="{{ $heroImageUrl ?? asset('images/home/hero-year-of-impact.jpg') }}"
+                    alt=""
+                    width="1024"
+                    height="458"
+                    fetchpriority="high"
+                    decoding="async"
+                />
+            </picture>
+            <div class="home-hero__veil"></div>
+            <div class="home-hero__glow"></div>
+        </div>
 
         <div class="home-hero__content">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div class="max-w-xl lg:max-w-2xl text-right">
+                {{-- Content on the RTL start (visual right) — clear of left/top baked title --}}
+                <div class="max-w-xl text-right">
+
+                    <div class="home-hero__brand mb-6">
+                        <img
+                            src="{{ asset(config('brand.logos.kafaat_white')) }}"
+                            alt="كفاءات"
+                            class="h-12 sm:h-14 lg:h-16 w-auto"
+                            width="200"
+                            height="72"
+                        />
+                        <p class="mt-3 text-sm sm:text-base font-medium tracking-wide text-white/80">
+                            جمعية كفاءات لبناء قدرات الشباب
+                        </p>
+                        <div class="home-hero__brand-rule mt-4" aria-hidden="true"></div>
+                    </div>
 
                     <div class="home-hero__copy">
-                        <h1 class="text-4xl sm:text-5xl lg:text-[3.55rem] font-bold leading-[1.3] text-white mb-5">
-                            نُمكّن الشباب…
-                            <span class="block">نصنع الأثر</span>
+                        {{-- Softened: art already carries «عام الأثر 2026» — avoid a competing mega-headline --}}
+                        <h1 class="text-xl sm:text-2xl lg:text-[1.65rem] font-semibold leading-relaxed text-white/90 mb-4">
+                            نُمكّن الشباب ونبني قدراتهم
                         </h1>
-                        <p class="text-base sm:text-lg leading-relaxed text-white/75 max-w-lg mb-9">
-                            نؤهّل الشباب ونبني مهاراتهم، ونوسّع مشاركتهم المجتمعية عبر برامج تدريبية وفرص تطوعية وشراكات مستدامة.
+                        <p class="text-sm sm:text-base leading-relaxed text-white/70 max-w-md mb-8">
+                            نؤهّل الشباب ونوسّع مشاركتهم المجتمعية عبر برامج تدريبية وفرص تطوعية وشراكات مستدامة.
                         </p>
                     </div>
 

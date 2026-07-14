@@ -27,6 +27,9 @@ class HomeController extends Controller
             'partners' => $partners,
             'programCounts' => CompetencyTrackCatalog::publishedProgramCounts(),
             'trackPrograms' => CompetencyTrackCatalog::featuredProgramsByTrack(5),
+            // Static Year of Impact 2026 art in public/images/home (git-tracked for Railway).
+            'heroImageUrl' => asset('images/home/hero-year-of-impact.jpg'),
+            'heroImageMobileUrl' => asset('images/home/hero-year-of-impact-mobile.jpg'),
         ]);
     }
 }
