@@ -5,8 +5,8 @@
     $compact = $compact ?? false;
 @endphp
 
-<div class="npm overflow-hidden rounded-[1.35rem] border border-[#c5d4e4]/70 bg-white shadow-[0_16px_40px_-28px_rgba(51,84,131,0.35)]">
-    <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 bg-gradient-to-l from-[#e9eff6]/80 via-white to-white px-4 py-4 sm:px-5">
+<div class="npm overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+    <div class="flex flex-wrap items-start justify-between gap-3 border-b border-gray-100 bg-white px-4 py-4 sm:px-5">
         <div class="text-right">
             @if ($panelTitle)
                 <h2 class="text-base font-bold text-gray-900 sm:text-lg">{{ $panelTitle }}</h2>
