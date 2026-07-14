@@ -70,16 +70,9 @@ class PartnerSeeder extends Seeder
                 'website_url' => 'https://ksu.edu.sa',
             ],
             [
-                'name' => 'صلة',
-                'type' => 'شريك استراتيجي',
-                'sort_order' => 8,
-                'logo_file' => 'silah.png',
-                'website_url' => 'https://silah.sa',
-            ],
-            [
                 'name' => 'المؤسسة العامة للتدريب التقني والمهني',
                 'type' => 'شريك استراتيجي',
-                'sort_order' => 9,
+                'sort_order' => 8,
                 'logo_file' => 'tvtc.png',
                 'website_url' => 'https://www.tvtc.gov.sa',
             ],
