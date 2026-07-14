@@ -27,7 +27,7 @@ $statusLabels = [
             </p>
         </div>
         <a
-            href="{{ route('public.programs.index') }}"
+            href="{{ route('home') }}#programs"
             class="inline-flex shrink-0 items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
             style="background:#335483"
         >
@@ -52,7 +52,7 @@ $statusLabels = [
         title="لا توجد برامج مسجّلة"
         description="لم تسجّل في أي برنامج تدريبي بعد. تصفّح البرامج المنشورة وسجّل عند توفر مقعد."
     >
-        <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">استكشف البرامج</a>
+        <a href="{{ route('home') }}#programs" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">استكشف البرامج</a>
     </x-portal.empty-state>
 @else
     <div class="mb-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">

@@ -8,7 +8,7 @@
     title="لا توجد شهادات بعد"
     description="تُصدر الشهادات تلقائياً عند إكمال برنامج أو مسار أو متطلبات تطوع حسب سياسة المنصة. أكمل تعلّمك أو حدّث ملفك ليتماشى مع المتطلبات."
 >
-    <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">استكشف البرامج</a>
+    <a href="{{ route('home') }}#programs" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">استكشف البرامج</a>
     <a href="{{ route('portal.competency') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">طوّر صفحة الكفاءة</a>
 </x-portal.empty-state>
 @else

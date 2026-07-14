@@ -76,7 +76,7 @@ $hasCurrent = $hasActivities || $hasVolunteering;
                 title="لا يوجد نشاط حالياً"
                 description="سجّل في برنامج أو فرصة تطوعية ليظهر هنا لمتابعتك بسهولة."
             >
-                <a href="{{ route('public.programs.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">استكشف البرامج</a>
+                <a href="{{ route('home') }}#programs" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">استكشف البرامج</a>
                 <a href="{{ route('public.volunteering.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">الفرص التطوعية</a>
             </x-portal.empty-state>
             @else
