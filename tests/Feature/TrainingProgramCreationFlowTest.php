@@ -111,16 +111,18 @@ class TrainingProgramCreationFlowTest extends TestCase
             'competency_track' => CompetencyTrack::Community,
             'delivery_mode' => ProgramDeliveryMode::Remote,
             'program_presenters' => [
-                ['name' => 'د. أحمد الرفاعي', 'role' => ''],
-                ['name' => 'د. محمد النصار', 'role' => ''],
+                ['name' => 'أ. أحمد الرفاعي', 'role' => 'دكتوراه في التمكين الشخصي والقيادي'],
+                ['name' => 'د. محمد النصار', 'role' => 'دكتوراه في القيادة والإدارة التربوية'],
             ],
         ]);
 
         $this->get(route('public.programs.show', $program->slug))
             ->assertOk()
             ->assertSee('مقدمو البرنامج')
-            ->assertSee('د. أحمد الرفاعي')
-            ->assertSee('د. محمد النصار');
+            ->assertSee('أ. أحمد الرفاعي')
+            ->assertSee('دكتوراه في التمكين الشخصي والقيادي')
+            ->assertSee('د. محمد النصار')
+            ->assertSee('دكتوراه في القيادة والإدارة التربوية');
     }
 
     public function test_apply_delivery_mode_fields_clears_venue_for_remote_programs(): void
