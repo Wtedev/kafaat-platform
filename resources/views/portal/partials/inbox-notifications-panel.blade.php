@@ -23,16 +23,16 @@
             @endif
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-1.5">
             @if ($showViewAll)
-                <a href="{{ route('portal.notifications') }}" class="rounded-xl px-3 py-2 text-xs font-semibold text-[#335483] ring-1 ring-[#c5d4e4] transition hover:bg-[#e9eff6]">
+                <a href="{{ route('portal.notifications') }}" class="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium text-[#335483] ring-1 ring-[#c5d4e4] transition hover:bg-[#e9eff6]">
                     عرض الكل
                 </a>
             @endif
             @if ($unreadCount > 0)
                 <form method="POST" action="{{ route('portal.notifications.read-all') }}">
                     @csrf
-                    <button type="submit" class="rounded-xl px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:opacity-95 sm:text-sm" style="background:#335483">
+                    <button type="submit" class="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium text-white shadow-sm transition hover:opacity-95" style="background:#335483">
                         تعليم الكل كمقروء
                     </button>
                 </form>
