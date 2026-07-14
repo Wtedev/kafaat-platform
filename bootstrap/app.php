@@ -69,5 +69,10 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Prefer branded Blade error pages for browser requests when APP_DEBUG=false.
+        // Filament/Livewire keep their own in-panel error UI for component failures;
+        // these views only cover HTTP status responses rendered by Laravel.
+        $exceptions->shouldRenderJsonWhen(function (Request $request, \Throwable $e): bool {
+            return $request->expectsJson();
+        });
     })->create();

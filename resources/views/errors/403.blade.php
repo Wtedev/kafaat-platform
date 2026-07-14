@@ -3,4 +3,6 @@
     $code = 403;
     $title = 'غير مصرح';
     $message = 'ليس لديك صلاحية للوصول إلى هذه الصفحة.';
+    $showReload = false;
+    $autoRefreshSeconds = 0;
 @endphp
