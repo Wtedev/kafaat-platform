@@ -39,7 +39,7 @@ hash_hmac('sha256', $normalizedIdentity, IDENTITY_LOOKUP_KEY)
 
 - الرقم plaintext.
 - ciphertext أو hash في logs.
-- الرقم في validation exception messages للمستخدم (رسالة عامة عند التكرار).
+- الرقم نفسه داخل رسالة الخطأ للمستخدم (رسالة التكرار: «رقم الهوية مستخدم مسبقاً» دون إظهار الرقم).
 
 ## البحث
 

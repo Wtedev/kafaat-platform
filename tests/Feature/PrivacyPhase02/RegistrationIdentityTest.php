@@ -54,7 +54,7 @@ class RegistrationIdentityTest extends TestCase
         Notification::assertSentTo($user, VerifyEmailCode::class);
     }
 
-    public function test_duplicate_identity_is_rejected_with_generic_message(): void
+    public function test_duplicate_identity_is_rejected_with_arabic_message(): void
     {
         $identity = $this->generateValidNationalId();
 
@@ -81,7 +81,7 @@ class RegistrationIdentityTest extends TestCase
 
         $this->post(route('register'), $second)
             ->assertSessionHasErrors('identity_number')
-            ->assertSessionHasErrors(['identity_number' => 'تعذر إكمال التسجيل بهذه البيانات. يمكنك استخدام استعادة الحساب أو التواصل مع الدعم.']);
+            ->assertSessionHasErrors(['identity_number' => IdentityNumberService::DUPLICATE_MESSAGE]);
 
         $this->assertFalse(User::query()->where('email', 'second@example.com')->exists());
     }

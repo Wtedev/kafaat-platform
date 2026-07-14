@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\PrivacyPhase02;
 
+use App\Enums\IdentityType;
 use App\Models\Profile;
 use App\Models\User;
+use App\Services\Identity\IdentityNumberService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\GeneratesTestIdentityData;
@@ -46,6 +48,43 @@ class ProfileCompletionTest extends TestCase
         $this->assertSame('أحمد', $user->first_name);
         $this->assertTrue($user->hasCompletedRequiredIdentityData());
         $this->assertNotSame('اسم قديم واحد', $user->fullName());
+    }
+
+    public function test_profile_completion_rejects_duplicate_identity(): void
+    {
+        $identity = $this->generateValidNationalId();
+        $existingPayload = IdentityNumberService::prepareStoragePayload($identity, IdentityType::NationalId);
+
+        User::factory()->create([
+            'email' => 'existing-identity@example.com',
+            'role_type' => 'trainee',
+            'identity_type' => $existingPayload['identity_type']->value,
+            'identity_number_ciphertext' => $existingPayload['identity_number_ciphertext'],
+            'identity_number_lookup_hash' => $existingPayload['identity_number_lookup_hash'],
+            'identity_number_last4' => $existingPayload['identity_number_last4'],
+            'identity_confirmed_at' => $existingPayload['identity_confirmed_at'],
+        ]);
+
+        $user = User::factory()->create([
+            'name' => 'مستخدم بدون هوية',
+            'role_type' => 'beneficiary',
+            'email_verified_at' => now(),
+            'identity_number_lookup_hash' => null,
+        ]);
+        $user->assignRole('beneficiary');
+        Profile::query()->create(['user_id' => $user->id]);
+
+        $payload = $this->validRegistrationPayload([
+            'identity_number' => $identity,
+        ]);
+        unset($payload['email'], $payload['password'], $payload['password_confirmation']);
+
+        $this->actingAsOtpVerified($user)
+            ->post(route('portal.profile.complete.store'), $payload)
+            ->assertSessionHasErrors(['identity_number' => IdentityNumberService::DUPLICATE_MESSAGE]);
+
+        $user->refresh();
+        $this->assertNull($user->identity_number_lookup_hash);
     }
 
     public function test_incomplete_user_sees_completion_banner(): void

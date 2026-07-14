@@ -71,6 +71,23 @@ class IdentityServicesTest extends TestCase
         );
     }
 
+    public function test_is_duplicate_detects_existing_lookup_hash(): void
+    {
+        $identity = $this->generateValidNationalId();
+        $payload = IdentityNumberService::prepareStoragePayload($identity, IdentityType::NationalId);
+
+        $user = \App\Models\User::factory()->create([
+            'identity_type' => $payload['identity_type']->value,
+            'identity_number_ciphertext' => $payload['identity_number_ciphertext'],
+            'identity_number_lookup_hash' => $payload['identity_number_lookup_hash'],
+            'identity_number_last4' => $payload['identity_number_last4'],
+        ]);
+
+        $this->assertTrue(IdentityNumberService::isDuplicate($identity));
+        $this->assertFalse(IdentityNumberService::isDuplicate($identity, $user->id));
+        $this->assertFalse(IdentityNumberService::isDuplicate($this->generateValidNationalId()));
+    }
+
     public function test_masking_format(): void
     {
         $this->assertSame('******1234', IdentityNumberService::mask('1234'));

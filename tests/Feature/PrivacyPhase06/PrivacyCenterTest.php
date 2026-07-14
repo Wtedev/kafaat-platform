@@ -317,7 +317,7 @@ class PrivacyCenterTest extends TestCase
             'identity_type' => IdentityType::NationalId->value,
             'identity_number' => $identity,
             'password' => 'SecretPass1!',
-        ])->assertSessionHasErrors('identity_number');
+        ])->assertSessionHasErrors(['identity_number' => IdentityNumberService::DUPLICATE_MESSAGE]);
     }
 
     public function test_correction_apply_updates_user_without_modifying_certificates(): void

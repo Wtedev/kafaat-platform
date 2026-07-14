@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Services\Auth\UserRegistrationService;
+use App\Services\Identity\IdentityNumberService;
 use App\Services\Privacy\PrivacyPolicyAcknowledgementService;
 use App\Services\Privacy\PrivacyPolicyService;
 use App\Services\UserActivityLogger;
@@ -62,7 +63,7 @@ class RegisterController extends Controller
                 return back()
                     ->withInput($request->except(['password', 'password_confirmation', 'identity_number']))
                     ->withErrors([
-                        'identity_number' => 'تعذر إكمال التسجيل بهذه البيانات. يمكنك استخدام استعادة الحساب أو التواصل مع الدعم.',
+                        'identity_number' => IdentityNumberService::DUPLICATE_MESSAGE,
                     ]);
             }
 

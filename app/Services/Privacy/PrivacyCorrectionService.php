@@ -15,6 +15,7 @@ use App\Services\Audit\AuditLogger;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\Identity\PersonNameService;
 use App\Services\Identity\SaudiPhoneService;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -187,6 +188,14 @@ final class PrivacyCorrectionService
             $user->forceFill(['identity_type' => $identityType]);
         }
 
-        $user->save();
+        try {
+            $user->save();
+        } catch (QueryException $exception) {
+            if (IdentityNumberService::isLookupHashUniqueViolation($exception)) {
+                throw new InvalidArgumentException('duplicate_identity');
+            }
+
+            throw $exception;
+        }
     }
 }

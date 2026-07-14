@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Portal\CompletePortalProfileRequest;
+use App\Services\Identity\IdentityNumberService;
 use App\Services\Identity\UserProfileCompletionService;
 use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
@@ -35,7 +36,7 @@ class PortalProfileCompleteController extends Controller
                 return back()
                     ->withInput($request->except(['identity_number']))
                     ->withErrors([
-                        'identity_number' => 'تعذر حفظ رقم الهوية بهذه البيانات. تواصل مع الدعم إذا كنت تعتقد أن هذا خطأ.',
+                        'identity_number' => IdentityNumberService::DUPLICATE_MESSAGE,
                     ]);
             }
 

@@ -5,12 +5,15 @@ namespace App\Services\Identity;
 use App\Enums\IdentityType;
 use App\Models\User;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Crypt;
 use RuntimeException;
 
 class IdentityNumberService
 {
     public const MASK = '******';
+
+    public const DUPLICATE_MESSAGE = 'رقم الهوية مستخدم مسبقاً.';
 
     public static function lookupKey(): string
     {
@@ -112,7 +115,7 @@ class IdentityNumberService
     {
         $normalized = self::normalize($rawNumber);
 
-        if ($normalized === null) {
+        if ($normalized === null || ! self::isValidFormat($normalized)) {
             return false;
         }
 
@@ -125,6 +128,23 @@ class IdentityNumberService
         }
 
         return $query->exists();
+    }
+
+    /**
+     * Detect unique-index races on identity_number_lookup_hash (MySQL / PostgreSQL / SQLite).
+     */
+    public static function isLookupHashUniqueViolation(QueryException $exception): bool
+    {
+        $message = $exception->getMessage();
+
+        if (! str_contains($message, 'identity_number_lookup_hash')) {
+            return false;
+        }
+
+        $sqlState = (string) ($exception->errorInfo[0] ?? '');
+
+        return in_array($sqlState, ['23000', '23505'], true)
+            || str_contains($message, 'UNIQUE constraint failed');
     }
 
     /**

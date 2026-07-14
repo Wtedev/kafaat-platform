@@ -4,6 +4,7 @@ namespace App\Services\Identity;
 
 use App\Enums\IdentityType;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -72,7 +73,15 @@ class UserProfileCompletionService
                 $user->profile_completed_at = now();
             }
 
-            $user->save();
+            try {
+                $user->save();
+            } catch (QueryException $exception) {
+                if (IdentityNumberService::isLookupHashUniqueViolation($exception)) {
+                    throw new InvalidArgumentException('duplicate_identity');
+                }
+
+                throw $exception;
+            }
 
             return $user->fresh(['profile']);
         });
@@ -141,7 +150,15 @@ class UserProfileCompletionService
                 $user->profile_completed_at = $user->profile_completed_at ?? now();
             }
 
-            $user->save();
+            try {
+                $user->save();
+            } catch (QueryException $exception) {
+                if (IdentityNumberService::isLookupHashUniqueViolation($exception)) {
+                    throw new InvalidArgumentException('duplicate_identity');
+                }
+
+                throw $exception;
+            }
 
             return $user->fresh(['profile']);
         });

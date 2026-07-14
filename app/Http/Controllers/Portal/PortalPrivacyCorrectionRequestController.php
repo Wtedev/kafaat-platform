@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Portal;
 use App\Enums\IdentityType;
 use App\Enums\PrivacyCorrectionFieldCode;
 use App\Http\Controllers\Controller;
+use App\Services\Identity\IdentityNumberService;
 use App\Services\Privacy\PrivacyRequestService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -70,7 +71,7 @@ class PortalPrivacyCorrectionRequestController extends Controller
         } catch (\InvalidArgumentException $exception) {
             if ($exception->getMessage() === 'duplicate_identity') {
                 throw ValidationException::withMessages([
-                    'identity_number' => 'رقم الهوية مستخدم مسبقاً.',
+                    'identity_number' => IdentityNumberService::DUPLICATE_MESSAGE,
                 ]);
             }
 

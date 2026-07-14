@@ -10,19 +10,20 @@ use Illuminate\Contracts\Validation\ValidationRule;
 class UniqueIdentityLookupHash implements ValidationRule
 {
     public function __construct(
-        private readonly ?IdentityType $type,
+        private readonly ?IdentityType $type = null,
         private readonly ?int $ignoreUserId = null,
     ) {}
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if ($value === null || $value === '' || ! $this->type instanceof IdentityType) {
+        if ($value === null || $value === '') {
             return;
         }
 
         try {
+            // Uniqueness is by normalized number HMAC, independent of identity_type.
             if (IdentityNumberService::isDuplicate((string) $value, $this->ignoreUserId)) {
-                $fail('تعذر إكمال التسجيل بهذه البيانات. يمكنك استخدام استعادة الحساب أو التواصل مع الدعم.');
+                $fail(IdentityNumberService::DUPLICATE_MESSAGE);
             }
         } catch (\RuntimeException) {
             $fail('تعذر التحقق من تفرّد رقم الهوية حالياً. يرجى المحاولة لاحقاً.');

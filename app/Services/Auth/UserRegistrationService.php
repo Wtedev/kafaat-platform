@@ -10,6 +10,7 @@ use App\Services\Identity\IdentityNumberService;
 use App\Services\Identity\PersonNameService;
 use App\Services\Identity\SaudiPhoneService;
 use App\Services\Privacy\PrivacyPolicyAcknowledgementService;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -61,8 +62,17 @@ class UserRegistrationService
             PersonNameService::syncCompatibilityName($userAttributes, $nameParts);
 
             $user = new User();
-        $user->forceFill($userAttributes);
-        $user->save();
+            $user->forceFill($userAttributes);
+
+            try {
+                $user->save();
+            } catch (QueryException $exception) {
+                if (IdentityNumberService::isLookupHashUniqueViolation($exception)) {
+                    throw new InvalidArgumentException('duplicate_identity');
+                }
+
+                throw $exception;
+            }
 
             $user->assignRole(\App\Services\Rbac\RbacCatalog::ROLE_BENEFICIARY);
 

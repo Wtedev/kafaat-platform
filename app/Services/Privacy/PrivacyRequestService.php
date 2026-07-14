@@ -15,6 +15,7 @@ use App\Data\Privacy\PrivacyAccessResponseSnapshot;
 use App\Enums\PrivacyCorrectionFieldCode;
 use App\Enums\UserActivityAction;
 use App\Services\Identity\PersonNameService;
+use App\Services\Identity\IdentityNumberService;
 use App\Services\Access\SensitiveAccessVerification;
 use App\Services\Audit\AuditLogger;
 use App\Services\UserActivityLogger;
@@ -295,7 +296,7 @@ final class PrivacyRequestService
                 } catch (InvalidArgumentException $exception) {
                     if ($exception->getMessage() === 'duplicate_identity') {
                         throw ValidationException::withMessages([
-                            'identity_number' => 'رقم الهوية مستخدم مسبقاً.',
+                            'identity_number' => IdentityNumberService::DUPLICATE_MESSAGE,
                         ]);
                     }
 
