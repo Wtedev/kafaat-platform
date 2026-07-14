@@ -115,14 +115,23 @@
     }
     #notif-prefs-modal .npm-link {
         display: block;
-        padding-top: 0.25rem;
+        width: 100%;
+        padding: 0.25rem 0 0;
+        margin: 0;
+        border: none;
+        background: none;
         text-align: center;
         font-size: 0.6875rem;
+        font-family: inherit;
         color: #335483;
         text-decoration: none;
+        cursor: pointer;
     }
     #notif-prefs-modal .npm-link:hover {
         text-decoration: underline;
+    }
+    #notif-prefs-modal[hidden] {
+        display: none !important;
     }
 </style>
 @endonce
@@ -156,9 +165,22 @@
                 <button type="submit" class="npm-btn npm-btn-secondary">لا شكراً — داخل المنصة فقط</button>
             </form>
 
-            <a href="{{ auth()->user()?->isPortalUser() ? route('portal.notifications.settings') : url('/admin/profile') }}" class="npm-link">
-                تخصيص تفصيلي للتنبيهات
-            </a>
+            <form method="POST" action="{{ route('notification-prefs.ack') }}">
+                @csrf
+                <input type="hidden" name="customize" value="1" />
+                <button type="submit" class="npm-link">تخصيص تفصيلي للتنبيهات</button>
+            </form>
         </div>
     </div>
 </div>
+@once
+<script>
+    (function () {
+        var modal = document.getElementById('notif-prefs-modal');
+        if (!modal) return;
+        modal.addEventListener('submit', function () {
+            modal.setAttribute('hidden', '');
+        });
+    })();
+</script>
+@endonce

@@ -14,6 +14,21 @@ class NotificationPreferenceController extends Controller
      */
     public function acknowledge(Request $request, UserNotificationPreferences $preferences): RedirectResponse
     {
+        $user = $request->user();
+
+        // رابط «تخصيص تفصيلي»: أغلق النافذة دون فرض تفضيلات، ثم وجّه لصفحة الإعدادات.
+        if ($request->boolean('customize')) {
+            $user->forceFill([
+                'notification_prefs_set_at' => now(),
+            ])->save();
+
+            $settingsUrl = $user->isPortalUser()
+                ? route('portal.notifications.settings')
+                : url('/admin/profile');
+
+            return redirect($settingsUrl);
+        }
+
         $wantsEmail = UserNotificationPreferences::parseBool($request->input('notify_email'));
         $settings = $preferences->normalizeFromRequest([
             'categories' => [
@@ -36,7 +51,6 @@ class NotificationPreferenceController extends Controller
             ],
         ], $wantsEmail);
 
-        $user = $request->user();
         $previousNotifyEmail = (bool) $user->notify_email;
 
         $user->forceFill([

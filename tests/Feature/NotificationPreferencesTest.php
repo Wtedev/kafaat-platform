@@ -35,6 +35,54 @@ class NotificationPreferencesTest extends TestCase
         $this->assertTrue($user->notify_email);
     }
 
+    public function test_customize_link_acknowledges_prompt_and_redirects_to_settings(): void
+    {
+        $user = User::factory()->create([
+            'role_type' => 'trainee',
+            'email' => 'trainee@example.com',
+            'email_verified_at' => now(),
+            'notify_email' => false,
+            'notification_prefs_set_at' => null,
+            'notification_settings' => null,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withSession(['otp_verified' => true])
+            ->post(route('notification-prefs.ack'), [
+                'customize' => '1',
+            ]);
+
+        $response->assertRedirect(route('portal.notifications.settings'));
+        $user->refresh();
+        $this->assertNotNull($user->notification_prefs_set_at);
+        $this->assertFalse($user->notify_email);
+        $this->assertNull($user->notification_settings);
+    }
+
+    public function test_yes_email_ack_still_saves_preferences(): void
+    {
+        $user = User::factory()->create([
+            'role_type' => 'trainee',
+            'email' => 'trainee@example.com',
+            'email_verified_at' => now(),
+            'notify_email' => false,
+            'notification_prefs_set_at' => null,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withSession(['otp_verified' => true])
+            ->from(route('portal.notifications'))
+            ->post(route('notification-prefs.ack'), [
+                'notify_email' => '1',
+            ]);
+
+        $response->assertRedirect(route('portal.notifications'));
+        $user->refresh();
+        $this->assertNotNull($user->notification_prefs_set_at);
+        $this->assertTrue($user->notify_email);
+        $this->assertNotNull($user->notification_settings);
+    }
+
     public function test_creator_audience_email_only_requires_master_toggle(): void
     {
         $user = User::factory()->create([
