@@ -9,47 +9,50 @@ $hasVolunteering = $volunteerRows->isNotEmpty();
 $hasCurrent = $hasActivities || $hasVolunteering;
 @endphp
 
-<section class="mb-6 flex flex-wrap items-end justify-between gap-3 text-right">
-    <div>
-        <p class="text-sm font-medium text-gray-500">مرحباً، <span class="text-gray-800">{{ $firstName }}</span></p>
-        <h1 class="mt-1 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">لوحة التحكم</h1>
-        <p class="mt-2 max-w-2xl text-sm leading-relaxed text-gray-600">ملخص نشاطك التعليمي والتطوعي والتنبيهات في مكان واحد.</p>
-    </div>
-    <a href="{{ route('portal.competency') }}" class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-[#335483]/30 hover:text-[#335483]">
-        صفحة الكفاءة
-    </a>
+<section class="mb-6 text-right">
+    <p class="text-sm font-medium text-gray-500">مرحباً، <span class="text-gray-800">{{ $firstName }}</span></p>
+    <h1 class="mt-1 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">لوحة التحكم</h1>
+    <p class="mt-2 max-w-2xl text-sm leading-relaxed text-gray-600">ملخص نشاطك التعليمي والتطوعي والتنبيهات في مكان واحد.</p>
 </section>
 
 <section aria-labelledby="stats-heading" class="mb-6">
     <h2 id="stats-heading" class="sr-only">إحصائيات</h2>
-    <ul class="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm" role="list">
-        <li class="flex items-center gap-3 px-4 py-3.5 sm:gap-4 sm:px-5 sm:py-4">
-            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e9eff6] text-[#335483]" aria-hidden="true">
+    <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" role="list">
+        <li class="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:flex-col sm:items-stretch sm:gap-3 sm:p-5">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#e9eff6] text-[#335483]" aria-hidden="true">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
             </span>
-            <p class="min-w-0 flex-1 text-sm font-medium leading-snug text-gray-600">مسارات وبرامج مسجّلة</p>
-            <p class="shrink-0 text-xl font-bold tabular-nums tracking-tight sm:text-2xl" style="color:#335483">{{ $programsRegistered }}</p>
+            <div class="min-w-0 flex-1 sm:order-last">
+                <p class="text-sm font-medium leading-snug text-gray-600">مسارات وبرامج مسجّلة</p>
+            </div>
+            <p class="shrink-0 text-2xl font-bold tabular-nums tracking-tight sm:mt-1" style="color:#335483">{{ $programsRegistered }}</p>
         </li>
-        <li class="flex items-center gap-3 px-4 py-3.5 sm:gap-4 sm:px-5 sm:py-4">
-            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e6f5f6] text-brand-secondary" aria-hidden="true">
+        <li class="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:flex-col sm:items-stretch sm:gap-3 sm:p-5">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#e6f5f6] text-brand-secondary" aria-hidden="true">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </span>
-            <p class="min-w-0 flex-1 text-sm font-medium leading-snug text-gray-600">مكتملة</p>
-            <p class="shrink-0 text-xl font-bold tabular-nums tracking-tight text-brand-secondary sm:text-2xl">{{ $programsCompleted }}</p>
+            <div class="min-w-0 flex-1 sm:order-last">
+                <p class="text-sm font-medium leading-snug text-gray-600">مكتملة</p>
+            </div>
+            <p class="shrink-0 text-2xl font-bold tabular-nums tracking-tight text-brand-secondary sm:mt-1">{{ $programsCompleted }}</p>
         </li>
-        <li class="flex items-center gap-3 px-4 py-3.5 sm:gap-4 sm:px-5 sm:py-4">
-            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e9eff6] text-[#335483]" aria-hidden="true">
+        <li class="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:flex-col sm:items-stretch sm:gap-3 sm:p-5">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#e9eff6] text-[#335483]" aria-hidden="true">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </span>
-            <p class="min-w-0 flex-1 text-sm font-medium leading-snug text-gray-600">ساعات تطوع معتمدة</p>
-            <p class="shrink-0 text-xl font-bold tabular-nums tracking-tight text-brand sm:text-2xl">{{ en_num($approvedHours, 1) }}</p>
+            <div class="min-w-0 flex-1 sm:order-last">
+                <p class="text-sm font-medium leading-snug text-gray-600">ساعات تطوع معتمدة</p>
+            </div>
+            <p class="shrink-0 text-2xl font-bold tabular-nums tracking-tight text-brand sm:mt-1">{{ en_num($approvedHours, 1) }}</p>
         </li>
-        <li class="flex items-center gap-3 px-4 py-3.5 sm:gap-4 sm:px-5 sm:py-4">
-            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fef6e6] text-[#c99316]" aria-hidden="true">
+        <li class="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:flex-col sm:items-stretch sm:gap-3 sm:p-5">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#fef6e6] text-[#c99316]" aria-hidden="true">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12.75L11.25 15 15 9.75M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
             </span>
-            <p class="min-w-0 flex-1 text-sm font-medium leading-snug text-gray-600">الشهادات</p>
-            <p class="shrink-0 text-xl font-bold tabular-nums tracking-tight text-brand-accent sm:text-2xl">{{ $certificatesCount }}</p>
+            <div class="min-w-0 flex-1 sm:order-last">
+                <p class="text-sm font-medium leading-snug text-gray-600">الشهادات</p>
+            </div>
+            <p class="shrink-0 text-2xl font-bold tabular-nums tracking-tight text-brand-accent sm:mt-1">{{ $certificatesCount }}</p>
         </li>
     </ul>
 </section>
@@ -77,29 +80,32 @@ $hasCurrent = $hasActivities || $hasVolunteering;
                 <a href="{{ route('public.volunteering.index') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">الفرص التطوعية</a>
             </x-portal.empty-state>
             @else
-            <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
+            <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
                 @if ($hasActivities)
-                <div class="mb-4">
-                    <h3 class="mb-3 text-sm font-bold text-gray-800">برامج حالية</h3>
-                    <div class="-mx-1 flex gap-3 overflow-x-auto overflow-y-visible pb-1 pt-0.5 [scrollbar-width:thin] snap-x snap-mandatory">
-                        @foreach ($activities as $activity)
-                        @include('portal.partials.dashboard-activity-card', ['activity' => $activity])
-                        @endforeach
-                    </div>
+                <div class="border-b border-gray-100 px-4 py-3 sm:px-5">
+                    <h3 class="text-sm font-bold text-gray-800">برامج حالية</h3>
                 </div>
+                <ul class="divide-y divide-gray-100" role="list">
+                    @foreach ($activities as $activity)
+                    @include('portal.partials.dashboard-activity-card', ['activity' => $activity])
+                    @endforeach
+                </ul>
                 @endif
 
                 @if ($hasVolunteering)
-                <div @class(['border-t border-gray-100 pt-4' => $hasActivities])>
-                    <h3 class="mb-3 text-sm font-bold text-gray-800">فرص تطوعية حالية</h3>
-                    <div class="-mx-1 flex gap-3 overflow-x-auto overflow-y-visible pb-1 pt-0.5 [scrollbar-width:thin] snap-x snap-mandatory">
-                        @foreach ($volunteerRows as $row)
-                        @include('portal.partials.dashboard-volunteer-card', ['row' => $row])
-                        @endforeach
-                    </div>
+                <div @class([
+                    'border-b border-gray-100 px-4 py-3 sm:px-5' => true,
+                    'border-t border-gray-100' => $hasActivities,
+                ])>
+                    <h3 class="text-sm font-bold text-gray-800">فرص تطوعية حالية</h3>
                 </div>
+                <ul class="divide-y divide-gray-100" role="list">
+                    @foreach ($volunteerRows as $row)
+                    @include('portal.partials.dashboard-volunteer-card', ['row' => $row])
+                    @endforeach
+                </ul>
                 @elseif ($hasActivities)
-                <div class="border-t border-gray-100 pt-4">
+                <div class="border-t border-gray-100 px-4 py-3.5 sm:px-5">
                     <p class="text-sm text-gray-500">لا توجد فرص تطوعية مسجّلة حالياً.
                         <a href="{{ route('public.volunteering.index') }}" class="font-semibold hover:underline" style="color:#335483">استكشف الفرص</a>
                     </p>

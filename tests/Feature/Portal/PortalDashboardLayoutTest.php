@@ -105,6 +105,8 @@ class PortalDashboardLayoutTest extends TestCase
             ->assertOk()
             ->assertSee('نشاطي الحالي', false)
             ->assertSee('التنبيهات', false)
+            ->assertSee('مسارات وبرامج مسجّلة', false)
+            ->assertDontSee('صفحة الكفاءة', false)
             ->assertDontSee('برامج كفاءات مقترحة لك', false);
     }
 }

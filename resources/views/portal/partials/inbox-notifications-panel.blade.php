@@ -40,14 +40,14 @@
         </div>
     </div>
 
-    <div class="@if($compact) max-h-[28rem] overflow-y-auto @endif p-3 sm:p-4">
+    <div class="@if($compact) max-h-[28rem] overflow-y-auto @endif p-2.5 sm:p-3">
         @if ($items->isEmpty())
             <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-4 py-8 text-center">
                 <p class="text-sm font-semibold text-gray-700">لا توجد تنبيهات</p>
                 <p class="mt-1 text-xs text-gray-500">عند حدوث نشاط يخص حسابك سيظهر هنا.</p>
             </div>
         @else
-            <ul class="space-y-3">
+            <ul class="space-y-2" role="list">
                 @foreach ($items as $n)
                     @include('portal.partials.inbox-notification-item', ['n' => $n, 'compact' => $compact])
                 @endforeach
