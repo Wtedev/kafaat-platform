@@ -178,6 +178,10 @@ class TrainingProgramResource extends Resource
                     ),
                 ]),
 
+            TrainingEntityFormSupport::programAcceptanceConditionsSection(
+                visible: fn (Get $get): bool => ! (bool) $get('is_linked_to_path'),
+            ),
+
             TrainingEntityFormSupport::advancedProgramSettingsSection(
                 forEdit: false,
                 hidePathLinkFields: $linkedToPath,
@@ -237,6 +241,10 @@ class TrainingProgramResource extends Resource
                         ->visible(fn (?TrainingProgram $record): bool => $record !== null && $record->exists)
                         ->columnSpanFull(),
                 ]),
+
+            TrainingEntityFormSupport::programAcceptanceConditionsSection(
+                visible: fn (Get $get): bool => ! (bool) $get('is_linked_to_path'),
+            ),
 
             TrainingEntityFormSupport::advancedProgramSettingsSection(forEdit: true),
         ];

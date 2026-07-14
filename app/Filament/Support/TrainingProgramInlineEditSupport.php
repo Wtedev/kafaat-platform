@@ -78,9 +78,11 @@ final class TrainingProgramInlineEditSupport
                 ),
             ],
             'enrollment' => [
+                ...TrainingEntityFormSupport::programAcceptanceConditionsFields(),
                 ...TrainingEntityFormSupport::registrationAdvancedSettingsFields(
                     $capacityVisible,
                     includeProgramAudienceNotifications: true,
+                    includeAutoAcceptRegistrations: false,
                 ),
                 TrainingProgramExtrasSupport::sessionTopicsBlock(),
                 ...TrainingProgramExtrasSupport::sessionTopicsRepeaterFields(),

@@ -3,6 +3,7 @@
 namespace App\Filament\Support;
 
 use App\Enums\CompetencyTrack;
+use App\Enums\ProfileGender;
 use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
@@ -11,15 +12,18 @@ use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\FilamentUserSelectQuery;
+use App\Support\ProgramAcceptanceConditions;
 use App\Support\StaffFilamentRoles;
 use App\Support\TrainingProgramExtrasSupport;
 use App\Support\TrainingEntityAuthorization;
 use Closure;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -116,6 +120,7 @@ final class TrainingEntityFormSupport
       ...static::registrationAdvancedSettingsFields(
         $capacityVisible,
         includeProgramAudienceNotifications: true,
+        includeAutoAcceptRegistrations: false,
       ),
       TrainingProgramExtrasSupport::sessionTopicsBlock(),
       ...TrainingProgramExtrasSupport::sessionTopicsRepeaterFields(),
@@ -128,6 +133,120 @@ final class TrainingEntityFormSupport
         $staffVisible,
       ),
     ]);
+  }
+
+  /**
+   * بطاقة شروط القبول للبرامج المستقلة (ليست داخل الإعدادات المتقدمة).
+   *
+   * @param  (Closure(Get): bool)|null  $visible
+   */
+  public static function programAcceptanceConditionsSection(?Closure $visible = null): Section
+  {
+    $section = Section::make('شروط القبول')
+      ->description('حدّد آلية قبول التسجيل وشروط أهلية المتقدمين. عند التفعيل التلقائي تُقبل الطلبات المطابقة فقط؛ عند القبول اليدوي تبقى الطلبات قيد المراجعة.')
+      ->columns(1)
+      ->schema(static::programAcceptanceConditionsFields());
+
+    if ($visible !== null) {
+      $section->visible($visible);
+    }
+
+    return $section;
+  }
+
+  /**
+   * @return array<int, \Filament\Forms\Components\Component|\Filament\Schemas\Components\Component>
+   */
+  public static function programAcceptanceConditionsFields(): array
+  {
+    $conditionsVisible = fn (Get $get): bool => (bool) $get('auto_accept_registrations')
+      || (bool) $get('acceptance_manual_review');
+
+    return [
+      static::advancedSettingsToggle('auto_accept_registrations', 'قبول تلقائي')
+        ->default(true)
+        ->live()
+        ->afterStateUpdated(function (mixed $state, Set $set): void {
+          if ((bool) $state) {
+            $set('acceptance_manual_review', false);
+          }
+        })
+        ->helperText('عند التفعيل تُقبل تلقائياً التسجيلات المطابقة للشروط أدناه (إن وُجدت). غير المطابقين يُمنعون من التسجيل.'),
+
+      static::advancedSettingsToggle('acceptance_manual_review', 'قبول يدوي')
+        ->default(false)
+        ->live()
+        ->dehydrated(false)
+        ->visible(fn (Get $get): bool => ! (bool) $get('auto_accept_registrations'))
+        ->helperText('التسجيلات تبقى قيد المراجعة حتى موافقة الموظف. فعّل لإظهار شروط الأهلية وتقييد من يمكنه التقديم.'),
+
+      Group::make()
+        ->columnSpanFull()
+        ->visible($conditionsVisible)
+        ->schema([
+          Placeholder::make('acceptance_conditions_heading')
+            ->hiddenLabel()
+            ->content(new HtmlString(
+              '<p class="text-sm font-medium text-gray-700 dark:text-gray-200">شروط الأهلية</p>'
+              .'<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">اترك الحقول فارغة إن لم تكن مطلوبة. تُقارن الشروط ببيانات الملف الشخصي للمتقدم.</p>'
+            ))
+            ->columnSpanFull(),
+
+          Toggle::make('acceptance_require_saudi_national')
+            ->label('سعودي الجنسية')
+            ->helperText('يُقبل من لديه هوية وطنية فقط (وليس إقامة).')
+            ->inline(true)
+            ->default(false)
+            ->extraFieldWrapperAttributes(['class' => 'fi-advanced-settings-toggle-row']),
+
+          Toggle::make('acceptance_require_complete_profile')
+            ->label('اكتمال بيانات الملف الشخصي')
+            ->helperText('يلزم الاسم، الهوية، الجوال، تاريخ الميلاد، والجنس.')
+            ->inline(true)
+            ->default(false)
+            ->extraFieldWrapperAttributes(['class' => 'fi-advanced-settings-toggle-row']),
+
+          CheckboxList::make('acceptance_genders')
+            ->label('الجنس')
+            ->options(ProfileGender::options())
+            ->columns(2)
+            ->helperText('اتركه فارغاً لقبول الجميع.')
+            ->columnSpanFull(),
+
+          Grid::make(2)
+            ->schema([
+              TextInput::make('acceptance_min_age')
+                ->label('الحد الأدنى للعمر')
+                ->numeric()
+                ->minValue(0)
+                ->maxValue(120)
+                ->nullable()
+                ->suffix('سنة'),
+              TextInput::make('acceptance_max_age')
+                ->label('الحد الأقصى للعمر')
+                ->numeric()
+                ->minValue(0)
+                ->maxValue(120)
+                ->nullable()
+                ->suffix('سنة'),
+            ]),
+
+          TagsInput::make('acceptance_cities')
+            ->label('مدن الإقامة المسموحة')
+            ->placeholder('أضف مدينة ثم Enter')
+            ->helperText('مثال: الرياض، جدة. يطابق مدينة الإقامة في ملف المستفيد.')
+            ->columnSpanFull(),
+        ]),
+    ];
+  }
+
+  /**
+   * @param  array<string, mixed>  $data
+   * @return array<string, mixed>
+   */
+  public static function applyAcceptanceConditions(array $data): array
+  {
+    return ProgramAcceptanceConditions::applyFormData($data);
   }
 
   /**
@@ -977,6 +1096,7 @@ final class TrainingEntityFormSupport
     $keys ??= [
       'is_linked_to_path',
       'capacity_unlimited',
+      'acceptance_manual_review',
     ];
 
     foreach ($keys as $key) {

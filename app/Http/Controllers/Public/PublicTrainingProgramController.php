@@ -6,11 +6,14 @@ use App\Enums\CompetencyTrack;
 use App\Enums\ProgramDeliveryMode;
 use App\Exceptions\ProgramBelongsToLearningPathException;
 use App\Exceptions\ProgramCapacityExceededException;
+use App\Exceptions\RegistrationNotEligibleException;
 use App\Exceptions\RegistrationWindowClosedException;
 use App\Http\Controllers\Controller;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
+use App\Services\ProgramAcceptanceConditionEvaluator;
 use App\Services\ProgramRegistrationService;
+use App\Support\ProgramAcceptanceConditions;
 use App\Support\ProgramRegistrationSuccessPresenter;
 use Illuminate\Http\Request;
 
@@ -18,6 +21,7 @@ class PublicTrainingProgramController extends Controller
 {
     public function __construct(
         private readonly ProgramRegistrationService $registrationService,
+        private readonly ProgramAcceptanceConditionEvaluator $acceptanceEvaluator,
     ) {}
 
     public function index()
@@ -47,18 +51,28 @@ class PublicTrainingProgramController extends Controller
         abort_if($trainingProgram->status->value !== 'published', 404);
 
         $userRegistration = null;
+        $acceptanceEvaluation = null;
         if (auth()->check()) {
+            $user = auth()->user();
             $userRegistration = $trainingProgram->registrations()
-                ->where('user_id', auth()->id())
+                ->where('user_id', $user->id)
                 ->latest()
                 ->first();
+
+            if ($userRegistration === null
+                && $trainingProgram->learning_path_id === null
+                && ProgramAcceptanceConditions::hasAny(
+                    is_array($trainingProgram->acceptance_conditions) ? $trainingProgram->acceptance_conditions : null
+                )) {
+                $acceptanceEvaluation = $this->acceptanceEvaluator->evaluate($trainingProgram, $user);
+            }
         }
 
         if ($trainingProgram->learning_path_id !== null) {
             $trainingProgram->loadMissing('learningPath');
         }
 
-        return view('public.programs.show', compact('trainingProgram', 'userRegistration'));
+        return view('public.programs.show', compact('trainingProgram', 'userRegistration', 'acceptanceEvaluation'));
     }
 
     public function register(Request $request, TrainingProgram $trainingProgram)
@@ -97,6 +111,8 @@ class PublicTrainingProgramController extends Controller
             return back()->with('error', 'باب التسجيل في هذا البرنامج مغلق حالياً.');
         } catch (ProgramCapacityExceededException) {
             return back()->with('error', 'البرنامج وصل إلى الحد الأقصى للمشتركين.');
+        } catch (RegistrationNotEligibleException $e) {
+            return back()->with('error', $e->userMessage());
         }
     }
 

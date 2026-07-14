@@ -15,6 +15,7 @@ use App\Filament\Support\TrainingEntityFormSupport;
 use App\Filament\Support\TrainingProgramInlineEditSupport;
 use App\Filament\Support\TrainingProgramViewPresenter;
 use App\Models\TrainingProgram;
+use App\Support\ProgramAcceptanceConditions;
 use App\Support\TrainingProgramExtrasSupport;
 use Filament\Actions\DeleteAction;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -66,6 +67,13 @@ class ViewTrainingProgram extends BaseViewRecord
             $record->owner_id !== null ? (int) $record->owner_id : null,
         );
         $data['session_topics'] = is_array($record->session_topics) ? $record->session_topics : [];
+        $data = array_merge(
+            $data,
+            ProgramAcceptanceConditions::toFormState(
+                is_array($record->acceptance_conditions) ? $record->acceptance_conditions : null,
+                (bool) $record->auto_accept_registrations,
+            ),
+        );
 
         return $data;
     }
@@ -81,6 +89,8 @@ class ViewTrainingProgram extends BaseViewRecord
         $data = $this->mergePendingInlineEditOverrides($data);
         $wantPublished = TrainingEntityFormSupport::wantsPublishedStatus($data);
 
+        $data = TrainingEntityFormSupport::mergeNonDehydratedFormFlags($data, $this->data ?? []);
+
         $linked = (bool) ($data['is_linked_to_path'] ?? false);
 
         $data = TrainingEntityFormSupport::applyProgramPathLinkSettings($data);
@@ -95,6 +105,7 @@ class ViewTrainingProgram extends BaseViewRecord
         $data = TrainingEntityFormSupport::applyCapacityUnlimited($data);
         $data = TrainingEntityFormSupport::applyAudienceNotifications($data);
         $data = TrainingEntityFormSupport::applyDeliveryModeFields($data);
+        $data = TrainingEntityFormSupport::applyAcceptanceConditions($data);
         $data = TrainingProgramExtrasSupport::applyFormData($data);
 
         if (! $linked) {
@@ -183,6 +194,14 @@ class ViewTrainingProgram extends BaseViewRecord
             'capacity' => 'الحد الأقصى للمسجّلين',
             'capacity_unlimited' => 'تسجيل غير محدود',
             'auto_accept_registrations' => 'قبول تلقائي',
+            'acceptance_manual_review' => 'قبول يدوي',
+            'acceptance_require_saudi_national' => 'سعودي الجنسية',
+            'acceptance_require_complete_profile' => 'اكتمال بيانات الملف الشخصي',
+            'acceptance_genders' => 'الجنس',
+            'acceptance_min_age' => 'الحد الأدنى للعمر',
+            'acceptance_max_age' => 'الحد الأقصى للعمر',
+            'acceptance_cities' => 'مدن الإقامة',
+            'acceptance_conditions' => 'شروط القبول',
             'start_date' => 'تاريخ البدء',
             'end_date' => 'تاريخ الانتهاء',
             'registration_start' => 'بداية التسجيل',

@@ -4,6 +4,7 @@ namespace App\Filament\Support;
 
 use App\Enums\ProgramStatus;
 use App\Models\TrainingProgram;
+use App\Support\ProgramAcceptanceConditions;
 use App\Support\TrainingProgramExtrasSupport;
 
 final class TrainingProgramViewPresenter
@@ -182,23 +183,37 @@ final class TrainingProgramViewPresenter
      */
     private static function enrollmentSection(TrainingProgram $program): array
     {
+        $rows = [
+            EntityViewPresenterSupport::row(
+                'السعة الاستيعابية',
+                EntityViewPresenterSupport::formatCapacity($program->capacity, $program->approvedRegistrationsCount()),
+                'heroicon-o-users',
+            ),
+            EntityViewPresenterSupport::row(
+                'قبول التسجيل',
+                $program->auto_accept_registrations ? 'تلقائي' : 'يدوي',
+                'heroicon-o-check-badge',
+                $program->auto_accept_registrations ? 'success' : 'gray',
+            ),
+        ];
+
+        $conditionLines = ProgramAcceptanceConditions::summarize(
+            is_array($program->acceptance_conditions) ? $program->acceptance_conditions : null
+        );
+
+        if ($conditionLines !== []) {
+            $rows[] = EntityViewPresenterSupport::row(
+                'شروط القبول',
+                implode(' — ', $conditionLines),
+                'heroicon-o-shield-check',
+            );
+        }
+
         return [
             'title' => 'التسجيل والسعة',
             'icon' => 'heroicon-o-user-group',
             'field' => 'enrollment',
-            'rows' => [
-                EntityViewPresenterSupport::row(
-                    'السعة الاستيعابية',
-                    EntityViewPresenterSupport::formatCapacity($program->capacity, $program->approvedRegistrationsCount()),
-                    'heroicon-o-users',
-                ),
-                EntityViewPresenterSupport::row(
-                    'قبول التسجيل',
-                    $program->auto_accept_registrations ? 'تلقائي' : 'يدوي',
-                    'heroicon-o-check-badge',
-                    $program->auto_accept_registrations ? 'success' : 'gray',
-                ),
-            ],
+            'rows' => $rows,
         ];
     }
 

@@ -7,6 +7,7 @@ use App\Enums\RegistrationStatus;
 use App\Exceptions\ProgramBelongsToLearningPathException;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Exceptions\RegistrationNotApprovedException;
+use App\Exceptions\RegistrationNotEligibleException;
 use App\Exceptions\RegistrationWindowClosedException;
 use App\Models\LearningPath;
 use App\Models\ProgramRegistration;
@@ -25,6 +26,7 @@ class ProgramRegistrationService
         private readonly CertificateService $certificateService,
         private readonly InboxNotificationService $inboxNotifications,
         private readonly ProgressService $progressService,
+        private readonly ProgramAcceptanceConditionEvaluator $acceptanceEvaluator,
     ) {}
 
     /**
@@ -32,6 +34,7 @@ class ProgramRegistrationService
      *
      * @throws ProgramBelongsToLearningPathException
      * @throws RegistrationWindowClosedException
+     * @throws RegistrationNotEligibleException
      * @throws ProgramCapacityExceededException
      */
     public function register(TrainingProgram $program, User $user): ProgramRegistration
@@ -42,6 +45,11 @@ class ProgramRegistrationService
 
         if (! $program->isRegistrationOpen()) {
             throw new RegistrationWindowClosedException;
+        }
+
+        $eligibility = $this->acceptanceEvaluator->evaluate($program, $user);
+        if (! $eligibility['eligible']) {
+            throw new RegistrationNotEligibleException($eligibility['reasons']);
         }
 
         // We do not check capacity at registration time — capacity is enforced on approval.

@@ -28,6 +28,14 @@ use Illuminate\Support\Facades\Auth;
 class TrainingProgram extends Model
 {
     use HasEntityNotes;
+
+    /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'auto_accept_registrations' => true,
+    ];
+
     protected $fillable = [
         'title',
         'slug',
@@ -44,6 +52,7 @@ class TrainingProgram extends Model
         'image',
         'capacity',
         'auto_accept_registrations',
+        'acceptance_conditions',
         'start_date',
         'end_date',
         'weekdays',
@@ -79,6 +88,7 @@ class TrainingProgram extends Model
             'registration_end' => 'date',
             'capacity' => 'integer',
             'auto_accept_registrations' => 'boolean',
+            'acceptance_conditions' => 'array',
             'weekdays' => 'array',
             'session_topics_enabled' => 'boolean',
             'session_topics' => 'array',

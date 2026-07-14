@@ -107,6 +107,7 @@ class CreateTrainingProgram extends BaseCreateRecord
         $data = TrainingEntityFormSupport::applyCapacityUnlimited($data);
         $data = TrainingEntityFormSupport::applyAudienceNotifications($data);
         $data = TrainingEntityFormSupport::applyDeliveryModeFields($data);
+        $data = TrainingEntityFormSupport::applyAcceptanceConditions($data);
         $data = TrainingProgramExtrasSupport::applyFormData($data);
         $data = TrainingEntityFormSupport::stampOwnerFromCreator($data);
 

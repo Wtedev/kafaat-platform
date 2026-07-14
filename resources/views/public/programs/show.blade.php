@@ -21,6 +21,12 @@ $canRegister = auth()->check()
     && ! $viaPathOnly
     && $trainingProgram->isRegistrationOpen();
 
+$ineligible = is_array($acceptanceEvaluation ?? null)
+    && ($acceptanceEvaluation['eligible'] ?? true) === false;
+$ineligibilityReasons = $ineligible
+    ? ($acceptanceEvaluation['reasons'] ?? [])
+    : [];
+
 $alreadyRegistered = $userRegistration !== null;
 $ackLabel = $inPerson
     ? 'أقر بأنني قرأت جميع تفاصيل البرنامج وأعرف مدينة وموقع إقامته ('.$venueHint.') وأستطيع الحضور.'
@@ -81,6 +87,15 @@ $ackLabel = $inPerson
                 </div>
             @elseif (! $trainingProgram->isRegistrationOpen())
                 <p class="text-sm text-gray-400">باب التسجيل في هذا البرنامج مغلق حالياً.</p>
+            @elseif ($ineligible)
+                <div class="space-y-3 rounded-2xl border border-amber-200/80 bg-amber-50/80 p-4 sm:max-w-xl">
+                    <p class="text-sm font-semibold text-amber-900">غير مؤهل للتسجيل في هذا البرنامج</p>
+                    <ul class="list-disc space-y-1 pe-5 text-sm leading-relaxed text-amber-800">
+                        @foreach ($ineligibilityReasons as $reason)
+                            <li>{{ $reason }}</li>
+                        @endforeach
+                    </ul>
+                </div>
             @elseif ($canRegister)
                 <form method="POST" action="{{ route('public.programs.register', $trainingProgram->slug) }}" class="program-register-form space-y-4">
                     @csrf
