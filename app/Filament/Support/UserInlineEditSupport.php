@@ -20,26 +20,28 @@ use Illuminate\Validation\ValidationException;
 final class UserInlineEditSupport
 {
     /**
+     * @return array<int, mixed>
+     */
+    public static function fieldSchema(string $field): array
+    {
+        return match ($field) {
+            'account' => self::canEditAccountSection() ? self::accountFields() : [],
+            'profile' => self::canEditProfileSection() ? self::profileFields() : [],
+            'competency' => self::canEditCompetencySection() ? self::competencyFields() : [],
+            'bio' => self::canEditBioSection() ? self::bioFields() : [],
+            default => [],
+        };
+    }
+
+    /**
      * @return array<string, array<int, mixed>>
      */
     public static function fields(): array
     {
         $fields = [];
 
-        if (self::canEditAccountSection()) {
-            $fields['account'] = self::accountFields();
-        }
-
-        if (self::canEditProfileSection()) {
-            $fields['profile'] = self::profileFields();
-        }
-
-        if (self::canEditCompetencySection()) {
-            $fields['competency'] = self::competencyFields();
-        }
-
-        if (self::canEditBioSection()) {
-            $fields['bio'] = self::bioFields();
+        foreach (self::editableSectionKeys() as $field) {
+            $fields[$field] = self::fieldSchema($field);
         }
 
         return $fields;
@@ -50,7 +52,15 @@ final class UserInlineEditSupport
      */
     public static function editableSectionKeys(): array
     {
-        return array_keys(self::fields());
+        $keys = [];
+
+        foreach (array_keys(self::labels()) as $field) {
+            if (self::canEditSection($field)) {
+                $keys[] = $field;
+            }
+        }
+
+        return $keys;
     }
 
     public static function canEditAccountSection(): bool

@@ -43,9 +43,17 @@ trait HasInlineEntityViewEditing
     }
 
     /**
-     * @return array<string, array<int, mixed>>
+     * @return list<string>
      */
-    abstract protected function getInlineEditableFields(): array;
+    protected function getInlineEditableFieldKeys(): array
+    {
+        return array_keys($this->getInlineEditableFieldLabels());
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    abstract protected function getInlineEditableFieldSchema(string $field): array;
 
     /**
      * @return array<string, string>
@@ -79,7 +87,7 @@ trait HasInlineEntityViewEditing
             ->modalSubmitActionLabel('حفظ')
             ->modalCancelActionLabel('إلغاء')
             ->fillForm(fn (array $arguments): array => $this->resolveInlineEditFormStateForField((string) ($arguments['field'] ?? '')))
-            ->schema(fn (array $arguments): array => $this->getInlineEditableFields()[(string) ($arguments['field'] ?? '')] ?? [])
+            ->schema(fn (array $arguments): array => $this->getInlineEditableFieldSchema((string) ($arguments['field'] ?? '')))
             ->action(function (Action $action, array $data, array $arguments): void {
                 $data = array_merge($action->getRawData(), $data);
 
@@ -172,7 +180,7 @@ trait HasInlineEntityViewEditing
     public function commitInlineEntityFieldEdit(string $field, array $data): void
     {
         abort_unless($this->canInlineEditEntityView(), 403);
-        abort_if(! array_key_exists($field, $this->getInlineEditableFields()), 404);
+        abort_if(! in_array($field, $this->getInlineEditableFieldKeys(), true), 404);
 
         try {
             $this->pendingInlineEditOverrides = null;

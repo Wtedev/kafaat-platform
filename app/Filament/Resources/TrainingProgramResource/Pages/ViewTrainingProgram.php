@@ -131,14 +131,14 @@ class ViewTrainingProgram extends BaseViewRecord
     }
 
     /**
-     * @return array<string, array<int, mixed>>
+     * @return array<int, mixed>
      */
-    protected function getInlineEditableFields(): array
+    protected function getInlineEditableFieldSchema(string $field): array
     {
         /** @var TrainingProgram $program */
         $program = $this->getRecord();
 
-        return TrainingProgramInlineEditSupport::fields($program);
+        return TrainingProgramInlineEditSupport::fieldSchema($field, $program);
     }
 
     /**

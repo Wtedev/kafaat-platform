@@ -46,7 +46,44 @@ class TrainingProgramDescriptionInlineEditTest extends TestCase
             ->test(ViewTrainingProgram::class, ['record' => $program->getKey()])
             ->assertSuccessful()
             ->mountAction('editEntityField', ['field' => 'description'])
-            ->assertActionMounted('editEntityField');
+            ->assertActionMounted('editEntityField')
+            ->assertFormFieldExists('description');
+    }
+
+    public function test_all_inline_edit_sections_mount_without_error(): void
+    {
+        foreach (self::inlineEditableSectionProvider() as $field) {
+            $staff = $this->staffUser();
+            $program = $this->createProgram([
+                'description' => self::TIPTAP_JSON,
+                'created_by' => $staff->id,
+                'owner_id' => $staff->id,
+            ]);
+
+            $this->withSession(['otp_verified' => true]);
+
+            Livewire::actingAs($staff)
+                ->test(ViewTrainingProgram::class, ['record' => $program->getKey()])
+                ->assertSuccessful()
+                ->mountAction('editEntityField', ['field' => $field])
+                ->assertActionMounted('editEntityField');
+        }
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function inlineEditableSectionProvider(): array
+    {
+        return ['overview', 'schedule', 'enrollment', 'team', 'description'];
+    }
+
+    public function test_inline_edit_support_has_no_removed_cover_section(): void
+    {
+        $this->assertSame(
+            ['overview', 'schedule', 'enrollment', 'team', 'description'],
+            \App\Filament\Support\TrainingProgramInlineEditSupport::fieldKeys(),
+        );
     }
 
     public function test_view_panel_renders_description_as_html_not_raw_json(): void

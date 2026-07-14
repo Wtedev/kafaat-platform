@@ -10,11 +10,19 @@ use Filament\Forms\Components\TextInput;
 final class LearningPathInlineEditSupport
 {
     /**
-     * @return array<string, array<int, mixed>>
+     * @return list<string>
      */
-    public static function fields(LearningPath $path): array
+    public static function fieldKeys(): array
     {
-        return [
+        return array_keys(self::labels());
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    public static function fieldSchema(string $field, LearningPath $path): array
+    {
+        return match ($field) {
             'overview' => [
                 TextInput::make('title')
                     ->label('اسم المسار')
@@ -40,7 +48,22 @@ final class LearningPathInlineEditSupport
             'description' => [
                 TrainingEntityFormSupport::descriptionField(),
             ],
-        ];
+            default => [],
+        };
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    public static function fields(LearningPath $path): array
+    {
+        $fields = [];
+
+        foreach (self::fieldKeys() as $field) {
+            $fields[$field] = self::fieldSchema($field, $path);
+        }
+
+        return $fields;
     }
 
     /**

@@ -91,14 +91,14 @@ class ViewLearningPath extends BaseViewRecord
     }
 
     /**
-     * @return array<string, array<int, mixed>>
+     * @return array<int, mixed>
      */
-    protected function getInlineEditableFields(): array
+    protected function getInlineEditableFieldSchema(string $field): array
     {
         /** @var LearningPath $path */
         $path = $this->getRecord();
 
-        return LearningPathInlineEditSupport::fields($path);
+        return LearningPathInlineEditSupport::fieldSchema($field, $path);
     }
 
     /**

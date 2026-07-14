@@ -131,11 +131,11 @@ class ViewUser extends BaseViewRecord
     }
 
     /**
-     * @return array<string, array<int, mixed>>
+     * @return array<int, mixed>
      */
-    protected function getInlineEditableFields(): array
+    protected function getInlineEditableFieldSchema(string $field): array
     {
-        return UserInlineEditSupport::fields();
+        return UserInlineEditSupport::fieldSchema($field);
     }
 
     /**
@@ -186,7 +186,7 @@ class ViewUser extends BaseViewRecord
     public function commitInlineEntityFieldEdit(string $field, array $data): void
     {
         abort_unless($this->canInlineEditEntityViewSection($field), 403);
-        abort_if(! array_key_exists($field, $this->getInlineEditableFields()), 404);
+        abort_if(! in_array($field, $this->getInlineEditableFieldKeys(), true), 404);
 
         if (in_array($field, ['profile', 'competency', 'bio'], true)) {
             $this->commitInlineBeneficiaryProfileFieldEdit($field, $data);
