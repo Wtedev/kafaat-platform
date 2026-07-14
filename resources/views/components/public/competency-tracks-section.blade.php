@@ -494,16 +494,18 @@
             gap: 0.75rem;
             padding: 0.85rem 1rem;
             border-radius: 0.75rem;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            color: #fff;
+            background: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            color: #111827;
             text-decoration: none;
-            transition: background 0.2s ease, border-color 0.2s ease;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+            transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .track-program-card:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.32);
+            background: #fff;
+            border-color: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
         }
 
         .track-program-title {
