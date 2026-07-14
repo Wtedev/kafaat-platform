@@ -17,7 +17,7 @@ $tag = $button ? 'button' : 'a';
     {{ $attributes->class([$base, $hover]) }}
 >
     @isset($icon)
-    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {{ $danger ? 'bg-red-100/80 text-red-700' : 'bg-slate-100/90 text-slate-600' }}">
+    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {{ $danger ? 'bg-red-100/80 text-red-700' : 'bg-[#e9eff6] text-[#335483]' }}">
         {{ $icon }}
     </span>
     @endisset

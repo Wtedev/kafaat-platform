@@ -28,7 +28,7 @@ $isPath = ($activity['kind'] ?? '') === 'path';
 
         <div class="min-w-0 flex-1 text-right">
             <div class="flex flex-wrap items-center justify-between gap-2">
-                <h3 class="text-sm font-bold leading-snug text-gray-900 sm:text-[0.95rem]">{{ $activity['title'] }}</h3>
+                <h3 class="text-sm font-bold leading-snug text-[#335483] sm:text-[0.95rem]">{{ $activity['title'] }}</h3>
                 <span class="inline-flex shrink-0 items-center rounded-lg px-2 py-0.5 text-[11px] font-semibold {{ $badgeClass }}">{{ $activity['status_label'] }}</span>
             </div>
 

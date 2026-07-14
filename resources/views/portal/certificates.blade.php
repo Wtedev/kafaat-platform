@@ -28,7 +28,9 @@
     default => 'bg-gray-100 text-gray-600',
     };
     @endphp
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3">
+    <div class="flex flex-col gap-3 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <x-portal.card-header variant="bar" />
+        <div class="flex flex-col gap-3 p-5 pt-4">
         <div class="flex items-start justify-between gap-2">
             <div class="flex-1 min-w-0">
                 @if ($typeLabel)
@@ -36,7 +38,7 @@
                     {{ $typeLabel }}
                 </span>
                 @endif
-                <p class="text-sm font-semibold text-gray-800 leading-snug">
+                <p class="text-sm font-semibold leading-snug text-[#335483]">
                     {{ optional($cert->certificateable)->title ?? 'شهادة' }}
                 </p>
             </div>
@@ -69,6 +71,7 @@
         <a href="{{ route('certificates.verify', $cert->verification_code) }}" target="_blank" class="text-center text-xs text-gray-400 hover:text-brand transition">
             رابط التحقق ↗
         </a>
+        </div>
     </div>
     @endforeach
 </div>

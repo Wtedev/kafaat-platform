@@ -115,7 +115,7 @@
                 </div>
 
                 <div class="flex flex-col gap-0.5 px-3 pb-4 sm:px-4 sm:pb-5">
-                    <p class="px-2 pb-1 text-[10px] font-bold tracking-wide text-slate-400">نظرة عامة</p>
+                    <p class="px-2 pb-1 text-[10px] font-bold tracking-wide text-[#335483]/70">نظرة عامة</p>
                     <a href="{{ route('portal.dashboard') }}" class="{{ $isDash ? $navActive : $navIdle }}" @if($isDash) aria-current="page" @endif>
                         <svg class="{{ $navIcon }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                         <span>الرئيسية</span>

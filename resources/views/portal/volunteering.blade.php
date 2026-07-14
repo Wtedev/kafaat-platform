@@ -26,15 +26,16 @@ RegistrationStatus::Completed->value => 'مكتمل',
     <a href="{{ route('portal.competency') }}" class="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50">طوّر صفحة الكفاءة</a>
 </x-portal.empty-state>
 @else
-<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+<div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+    <x-portal.card-header variant="bar" />
     <table class="w-full text-sm">
-        <thead class="bg-gray-50 text-gray-500 text-xs">
+        <thead class="bg-[#e9eff6] text-xs text-[#335483]">
             <tr>
-                <th class="px-5 py-3 text-right font-medium">الفرصة</th>
-                <th class="px-5 py-3 text-center font-medium">الحالة</th>
-                <th class="px-5 py-3 text-center font-medium">الساعات</th>
-                <th class="px-5 py-3 text-center font-medium">التقدم</th>
-                <th class="px-5 py-3 text-center font-medium">شهادة التطوع</th>
+                <th class="px-5 py-3 text-right font-semibold">الفرصة</th>
+                <th class="px-5 py-3 text-center font-semibold">الحالة</th>
+                <th class="px-5 py-3 text-center font-semibold">الساعات</th>
+                <th class="px-5 py-3 text-center font-semibold">التقدم</th>
+                <th class="px-5 py-3 text-center font-semibold">شهادة التطوع</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">

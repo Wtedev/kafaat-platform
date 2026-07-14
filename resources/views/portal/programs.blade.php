@@ -101,6 +101,7 @@ $statusLabels = [
 
         <li>
             <article class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition hover:border-[#c5d4e4]" aria-label="{{ $program?->title ?? 'برنامج' }}">
+                <x-portal.card-header variant="bar" />
                 <div class="flex items-start gap-3 px-4 py-4 sm:gap-4 sm:px-5 sm:py-5">
                     <span class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e9eff6] text-[#335483]" aria-hidden="true">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.26 10.147a60.438 60.438 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.906 59.906 0 0112 3.493a59.903 59.903 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5"/></svg>
@@ -110,11 +111,11 @@ $statusLabels = [
                         <div class="flex flex-wrap items-start justify-between gap-2">
                             <div class="min-w-0 flex-1">
                                 @if ($programShowUrl)
-                                <a href="{{ $programShowUrl }}" class="text-sm font-bold leading-snug text-gray-900 transition hover:text-[#335483] sm:text-[0.95rem]">
+                                <a href="{{ $programShowUrl }}" class="text-sm font-bold leading-snug text-[#335483] transition hover:opacity-80 sm:text-[0.95rem]">
                                     {{ $program->title }}
                                 </a>
                                 @else
-                                <h2 class="text-sm font-bold leading-snug text-gray-900 sm:text-[0.95rem]">—</h2>
+                                <h2 class="text-sm font-bold leading-snug text-[#335483] sm:text-[0.95rem]">—</h2>
                                 @endif
 
                                 <div class="mt-1.5 flex flex-wrap items-center gap-2">
