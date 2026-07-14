@@ -39,6 +39,6 @@ class AttendanceCheckerInviteCode extends Notification
             ->line("هذا الرمز صالح لمدة {$this->expiresMinutes} دقيقة.")
             ->action('دخول بوابة التحضير', $this->gateUrl)
             ->line('إذا لم تتوقعي هذه الدعوة فيمكنك تجاهل الرسالة.')
-            ->salutation('فريق منصة كفاءات');
+            ->salutation('مع تحيات فريق كفاءات');
     }
 }

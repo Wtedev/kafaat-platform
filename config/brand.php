@@ -62,6 +62,8 @@ return [
         'kafaat' => 'images/brand/kafaat-logo.svg',
         'kafaat_mark' => 'images/brand/kafaat-mark.svg',
         'kafaat_white' => 'images/brand/kafaat-logo-white.svg',
+        // Raster mark — SVG is unreliable in most email clients.
+        'kafaat_mail' => 'images/brand/kafaat-logo-mail.png',
     ],
 
 ];

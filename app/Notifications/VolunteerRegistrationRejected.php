@@ -26,16 +26,16 @@ class VolunteerRegistrationRejected extends Notification implements ShouldQueue
         $opportunity = $this->registration->opportunity;
 
         $message = (new MailMessage)
-            ->subject('Volunteer Registration Update — '.$opportunity->title)
-            ->greeting('Hello, '.$notifiable->name.'!')
-            ->line('We regret to inform you that your registration for **'.$opportunity->title.'** could not be approved at this time.');
+            ->subject('تحديث بشأن تسجيلك التطوعي — '.$opportunity->title)
+            ->greeting('مرحباً '.$notifiable->name.'،')
+            ->line('نأسف لإبلاغك أن طلب تسجيلك في الفرصة التطوعية «'.$opportunity->title.'» لم يُقبل في الوقت الحالي.');
 
         if ($this->registration->rejected_reason) {
-            $message->line('**Reason:** '.$this->registration->rejected_reason);
+            $message->line('السبب: '.$this->registration->rejected_reason);
         }
 
         return $message
-            ->line('We appreciate your willingness to volunteer and hope to see you at future opportunities.')
-            ->salutation('Best regards, Kafaat Team');
+            ->line('نقدر رغبتك في التطوع ونتطلع لمشاركتك في فرص قادمة.')
+            ->salutation('مع تحيات فريق كفاءات');
     }
 }

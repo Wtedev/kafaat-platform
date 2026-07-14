@@ -26,12 +26,12 @@ class PathRegistrationApproved extends Notification implements ShouldQueue
         $path = $this->registration->learningPath;
 
         return (new MailMessage)
-            ->subject('Your Registration Has Been Approved — '.$path->title)
-            ->greeting('Hello, '.$notifiable->name.'!')
-            ->line('Great news! Your registration for the learning path **'.$path->title.'** has been approved.')
-            ->line('You can now access the path and begin your courses.')
-            ->action('View Your Path', url('/'))
-            ->line('If you have any questions, please contact our support team.')
-            ->salutation('Best regards, Kafaat Team');
+            ->subject('تم قبول تسجيلك — '.$path->title)
+            ->greeting('مرحباً '.$notifiable->name.'،')
+            ->line('تم قبول طلبك في المسار التعليمي «'.$path->title.'».')
+            ->line('يمكنك الآن الوصول إلى المسار والبدء في برامجه.')
+            ->action('عرض المسار في بوابتي', route('portal.paths.show', $path))
+            ->line('إذا كان لديك أي استفسار، تواصل مع فريق الدعم.')
+            ->salutation('مع تحيات فريق كفاءات');
     }
 }

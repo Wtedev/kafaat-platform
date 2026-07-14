@@ -26,21 +26,21 @@ class VolunteerRegistrationApproved extends Notification implements ShouldQueue
         $opportunity = $this->registration->opportunity;
 
         $message = (new MailMessage)
-            ->subject('Your Volunteer Registration Has Been Approved — '.$opportunity->title)
-            ->greeting('Hello, '.$notifiable->name.'!')
-            ->line('We are pleased to confirm your registration for the volunteer opportunity **'.$opportunity->title.'** has been approved.');
+            ->subject('تم قبول تسجيلك التطوعي — '.$opportunity->title)
+            ->greeting('مرحباً '.$notifiable->name.'،')
+            ->line('تم قبول طلبك في الفرصة التطوعية «'.$opportunity->title.'».');
 
         if ($opportunity->start_date) {
-            $message->line('**Start Date:** '.$opportunity->start_date->format('F j, Y'));
+            $message->line('تاريخ البدء: '.$opportunity->start_date->format('Y/m/d'));
         }
 
         if ($opportunity->hours_expected) {
-            $message->line('**Expected Volunteer Hours:** '.$opportunity->hours_expected.' hours');
+            $message->line('الساعات المتوقعة: '.$opportunity->hours_expected.' ساعة');
         }
 
         return $message
-            ->action('View Opportunity Details', url('/'))
-            ->line('Thank you for contributing your time and effort!')
-            ->salutation('Best regards, Kafaat Team');
+            ->action('عرض الفرص التطوعية في بوابتي', route('portal.volunteering'))
+            ->line('شكراً لمساهمتك بوقتك وجهدك.')
+            ->salutation('مع تحيات فريق كفاءات');
     }
 }

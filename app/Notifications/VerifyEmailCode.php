@@ -33,6 +33,6 @@ class VerifyEmailCode extends Notification
             ->line('**'.$this->code.'**')
             ->line("هذا الرمز صالح لمدة {$this->expiresMinutes} دقيقة.")
             ->line('إذا لم تطلب هذا الرمز فيمكنك تجاهل هذه الرسالة.')
-            ->salutation('فريق منصة كفاءات');
+            ->salutation('مع تحيات فريق كفاءات');
     }
 }

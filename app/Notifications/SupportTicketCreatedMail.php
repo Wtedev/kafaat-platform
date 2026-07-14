@@ -42,6 +42,6 @@ class SupportTicketCreatedMail extends Notification implements ShouldQueue
             ->line('التفاصيل:')
             ->line($ticket->body)
             ->action('فتح التذكرة في لوحة الإدارة', $adminUrl)
-            ->salutation('منصة كفاءات');
+            ->salutation('مع تحيات فريق كفاءات');
     }
 }

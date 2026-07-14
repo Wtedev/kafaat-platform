@@ -26,16 +26,16 @@ class PathRegistrationRejected extends Notification implements ShouldQueue
         $path = $this->registration->learningPath;
 
         $message = (new MailMessage)
-            ->subject('Registration Update — '.$path->title)
-            ->greeting('Hello, '.$notifiable->name.'!')
-            ->line('We regret to inform you that your registration for **'.$path->title.'** could not be approved at this time.');
+            ->subject('تحديث بشأن تسجيلك — '.$path->title)
+            ->greeting('مرحباً '.$notifiable->name.'،')
+            ->line('نأسف لإبلاغك أن طلب تسجيلك في المسار «'.$path->title.'» لم يُقبل في الوقت الحالي.');
 
         if ($this->registration->rejected_reason) {
-            $message->line('**Reason:** '.$this->registration->rejected_reason);
+            $message->line('السبب: '.$this->registration->rejected_reason);
         }
 
         return $message
-            ->line('If you believe this is an error or would like more information, please contact our support team.')
-            ->salutation('Best regards, Kafaat Team');
+            ->line('إذا كنت تعتقد أن هناك خطأ أو ترغب بمزيد من التفاصيل، تواصل مع فريق الدعم.')
+            ->salutation('مع تحيات فريق كفاءات');
     }
 }
