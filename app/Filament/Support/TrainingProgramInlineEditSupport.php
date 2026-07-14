@@ -4,6 +4,7 @@ namespace App\Filament\Support;
 
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
+use App\Filament\Resources\TrainingProgramResource;
 use App\Models\TrainingProgram;
 use App\Support\TrainingProgramExtrasSupport;
 use Filament\Forms\Components\Hidden;
@@ -54,6 +55,13 @@ final class TrainingProgramInlineEditSupport
         );
 
         return [
+            'cover' => [
+                TrainingProgramResource::trainingProgramImageUploadField()
+                    ->label('صورة الغلاف')
+                    ->helperText('يفضّل نسبة 16:9، وبحد أقصى 4 ميجابايت (JPEG أو PNG أو WebP). تظهر في كتالوج البرامج والبوابة.')
+                    ->imagePreviewHeight('16rem')
+                    ->required(false),
+            ],
             'overview' => $overview,
             'schedule' => [
                 Hidden::make('is_linked_to_path')->dehydrated(false),
@@ -78,6 +86,7 @@ final class TrainingProgramInlineEditSupport
                 ),
                 TrainingProgramExtrasSupport::sessionTopicsBlock(),
                 ...TrainingProgramExtrasSupport::sessionTopicsRepeaterFields(),
+                ...TrainingProgramExtrasSupport::programPresentersRepeaterFields(),
                 TrainingProgramExtrasSupport::whatsappGroupsBlock(),
                 ...TrainingProgramExtrasSupport::whatsappGroupUrlFields(),
             ],
@@ -94,6 +103,7 @@ final class TrainingProgramInlineEditSupport
     public static function labels(): array
     {
         return [
+            'cover' => 'صورة البرنامج',
             'overview' => 'نظرة عامة',
             'schedule' => 'الجدول الزمني',
             'enrollment' => 'التسجيل والسعة',

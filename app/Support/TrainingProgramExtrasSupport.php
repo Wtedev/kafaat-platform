@@ -88,6 +88,33 @@ final class TrainingProgramExtrasSupport
         ];
     }
 
+    /**
+     * @return array<int, Repeater>
+     */
+    public static function programPresentersRepeaterFields(): array
+    {
+        return [
+            Repeater::make('program_presenters')
+                ->label('مقدمو البرنامج')
+                ->helperText('تظهر أسماؤهم في صفحة البرنامج العامة وفي بوابة المستفيد.')
+                ->schema([
+                    TextInput::make('name')
+                        ->label('الاسم')
+                        ->required()
+                        ->maxLength(255)
+                        ->columnSpanFull(),
+                    TextInput::make('role')
+                        ->label('الصفة / الدور')
+                        ->placeholder('اختياري — مثال: مقدّم، مدرب')
+                        ->maxLength(255)
+                        ->columnSpanFull(),
+                ])
+                ->addActionLabel('أضف مقدّماً')
+                ->default([])
+                ->columnSpanFull(),
+        ];
+    }
+
     public static function whatsappGroupsBlock(): Toggle
     {
         return Toggle::make('whatsapp_groups_enabled')
@@ -128,7 +155,23 @@ final class TrainingProgramExtrasSupport
     public static function applyFormData(array $data): array
     {
         $data = self::applySessionTopics($data);
+        $data = self::applyProgramPresenters($data);
         $data = self::applyWhatsappGroups($data);
+
+        return $data;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    public static function applyProgramPresenters(array $data): array
+    {
+        $presenters = self::normalizeProgramPresenters(
+            is_array($data['program_presenters'] ?? null) ? $data['program_presenters'] : null,
+        );
+
+        $data['program_presenters'] = $presenters === [] ? null : $presenters;
 
         return $data;
     }
@@ -240,6 +283,91 @@ final class TrainingProgramExtrasSupport
         return self::normalizeSessionTopics(
             is_array($program->session_topics) ? $program->session_topics : null,
         );
+    }
+
+    /**
+     * @param  list<array{name?: string, role?: string}>|null  $presenters
+     * @return list<array{name: string, role: string}>
+     */
+    public static function normalizeProgramPresenters(?array $presenters): array
+    {
+        if ($presenters === null || $presenters === []) {
+            return [];
+        }
+
+        return collect($presenters)
+            ->map(static function (mixed $row): ?array {
+                if (! is_array($row)) {
+                    return null;
+                }
+
+                $name = trim((string) ($row['name'] ?? ''));
+                if ($name === '') {
+                    return null;
+                }
+
+                return [
+                    'name' => $name,
+                    'role' => trim((string) ($row['role'] ?? '')),
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<array{name: string, role: string}>
+     */
+    public static function publicProgramPresenters(TrainingProgram $program): array
+    {
+        return self::normalizeProgramPresenters(
+            is_array($program->program_presenters) ? $program->program_presenters : null,
+        );
+    }
+
+    public static function presenterInitials(string $name): string
+    {
+        $name = trim(preg_replace('/\s+/u', ' ', $name) ?? '');
+        if ($name === '') {
+            return '؟';
+        }
+
+        $parts = preg_split('/\s+/u', $name) ?: [];
+        $skip = ['د.', 'د', 'أ.', 'أ', 'م.', 'م', 'ا.', 'الشيخ', 'الأستاذ', 'الاستاذ'];
+
+        $significant = array_values(array_filter(
+            $parts,
+            static fn (string $part): bool => ! in_array($part, $skip, true),
+        ));
+
+        if ($significant === []) {
+            $significant = $parts;
+        }
+
+        $first = self::significantWordInitial($significant[0]);
+        $last = count($significant) > 1
+            ? self::significantWordInitial($significant[count($significant) - 1])
+            : '';
+
+        $initials = $first.$last;
+
+        return $initials !== '' ? $initials : '؟';
+    }
+
+    private static function significantWordInitial(string $word): string
+    {
+        $word = trim($word);
+        if ($word === '') {
+            return '';
+        }
+
+        // Skip Arabic definite article «ال» so الرفاعي → ر
+        if (mb_strpos($word, 'ال') === 0 && mb_strlen($word) > 2) {
+            return mb_substr($word, 2, 1);
+        }
+
+        return mb_substr($word, 0, 1);
     }
 
     /**

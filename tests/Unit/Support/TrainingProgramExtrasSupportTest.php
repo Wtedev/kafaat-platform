@@ -89,6 +89,41 @@ class TrainingProgramExtrasSupportTest extends TestCase
         $this->assertSame([], TrainingProgramExtrasSupport::publicSessionTopics($disabled));
     }
 
+    public function test_normalizes_and_exposes_program_presenters(): void
+    {
+        $program = $this->makeProgram([
+            'program_presenters' => [
+                ['name' => 'أحمد الرفاعي', 'role' => ''],
+                ['name' => '  ', 'role' => 'ignored'],
+                ['name' => 'د. محمد النصار', 'role' => 'مدرب'],
+            ],
+        ]);
+
+        $this->assertSame(
+            [
+                ['name' => 'أحمد الرفاعي', 'role' => ''],
+                ['name' => 'د. محمد النصار', 'role' => 'مدرب'],
+            ],
+            TrainingProgramExtrasSupport::publicProgramPresenters($program),
+        );
+
+        $this->assertSame('أر', TrainingProgramExtrasSupport::presenterInitials('أحمد الرفاعي'));
+        $this->assertSame('من', TrainingProgramExtrasSupport::presenterInitials('د. محمد النصار'));
+    }
+
+    public function test_apply_form_data_clears_empty_program_presenters(): void
+    {
+        $data = TrainingProgramExtrasSupport::applyFormData([
+            'session_topics_enabled' => false,
+            'program_presenters' => [
+                ['name' => ''],
+            ],
+            'whatsapp_groups_enabled' => false,
+        ]);
+
+        $this->assertNull($data['program_presenters']);
+    }
+
     public function test_resolves_whatsapp_group_by_gender_with_fallback(): void
     {
         $program = $this->makeProgram([

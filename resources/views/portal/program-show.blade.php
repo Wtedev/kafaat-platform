@@ -120,8 +120,9 @@ $showQr = $isAccepted && $isInPerson && ! empty($attendance['qr_data_uri']);
             $programIsRichHtml = $programBody !== '' && preg_match('/<[a-z][\s\S]*>/i', $programBody);
             $hasSessionTopics = (bool) $trainingProgram->session_topics_enabled
                 && filled(\App\Support\TrainingProgramExtrasSupport::publicSessionTopics($trainingProgram));
+            $hasPresenters = filled(\App\Support\TrainingProgramExtrasSupport::publicProgramPresenters($trainingProgram));
         @endphp
-        @if ($programBody === '' && ! $hasSessionTopics)
+        @if ($programBody === '' && ! $hasSessionTopics && ! $hasPresenters)
             —
         @elseif ($programBody !== '')
             @if ($programIsRichHtml)
@@ -137,6 +138,14 @@ $showQr = $isAccepted && $isInPerson && ! empty($attendance['qr_data_uri']);
             @class([
                 'mt-6 border-t border-[#c5d4e4]/70 pt-6' => $programBody !== '',
                 'mt-0 border-0 pt-0' => $programBody === '',
+            ])
+        />
+
+        <x-public.program-presenters
+            :presenters="$trainingProgram->program_presenters"
+            @class([
+                'mt-6 border-t border-[#c5d4e4]/70 pt-6' => $programBody !== '' || $hasSessionTopics,
+                'mt-0 border-0 pt-0' => $programBody === '' && ! $hasSessionTopics,
             ])
         />
     </div>

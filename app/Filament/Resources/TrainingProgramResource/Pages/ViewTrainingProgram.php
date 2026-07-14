@@ -67,6 +67,7 @@ class ViewTrainingProgram extends BaseViewRecord
             $record->owner_id !== null ? (int) $record->owner_id : null,
         );
         $data['session_topics'] = is_array($record->session_topics) ? $record->session_topics : [];
+        $data['program_presenters'] = is_array($record->program_presenters) ? $record->program_presenters : [];
         $data = array_merge(
             $data,
             ProgramAcceptanceConditions::toFormState(
@@ -216,6 +217,7 @@ class ViewTrainingProgram extends BaseViewRecord
             'notify_audience' => 'إشعارات المستفيدين',
             'session_topics_enabled' => 'محاور اللقاء',
             'session_topics' => 'محاور البرنامج',
+            'program_presenters' => 'مقدمو البرنامج',
             'whatsapp_groups_enabled' => 'مجموعات الواتساب',
             'whatsapp_group_male' => 'مجموعة الذكور',
             'whatsapp_group_female' => 'مجموعة الإناث',

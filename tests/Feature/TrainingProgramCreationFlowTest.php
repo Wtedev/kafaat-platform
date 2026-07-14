@@ -68,6 +68,26 @@ class TrainingProgramCreationFlowTest extends TestCase
             ->assertSee('برنامج حضوري تجريبي');
     }
 
+    public function test_public_show_page_renders_program_presenters_section(): void
+    {
+        $program = $this->createPublishedProgram([
+            'title' => 'برنامج قادة التطوع',
+            'slug' => 'volunteer-leaders-presenters',
+            'competency_track' => CompetencyTrack::Community,
+            'delivery_mode' => ProgramDeliveryMode::Remote,
+            'program_presenters' => [
+                ['name' => 'أحمد الرفاعي', 'role' => ''],
+                ['name' => 'د. محمد النصار', 'role' => ''],
+            ],
+        ]);
+
+        $this->get(route('public.programs.show', $program->slug))
+            ->assertOk()
+            ->assertSee('مقدمو البرنامج')
+            ->assertSee('أحمد الرفاعي')
+            ->assertSee('د. محمد النصار');
+    }
+
     public function test_apply_delivery_mode_fields_clears_venue_for_remote_programs(): void
     {
         $result = TrainingEntityFormSupport::applyDeliveryModeFields([

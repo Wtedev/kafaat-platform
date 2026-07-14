@@ -52,6 +52,7 @@ class TrainingProgram extends Model
         'description',
         'session_topics_enabled',
         'session_topics',
+        'program_presenters',
         'whatsapp_groups_enabled',
         'whatsapp_group_male',
         'whatsapp_group_female',
@@ -98,6 +99,7 @@ class TrainingProgram extends Model
             'weekdays' => 'array',
             'session_topics_enabled' => 'boolean',
             'session_topics' => 'array',
+            'program_presenters' => 'array',
             'whatsapp_groups_enabled' => 'boolean',
         ];
     }

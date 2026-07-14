@@ -140,6 +140,7 @@ final class TrainingEntityFormSupport
       ),
       TrainingProgramExtrasSupport::sessionTopicsBlock(),
       ...TrainingProgramExtrasSupport::sessionTopicsRepeaterFields(),
+      ...TrainingProgramExtrasSupport::programPresentersRepeaterFields(),
       TrainingProgramExtrasSupport::whatsappGroupsBlock(),
       ...TrainingProgramExtrasSupport::whatsappGroupUrlFields(),
       ...static::entityAdvancedStaffBlock(
