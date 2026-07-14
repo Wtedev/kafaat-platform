@@ -2,9 +2,12 @@
 
 namespace Tests\Feature\Portal;
 
+use App\Enums\InboxNotificationType;
+use App\Enums\NotificationTargetType;
 use App\Enums\OpportunityStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
+use App\Models\InboxNotification;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
@@ -108,5 +111,40 @@ class PortalDashboardLayoutTest extends TestCase
             ->assertSee('مسارات وبرامج مسجّلة', false)
             ->assertDontSee('صفحة الكفاءة', false)
             ->assertDontSee('برامج كفاءات مقترحة لك', false);
+    }
+
+    public function test_dashboard_renders_notification_type_icons_from_heroicons(): void
+    {
+        $user = User::factory()->create([
+            'role_type' => 'beneficiary',
+            'is_active' => true,
+            'email_verified_at' => now(),
+            'notification_prefs_set_at' => now(),
+        ]);
+        $user->assignRole('beneficiary');
+
+        InboxNotification::query()->create([
+            'user_id' => $user->id,
+            'title' => 'تسجيل جديد في برنامج تجريبي',
+            'message' => 'طلب تسجيل جديد.',
+            'type' => InboxNotificationType::StaffNewProgramRegistration,
+            'target_type' => NotificationTargetType::SingleUser,
+        ]);
+
+        InboxNotification::query()->create([
+            'user_id' => $user->id,
+            'title' => 'تم قبول تسجيلك',
+            'message' => 'تم قبول تسجيلك في البرنامج.',
+            'type' => InboxNotificationType::RegistrationApproved,
+            'target_type' => NotificationTargetType::SingleUser,
+        ]);
+
+        $this->actingAsOtpVerified($user)
+            ->get(route('portal.dashboard'))
+            ->assertOk()
+            ->assertSee('تسجيل جديد في برنامج تجريبي', false)
+            ->assertSee('تم قبول تسجيلك', false)
+            ->assertSee('M18 7.5v3', false)
+            ->assertSee('M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z', false);
     }
 }
