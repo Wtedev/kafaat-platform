@@ -2,7 +2,6 @@
 
 @php
 $viaPathOnly = $trainingProgram->learning_path_id !== null;
-$weekdaysLabel = $trainingProgram->weekdaysLabel();
 $remaining = $trainingProgram->remainingCapacity();
 $approved = $trainingProgram->approvedRegistrationsCount();
 
@@ -40,14 +39,6 @@ if (! $viaPathOnly && $trainingProgram->registration_start && $trainingProgram->
 
     @if ($programDateRange)
     <x-public.info-sidebar-item dense label="فترة البرنامج" :value="$programDateRange">
-        <x-slot:icon>
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        </x-slot:icon>
-    </x-public.info-sidebar-item>
-    @endif
-
-    @if ($weekdaysLabel)
-    <x-public.info-sidebar-item dense label="أيام البرنامج" :value="$weekdaysLabel">
         <x-slot:icon>
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         </x-slot:icon>

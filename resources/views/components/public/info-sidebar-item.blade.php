@@ -15,7 +15,7 @@
         {{ $icon }}
     </div>
     <div class="min-w-0 flex-1">
-        <p class="text-xs font-medium leading-snug" style="color:#9CA3AF">{{ $label }}</p>
-        <p @class([$dense ? 'mt-0.5' : 'mt-1', 'text-sm font-semibold leading-snug text-gray-900'])>{{ $value }}</p>
+        <p class="text-xs font-normal leading-snug" style="color:#9CA3AF">{{ $label }}</p>
+        <p @class([$dense ? 'mt-0.5' : 'mt-1', 'text-sm font-medium leading-snug text-gray-900'])>{{ $value }}</p>
     </div>
 </div>
