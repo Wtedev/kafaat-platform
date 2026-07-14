@@ -115,55 +115,78 @@ $typeIconKind = match ($n->type) {
                 ])>{{ $displayMessage }}</p>
             @endif
 
-            @if ($whatsappUrl)
-                <div class="mt-2.5">
-                    <a
-                        href="{{ $whatsappUrl }}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-white shadow-sm transition hover:opacity-95"
-                        style="background:#25D366"
-                        aria-label="دخول مجموعة الواتساب"
-                        title="دخول مجموعة الواتساب"
-                    >
-                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                    </a>
-                </div>
-            @endif
-
             @if ($n->sender && ! $compact)
                 <p class="mt-2.5 text-xs text-gray-400">من: <span class="font-medium text-gray-500">{{ $n->sender->name }}</span></p>
             @endif
 
             @php
-                $hasActions = $inboxOpenUrl
-                    || $canApproveProgram || $canRejectProgram
+                $hasIconActions = $whatsappUrl || $inboxOpenUrl || $isUnread;
+                $hasStaffActions = $canApproveProgram || $canRejectProgram
                     || $canApprovePath || $canRejectPath
-                    || $canApproveVolunteer || $canRejectVolunteer
-                    || $isUnread;
+                    || $canApproveVolunteer || $canRejectVolunteer;
             @endphp
 
-            @if ($hasActions)
+            @if ($hasIconActions)
+                {{-- ms-auto: pin icon row to visual left in RTL --}}
+                <div @class([
+                    'ms-auto flex items-center gap-1.5',
+                    'mt-2.5' => $compact,
+                    'mt-3' => ! $compact,
+                ])>
+                    @if ($whatsappUrl)
+                        <a
+                            href="{{ $whatsappUrl }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white shadow-sm transition hover:opacity-95"
+                            style="background:#25D366"
+                            aria-label="دخول مجموعة الواتساب"
+                            title="دخول مجموعة الواتساب"
+                        >
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        </a>
+                    @endif
+
+                    @if ($inboxOpenUrl)
+                        <a
+                            href="{{ $inboxOpenUrl }}"
+                            @if(\App\Filament\Support\InboxNotificationRecordActions::publicUrl($n) === $inboxOpenUrl) target="_blank" rel="noopener noreferrer" @endif
+                            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[#335483] ring-1 ring-[#c5d4e4] transition hover:bg-[#e9eff6]"
+                            aria-label="{{ $inboxOpenLabel }}"
+                            title="{{ $inboxOpenLabel }}"
+                        >
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </a>
+                    @endif
+
+                    @if ($isUnread)
+                        <form method="POST" action="{{ route('portal.notifications.read', $n) }}" class="inline-flex shrink-0">
+                            @csrf
+                            <button
+                                type="submit"
+                                class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#335483] transition hover:bg-[#e9eff6]"
+                                aria-label="تعليم كمقروء"
+                                title="تعليم كمقروء"
+                            >
+                                {{-- Single check for mark-as-read --}}
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.5 12.75l6 6 9-13.5"/>
+                                </svg>
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            @endif
+
+            @if ($hasStaffActions)
             <div @class([
                 'flex flex-wrap items-center gap-2',
                 'mt-2.5' => $compact,
-                'mt-3.5' => ! $compact,
+                'mt-3' => ! $compact,
             ])>
-                @if ($inboxOpenUrl)
-                    <a
-                        href="{{ $inboxOpenUrl }}"
-                        @if(\App\Filament\Support\InboxNotificationRecordActions::publicUrl($n) === $inboxOpenUrl) target="_blank" rel="noopener noreferrer" @endif
-                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#335483] ring-1 ring-[#c5d4e4] transition hover:bg-[#e9eff6]"
-                        aria-label="{{ $inboxOpenLabel }}"
-                        title="{{ $inboxOpenLabel }}"
-                    >
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                    </a>
-                @endif
-
                 @if ($canApproveProgram)
                     <form method="POST" action="{{ route('portal.notifications.registration-action', $n) }}" onsubmit="return confirm('تأكيد قبول التسجيل في البرنامج؟');">
                         @csrf
@@ -209,23 +232,6 @@ $typeIconKind = match ($n->type) {
                         <input type="hidden" name="intent" value="reject_volunteer">
                         <textarea name="rejected_reason" rows="2" placeholder="سبب الرفض (اختياري)" class="w-full rounded-xl border border-gray-200 px-2.5 py-1.5 text-xs text-gray-800 placeholder:text-gray-400"></textarea>
                         <button type="submit" class="rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-brand-danger ring-1 ring-[#f5c4c0] transition hover:bg-[#fdeeed]">رفض (تطوع)</button>
-                    </form>
-                @endif
-
-                @if ($isUnread)
-                    <form method="POST" action="{{ route('portal.notifications.read', $n) }}">
-                        @csrf
-                        <button
-                            type="submit"
-                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#335483] transition hover:bg-[#e9eff6]"
-                            aria-label="تعليم كمقروء"
-                            title="تعليم كمقروء"
-                        >
-                            {{-- Single check for mark-as-read --}}
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.5 12.75l6 6 9-13.5"/>
-                            </svg>
-                        </button>
                     </form>
                 @endif
             </div>

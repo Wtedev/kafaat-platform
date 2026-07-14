@@ -42,9 +42,14 @@
                 </form>
             @endif
             @if ($showViewAll)
-                <a href="{{ route('portal.notifications') }}" class="inline-flex items-center gap-0.5 text-xs font-semibold text-[#335483] transition hover:opacity-80">
+                <a
+                    href="{{ route('portal.notifications') }}"
+                    class="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold tracking-tight text-[#335483] transition hover:bg-white/70"
+                >
                     عرض الكل
-                    <span aria-hidden="true">&gt;</span>
+                    <svg class="h-3 w-3 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.25" d="M15 19l-7-7 7-7"/>
+                    </svg>
                 </a>
             @endif
         </div>
