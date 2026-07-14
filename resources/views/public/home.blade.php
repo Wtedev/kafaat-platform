@@ -299,7 +299,7 @@
             }
         }
 
-        /* ── Partners marquee (text-only) ──────────────────────────────── */
+        /* ── Partners marquee ──────────────────────────────────────────── */
         .partners-marquee {
             position: relative;
             overflow: hidden;
@@ -321,51 +321,64 @@
 
         .partners-marquee__group {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            align-items: stretch;
+            gap: 1rem;
             flex-shrink: 0;
-            padding-inline-end: 0.5rem;
+            padding-inline-end: 1rem;
         }
 
-        .partners-marquee__item {
-            display: inline-flex;
+        .partners-marquee__card {
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
-            max-width: 14rem;
-            padding: 0.65rem 1.1rem;
+            width: 9.5rem;
+            min-height: 6.75rem;
+            padding: 0.75rem 0.5rem;
             border: none;
+            border-radius: 0;
             background: transparent;
             box-shadow: none;
             text-decoration: none;
-            transition: color 0.2s ease, opacity 0.2s ease;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        a.partners-marquee__card:hover {
+            transform: translateY(-2px);
+        }
+
+        .partners-marquee__card img {
+            max-height: 2.75rem;
+            width: auto;
+            max-width: 100%;
+            object-fit: contain;
+            opacity: 0.92;
+        }
+
+        a.partners-marquee__card:hover img {
+            opacity: 1;
         }
 
         .partners-marquee__name {
+            margin-top: 0.65rem;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-align: center;
-            font-size: 0.9rem;
-            line-height: 1.45;
+            font-size: 0.7rem;
+            line-height: 1.35;
+            font-weight: 500;
+            color: #6B7280;
+        }
+
+        .partners-marquee__name--solo {
+            margin-top: 0;
+            font-size: 0.8rem;
             font-weight: 600;
-            letter-spacing: 0.01em;
             color: #335483;
-            transition: color 0.2s ease;
-        }
-
-        a.partners-marquee__item:hover .partners-marquee__name {
-            color: #1a9399;
-        }
-
-        .partners-marquee__sep {
-            flex-shrink: 0;
-            width: 0.28rem;
-            height: 0.28rem;
-            border-radius: 9999px;
-            background: #c5d4e4;
-            opacity: 0.9;
+            -webkit-line-clamp: 3;
         }
 
         @keyframes partners-marquee-scroll {
@@ -375,17 +388,22 @@
 
         @media (min-width: 640px) {
             .partners-marquee__group {
-                gap: 0.65rem;
-                padding-inline-end: 0.65rem;
+                gap: 1.25rem;
+                padding-inline-end: 1.25rem;
             }
 
-            .partners-marquee__item {
-                max-width: 16rem;
-                padding: 0.75rem 1.35rem;
+            .partners-marquee__card {
+                width: 11rem;
+                min-height: 7.5rem;
+                padding: 0.9rem 0.65rem;
+            }
+
+            .partners-marquee__card img {
+                max-height: 3.25rem;
             }
 
             .partners-marquee__name {
-                font-size: 1rem;
+                font-size: 0.75rem;
             }
         }
 
@@ -394,12 +412,9 @@
                 animation-duration: 55s;
             }
 
-            .partners-marquee__item {
-                max-width: 18rem;
-            }
-
-            .partners-marquee__name {
-                font-size: 1.05rem;
+            .partners-marquee__card {
+                width: 12rem;
+                min-height: 8rem;
             }
         }
 
@@ -823,7 +838,7 @@
         @if ($partners->isEmpty())
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="mx-auto max-w-2xl rounded-3xl border border-dashed border-gray-200 bg-[#F7FAFC] px-6 py-14 text-center text-sm" style="color:#6B7280">
-                سيتم عرض أسماء الشركاء هنا عند إضافتهم من لوحة التحكم.
+                سيتم عرض شعارات الشركاء هنا عند إضافتهم من لوحة التحكم.
             </div>
         </div>
         @else
@@ -840,11 +855,9 @@
             <div class="partners-marquee__track">
                 @foreach ([false, true] as $isClone)
                 <div class="partners-marquee__group" @if ($isClone) data-marquee-clone="true" aria-hidden="true" @endif>
-                    @foreach ($marqueePartners as $partnerIndex => $partner)
-                    @if ($partnerIndex > 0)
-                    <span class="partners-marquee__sep" aria-hidden="true"></span>
-                    @endif
+                    @foreach ($marqueePartners as $partner)
                     @php
+                        $logoUrl = $partner->logoPublicUrl();
                         $hasLink = filled($partner->website_url) && ! $isClone;
                     @endphp
                     @if ($hasLink)
@@ -852,14 +865,24 @@
                         href="{{ $partner->website_url }}"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="partners-marquee__item"
+                        class="partners-marquee__card"
                         dir="rtl"
                     >
+                        @if ($logoUrl)
+                        <img src="{{ $logoUrl }}" alt="{{ $partner->name }}" loading="lazy" decoding="async" />
                         <span class="partners-marquee__name">{{ $partner->name }}</span>
+                        @else
+                        <span class="partners-marquee__name partners-marquee__name--solo">{{ $partner->name }}</span>
+                        @endif
                     </a>
                     @else
-                    <div class="partners-marquee__item" dir="rtl" @if ($isClone) tabindex="-1" @endif>
+                    <div class="partners-marquee__card" dir="rtl" @if ($isClone) tabindex="-1" @endif>
+                        @if ($logoUrl)
+                        <img src="{{ $logoUrl }}" alt="{{ $isClone ? '' : $partner->name }}" loading="lazy" decoding="async" />
                         <span class="partners-marquee__name">{{ $partner->name }}</span>
+                        @else
+                        <span class="partners-marquee__name partners-marquee__name--solo">{{ $partner->name }}</span>
+                        @endif
                     </div>
                     @endif
                     @endforeach
