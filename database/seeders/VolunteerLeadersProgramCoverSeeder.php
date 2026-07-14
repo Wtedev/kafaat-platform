@@ -50,6 +50,7 @@ class VolunteerLeadersProgramCoverSeeder extends Seeder
                 continue;
             }
 
+            $program->allowCoverUpdate = true;
             $program->forceFill(['image' => self::COVER_RELATIVE_PATH])->save();
             $updated++;
         }

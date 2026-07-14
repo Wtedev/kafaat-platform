@@ -30,6 +30,12 @@ class TrainingProgram extends Model
     use HasEntityNotes;
 
     /**
+     * When true, {@see $fillable} updates to `image` are allowed (seeders / ops only).
+     * Admin Filament saves must never flip this — covers are git-backed durable assets.
+     */
+    public bool $allowCoverUpdate = false;
+
+    /**
      * @var array<string, mixed>
      */
     protected $attributes = [
@@ -140,6 +146,11 @@ class TrainingProgram extends Model
         static::updating(function (self $program): void {
             if (Auth::check()) {
                 $program->updated_by = Auth::id();
+            }
+
+            // Permanently lock cover changes from admin/mass assignment unless opted in.
+            if ($program->isDirty('image') && ! $program->allowCoverUpdate) {
+                $program->image = $program->getOriginal('image');
             }
 
             if ($program->isDirty('status')) {

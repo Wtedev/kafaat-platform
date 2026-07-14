@@ -10,7 +10,7 @@ use App\Support\TrainingProgramExtrasSupport;
 final class TrainingProgramViewPresenter
 {
     /**
-     * @return array{stats: array<int, array{label: string, value: string, icon: string}>, cover: array{title: string, field: string, url: string, has_custom: bool, empty_label: string}, sections: array<int, array<string, mixed>>}
+     * @return array{stats: array<int, array{label: string, value: string, icon: string}>, cover: array{title: string, field: string|null, url: string, has_custom: bool, empty_label: string}, sections: array<int, array<string, mixed>>}
      */
     public static function present(TrainingProgram $program): array
     {
@@ -30,7 +30,9 @@ final class TrainingProgramViewPresenter
     }
 
     /**
-     * @return array{title: string, field: string, url: string, has_custom: bool, empty_label: string}
+     * Cover is display-only in admin — no inline edit field (git-backed / seeder-managed).
+     *
+     * @return array{title: string, field: string|null, url: string, has_custom: bool, empty_label: string}
      */
     private static function cover(TrainingProgram $program): array
     {
@@ -38,10 +40,10 @@ final class TrainingProgramViewPresenter
 
         return [
             'title' => 'صورة البرنامج',
-            'field' => 'cover',
+            'field' => null,
             'url' => $program->imagePublicUrl(),
             'has_custom' => $hasCustom,
-            'empty_label' => 'لم تُرفع صورة بعد — عدّل لإضافة غلاف يظهر في الكتالوج والبوابة',
+            'empty_label' => 'لا توجد صورة غلاف — تُدار الصور خارج لوحة الإدارة (ملفات مستودعة/بذور)',
         ];
     }
 

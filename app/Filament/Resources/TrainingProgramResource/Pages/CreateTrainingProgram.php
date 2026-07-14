@@ -117,6 +117,9 @@ class CreateTrainingProgram extends BaseCreateRecord
             $ownerId,
         );
 
+        // Covers are seeder/ops-managed only — ignore any accidental form value.
+        unset($data['image']);
+
         return $this->dropEmptyTrainingSlug(
             $this->stampTrainingEntityAuditFields($data),
         );

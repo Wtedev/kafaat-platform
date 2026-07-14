@@ -116,6 +116,9 @@ class ViewTrainingProgram extends BaseViewRecord
             );
         }
 
+        // Never clear/replace durable covers from admin save (FileUpload empty state).
+        unset($data['image']);
+
         return $this->dropEmptyTrainingSlug(
             $this->stampTrainingEntityAuditFields($data),
         );
@@ -188,7 +191,6 @@ class ViewTrainingProgram extends BaseViewRecord
             'delivery_mode' => 'طريقة التنفيذ',
             'venue' => 'مكان الانعقاد',
             'description' => 'الوصف',
-            'image' => 'صورة الغلاف',
             'is_linked_to_path' => 'تابع لمسار تدريبي',
             'learning_path_id' => 'المسار التدريبي',
             'capacity' => 'الحد الأقصى للمسجّلين',

@@ -26,7 +26,6 @@ use App\Support\Format\LocaleFormat;
 use App\Support\PublicDiskPath;
 use Carbon\Carbon;
 use Filament\Actions\DeleteAction;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
@@ -42,6 +41,8 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\HtmlString;
 
 class TrainingProgramResource extends Resource
 {
@@ -76,16 +77,39 @@ class TrainingProgramResource extends Resource
         return PublicDiskPath::urlOrPlaceholder($path, PublicDiskPath::PLACEHOLDER_TRAINING_CATALOG);
     }
 
-    public static function trainingProgramImageUploadField(): FileUpload
+    /**
+     * Read-only cover preview — program covers are never editable from Filament.
+     * Durable covers live under public/images/programs/ (git) and are attached by seeders.
+     */
+    public static function trainingProgramCoverReadOnlyField(): Placeholder
     {
-        return TrainingEntityFormSupport::coverImageUpload('training-programs/images');
+        return Placeholder::make('image_readonly')
+            ->hiddenLabel()
+            ->content(function (?TrainingProgram $record): HtmlString {
+                $hasRecord = $record !== null && $record->exists;
+                $url = $hasRecord
+                    ? $record->imagePublicUrl()
+                    : asset(PublicDiskPath::PLACEHOLDER_TRAINING_CATALOG);
+                $note = $hasRecord && filled($record->image)
+                    ? 'صورة الغلاف ثابتة وتُدار خارج لوحة الإدارة (ملفات المستودع / البذور). لا يمكن رفعها أو تغييرها من هنا.'
+                    : 'صورة الغلاف تُدار خارج لوحة الإدارة. البرامج المحددة تحصل على الغلاف عبر البذور عند النشر.';
+
+                return new HtmlString(
+                    View::make('filament.components.entity-image-preview', [
+                        'imageUrl' => $url,
+                        'placeholderLabel' => 'لا توجد صورة',
+                    ])->render()
+                    .'<p class="mt-3 text-sm text-gray-500 dark:text-gray-400">'.e($note).'</p>'
+                );
+            })
+            ->dehydrated(false);
     }
 
     public static function createForm(Schema $schema, ?int $presetLearningPathId = null): Schema
     {
         return EntityTwoColumnFormLayout::wrap(
             $schema,
-            static::trainingProgramImageUploadField(),
+            static::trainingProgramCoverReadOnlyField(),
             static::trainingProgramCreateSections($presetLearningPathId),
             mode: 'create',
         );
@@ -112,7 +136,7 @@ class TrainingProgramResource extends Resource
     {
         return EntityTwoColumnFormLayout::wrap(
             $schema,
-            static::trainingProgramImageUploadField(),
+            static::trainingProgramCoverReadOnlyField(),
             static::trainingProgramEditSections(),
             mode: 'edit',
         );
