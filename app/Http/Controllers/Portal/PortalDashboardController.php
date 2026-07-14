@@ -28,6 +28,8 @@ class PortalDashboardController extends Controller
         $composed = PortalDashboardComposer::compose($user);
         $activities = $composed['activities'];
         $volunteerRows = $composed['volunteerRows'];
+        $suggestedPrograms = $composed['suggestedPrograms'];
+        $suggestedOpportunities = $composed['suggestedOpportunities'];
         $showVolunteerTeamDashboard = $composed['showVolunteerTeamDashboard'];
         $volunteerTeamMemberRows = $composed['volunteerTeamMemberRows'];
         $volunteerTeamNotifications = $composed['volunteerTeamNotifications'];
@@ -44,6 +46,8 @@ class PortalDashboardController extends Controller
             'certificatesCount',
             'activities',
             'volunteerRows',
+            'suggestedPrograms',
+            'suggestedOpportunities',
             'showVolunteerTeamDashboard',
             'volunteerTeamMemberRows',
             'volunteerTeamNotifications',
