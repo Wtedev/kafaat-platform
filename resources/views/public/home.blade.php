@@ -299,6 +299,187 @@
             }
         }
 
+        /* ── Partners marquee ──────────────────────────────────────────── */
+        .partners-marquee {
+            position: relative;
+            overflow: hidden;
+            -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+            mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+        }
+
+        .partners-marquee__track {
+            display: flex;
+            width: max-content;
+            animation: partners-marquee-scroll 42s linear infinite;
+            will-change: transform;
+        }
+
+        .partners-marquee:hover .partners-marquee__track,
+        .partners-marquee:focus-within .partners-marquee__track {
+            animation-play-state: paused;
+        }
+
+        .partners-marquee__group {
+            display: flex;
+            align-items: stretch;
+            gap: 1rem;
+            flex-shrink: 0;
+            padding-inline-end: 1rem;
+        }
+
+        .partners-marquee__card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 9.5rem;
+            min-height: 6.75rem;
+            padding: 1rem 0.9rem;
+            border-radius: 1rem;
+            border: 1px solid #eef2f6;
+            background: #fff;
+            box-shadow: 0 1px 2px rgba(36, 58, 85, 0.04);
+            text-decoration: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        a.partners-marquee__card:hover {
+            border-color: #c5d4e4;
+            box-shadow: 0 10px 24px rgba(51, 84, 131, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .partners-marquee__card img {
+            max-height: 2.75rem;
+            width: auto;
+            max-width: 100%;
+            object-fit: contain;
+            opacity: 0.92;
+        }
+
+        a.partners-marquee__card:hover img {
+            opacity: 1;
+        }
+
+        .partners-marquee__name {
+            margin-top: 0.65rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-align: center;
+            font-size: 0.7rem;
+            line-height: 1.35;
+            font-weight: 500;
+            color: #6B7280;
+        }
+
+        .partners-marquee__name--solo {
+            margin-top: 0;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #335483;
+            -webkit-line-clamp: 3;
+        }
+
+        @keyframes partners-marquee-scroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        @media (min-width: 640px) {
+            .partners-marquee__group {
+                gap: 1.25rem;
+                padding-inline-end: 1.25rem;
+            }
+
+            .partners-marquee__card {
+                width: 11rem;
+                min-height: 7.5rem;
+                padding: 1.15rem 1rem;
+                border-radius: 1.15rem;
+            }
+
+            .partners-marquee__card img {
+                max-height: 3.25rem;
+            }
+
+            .partners-marquee__name {
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .partners-marquee__track {
+                animation-duration: 55s;
+            }
+
+            .partners-marquee__card {
+                width: 12rem;
+                min-height: 8rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .partners-marquee {
+                -webkit-mask-image: none;
+                mask-image: none;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .partners-marquee::-webkit-scrollbar {
+                display: none;
+            }
+
+            .partners-marquee__track {
+                animation: none;
+                padding-inline: 0.25rem;
+            }
+
+            .partners-marquee__group[data-marquee-clone] {
+                display: none;
+            }
+        }
+
+        /* ── Annual report banner ──────────────────────────────────────── */
+        .annual-report-cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            min-height: 3.25rem;
+            width: 100%;
+            padding: 0.9rem 1.35rem;
+            border-radius: 1rem;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .annual-report-cta:hover {
+            background: rgba(255, 255, 255, 0.16);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+        }
+
+        @media (min-width: 768px) {
+            .annual-report-cta {
+                width: 10rem;
+                height: 10rem;
+                flex-direction: column;
+                min-height: 0;
+                padding: 1.25rem;
+                border-radius: 1.5rem;
+            }
+        }
+
     </style>
 </head>
 <body class="bg-[#F7FAFC] text-[#111827] antialiased font-sans">
@@ -608,32 +789,36 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 8. ANNUAL REPORT SECTION                                            --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section class="py-8 px-4 sm:px-6">
-        <div class="max-w-7xl mx-auto">
-            <div class="relative rounded-3xl overflow-hidden" style="background: linear-gradient(135deg, #111827 0%, #335483 60%, #2a4566 100%)">
+    <section class="py-6 sm:py-8 px-4 sm:px-6" aria-labelledby="annual-report-heading">
+        <div class="mx-auto max-w-7xl">
+            <div class="relative overflow-hidden rounded-2xl sm:rounded-3xl" style="background: linear-gradient(135deg, #111827 0%, #335483 60%, #2a4566 100%)">
 
-                {{-- Decorative shapes --}}
-                <div class="absolute top-0 left-0 w-56 h-56 rounded-full -translate-x-1/3 -translate-y-1/3 bg-white opacity-5"></div>
-                <div class="absolute bottom-0 right-1/3 w-72 h-72 rounded-full translate-y-1/2 opacity-5" style="background:#335483"></div>
+                <div class="pointer-events-none absolute -start-10 -top-10 h-40 w-40 rounded-full bg-white opacity-5 sm:h-56 sm:w-56" aria-hidden="true"></div>
+                <div class="pointer-events-none absolute -bottom-16 end-1/4 h-48 w-48 rounded-full opacity-5 sm:h-72 sm:w-72" style="background:#335483" aria-hidden="true"></div>
 
-                <div class="relative z-10 flex flex-col md:flex-row items-center justify-between px-10 sm:px-16 py-14 gap-10">
+                <div class="relative z-10 flex flex-col gap-7 px-5 py-9 sm:gap-9 sm:px-10 sm:py-12 md:flex-row md:items-center md:justify-between lg:gap-12 lg:px-16 lg:py-14">
 
-                    {{-- Text (right in RTL) --}}
-                    <div class="text-right">
-                        <div class="text-8xl font-black leading-none mb-1" style="color:rgba(255,255,255,0.12)">2025</div>
-                        <h2 class="text-3xl font-bold text-white mb-3">التقرير السنوي</h2>
-                        <p class="leading-relaxed max-w-md" style="color:rgba(255,255,255,0.65)">
+                    <div class="min-w-0 flex-1 text-right">
+                        <div class="mb-1 text-5xl font-black leading-none sm:text-7xl lg:text-8xl" style="color:rgba(255,255,255,0.12)" aria-hidden="true">2025</div>
+                        <h2 id="annual-report-heading" class="mb-3 text-2xl font-bold text-white sm:text-3xl">التقرير السنوي</h2>
+                        <p class="max-w-md text-sm leading-relaxed sm:text-base" style="color:rgba(255,255,255,0.7)">
                             تقرير شامل يرصد إنجازات جمعية كفاءات خلال عام 2025: برامجها التدريبية، عملها التطوعي، وأثرها المجتمعي.
                         </p>
                     </div>
 
-                    <div class="flex-shrink-0">
-                        <a href="{{ asset('reports/annual-report-2025.pdf') }}" target="_blank" rel="noopener noreferrer" class="w-40 h-40 rounded-3xl flex flex-col items-center justify-center gap-3 text-white transition-all hover:scale-105 hover:shadow-lg" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2)" aria-label="عرض التقرير السنوي 2025">
-                            <svg class="w-10 h-10 text-white opacity-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="w-full shrink-0 md:w-auto">
+                        <a
+                            href="{{ asset('reports/annual-report-2025.pdf') }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="annual-report-cta"
+                            aria-label="عرض التقرير السنوي 2025"
+                        >
+                            <svg class="h-6 w-6 shrink-0 opacity-95 sm:h-9 sm:w-9" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                            <span class="text-white text-sm font-semibold">عرض التقرير</span>
+                            <span>عرض التقرير</span>
                         </a>
                     </div>
 
@@ -646,52 +831,69 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 9. PARTNERS SECTION                                                 --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section class="py-20 bg-white" dir="rtl">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="overflow-hidden bg-white py-16 sm:py-20" dir="rtl" aria-labelledby="partners-heading">
+        <div class="mx-auto mb-10 max-w-7xl px-4 text-center sm:mb-12 sm:px-6 lg:px-8">
+            <p class="mb-2 text-sm font-semibold" style="color:#1a9399">شركاء النجاح</p>
+            <h2 id="partners-heading" class="text-2xl font-bold sm:text-3xl" style="color:#111827">شركاؤنا</h2>
+            <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed" style="color:#6B7280">مؤسسات وشركات نفتخر بشراكتها معنا في بناء قدرات الشباب.</p>
+        </div>
 
-            <div class="text-center mb-12">
-                <h2 class="text-2xl sm:text-3xl font-bold" style="color:#111827">شركاؤنا</h2>
-                <p class="mx-auto mt-3 max-w-xl text-sm" style="color:#6B7280">مؤسسات وشركات نفتخر بشراكتها معنا في بناء قدرات الشباب.</p>
-            </div>
-
-            @if ($partners->isEmpty())
-            <div class="max-w-2xl mx-auto text-center rounded-3xl border border-dashed border-gray-200 bg-[#F7FAFC] py-14 px-6 text-sm" style="color:#6B7280">
+        @if ($partners->isEmpty())
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-2xl rounded-3xl border border-dashed border-gray-200 bg-[#F7FAFC] px-6 py-14 text-center text-sm" style="color:#6B7280">
                 سيتم عرض شعارات الشركاء هنا عند إضافتهم من لوحة التحكم.
             </div>
-            @else
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
-                @foreach ($partners as $partner)
-                @php
-                $logoUrl = $partner->logoPublicUrl();
-                $hasLink = filled($partner->website_url);
-                $cardClass = 'group flex w-full max-w-[180px] flex-col items-center justify-center rounded-2xl border border-gray-100 bg-white px-4 py-6 shadow-sm transition-all duration-200 hover:border-[#c5d4e4] hover:shadow-md min-h-[100px] sm:min-h-[120px]';
-                @endphp
-                <div class="flex justify-center">
+        </div>
+        @else
+        @php
+            $partnerItems = $partners->values();
+            // Repeat enough times so the marquee always feels continuous on wide screens.
+            $marqueeFill = max(1, (int) ceil(10 / max(1, $partnerItems->count())));
+            $marqueePartners = collect();
+            for ($i = 0; $i < $marqueeFill; $i++) {
+                $marqueePartners = $marqueePartners->concat($partnerItems);
+            }
+        @endphp
+        <div class="partners-marquee" dir="ltr" aria-label="شريط شركاء الجمعية">
+            <div class="partners-marquee__track">
+                @foreach ([false, true] as $isClone)
+                <div class="partners-marquee__group" @if ($isClone) data-marquee-clone="true" aria-hidden="true" @endif>
+                    @foreach ($marqueePartners as $partner)
+                    @php
+                        $logoUrl = $partner->logoPublicUrl();
+                        $hasLink = filled($partner->website_url) && ! $isClone;
+                    @endphp
                     @if ($hasLink)
-                    <a href="{{ $partner->website_url }}" target="_blank" rel="noopener noreferrer" class="{{ $cardClass }} cursor-pointer">
+                    <a
+                        href="{{ $partner->website_url }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="partners-marquee__card"
+                        dir="rtl"
+                    >
                         @if ($logoUrl)
-                        <img src="{{ $logoUrl }}" alt="{{ $partner->name }}" class="max-h-14 sm:max-h-16 w-auto max-w-full object-contain opacity-90 transition-opacity group-hover:opacity-100" loading="lazy" />
-                        <span class="mt-3 line-clamp-2 text-center text-[11px] sm:text-xs font-medium" style="color:#6B7280">{{ $partner->name }}</span>
+                        <img src="{{ $logoUrl }}" alt="{{ $partner->name }}" loading="lazy" decoding="async" />
+                        <span class="partners-marquee__name">{{ $partner->name }}</span>
                         @else
-                        <span class="text-center text-xs sm:text-sm font-semibold leading-snug px-1" style="color:#335483">{{ $partner->name }}</span>
+                        <span class="partners-marquee__name partners-marquee__name--solo">{{ $partner->name }}</span>
                         @endif
                     </a>
                     @else
-                    <div class="{{ $cardClass }}">
+                    <div class="partners-marquee__card" dir="rtl" @if ($isClone) tabindex="-1" @endif>
                         @if ($logoUrl)
-                        <img src="{{ $logoUrl }}" alt="{{ $partner->name }}" class="max-h-14 sm:max-h-16 w-auto max-w-full object-contain opacity-90" loading="lazy" />
-                        <span class="mt-3 line-clamp-2 text-center text-[11px] sm:text-xs font-medium" style="color:#6B7280">{{ $partner->name }}</span>
+                        <img src="{{ $logoUrl }}" alt="{{ $isClone ? '' : $partner->name }}" loading="lazy" decoding="async" />
+                        <span class="partners-marquee__name">{{ $partner->name }}</span>
                         @else
-                        <span class="text-center text-xs sm:text-sm font-semibold leading-snug px-1" style="color:#335483">{{ $partner->name }}</span>
+                        <span class="partners-marquee__name partners-marquee__name--solo">{{ $partner->name }}</span>
                         @endif
                     </div>
                     @endif
+                    @endforeach
                 </div>
                 @endforeach
             </div>
-            @endif
-
         </div>
+        @endif
     </section>
 
 
