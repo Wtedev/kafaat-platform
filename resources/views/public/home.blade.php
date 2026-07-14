@@ -202,10 +202,12 @@
             animation: home-hero-rise 0.9s cubic-bezier(.22, 1, .36, 1) 0.28s forwards;
         }
 
-        /* No character tracking (Arabic must stay joined); keep vertical gap between lines */
+        /* Modest tracking for large Arabic display — avoids tracking-tight crush.
+           Explicit line-height so responsive text-* utilities do not reopen vertical gap. */
         .home-hero__headline {
-            letter-spacing: normal;
-            line-height: 1.15;
+            letter-spacing: 0.06em;
+            line-height: 1.08;
+            padding-inline: 0.15em;
         }
 
         .home-hero__actions {
