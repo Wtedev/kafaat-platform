@@ -4,6 +4,7 @@
 # Do NOT seed NewsSeeder / CleanDemoDataSeeder here — they are opt-in and destructive.
 # PartnerSeeder / MediaPhotoSeeder only upsert their own public-disk prefixes; they never
 # delete storage/app/public/news/images (staff news uploads). See docs/deployment/public-media-storage.md
+# VolunteerLeadersProgramCoverSeeder only sets image=images/programs/... for «قادة التطوع».
 set -euo pipefail
 
 if [[ "${RAILWAY_ENVIRONMENT_NAME:-}" == "staging" && "${APP_ENV:-}" != "staging" ]]; then
@@ -26,5 +27,6 @@ php artisan db:seed --class=RegulationsSeeder --force
 php artisan db:seed --class=VolunteerOpportunitySeeder --force
 php artisan db:seed --class=PartnerSeeder --force
 php artisan db:seed --class=MediaPhotoSeeder --force
+php artisan db:seed --class=VolunteerLeadersProgramCoverSeeder --force
 php artisan permission:cache-reset
 php artisan cache:clear

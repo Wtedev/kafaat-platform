@@ -13,6 +13,8 @@
     'mediaContext' => 'program',
     /** قيمة TrainingProgramKind: course | session | workshop | event (عند mediaContext=program) */
     'programKind' => null,
+    /** cover (default photos) | contain (wide logos under public/images/programs/) — no CSS filters on the image */
+    'objectFit' => 'cover',
 ])
 
 @php
@@ -60,32 +62,43 @@
         ],
     };
 
-    $extraClass = '';
+    $fitContain = $objectFit === 'contain';
+    $containSurface = 'background:#eef2f6';
 
     if ($variant === 'hero') {
         $heightWrap = 'h-56 sm:h-64 flex items-center justify-center';
         $bgStyle = $heroBg;
         $iconWrap = 'w-20 h-20 opacity-25 sm:w-24 sm:h-24';
-        $imgWrap = 'overflow-hidden';
-        $imgClass = 'w-full h-56 sm:h-72 lg:h-80 object-cover';
+        $imgWrap = $fitContain
+            ? 'h-56 sm:h-72 lg:h-80 overflow-hidden flex items-center justify-center'
+            : 'overflow-hidden';
+        $imgClass = $fitContain
+            ? 'max-h-full max-w-full w-full h-full object-contain p-4 sm:p-6'
+            : 'w-full h-56 sm:h-72 lg:h-80 object-cover';
     } elseif ($variant === 'thumb') {
         $heightWrap = 'h-full w-full flex items-center justify-center rounded-lg';
         $bgStyle = $catalogBgs[$index % count($catalogBgs)];
         $iconWrap = 'w-10 h-10 opacity-30';
         $imgWrap = '';
-        $imgClass = 'h-full w-full object-cover';
+        $imgClass = $fitContain
+            ? 'h-full w-full object-contain p-1.5'
+            : 'h-full w-full object-cover';
     } else {
         $heightWrap = 'h-48 flex items-center justify-center';
         $bgStyle = $catalogBgs[$index % count($catalogBgs)];
         $iconWrap = 'w-14 h-14 opacity-30';
-        $imgWrap = 'h-48 overflow-hidden';
-        $imgClass = 'h-full w-full object-cover group-hover:scale-105 transition-transform duration-300';
+        $imgWrap = $fitContain
+            ? 'h-48 overflow-hidden flex items-center justify-center'
+            : 'h-48 overflow-hidden';
+        $imgClass = $fitContain
+            ? 'max-h-full max-w-full h-full w-full object-contain p-3 group-hover:scale-105 transition-transform duration-300'
+            : 'h-full w-full object-cover group-hover:scale-105 transition-transform duration-300';
     }
 @endphp
 
 @if ($hasImage)
     @if ($variant === 'hero')
-        <div class="{{ $imgWrap }}">
+        <div class="{{ $imgWrap }}" @if ($fitContain) style="{{ $containSurface }}" @endif>
             <img
                 src="{{ $imageUrl }}"
                 alt="{{ $alt }}"
@@ -95,7 +108,7 @@
             />
         </div>
     @elseif ($variant === 'thumb')
-        <div class="h-20 w-20 shrink-0 overflow-hidden rounded-lg ring-1 ring-gray-100">
+        <div class="h-20 w-20 shrink-0 overflow-hidden rounded-lg ring-1 ring-gray-100" @if ($fitContain) style="{{ $containSurface }}" @endif>
             <img
                 src="{{ $imageUrl }}"
                 alt="{{ $alt }}"
@@ -105,7 +118,7 @@
             />
         </div>
     @else
-        <div class="{{ $imgWrap }}">
+        <div class="{{ $imgWrap }}" @if ($fitContain) style="{{ $containSurface }}" @endif>
             <img
                 src="{{ $imageUrl }}"
                 alt="{{ $alt }}"

@@ -37,7 +37,7 @@ $ackLabel = $inPerson
 @section('title', $trainingProgram->title)
 @section('content')
 
-<x-public.entity-show-layout :backHref="$trainingProgram->competency_track ? route('public.programs.track', $trainingProgram->competency_track) : route('public.tracks.index')" :backLabel="$trainingProgram->competency_track?->shortLabel() ?? 'مسارات الكفاءة'" :title="$trainingProgram->title" :description="$trainingProgram->publicDescription()" descriptionHeading="نبذة عن البرنامج" mediaContext="program" :programKind="$trainingProgram->program_kind" :hasImage="filled($trainingProgram->image)" :imageUrl="$trainingProgram->imagePublicUrl()">
+<x-public.entity-show-layout :backHref="$trainingProgram->competency_track ? route('public.programs.track', $trainingProgram->competency_track) : route('public.tracks.index')" :backLabel="$trainingProgram->competency_track?->shortLabel() ?? 'مسارات الكفاءة'" :title="$trainingProgram->title" :description="$trainingProgram->publicDescription()" descriptionHeading="نبذة عن البرنامج" mediaContext="program" :programKind="$trainingProgram->program_kind" :hasImage="filled($trainingProgram->image)" :imageUrl="$trainingProgram->imagePublicUrl()" :objectFit="$trainingProgram->imageUsesContainFit() ? 'contain' : 'cover'">
     <x-slot:mediaBadges>
         <span class="inline-flex items-center rounded-lg bg-white/95 px-2.5 py-1 text-xs font-medium text-[#335483] shadow-sm ring-1 ring-white/60 backdrop-blur-sm">
             {{ $trainingProgram->program_kind->label() }}

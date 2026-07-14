@@ -8,6 +8,7 @@
 'imageUrl' => '',
 'mediaContext' => 'program',
 'programKind' => null,
+'objectFit' => 'cover',
 ])
 
 @php
@@ -31,7 +32,7 @@ $hasMediaBadges = isset($mediaBadges) && ! $mediaBadges->isEmpty();
 </header>
 
 <div class="relative mb-8 overflow-hidden rounded-3xl">
-    <x-public.card-media variant="hero" :mediaContext="$mediaContext" :programKind="$programKind" :hasImage="$hasImage" :imageUrl="$imageUrl" :alt="$title" />
+    <x-public.card-media variant="hero" :mediaContext="$mediaContext" :programKind="$programKind" :hasImage="$hasImage" :imageUrl="$imageUrl" :objectFit="$objectFit" :alt="$title" />
     @if ($hasMediaBadges)
     <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 via-black/25 to-transparent px-4 pb-4 pt-16 sm:px-5 sm:pb-5">
         <div class="pointer-events-auto flex flex-wrap items-center gap-2">

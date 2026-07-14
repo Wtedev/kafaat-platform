@@ -211,6 +211,17 @@ class TrainingProgram extends Model
         return PublicDiskPath::urlOrPlaceholder($this->image ?? null, PublicDiskPath::PLACEHOLDER_TRAINING_CATALOG);
     }
 
+    /**
+     * Bundled covers under public/images/programs/ are wide logos; use object-contain
+     * (no CSS filters) so artwork is not cropped on catalog cards / show hero.
+     */
+    public function imageUsesContainFit(): bool
+    {
+        $path = PublicDiskPath::normalize($this->image ?? null);
+
+        return $path !== null && str_starts_with($path, 'images/programs/');
+    }
+
     // ─── Scopes ───────────────────────────────────────────────────────────────
 
     public function scopePublished(Builder $query): void
