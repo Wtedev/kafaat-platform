@@ -117,7 +117,8 @@ $showQr = $isAccepted && $isInPerson && ! empty($attendance['qr_data_uri']);
     <div class="text-gray-600 leading-relaxed text-right font-sans">
         @php
             $programBody = trim((string) ($trainingProgram->description ?: ''));
-            $programIsRichHtml = $programBody !== '' && preg_match('/<[a-z][\s\S]*>/i', $programBody);
+            $programIsRichHtml = \App\Support\RichContentSupport::isRichContent($programBody);
+            $programBodyHtml = \App\Support\RichContentSupport::toDisplayHtml($programBody);
             $hasSessionTopics = (bool) $trainingProgram->session_topics_enabled
                 && filled(\App\Support\TrainingProgramExtrasSupport::publicSessionTopics($trainingProgram));
             $hasPresenters = filled(\App\Support\TrainingProgramExtrasSupport::publicProgramPresenters($trainingProgram));
@@ -125,11 +126,10 @@ $showQr = $isAccepted && $isInPerson && ! empty($attendance['qr_data_uri']);
         @if ($programBody === '' && ! $hasSessionTopics && ! $hasPresenters)
             —
         @elseif ($programBody !== '')
-            @if ($programIsRichHtml)
-                <div class="prose prose-lg max-w-none prose-headings:text-[#111827] prose-a:text-[#335483] prose-strong:text-[#111827]">{!! clean($programBody) !!}</div>
-            @else
-                <div class="whitespace-pre-line">{!! nl2br(e($programBody)) !!}</div>
-            @endif
+            <div @class([
+                'prose prose-lg max-w-none prose-headings:text-[#111827] prose-a:text-[#335483] prose-strong:text-[#111827]' => $programIsRichHtml,
+                'whitespace-pre-line' => ! $programIsRichHtml,
+            ])>{!! $programBodyHtml !!}</div>
         @endif
 
         <x-public.program-session-topics

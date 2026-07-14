@@ -71,6 +71,26 @@ class TrainingProgramViewPresenterTest extends TestCase
         );
     }
 
+    public function test_present_renders_tiptap_description_as_html(): void
+    {
+        $json = '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"\u062a\u062c\u0631\u0628\u0629","marks":[{"type":"bold"}]}]}]}';
+
+        $program = $this->mockProgram();
+        $program->fill([
+            'description' => $json,
+            'status' => ProgramStatus::Draft,
+            'program_kind' => TrainingProgramKind::Workshop,
+        ]);
+
+        $descriptionSection = collect(TrainingProgramViewPresenter::present($program)['sections'])
+            ->firstWhere('title', 'نبذة عن البرنامج');
+
+        $this->assertNotNull($descriptionSection);
+        $this->assertStringContainsString('<strong>', $descriptionSection['prose']);
+        $this->assertStringContainsString('تجربة', $descriptionSection['prose']);
+        $this->assertStringNotContainsString('"type":"doc"', $descriptionSection['prose']);
+    }
+
     public function test_present_shows_placeholder_when_description_empty(): void
     {
         $program = $this->mockProgram();

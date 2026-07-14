@@ -32,8 +32,8 @@ final class TrainingProgramExtrasSupport
 
                     if ($text === '') {
                         $inner = e('—');
-                    } elseif (self::looksLikeHtml($text)) {
-                        $inner = clean($text);
+                    } elseif (RichContentSupport::isRichContent($text)) {
+                        $inner = RichContentSupport::toDisplayHtml($text);
                     } else {
                         $inner = nl2br(e($text));
                     }
@@ -434,7 +434,7 @@ final class TrainingProgramExtrasSupport
 
     public static function looksLikeHtml(string $value): bool
     {
-        return $value !== '' && (bool) preg_match('/<[a-z][\s\S]*>/i', $value);
+        return RichContentSupport::isRichContent($value);
     }
 
     /**
@@ -448,15 +448,16 @@ final class TrainingProgramExtrasSupport
         $parts = [];
 
         $description = trim((string) $description);
-        $descriptionIsHtml = self::looksLikeHtml($description);
+        $descriptionIsRich = RichContentSupport::isRichContent($description);
+        $descriptionHtml = RichContentSupport::toDisplayHtml($description);
         $topicsHtml = $topicsEnabled ? self::formatSessionTopicsHtml($topics) : '';
         $hasTopicsHtml = $topicsHtml !== '';
 
         if ($description !== '') {
-            if ($hasTopicsHtml && ! $descriptionIsHtml) {
+            if ($hasTopicsHtml && ! $descriptionIsRich) {
                 $parts[] = '<div class="program-description-text">'.nl2br(e($description)).'</div>';
             } else {
-                $parts[] = $description;
+                $parts[] = $descriptionHtml;
             }
         }
 
@@ -464,7 +465,7 @@ final class TrainingProgramExtrasSupport
             $parts[] = $topicsHtml;
         }
 
-        $separator = ($descriptionIsHtml || $hasTopicsHtml) ? "\n" : "\n\n";
+        $separator = ($descriptionIsRich || $hasTopicsHtml) ? "\n" : "\n\n";
 
         return trim(implode($separator, $parts));
     }

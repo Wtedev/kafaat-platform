@@ -349,11 +349,7 @@ class TrainingProgramResource extends Resource
                                     return '—';
                                 }
 
-                                if (preg_match('/<[a-z][\s\S]*>/i', $body)) {
-                                    return clean($body);
-                                }
-
-                                return nl2br(e($body));
+                                return RichContentSupport::toDisplayHtml($body);
                             })
                             ->columnSpanFull(),
 

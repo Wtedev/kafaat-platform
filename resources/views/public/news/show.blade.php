@@ -33,17 +33,13 @@
     @endif
 
     @php
-        $primaryImage = $news->primaryImageRecord();
-        $galleryImages = $news->galleryImageRecords();
-        $hasPrimary = filled($primaryImage?->path) || filled($news->image);
+    $primaryImage = $news->primaryImageRecord();
+    $galleryImages = $news->galleryImageRecords();
+    $hasPrimary = filled($primaryImage?->path) || filled($news->image);
     @endphp
 
     @if ($hasPrimary)
-        <x-news-gallery
-            :primary-url="$news->imagePublicUrl()"
-            :primary-alt="$news->title"
-            :gallery-urls="$galleryImages->map(fn ($image) => $image->publicUrl())->all()"
-        />
+    <x-news-gallery :primary-url="$news->imagePublicUrl()" :primary-alt="$news->title" :gallery-urls="$galleryImages->map(fn ($image) => $image->publicUrl())->all()" />
     @else
     <div class="rounded-2xl h-56 flex items-center justify-center mb-8" style="background: linear-gradient(135deg, #e9eff6, #DCE8F5)">
         <svg class="w-20 h-20 opacity-25" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:#335483">
@@ -55,14 +51,11 @@
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-right">
         @php
             $body = (string) ($news->content ?? '');
-            $isRichHtml = $body !== '' && preg_match('/<[a-z][\s\S]*>/i', $body);
+            $isRichHtml = \App\Support\RichContentSupport::isRichContent($body);
+            $bodyHtml = \App\Support\RichContentSupport::toDisplayHtml($body);
         @endphp
         <div class="news-article-body prose prose-lg max-w-none leading-relaxed text-right font-sans {{ $isRichHtml ? 'prose-headings:text-[#111827] prose-a:text-[#335483] prose-strong:text-[#111827]' : 'whitespace-pre-line' }}" style="color:#374151; direction: rtl">
-            @if ($isRichHtml)
-                {!! clean($body) !!}
-            @else
-                {!! nl2br(e($body)) !!}
-            @endif
+            {!! $bodyHtml !!}
         </div>
     </div>
 

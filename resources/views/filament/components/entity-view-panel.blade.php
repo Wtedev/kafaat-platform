@@ -123,12 +123,15 @@
                 @if (! empty($section['prose']))
                     @php
                         $proseBody = (string) $section['prose'];
-                        $proseIsRichHtml = $proseBody !== '' && $proseBody !== '—' && preg_match('/<[a-z][\s\S]*>/i', $proseBody);
+                        $proseIsRichHtml = $proseBody !== '' && $proseBody !== '—' && \App\Support\RichContentSupport::isRichContent($proseBody);
+                        $proseHtml = $proseBody === '—' ? $proseBody : \App\Support\RichContentSupport::toDisplayHtml($proseBody);
                     @endphp
-                    @if ($proseIsRichHtml)
-                        <div class="kafaat-entity-view__prose prose max-w-none">{!! clean($proseBody) !!}</div>
+                    @if ($proseBody === '—')
+                        <div class="kafaat-entity-view__prose">—</div>
+                    @elseif ($proseIsRichHtml)
+                        <div class="kafaat-entity-view__prose prose max-w-none">{!! $proseHtml !!}</div>
                     @else
-                        <div class="kafaat-entity-view__prose">{{ $proseBody }}</div>
+                        <div class="kafaat-entity-view__prose">{!! $proseHtml !!}</div>
                     @endif
                 @elseif (! empty($section['rows']))
                     <dl class="kafaat-entity-view__rows">

@@ -70,6 +70,21 @@ final class NewsFormSupport
     }
 
     /**
+     * @return array<string, string>
+     */
+    public static function richEditorTextColors(): array
+    {
+        return [
+            'أسود' => '#18181b',
+            'رمادي' => '#71717a',
+            'أزرق غامق' => '#335483',
+            'تركواز' => '#1a9399',
+            'أصفر' => '#fbbb2e',
+            'أحمر' => '#ec6056',
+        ];
+    }
+
+    /**
      * محرّر نص منسّق موحّد (Filament RichEditor / TipTap) — يُستخدم في الأخبار وبرامج التدريب.
      */
     public static function brandedRichEditorField(
@@ -94,14 +109,7 @@ final class NewsFormSupport
                 ['horizontalRule'],
                 ['undo', 'redo'],
             ])
-            ->textColors([
-                'أسود' => '#18181b',
-                'رمادي' => '#71717a',
-                'أزرق غامق' => '#335483',
-                'تركواز' => '#1a9399',
-                'أصفر' => '#fbbb2e',
-                'أحمر' => '#ec6056',
-            ])
+            ->textColors(self::richEditorTextColors())
             ->extraAttributes([
                 'class' => 'news-content-rich-editor',
             ]);

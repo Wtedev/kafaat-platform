@@ -11,6 +11,7 @@ use App\Models\News;
 use App\Services\News\NewsImageSyncService;
 use App\Support\NewsFormSupport;
 use App\Support\PublicDiskPath;
+use App\Support\RichContentSupport;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -665,8 +666,7 @@ class NewsResource extends Resource
         }
         $s = is_string($raw) ? $raw : (string) $raw;
         if ($key === 'content') {
-            $s = strip_tags($s);
-            $s = html_entity_decode($s, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $s = RichContentSupport::toPlainText($s);
         }
         $normalized = preg_replace('/\s+/u', ' ', $s);
         $s = trim(is_string($normalized) ? $normalized : $s);

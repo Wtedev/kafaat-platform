@@ -59,14 +59,11 @@ $hasMediaBadges = isset($mediaBadges) && ! $mediaBadges->isEmpty();
                 @if (filled($description))
                 @php
                     $descriptionBody = (string) $description;
-                    $isRichHtml = $descriptionBody !== '' && preg_match('/<[a-z][\s\S]*>/i', $descriptionBody);
+                    $isRichHtml = \App\Support\RichContentSupport::isRichContent($descriptionBody);
+                    $descriptionHtml = \App\Support\RichContentSupport::toDisplayHtml($descriptionBody);
                 @endphp
                 <div class="max-w-none text-[15px] leading-8 text-gray-600 sm:text-base text-right font-sans {{ $isRichHtml ? 'prose prose-lg prose-headings:text-[#111827] prose-a:text-[#335483] prose-strong:text-[#111827]' : 'whitespace-pre-line' }}" style="direction: rtl">
-                    @if ($isRichHtml)
-                        {!! clean($descriptionBody) !!}
-                    @else
-                        {!! nl2br(e($descriptionBody)) !!}
-                    @endif
+                    {!! $descriptionHtml !!}
                 </div>
                 @elseif (isset($descriptionSlot) && ! $descriptionSlot->isEmpty())
                 <div class="max-w-none text-[15px] leading-8 text-gray-600 sm:text-base">
