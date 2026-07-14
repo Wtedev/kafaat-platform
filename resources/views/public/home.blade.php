@@ -331,16 +331,15 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             width: 9.5rem;
-            min-height: 6.75rem;
-            padding: 0.75rem 0.5rem;
+            padding: 0;
             border: none;
             border-radius: 0;
             background: transparent;
             box-shadow: none;
             text-decoration: none;
-            transition: opacity 0.2s ease, transform 0.2s ease;
+            transition: transform 0.2s ease;
             flex-shrink: 0;
         }
 
@@ -348,16 +347,41 @@
             transform: translateY(-2px);
         }
 
-        .partners-marquee__card img {
-            max-height: 2.75rem;
-            width: auto;
-            max-width: 100%;
-            object-fit: contain;
-            opacity: 0.92;
+        /*
+         * Soft white logo tile — uniform slot so mixed aspect ratios align.
+         * Seed assets are often JPEG payloads with black mats; SVG filter
+         * #partners-logo-knockout thresholds near-black to transparent, then
+         * multiply blends residual dark crumbs into the white tile.
+         * Real transparent PNGs (e.g. education) keep their original alpha.
+         */
+        .partners-marquee__logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 4.25rem;
+            padding: 0.55rem 0.7rem;
+            border-radius: 0.9rem;
+            background: #ffffff;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+            isolation: isolate;
         }
 
-        a.partners-marquee__card:hover img {
-            opacity: 1;
+        .partners-marquee__logo img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            mix-blend-mode: multiply;
+            filter: url(#partners-logo-knockout);
+        }
+
+        .partners-marquee__filters {
+            position: absolute;
+            width: 0;
+            height: 0;
+            overflow: hidden;
         }
 
         .partners-marquee__name {
@@ -394,12 +418,11 @@
 
             .partners-marquee__card {
                 width: 11rem;
-                min-height: 7.5rem;
-                padding: 0.9rem 0.65rem;
             }
 
-            .partners-marquee__card img {
-                max-height: 3.25rem;
+            .partners-marquee__logo {
+                height: 4.75rem;
+                padding: 0.65rem 0.8rem;
             }
 
             .partners-marquee__name {
@@ -414,7 +437,10 @@
 
             .partners-marquee__card {
                 width: 12rem;
-                min-height: 8rem;
+            }
+
+            .partners-marquee__logo {
+                height: 5rem;
             }
         }
 
@@ -856,7 +882,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 9. PARTNERS SECTION                                                 --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section class="overflow-hidden bg-white py-16 sm:py-20" dir="rtl" aria-labelledby="partners-heading">
+    <section class="overflow-hidden bg-[#F5F7FA] py-16 sm:py-20" dir="rtl" aria-labelledby="partners-heading">
         <div class="mx-auto mb-10 max-w-7xl px-4 text-center sm:mb-12 sm:px-6 lg:px-8">
             <p class="mb-2 text-sm font-semibold" style="color:#1a9399">شركاء النجاح</p>
             <h2 id="partners-heading" class="text-2xl font-bold sm:text-3xl" style="color:#111827">شركاؤنا</h2>
@@ -865,7 +891,7 @@
 
         @if ($partners->isEmpty())
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="mx-auto max-w-2xl rounded-3xl border border-dashed border-gray-200 bg-[#F7FAFC] px-6 py-14 text-center text-sm" style="color:#6B7280">
+            <div class="mx-auto max-w-2xl rounded-3xl border border-dashed border-gray-200 bg-white px-6 py-14 text-center text-sm" style="color:#6B7280">
                 سيتم عرض شعارات الشركاء هنا عند إضافتهم من لوحة التحكم.
             </div>
         </div>
@@ -880,6 +906,27 @@
             }
         @endphp
         <div class="partners-marquee" dir="ltr" aria-label="شريط شركاء الجمعية">
+            <svg class="partners-marquee__filters" aria-hidden="true" focusable="false">
+                <defs>
+                    <filter id="partners-logo-knockout" color-interpolation-filters="sRGB" x="-2%" y="-2%" width="104%" height="104%">
+                        <feColorMatrix
+                            in="SourceGraphic"
+                            type="matrix"
+                            values="0 0 0 0 0
+                                    0 0 0 0 0
+                                    0 0 0 0 0
+                                    0.2126 0.7152 0.0722 0 0"
+                            result="luma"
+                        />
+                        <feComponentTransfer in="luma" result="hardKey">
+                            <feFuncA type="linear" slope="18" intercept="-0.35" />
+                        </feComponentTransfer>
+                        <feFlood flood-color="#ffffff" result="white" />
+                        <feComposite in="white" in2="hardKey" operator="in" result="alphaMask" />
+                        <feComposite in="SourceGraphic" in2="alphaMask" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" />
+                    </filter>
+                </defs>
+            </svg>
             <div class="partners-marquee__track">
                 @foreach ([false, true] as $isClone)
                 <div class="partners-marquee__group" @if ($isClone) data-marquee-clone="true" aria-hidden="true" @endif>
@@ -897,7 +944,9 @@
                         dir="rtl"
                     >
                         @if ($logoUrl)
-                        <img src="{{ $logoUrl }}" alt="{{ $partner->name }}" loading="lazy" decoding="async" />
+                        <span class="partners-marquee__logo">
+                            <img src="{{ $logoUrl }}" alt="{{ $partner->name }}" loading="lazy" decoding="async" />
+                        </span>
                         <span class="partners-marquee__name">{{ $partner->name }}</span>
                         @else
                         <span class="partners-marquee__name partners-marquee__name--solo">{{ $partner->name }}</span>
@@ -906,7 +955,9 @@
                     @else
                     <div class="partners-marquee__card" dir="rtl" @if ($isClone) tabindex="-1" @endif>
                         @if ($logoUrl)
-                        <img src="{{ $logoUrl }}" alt="{{ $isClone ? '' : $partner->name }}" loading="lazy" decoding="async" />
+                        <span class="partners-marquee__logo">
+                            <img src="{{ $logoUrl }}" alt="{{ $isClone ? '' : $partner->name }}" loading="lazy" decoding="async" />
+                        </span>
                         <span class="partners-marquee__name">{{ $partner->name }}</span>
                         @else
                         <span class="partners-marquee__name partners-marquee__name--solo">{{ $partner->name }}</span>
