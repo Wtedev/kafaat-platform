@@ -212,8 +212,8 @@ class TrainingProgram extends Model
     }
 
     /**
-     * Bundled covers under public/images/programs/ are wide logos; use object-contain
-     * (no CSS filters) so artwork is not cropped on catalog cards / show hero.
+     * Bundled covers under public/images/programs/ are wide logos.
+     * Detail hero may use object-contain; catalog/track cards always use cover.
      */
     public function imageUsesContainFit(): bool
     {

@@ -47,7 +47,7 @@
             :programKind="$program->program_kind"
             :hasImage="filled($program->image)"
             :imageUrl="$program->imagePublicUrl()"
-            :objectFit="$program->imageUsesContainFit() ? 'contain' : 'cover'"
+            objectFit="cover"
             :alt="$program->title"
             :index="$index"
         />

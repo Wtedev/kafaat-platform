@@ -118,7 +118,7 @@
                                         :programKind="$program->program_kind"
                                         :hasImage="filled($program->image)"
                                         :imageUrl="$program->imagePublicUrl()"
-                                        :objectFit="$program->imageUsesContainFit() ? 'contain' : 'cover'"
+                                        objectFit="cover"
                                         :alt="$program->title"
                                         :index="$index"
                                     />
@@ -527,6 +527,15 @@
         /* Slightly shorter cover than full catalog pages so cards fit the accordion panel. */
         .track-program-card .h-48 {
             height: 8.5rem;
+        }
+
+        /* Always fill the media frame — no letterboxing around wide logos. */
+        .track-program-card .h-48 img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            padding: 0;
         }
 
         .track-program-body {
