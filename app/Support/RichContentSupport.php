@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use Filament\Forms\Components\RichEditor\RichContentRenderer;
+use Illuminate\Support\Str;
 use JsonException;
 
 final class RichContentSupport
@@ -92,6 +93,22 @@ final class RichContentSupport
         }
 
         return $value;
+    }
+
+    /**
+     * Plain-text preview for cards, listings, and admin snippets.
+     */
+    public static function excerpt(?string $value, int $limit = 140): string
+    {
+        $plain = self::toPlainText($value);
+
+        if ($plain === '') {
+            return '';
+        }
+
+        $normalized = preg_replace('/\s+/u', ' ', $plain);
+
+        return Str::limit(trim(is_string($normalized) ? $normalized : $plain), $limit);
     }
 
     /**

@@ -68,6 +68,24 @@ class TrainingProgramCreationFlowTest extends TestCase
             ->assertSee('برنامج حضوري تجريبي');
     }
 
+    public function test_track_catalog_card_shows_plain_text_excerpt_for_tiptap_description(): void
+    {
+        $json = '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"\u0646\u0628\u0630\u0629 \u0639\u0646 \u0628\u0631\u0646\u0627\u0645\u062c \u0642\u0627\u062f\u0629 \u0627\u0644\u062a\u0637\u0648\u0639 \u0644\u062a\u0646\u0645\u064a\u0629 \u0627\u0644\u0645\u0647\u0627\u0631\u0627\u062a \u0627\u0644\u0642\u064a\u0627\u062f\u064a\u0629."}]}]}';
+
+        $program = $this->createPublishedProgram([
+            'title' => 'قادة التطوع',
+            'slug' => 'volunteer-leaders-track-card',
+            'competency_track' => CompetencyTrack::Community,
+            'description' => $json,
+        ]);
+
+        $this->get(route('public.programs.track', CompetencyTrack::Community))
+            ->assertOk()
+            ->assertSee('قادة التطوع')
+            ->assertSee('نبذة عن برنامج')
+            ->assertDontSee('"type":"doc"', false);
+    }
+
     public function test_public_show_page_renders_program_presenters_section(): void
     {
         $program = $this->createPublishedProgram([

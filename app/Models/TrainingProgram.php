@@ -491,6 +491,11 @@ class TrainingProgram extends Model
         return \App\Support\TrainingProgramExtrasSupport::publicDescription($this);
     }
 
+    public function descriptionExcerpt(int $limit = 140): string
+    {
+        return \App\Support\RichContentSupport::excerpt($this->description, $limit);
+    }
+
     // ─── Relationships ────────────────────────────────────────────────────────
 
     public function registrations(): HasMany
