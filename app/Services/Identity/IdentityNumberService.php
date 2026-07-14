@@ -35,39 +35,18 @@ class IdentityNumberService
         return $digits === '' ? null : $digits;
     }
 
-    public static function isValidChecksum(string $normalized): bool
+    /**
+     * National ID / iqama must be exactly 10 numeric digits.
+     * No external verification service and no checksum/type-prefix rules.
+     */
+    public static function isValidFormat(string $normalized): bool
     {
-        if (! preg_match('/^\d{10}$/', $normalized)) {
-            return false;
-        }
-
-        $sum = 0;
-
-        for ($i = 0; $i < 9; $i++) {
-            $digit = (int) $normalized[$i];
-
-            if ($i % 2 === 0) {
-                $digit *= 2;
-                if ($digit > 9) {
-                    $digit -= 9;
-                }
-            }
-
-            $sum += $digit;
-        }
-
-        $checkDigit = (10 - ($sum % 10)) % 10;
-
-        return (int) $normalized[9] === $checkDigit;
+        return (bool) preg_match('/^\d{10}$/', $normalized);
     }
 
     public static function isValidForType(string $normalized, IdentityType $type): bool
     {
-        if (! self::isValidChecksum($normalized)) {
-            return false;
-        }
-
-        return $normalized[0] === $type->expectedFirstDigit();
+        return self::isValidFormat($normalized);
     }
 
     public static function generateLookupHash(string $normalized): string
@@ -116,8 +95,8 @@ class IdentityNumberService
     {
         $normalized = self::normalize($rawNumber);
 
-        if ($normalized === null || ! self::isValidForType($normalized, $type)) {
-            throw new \InvalidArgumentException('Invalid identity number for the selected type.');
+        if ($normalized === null || ! self::isValidFormat($normalized)) {
+            throw new \InvalidArgumentException('Invalid identity number: must be exactly 10 digits.');
         }
 
         return [

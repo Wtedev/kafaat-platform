@@ -49,7 +49,7 @@ class RegistrationBaselineTest extends TestCase
         $user = User::query()->where('email', 'new-beneficiary@example.com')->first();
         $this->assertNotNull($user);
         $this->assertSame('beneficiary', $user->role_type);
-        $this->assertTrue($user->hasRole('trainee'));
+        $this->assertTrue($user->hasRole('beneficiary'));
         $this->assertTrue($user->is_active);
         $this->assertDatabaseHas('profiles', ['user_id' => $user->id]);
         $this->assertTrue(Hash::check('SecurePass1!', $user->password));

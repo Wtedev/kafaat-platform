@@ -71,7 +71,7 @@ $showIdentityContact = ! $sectioned || $section === 'identity-contact';
                 </div>
                 <div>
                     <label class="{{ $labelClass }}">رقم الهوية / الإقامة <span class="text-brand-danger">*</span></label>
-                    <input type="text" name="identity_number" value="{{ old('identity_number') }}" required inputmode="numeric" autocomplete="off"
+                    <input type="text" name="identity_number" value="{{ old('identity_number') }}" required inputmode="numeric" maxlength="10" pattern="[0-9]{10}" autocomplete="off"
                         class="{{ $inputClass }} @error('identity_number') border-brand-danger @enderror" dir="ltr" />
                     @error('identity_number') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
                 </div>
@@ -145,7 +145,7 @@ $showIdentityContact = ! $sectioned || $section === 'identity-contact';
             </div>
             <div>
                 <label class="{{ $labelClass }}">رقم الهوية / الإقامة <span class="text-brand-danger">*</span></label>
-                <input type="text" name="identity_number" value="{{ old('identity_number') }}" required inputmode="numeric" autocomplete="off"
+                <input type="text" name="identity_number" value="{{ old('identity_number') }}" required inputmode="numeric" maxlength="10" pattern="[0-9]{10}" autocomplete="off"
                     class="{{ $inputClass }} @error('identity_number') border-brand-danger @enderror" dir="ltr" />
                 @error('identity_number') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
             </div>

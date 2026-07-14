@@ -27,10 +27,10 @@ class ProfileCompletionTest extends TestCase
     {
         $user = User::factory()->create([
             'name' => 'اسم قديم واحد',
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'email_verified_at' => now(),
         ]);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
         Profile::query()->create(['user_id' => $user->id]);
 
         $this->assertNull($user->first_name);
@@ -52,9 +52,9 @@ class ProfileCompletionTest extends TestCase
     {
         $user = User::factory()->create([
             'name' => 'مستخدم قديم',
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
         ]);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
 
         $this->actingAsOtpVerified($user)
             ->get(route('portal.dashboard'))
@@ -65,7 +65,7 @@ class ProfileCompletionTest extends TestCase
     public function test_user_json_does_not_expose_identity_secrets(): void
     {
         $user = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'identity_number_ciphertext' => 'encrypted-value',
             'identity_number_lookup_hash' => 'hash-value',
             'identity_number_last4' => '1234',

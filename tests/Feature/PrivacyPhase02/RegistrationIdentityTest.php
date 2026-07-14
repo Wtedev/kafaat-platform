@@ -39,7 +39,7 @@ class RegistrationIdentityTest extends TestCase
 
         $user = User::query()->where('email', $payload['email'])->first();
         $this->assertNotNull($user);
-        $this->assertTrue($user->hasRole('trainee'));
+        $this->assertTrue($user->hasRole('beneficiary'));
         $this->assertSame('أحمد محمد عبدالله السعود', $user->fullName());
         $this->assertSame($user->fullName(), $user->name);
         $this->assertTrue(Hash::check('SecurePass1!', $user->password));
@@ -84,6 +84,34 @@ class RegistrationIdentityTest extends TestCase
             ->assertSessionHasErrors(['identity_number' => 'تعذر إكمال التسجيل بهذه البيانات. يمكنك استخدام استعادة الحساب أو التواصل مع الدعم.']);
 
         $this->assertFalse(User::query()->where('email', 'second@example.com')->exists());
+    }
+
+    public function test_registration_accepts_ten_digit_identity_without_checksum(): void
+    {
+        Notification::fake();
+
+        $payload = $this->validRegistrationPayload([
+            'identity_number' => '1234567890',
+        ]);
+
+        $this->post(route('register'), $payload)
+            ->assertRedirect(route('verification.notice'));
+
+        $this->assertTrue(User::query()->where('email', $payload['email'])->exists());
+    }
+
+    public function test_registration_rejects_identity_not_exactly_ten_digits(): void
+    {
+        Notification::fake();
+
+        $payload = $this->validRegistrationPayload([
+            'identity_number' => '123456789',
+        ]);
+
+        $this->post(route('register'), $payload)
+            ->assertSessionHasErrors(['identity_number' => 'رقم الهوية أو الإقامة يجب أن يكون 10 أرقام.']);
+
+        $this->assertSame(0, User::query()->where('email', $payload['email'])->count());
     }
 
     public function test_registration_rolls_back_on_failure(): void

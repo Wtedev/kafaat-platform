@@ -38,8 +38,12 @@
             <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand/10 text-sm font-bold text-brand">2</span>
             <div>
                 <h2 class="text-sm font-bold text-gray-900">الهوية والتواصل</h2>
-                <p class="text-xs text-gray-500">للتحقق من الحساب والتواصل معك</p>
+                <p class="text-xs text-gray-500">لتمييز حسابك والتواصل معك</p>
             </div>
+        </div>
+        <div class="mb-4 rounded-xl border border-gray-100 bg-white/80 px-4 py-3">
+            <p class="text-sm font-semibold text-gray-800">لماذا نحتاج هذه المعلومات؟</p>
+            <p class="mt-1 text-xs leading-relaxed text-gray-500">نستخدم نوع ورقم الهوية والجوال لتسجيل حسابك بدقة والتواصل معك بشأن البرامج والخدمات في المنصة.</p>
         </div>
         <x-portal-identity-form-fields layout="sectioned" section="identity-contact" />
     </section>

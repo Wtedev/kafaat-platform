@@ -20,12 +20,13 @@ trait GeneratesTestIdentityData
 
     protected function generateValidIdentityForType(IdentityType $type): string
     {
-        for ($attempt = 0; $attempt < 200; $attempt++) {
-            $nine = $type->expectedFirstDigit().str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
-            $check = $this->saudiIdentityCheckDigit($nine);
-            $candidate = $nine.$check;
+        // Any 10-digit number is accepted; type is stored separately without prefix/checksum rules.
+        $prefix = $type === IdentityType::NationalId ? '1' : '2';
 
-            if (IdentityNumberService::isValidForType($candidate, $type)) {
+        for ($attempt = 0; $attempt < 200; $attempt++) {
+            $candidate = $prefix.str_pad((string) random_int(0, 999999999), 9, '0', STR_PAD_LEFT);
+
+            if (IdentityNumberService::isValidFormat($candidate)) {
                 return $candidate;
             }
         }
@@ -54,25 +55,5 @@ trait GeneratesTestIdentityData
             'privacy_policy_version' => PrivacyPolicyService::active()?->version ?? '1.0',
             'privacy_policy_acknowledged' => '1',
         ], $overrides);
-    }
-
-    private function saudiIdentityCheckDigit(string $firstNine): int
-    {
-        $sum = 0;
-
-        for ($i = 0; $i < 9; $i++) {
-            $digit = (int) $firstNine[$i];
-
-            if ($i % 2 === 0) {
-                $digit *= 2;
-                if ($digit > 9) {
-                    $digit -= 9;
-                }
-            }
-
-            $sum += $digit;
-        }
-
-        return (10 - ($sum % 10)) % 10;
     }
 }

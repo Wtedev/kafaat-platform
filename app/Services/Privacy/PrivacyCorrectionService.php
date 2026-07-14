@@ -57,7 +57,7 @@ final class PrivacyCorrectionService
             throw new InvalidArgumentException('invalid_identity');
         }
 
-        if (! IdentityNumberService::isValidForType($normalized, $identityType)) {
+        if (! IdentityNumberService::isValidFormat($normalized)) {
             throw new InvalidArgumentException('invalid_identity');
         }
 

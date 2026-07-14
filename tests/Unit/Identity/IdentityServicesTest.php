@@ -43,6 +43,15 @@ class IdentityServicesTest extends TestCase
         $this->assertSame('1010101010', $normalized);
     }
 
+    public function test_accepts_any_ten_digit_identity_without_checksum(): void
+    {
+        $this->assertTrue(IdentityNumberService::isValidFormat('1234567890'));
+        $this->assertTrue(IdentityNumberService::isValidForType('9876543210', IdentityType::NationalId));
+        $this->assertFalse(IdentityNumberService::isValidFormat('123456789'));
+        $this->assertFalse(IdentityNumberService::isValidFormat('12345678901'));
+        $this->assertFalse(IdentityNumberService::isValidFormat('abcdefghij'));
+    }
+
     public function test_prepare_storage_does_not_store_plaintext(): void
     {
         $raw = $this->generateValidNationalId();

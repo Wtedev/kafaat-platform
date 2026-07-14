@@ -8,9 +8,10 @@
 
 ## التحقق
 
-- checksum محلي (mod 10) على 10 خانات.
-- `national_id` يبدأ بـ `1`؛ `iqama` يبدأ بـ `2`.
+- يجب أن يكون الرقم **10 أرقام** بعد التطبيع (بدون checksum أو تحقق عبر خدمة خارجية).
+- نوع الهوية (`national_id` / `iqama`) يُجمَع كحقل ملف شخصي فقط ولا يفرض بادئة أو تحقق خارجي.
 - Service: `IdentityNumberService`.
+- التفرّد: HMAC + فهرس فريد على `identity_number_lookup_hash`.
 
 ## التشفير
 

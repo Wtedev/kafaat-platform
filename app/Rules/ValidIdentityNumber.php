@@ -32,8 +32,8 @@ class ValidIdentityNumber implements ValidationRule
 
         $normalized = IdentityNumberService::normalize(is_string($value) ? $value : (string) $value);
 
-        if ($normalized === null || ! IdentityNumberService::isValidForType($normalized, $this->type)) {
-            $fail('رقم الهوية أو الإقامة غير صالح.');
+        if ($normalized === null || ! IdentityNumberService::isValidFormat($normalized)) {
+            $fail('رقم الهوية أو الإقامة يجب أن يكون 10 أرقام.');
         }
     }
 }
