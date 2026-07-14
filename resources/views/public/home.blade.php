@@ -129,23 +129,19 @@
             align-items: flex-end;
             overflow: hidden;
             color: #fff;
-            background: var(--hero-navy);
+            /* Year of Impact 2026 — section background only (not foreground content) */
+            background-color: var(--hero-navy);
+            background-image: url("{{ asset('images/home/hero-year-of-impact.jpg') }}");
+            background-size: cover;
+            background-position: left center;
+            background-repeat: no-repeat;
         }
 
         .home-hero__media {
             position: absolute;
             inset: 0;
             z-index: 0;
-        }
-
-        .home-hero__img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            /* Keep baked-in «عام الأثر 2026» on the left of the landscape art */
-            object-position: left center;
-            transform: scale(1.03);
-            animation: home-hero-ken 20s ease-out forwards;
+            pointer-events: none;
         }
 
         .home-hero__veil {
@@ -237,11 +233,6 @@
             transform: translateY(-2px);
         }
 
-        @keyframes home-hero-ken {
-            from { transform: scale(1.03); }
-            to { transform: scale(1); }
-        }
-
         @keyframes home-hero-rise {
             from { opacity: 0; transform: translateY(22px); }
             to { opacity: 1; transform: translateY(0); }
@@ -261,11 +252,8 @@
             .home-hero {
                 min-height: min(88vh, 720px);
                 align-items: flex-end;
-            }
-
-            /* Portrait art: title sits top-center — pin top, leave bottom for UI */
-            .home-hero__img {
-                object-position: center top;
+                background-image: url("{{ asset('images/home/hero-year-of-impact-mobile.jpg') }}");
+                background-position: center top;
             }
 
             .home-hero__veil {
@@ -286,7 +274,6 @@
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .home-hero__img,
             .home-hero__brand,
             .home-hero__brand-rule,
             .home-hero__copy,
@@ -295,10 +282,6 @@
                 animation: none !important;
                 opacity: 1;
                 transform: none;
-            }
-
-            .home-hero__img {
-                transform: scale(1);
             }
         }
 
@@ -515,22 +498,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <section class="home-hero" aria-label="مقدمة الصفحة">
         <div class="home-hero__media" aria-hidden="true">
-            {{-- Landscape default; portrait under 1024px so baked title stays visible --}}
-            <picture>
-                <source
-                    media="(max-width: 1023px)"
-                    srcset="{{ $heroImageMobileUrl ?? asset('images/home/hero-year-of-impact-mobile.jpg') }}"
-                />
-                <img
-                    class="home-hero__img"
-                    src="{{ $heroImageUrl ?? asset('images/home/hero-year-of-impact.jpg') }}"
-                    alt=""
-                    width="1024"
-                    height="458"
-                    fetchpriority="high"
-                    decoding="async"
-                />
-            </picture>
+            {{-- Section CSS background-image carries Year of Impact art; veil keeps copy readable --}}
             <div class="home-hero__veil"></div>
             <div class="home-hero__glow"></div>
         </div>
