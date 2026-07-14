@@ -14,12 +14,6 @@ if ($trainingProgram->start_date && $trainingProgram->end_date) {
     $programDateRange = ar_date($trainingProgram->end_date, 'd MMM y');
 }
 
-$registrationDateRange = null;
-if (! $viaPathOnly && $trainingProgram->registration_start && $trainingProgram->registration_end) {
-    $registrationDateRange = ar_date($trainingProgram->registration_start, 'd MMM y')
-        .' – '
-        .ar_date($trainingProgram->registration_end, 'd MMM y');
-}
 @endphp
 
 <x-public.info-sidebar title="معلومات البرنامج" dense>
@@ -79,14 +73,6 @@ if (! $viaPathOnly && $trainingProgram->registration_start && $trainingProgram->
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         </x-slot:icon>
     </x-public.info-sidebar-item>
-
-    @if ($registrationDateRange)
-    <x-public.info-sidebar-item dense label="فترة التسجيل" :value="$registrationDateRange">
-        <x-slot:icon>
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        </x-slot:icon>
-    </x-public.info-sidebar-item>
-    @endif
 
     @if ($viaPathOnly && $trainingProgram->learningPath)
     <x-public.info-sidebar-item dense label="المسار التدريبي" :value="$trainingProgram->learningPath->title">
