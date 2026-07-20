@@ -28,7 +28,12 @@ class EnsureGateAttendanceAccess
         }
 
         $user = $request->user();
-        if ($user !== null && $user->can('viewOperational', $program)) {
+        if (
+            $user !== null
+            && $user->allowsOperationalAccess()
+            && $user->is_active
+            && $user->can('viewOperational', $program)
+        ) {
             $request->attributes->set('gate_operator_type', 'admin');
             $request->attributes->set('gate_operator_name', $user->name);
             $request->attributes->set('gate_checker', null);

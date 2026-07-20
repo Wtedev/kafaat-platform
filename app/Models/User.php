@@ -213,6 +213,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function allowsOperationalAccess(): bool
     {
         return ! in_array($this->account_status, [
+            AccountStatus::Inactive,
             AccountStatus::Anonymized,
             AccountStatus::DeletionProcessing,
         ], true);
@@ -225,6 +226,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function scopeOperational(Builder $query): Builder
     {
         return $query->whereNotIn('account_status', [
+            AccountStatus::Inactive->value,
             AccountStatus::Anonymized->value,
             AccountStatus::DeletionProcessing->value,
         ]);
@@ -449,11 +451,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function canAccessPanel(Panel $panel): bool
     {
-        if ($this->isAnonymized() || $this->account_status === AccountStatus::DeletionProcessing) {
-            return false;
-        }
-
-        if (! $this->is_active) {
+        if (! $this->allowsOperationalAccess() || ! $this->is_active) {
             return false;
         }
 

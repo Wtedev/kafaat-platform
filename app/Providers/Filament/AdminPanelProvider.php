@@ -4,6 +4,8 @@ namespace App\Providers\Filament;
 
 use App\Filament\Widgets\LatestInAppNotificationsWidget;
 use App\Filament\Widgets\PlatformStatsWidget;
+use App\Http\Middleware\EnsureOperationalAccount;
+use App\Http\Middleware\EnsureOtpVerified;
 use Filament\Enums\ThemeMode;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -15,7 +17,6 @@ use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Width;
 use Filament\Support\Facades\FilamentView;
-use App\Http\Middleware\EnsureOtpVerified;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -92,7 +93,8 @@ class AdminPanelProvider extends PanelProvider
                     return '';
                 }
 
-                return view('partials.notification-prefs-modal')->render();            },
+                return view('partials.notification-prefs-modal')->render();
+            },
         );
 
     }
@@ -138,6 +140,7 @@ class AdminPanelProvider extends PanelProvider
                 StartSession::class,
                 AuthenticateSession::class,
                 ShareErrorsFromSession::class,
+                EnsureOperationalAccount::class,
                 PreventRequestForgery::class,
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,

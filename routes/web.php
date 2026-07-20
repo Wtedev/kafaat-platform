@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CompetencyTrack;
 use App\Http\Controllers\Admin\BeneficiaryCvFileDownloadController;
 use App\Http\Controllers\Admin\BeneficiaryCvPdfController;
 use App\Http\Controllers\Admin\BeneficiaryIdentityRevealController;
@@ -14,30 +15,30 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CertificateDownloadController;
 use App\Http\Controllers\Gate\GateAttendanceController;
 use App\Http\Controllers\NotificationPreferenceController;
+use App\Http\Controllers\Portal\PortalAccountDeletionController;
 use App\Http\Controllers\Portal\PortalAttendanceCheckInController;
 use App\Http\Controllers\Portal\PortalAttendanceSessionController;
-use App\Http\Controllers\Portal\PortalCertificateController;
 use App\Http\Controllers\Portal\PortalCandidatePoolConsentController;
 use App\Http\Controllers\Portal\PortalCandidatePoolSettingsController;
+use App\Http\Controllers\Portal\PortalCertificateController;
 use App\Http\Controllers\Portal\PortalCompetencyController;
+use App\Http\Controllers\Portal\PortalCompetencyEmploymentConsentController;
 use App\Http\Controllers\Portal\PortalCompetencyExportController;
 use App\Http\Controllers\Portal\PortalCvDocumentController;
 use App\Http\Controllers\Portal\PortalDashboardController;
 use App\Http\Controllers\Portal\PortalInboxController;
+use App\Http\Controllers\Portal\PortalPasswordController;
 use App\Http\Controllers\Portal\PortalPathController;
 use App\Http\Controllers\Portal\PortalPathDetailController;
 use App\Http\Controllers\Portal\PortalPrivacyPolicyAcknowledgeController;
-use App\Http\Controllers\Portal\PortalPasswordController;
 use App\Http\Controllers\Portal\PortalProfileCompleteController;
 use App\Http\Controllers\Portal\PortalProfileController;
-use App\Http\Controllers\Portal\PortalSettingsController;
 use App\Http\Controllers\Portal\PortalProgramController;
 use App\Http\Controllers\Portal\PortalProgramDetailController;
+use App\Http\Controllers\Portal\PortalSettingsController;
 use App\Http\Controllers\Portal\PortalVolunteerController;
-use App\Http\Controllers\PublicPrivacyPolicyController;
 use App\Http\Controllers\Public\CertificateVerificationController;
 use App\Http\Controllers\Public\HomeController;
-use App\Enums\CompetencyTrack;
 use App\Http\Controllers\Public\PublicCompetencyTracksController;
 use App\Http\Controllers\Public\PublicGovernanceController;
 use App\Http\Controllers\Public\PublicLearningPathController;
@@ -47,6 +48,7 @@ use App\Http\Controllers\Public\PublicRegulationController;
 use App\Http\Controllers\Public\PublicTrainingProgramController;
 use App\Http\Controllers\Public\PublicVolunteerOpportunityController;
 use App\Http\Controllers\Public\SupportTicketController;
+use App\Http\Controllers\PublicPrivacyPolicyController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Authentication ───────────────────────────────────────────────────────────
@@ -77,7 +79,7 @@ Route::middleware('auth')->group(function () {
         ->name('verification.send');
 });
 
-Route::middleware(['auth', 'otp.verified'])->group(function () {
+Route::middleware(['auth', 'otp.verified', 'operational'])->group(function () {
     Route::get('/certificates/{certificate}/download', CertificateDownloadController::class)
         ->name('certificates.download');
 
@@ -91,7 +93,7 @@ Route::middleware(['auth', 'otp.verified'])->group(function () {
         ->middleware('throttle:10,1')
         ->name('admin.beneficiaries.identity.reveal');
 
-    // تفضيل إشعارات البريد (النافذة المنبثقة لمرة واحدة) — متاح لكل المستخدمين.
+    // تفضيل إشعارات البريد (النافذة المنبثقة لمرة واحدة) — متاح لكل المستخدمين التشغيليين.
     Route::post('/notification-prefs/ack', [NotificationPreferenceController::class, 'acknowledge'])
         ->name('notification-prefs.ack');
 });
@@ -169,7 +171,7 @@ Route::view('/terms', 'public.terms')->name('public.terms');
 
 // ─── Beneficiary Portal ───────────────────────────────────────────────────────
 
-Route::middleware(['auth', 'otp.verified', 'beneficiary', 'privacy.acknowledged'])
+Route::middleware(['auth', 'otp.verified', 'operational', 'beneficiary', 'privacy.acknowledged'])
     ->prefix('portal')
     ->name('portal.')
     ->group(function () {
@@ -220,7 +222,7 @@ Route::middleware(['auth', 'otp.verified', 'beneficiary', 'privacy.acknowledged'
 
         Route::get('/competency', [PortalCompetencyController::class, 'show'])->name('competency');
         Route::patch('/competency', [PortalCompetencyController::class, 'update'])->name('competency.update');
-        Route::post('/competency/employment-consent', [\App\Http\Controllers\Portal\PortalCompetencyEmploymentConsentController::class, 'update'])
+        Route::post('/competency/employment-consent', [PortalCompetencyEmploymentConsentController::class, 'update'])
             ->name('competency.employment-consent');
         Route::get('/competency/export-pdf', PortalCompetencyExportController::class)->name('competency.export-pdf');
 
@@ -241,7 +243,7 @@ Route::middleware(['auth', 'otp.verified', 'beneficiary', 'privacy.acknowledged'
         Route::post('/candidate-pool/settings/withdraw', [PortalCandidatePoolSettingsController::class, 'withdraw'])
             ->name('candidate-pool.settings.withdraw');
 
-        Route::post('/account-deletion', [\App\Http\Controllers\Portal\PortalAccountDeletionController::class, 'store'])
+        Route::post('/account-deletion', [PortalAccountDeletionController::class, 'store'])
             ->name('account-deletion.store');
 
     });

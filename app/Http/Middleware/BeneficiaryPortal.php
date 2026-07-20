@@ -20,10 +20,6 @@ class BeneficiaryPortal
             abort(403, 'هذه الصفحة مخصصة للمستفيدين فقط.');
         }
 
-        if (! $user->allowsOperationalAccess()) {
-            abort(403, 'لا يمكن الوصول إلى البوابة بهذا الحساب.');
-        }
-
         return $next($request);
     }
 }

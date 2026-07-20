@@ -6,10 +6,12 @@ use App\Http\Middleware\BeneficiaryPortal;
 use App\Http\Middleware\EnsureAdminOrStaff;
 use App\Http\Middleware\EnsureCurrentPrivacyPolicyAcknowledged;
 use App\Http\Middleware\EnsureGateAttendanceAccess;
+use App\Http\Middleware\EnsureOperationalAccount;
 use App\Http\Middleware\EnsureOtpVerified;
 use App\Http\Middleware\RecordErrorPageHit;
 use App\Services\Operations\ErrorPageVisitRecorder;
 use App\Support\Http\PrefersJsonErrorResponse;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -56,10 +58,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'beneficiary' => BeneficiaryPortal::class,
             'admin-or-staff' => EnsureAdminOrStaff::class,
+            'operational' => EnsureOperationalAccount::class,
             'otp.verified' => EnsureOtpVerified::class,
             'privacy.acknowledged' => EnsureCurrentPrivacyPolicyAcknowledged::class,
             'gate.attendance' => EnsureGateAttendanceAccess::class,
         ]);
+
+        // Run before Authenticate (interface + concrete) so non-operational sessions
+        // are cleared instead of receiving Filament's 403.
+        $middleware->prependToPriorityList(
+            before: AuthenticatesRequests::class,
+            prepend: EnsureOperationalAccount::class,
+        );
 
         // Redirect authenticated users away from guest-only pages
         $middleware->redirectGuestsTo(fn () => route('login'));

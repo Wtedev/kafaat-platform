@@ -108,7 +108,7 @@ class PrivacyCenterTest extends TestCase
 
         $this->actingAsOtpVerified($user)
             ->get(route('portal.privacy'))
-            ->assertForbidden();
+            ->assertRedirect(route('login'));
     }
 
     public function test_user_sees_only_own_privacy_requests(): void

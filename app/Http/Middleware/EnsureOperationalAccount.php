@@ -13,8 +13,9 @@ class EnsureOperationalAccount
     {
         $user = $request->user();
 
+        // Guests are handled by auth middleware / Filament login; only gate signed-in users.
         if ($user === null) {
-            return redirect()->route('login');
+            return $next($request);
         }
 
         if (! $user->allowsOperationalAccess() || ! $user->is_active) {
