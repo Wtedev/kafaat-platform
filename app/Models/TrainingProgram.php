@@ -39,7 +39,7 @@ class TrainingProgram extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'auto_accept_registrations' => true,
+        'auto_accept_registrations' => false,
     ];
 
     protected $fillable = [

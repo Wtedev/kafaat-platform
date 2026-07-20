@@ -197,7 +197,7 @@ final class TrainingEntityFormSupport
 
     return [
       static::advancedSettingsToggle('auto_accept_registrations', 'قبول تلقائي')
-        ->default(true)
+        ->default(false)
         ->live()
         ->afterStateUpdated(function (mixed $state, Set $set): void {
           if ((bool) $state) {

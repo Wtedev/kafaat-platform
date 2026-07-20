@@ -137,7 +137,7 @@ final class ProgramAcceptanceConditions
      */
     public static function applyFormData(array $data): array
     {
-        $autoAccept = (bool) ($data['auto_accept_registrations'] ?? true);
+        $autoAccept = (bool) ($data['auto_accept_registrations'] ?? false);
         $manualReview = (bool) ($data['acceptance_manual_review'] ?? false);
 
         $shouldPersistConditions = $autoAccept || $manualReview;
