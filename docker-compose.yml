@@ -1,0 +1,31 @@
+# Local infrastructure for development and PostgreSQL-backed tests.
+# Copy credentials from the environment or .env — do not commit real secrets.
+#
+# Start Postgres:
+#   docker compose up -d postgres
+#
+# Required env (or defaults below for local-only use):
+#   POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kafaat_postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-kafaat}
+      POSTGRES_USER: ${POSTGRES_USER:-kafaat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the environment}
+    volumes:
+      - kafaat_pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init-testing-db.sql:/docker-entrypoint-initdb.d/01-init-testing-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  kafaat_pgdata:
