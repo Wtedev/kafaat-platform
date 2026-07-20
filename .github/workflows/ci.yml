@@ -1,0 +1,132 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Quality checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: kafaat_testing
+          POSTGRES_USER: kafaat
+          # Ephemeral CI-only credentials (not a production secret).
+          POSTGRES_PASSWORD: ci_postgres_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kafaat -d kafaat_testing"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kafaat_testing
+      DB_USERNAME: kafaat
+      DB_PASSWORD: ci_postgres_only
+      DB_URL: ''
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: dom, curl, fileinfo, gd, intl, libxml, mbstring, zip, pcntl, pdo, pgsql, pdo_pgsql, bcmath
+          coverage: none
+          tools: composer:v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Validate composer.json
+        run: composer validate --no-check-publish
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Prepare application env
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+          cp .env.example .env.testing
+          php -r '
+            $path = ".env.testing";
+            $env = file_get_contents($path);
+            $replacements = [
+              "APP_ENV" => "testing",
+              "APP_DEBUG" => "true",
+              "DB_CONNECTION" => "pgsql",
+              "DB_HOST" => "127.0.0.1",
+              "DB_PORT" => "5432",
+              "DB_DATABASE" => "kafaat_testing",
+              "DB_USERNAME" => "kafaat",
+              "DB_PASSWORD" => "ci_postgres_only",
+              "CACHE_STORE" => "array",
+              "SESSION_DRIVER" => "array",
+              "QUEUE_CONNECTION" => "sync",
+              "MAIL_MAILER" => "array",
+              "IDENTITY_LOOKUP_KEY" => "base64:dGVzdC1pZGVudGl0eS1sb29rdXAta2V5LTMyYnl0ZXM=",
+              "ADMIN_EMAIL" => "",
+              "ADMIN_PASSWORD" => "",
+              "RESEND_API_KEY" => "",
+              "SEED_DEMO_DATA" => "false",
+              "SEED_NEWS" => "false",
+            ];
+            foreach ($replacements as $key => $value) {
+              $env = preg_replace("/^{$key}=.*/m", "{$key}={$value}", $env, 1);
+            }
+            file_put_contents($path, $env);
+          '
+          php artisan key:generate --env=testing --force
+
+      - name: Run migrations and seeders (PostgreSQL)
+        run: php artisan migrate:fresh --seed --env=testing --force
+
+      - name: Check code style (Pint)
+        run: vendor/bin/pint --test
+
+      - name: Run tests (PostgreSQL)
+        run: php artisan test
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install npm dependencies and build
+        run: |
+          npm ci --ignore-scripts
+          npm run build

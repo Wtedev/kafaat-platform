@@ -72,7 +72,7 @@ GIN indexes were **not** added — no application `whereJson*` / JSONB operators
 
 ## CI
 
-GitHub Actions job `test` starts a `postgres:16` service and runs the suite with `DB_CONNECTION=pgsql`. Job `test-random-order` still uses SQLite defaults unless you export the same `DB_*` vars.
+`.github/workflows/ci.yml` starts Postgres 16, runs `migrate:fresh --seed`, Pint, `php artisan test` with `DB_CONNECTION=pgsql`, and `npm run build`. See `docs/ci-local-checks.md`.
 
 ## Verified locally (2026-07-20)
 
