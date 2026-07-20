@@ -10,6 +10,7 @@ use App\Enums\TrainingProgramKind;
 use App\Models\Profile;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Support\RichContentSupport;
 use App\Support\TrainingProgramExtrasSupport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -122,6 +123,99 @@ class TrainingProgramExtrasSupportTest extends TestCase
         ]);
 
         $this->assertNull($data['program_presenters']);
+    }
+
+    public function test_apply_form_data_normalizes_tiptap_description_array_to_json_string(): void
+    {
+        $document = [
+            'type' => 'doc',
+            'content' => [[
+                'type' => 'paragraph',
+                'content' => [[
+                    'type' => 'text',
+                    'text' => 'نبذة TipTap',
+                ]],
+            ]],
+        ];
+
+        $data = TrainingProgramExtrasSupport::applyFormData([
+            'description' => $document,
+            'session_topics_enabled' => false,
+            'whatsapp_groups_enabled' => false,
+        ]);
+
+        $this->assertIsString($data['description']);
+        $this->assertTrue(RichContentSupport::isTipTapJson($data['description']));
+        $this->assertStringContainsString('نبذة TipTap', $data['description']);
+    }
+
+    public function test_apply_form_data_clears_empty_description(): void
+    {
+        $data = TrainingProgramExtrasSupport::applyFormData([
+            'description' => '',
+            'session_topics_enabled' => false,
+            'whatsapp_groups_enabled' => false,
+        ]);
+
+        $this->assertNull($data['description']);
+    }
+
+    public function test_description_preview_accepts_tiptap_array_without_array_to_string_error(): void
+    {
+        $document = [
+            'type' => 'doc',
+            'content' => [[
+                'type' => 'paragraph',
+                'content' => [[
+                    'type' => 'text',
+                    'text' => 'معاينة TipTap',
+                    'marks' => [['type' => 'bold']],
+                ]],
+            ]],
+        ];
+
+        $html = TrainingProgramExtrasSupport::descriptionPreviewHtml($document, false, null)->toHtml();
+
+        $this->assertStringContainsString('معاينة TipTap', $html);
+        $this->assertStringContainsString('<strong>', $html);
+        $this->assertStringNotContainsString('"type":"doc"', $html);
+        $this->assertTrue(TrainingProgramExtrasSupport::shouldShowDescriptionPreview($document, false, null));
+    }
+
+    public function test_description_preview_accepts_plain_text_and_empty(): void
+    {
+        $plain = TrainingProgramExtrasSupport::descriptionPreviewHtml('نبذة نص عادي', false, null)->toHtml();
+        $this->assertStringContainsString('نبذة نص عادي', $plain);
+        $this->assertTrue(TrainingProgramExtrasSupport::shouldShowDescriptionPreview('نبذة نص عادي', false, null));
+
+        $this->assertFalse(TrainingProgramExtrasSupport::shouldShowDescriptionPreview(null, false, null));
+        $this->assertFalse(TrainingProgramExtrasSupport::shouldShowDescriptionPreview('', false, null));
+        $this->assertFalse(TrainingProgramExtrasSupport::shouldShowDescriptionPreview([], false, null));
+        $this->assertFalse(TrainingProgramExtrasSupport::shouldShowDescriptionPreview([
+            'type' => 'doc',
+            'content' => [],
+        ], false, null));
+
+        $empty = TrainingProgramExtrasSupport::descriptionPreviewHtml(null, false, null)->toHtml();
+        $this->assertStringContainsString('—', $empty);
+    }
+
+    public function test_description_preview_visibility_with_session_topics_only(): void
+    {
+        $this->assertTrue(TrainingProgramExtrasSupport::shouldShowDescriptionPreview(
+            null,
+            true,
+            [['title' => 'محور فقط', 'facilitators' => '']],
+        ));
+
+        $html = TrainingProgramExtrasSupport::descriptionPreviewHtml(
+            null,
+            true,
+            [['title' => 'محور فقط', 'facilitators' => '']],
+        )->toHtml();
+
+        $this->assertStringContainsString('محور فقط', $html);
+        $this->assertStringContainsString('محاور البرنامج', $html);
     }
 
     public function test_resolves_whatsapp_group_by_gender_with_fallback(): void

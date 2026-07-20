@@ -24,30 +24,75 @@ final class TrainingProgramExtrasSupport
             Placeholder::make('public_description_preview')
                 ->label('معاينة النبذة المنشورة')
                 ->content(function (Get $get): HtmlString {
-                    $text = self::formatPublicDescription(
-                        (string) ($get('description') ?? ''),
+                    return self::descriptionPreviewHtml(
+                        $get('description'),
                         (bool) $get('session_topics_enabled'),
                         is_array($get('session_topics')) ? $get('session_topics') : [],
                     );
-
-                    if ($text === '') {
-                        $inner = e('—');
-                    } elseif (RichContentSupport::isRichContent($text)) {
-                        $inner = RichContentSupport::toDisplayHtml($text);
-                    } else {
-                        $inner = nl2br(e($text));
-                    }
-
-                    return new HtmlString(
-                        '<div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm leading-7 text-gray-700 prose prose-sm max-w-none">'
-                        .$inner
-                        .'</div>'
-                    );
                 })
-                ->visible(fn (Get $get): bool => filled($get('description'))
-                    || ((bool) $get('session_topics_enabled') && is_array($get('session_topics')) && $get('session_topics') !== []))
+                ->visible(fn (Get $get): bool => self::shouldShowDescriptionPreview(
+                    $get('description'),
+                    (bool) $get('session_topics_enabled'),
+                    is_array($get('session_topics')) ? $get('session_topics') : [],
+                ))
                 ->columnSpanFull(),
         ];
+    }
+
+    /**
+     * Safe form-state → storage string for TipTap arrays, JSON strings, plain text, or empty.
+     */
+    public static function normalizeDescriptionForForm(mixed $description): ?string
+    {
+        return RichContentSupport::normalizeForStorage($description);
+    }
+
+    /**
+     * @param  list<array{title?: string, facilitators?: string}>|null  $topics
+     */
+    public static function shouldShowDescriptionPreview(
+        mixed $description,
+        bool $topicsEnabled,
+        ?array $topics,
+    ): bool {
+        $normalized = self::normalizeDescriptionForForm($description);
+
+        if ($normalized !== null && $normalized !== '' && RichContentSupport::toPlainText($normalized) !== '') {
+            return true;
+        }
+
+        return $topicsEnabled && self::normalizeSessionTopics($topics) !== [];
+    }
+
+    /**
+     * Admin create/edit preview of the published description (accepts TipTap array form state).
+     *
+     * @param  list<array{title?: string, facilitators?: string}>|null  $topics
+     */
+    public static function descriptionPreviewHtml(
+        mixed $description,
+        bool $topicsEnabled,
+        ?array $topics,
+    ): HtmlString {
+        $text = self::formatPublicDescription(
+            self::normalizeDescriptionForForm($description),
+            $topicsEnabled,
+            $topics,
+        );
+
+        if ($text === '') {
+            $inner = e('—');
+        } elseif (RichContentSupport::isRichContent($text)) {
+            $inner = RichContentSupport::toDisplayHtml($text);
+        } else {
+            $inner = nl2br(e($text));
+        }
+
+        return new HtmlString(
+            '<div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm leading-7 text-gray-700 prose prose-sm max-w-none">'
+            .$inner
+            .'</div>'
+        );
     }
 
     public static function sessionTopicsBlock(): Toggle
@@ -154,6 +199,10 @@ final class TrainingProgramExtrasSupport
      */
     public static function applyFormData(array $data): array
     {
+        if (array_key_exists('description', $data)) {
+            $data['description'] = self::normalizeDescriptionForForm($data['description']);
+        }
+
         $data = self::applySessionTopics($data);
         $data = self::applyProgramPresenters($data);
         $data = self::applyWhatsappGroups($data);

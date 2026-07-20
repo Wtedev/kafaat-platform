@@ -6,13 +6,18 @@ use App\Enums\CompetencyTrack;
 use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
+use App\Filament\Resources\TrainingProgramResource\Pages\CreateTrainingProgram;
+use App\Filament\Resources\TrainingProgramResource\Pages\ViewTrainingProgram;
 use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Support\RichContentSupport;
+use Database\Seeders\RolesAndPermissionsSeeder;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
-use Database\Seeders\RolesAndPermissionsSeeder;
+use Livewire\Livewire;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
 
@@ -26,7 +31,170 @@ class TrainingProgramCreationFlowTest extends TestCase
         parent::setUp();
 
         $this->seedRbacRoles();
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
     }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function tipTapDocument(string $text = 'نبذة TipTap للبرنامج'): array
+    {
+        return [
+            'type' => 'doc',
+            'content' => [[
+                'type' => 'paragraph',
+                'content' => [[
+                    'type' => 'text',
+                    'text' => $text,
+                    'marks' => [['type' => 'bold']],
+                ]],
+            ]],
+        ];
+    }
+
+    public function test_create_form_handles_tiptap_description_array_without_array_to_string_error(): void
+    {
+        $staff = $this->staffWithProgramPermission();
+
+        $this->withSession(['otp_verified' => true]);
+
+        Livewire::actingAs($staff)
+            ->test(CreateTrainingProgram::class)
+            ->assertSuccessful()
+            ->fillForm([
+                'description' => self::tipTapDocument('معاينة أثناء الإنشاء'),
+            ])
+            ->assertSuccessful()
+            ->assertSee('معاينة أثناء الإنشاء')
+            ->assertSee('معاينة النبذة المنشورة');
+    }
+
+    public function test_staff_can_create_program_with_tiptap_description(): void
+    {
+        $staff = $this->staffWithProgramPermission();
+
+        $this->withSession(['otp_verified' => true]);
+
+        Livewire::actingAs($staff)
+            ->test(CreateTrainingProgram::class)
+            ->fillForm([
+                'title' => 'برنامج TipTap إنشاء',
+                'program_kind' => TrainingProgramKind::Course->value,
+                'competency_track' => CompetencyTrack::Self->value,
+                'delivery_mode' => ProgramDeliveryMode::Remote->value,
+                'description' => self::tipTapDocument('وصف غني عند الإنشاء'),
+                'start_date' => '2026-08-01',
+                'end_date' => '2026-08-15',
+                'registration_start' => '2026-07-15',
+                'registration_end' => '2026-08-14',
+                'publish_immediately' => true,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $program = TrainingProgram::query()->where('title', 'برنامج TipTap إنشاء')->first();
+
+        $this->assertNotNull($program);
+        $this->assertTrue(RichContentSupport::isTipTapJson($program->description));
+        $this->assertStringContainsString('وصف غني عند الإنشاء', (string) $program->description);
+    }
+
+    public function test_staff_can_create_program_with_plain_text_description(): void
+    {
+        $staff = $this->staffWithProgramPermission();
+
+        $this->withSession(['otp_verified' => true]);
+
+        Livewire::actingAs($staff)
+            ->test(CreateTrainingProgram::class)
+            ->fillForm([
+                'title' => 'برنامج نص عادي',
+                'program_kind' => TrainingProgramKind::Course->value,
+                'competency_track' => CompetencyTrack::Professional->value,
+                'delivery_mode' => ProgramDeliveryMode::Remote->value,
+                'description' => 'نبذة نص عادي بدون تنسيق',
+                'start_date' => '2026-08-01',
+                'end_date' => '2026-08-15',
+                'registration_start' => '2026-07-15',
+                'registration_end' => '2026-08-14',
+                'publish_immediately' => true,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $program = TrainingProgram::query()->where('title', 'برنامج نص عادي')->first();
+
+        $this->assertNotNull($program);
+        $this->assertStringContainsString('نبذة نص عادي بدون تنسيق', (string) $program->description);
+        $this->assertSame(
+            'نبذة نص عادي بدون تنسيق',
+            RichContentSupport::toPlainText($program->description),
+        );
+    }
+
+    public function test_staff_can_create_program_with_empty_description(): void
+    {
+        $staff = $this->staffWithProgramPermission();
+
+        $this->withSession(['otp_verified' => true]);
+
+        Livewire::actingAs($staff)
+            ->test(CreateTrainingProgram::class)
+            ->fillForm([
+                'title' => 'برنامج بدون نبذة',
+                'program_kind' => TrainingProgramKind::Course->value,
+                'competency_track' => CompetencyTrack::Community->value,
+                'delivery_mode' => ProgramDeliveryMode::Remote->value,
+                'description' => [
+                    'type' => 'doc',
+                    'content' => [],
+                ],
+                'start_date' => '2026-08-01',
+                'end_date' => '2026-08-15',
+                'registration_start' => '2026-07-15',
+                'registration_end' => '2026-08-14',
+                'publish_immediately' => true,
+            ])
+            ->assertSuccessful()
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $program = TrainingProgram::query()->where('title', 'برنامج بدون نبذة')->first();
+
+        $this->assertNotNull($program);
+        $this->assertSame('', RichContentSupport::toPlainText($program->description));
+    }
+
+    public function test_staff_can_edit_program_description_with_tiptap_array(): void
+    {
+        $staff = $this->staffWithProgramPermission();
+        $program = $this->createPublishedProgram([
+            'title' => 'برنامج للتعديل',
+            'slug' => 'edit-tiptap-description',
+            'description' => 'وصف قديم',
+            'status' => ProgramStatus::Draft,
+            'published_at' => null,
+            'created_by' => $staff->id,
+            'owner_id' => $staff->id,
+        ]);
+
+        $this->withSession(['otp_verified' => true]);
+
+        Livewire::actingAs($staff)
+            ->test(ViewTrainingProgram::class, ['record' => $program->getKey()])
+            ->assertSuccessful()
+            ->mountAction('editEntityField', ['field' => 'description'])
+            ->setActionData(['description' => self::tipTapDocument('وصف معدّل TipTap')])
+            ->callMountedAction()
+            ->assertHasNoActionErrors()
+            ->assertSee('وصف معدّل TipTap');
+
+        $program->refresh();
+
+        $this->assertTrue(RichContentSupport::isTipTapJson($program->description));
+        $this->assertStringContainsString('وصف معدّل TipTap', (string) $program->description);
+    }
+
 
     public function test_published_remote_program_appears_on_track_catalog_and_show_page(): void
     {
@@ -326,5 +494,20 @@ class TrainingProgramCreationFlowTest extends TestCase
             'capacity' => 30,
             'auto_accept_registrations' => true,
         ], $overrides));
+    }
+
+    /**
+     * @param  array<string, mixed>  $overrides
+     */
+    private function staffWithProgramPermission(array $overrides = []): User
+    {
+        $user = User::factory()->create(array_merge([
+            'role_type' => 'admin',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ], $overrides));
+        $user->assignRole('admin');
+
+        return $user;
     }
 }
