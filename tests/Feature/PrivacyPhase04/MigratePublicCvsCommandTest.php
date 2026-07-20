@@ -2,11 +2,10 @@
 
 namespace Tests\Feature\PrivacyPhase04;
 
+use App\Enums\UserDocumentStatus;
 use App\Models\Profile;
 use App\Models\User;
 use App\Models\UserDocument;
-use App\Enums\UserDocumentStatus;
-use App\Enums\UserDocumentType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
@@ -65,7 +64,7 @@ class MigratePublicCvsCommandTest extends TestCase
 
     public function test_missing_public_file_is_reported_without_creating_document(): void
     {
-        $user = User::factory()->create(['role_type' => 'trainee']);
+        $user = User::factory()->create(['role_type' => 'beneficiary']);
         Profile::query()->create([
             'user_id' => $user->id,
             'cv_path' => 'cv/missing.pdf',
@@ -82,7 +81,7 @@ class MigratePublicCvsCommandTest extends TestCase
      */
     private function seedLegacyPublicCv(): array
     {
-        $user = User::factory()->create(['role_type' => 'trainee']);
+        $user = User::factory()->create(['role_type' => 'beneficiary']);
         $legacyPath = 'cv/legacy-'.Str::uuid().'.pdf';
         Storage::disk('public')->put($legacyPath, '%PDF-1.4 legacy');
         Profile::query()->create([

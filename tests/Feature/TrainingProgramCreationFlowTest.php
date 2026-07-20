@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\CompetencyTrack;
+use App\Enums\PathStatus;
 use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
@@ -17,7 +18,9 @@ use Database\Seeders\RolesAndPermissionsSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Permission;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
 
@@ -195,7 +198,6 @@ class TrainingProgramCreationFlowTest extends TestCase
         $this->assertStringContainsString('وصف معدّل TipTap', (string) $program->description);
     }
 
-
     public function test_published_remote_program_appears_on_track_catalog_and_show_page(): void
     {
         $program = $this->createPublishedProgram([
@@ -309,7 +311,7 @@ class TrainingProgramCreationFlowTest extends TestCase
             'title' => 'مسار تجريبي',
             'slug' => 'test-learning-path',
             'competency_track' => CompetencyTrack::Community,
-            'status' => \App\Enums\PathStatus::Draft,
+            'status' => PathStatus::Draft,
         ]);
 
         $result = TrainingEntityFormSupport::applyProgramPathLinkSettings([
@@ -328,12 +330,7 @@ class TrainingProgramCreationFlowTest extends TestCase
 
     public function test_staff_with_program_permission_can_open_program_create_page(): void
     {
-        $staff = User::factory()->create([
-            'role_type' => 'staff',
-            'is_active' => true,
-            'email_verified_at' => now(),
-        ]);
-        $staff->assignRole('programs_management');
+        $staff = $this->staffWithProgramPermission();
 
         $this->actingAs($staff)
             ->withSession(['otp_verified' => true])
@@ -343,13 +340,9 @@ class TrainingProgramCreationFlowTest extends TestCase
 
     public function test_create_page_works_when_staff_user_has_json_notification_settings(): void
     {
-        $staff = User::factory()->create([
-            'role_type' => 'staff',
-            'is_active' => true,
-            'email_verified_at' => now(),
+        $staff = $this->staffWithProgramPermission([
             'notification_settings' => ['programs_new' => true, 'news' => false],
         ]);
-        $staff->assignRole('programs_management');
 
         $this->actingAs($staff)
             ->withSession(['otp_verified' => true])
@@ -359,7 +352,7 @@ class TrainingProgramCreationFlowTest extends TestCase
 
     public function test_create_page_returns_forbidden_when_program_create_permission_missing_from_database(): void
     {
-        \Spatie\Permission\Models\Permission::query()
+        Permission::query()
             ->where('name', 'programs.create')
             ->delete();
 
@@ -368,7 +361,7 @@ class TrainingProgramCreationFlowTest extends TestCase
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
-        $staff->assignRole('programs_management');
+        $staff->assignRole('staff');
 
         $this->actingAs($staff)
             ->withSession(['otp_verified' => true])
@@ -378,18 +371,13 @@ class TrainingProgramCreationFlowTest extends TestCase
 
     public function test_create_page_works_after_permissions_are_reseeded(): void
     {
-        \Spatie\Permission\Models\Permission::query()
+        Permission::query()
             ->where('name', 'programs.create')
             ->delete();
 
         $this->seed(RolesAndPermissionsSeeder::class);
 
-        $staff = User::factory()->create([
-            'role_type' => 'staff',
-            'is_active' => true,
-            'email_verified_at' => now(),
-        ]);
-        $staff->assignRole('programs_management');
+        $staff = $this->staffWithProgramPermission();
 
         $this->actingAs($staff)
             ->withSession(['otp_verified' => true])
@@ -399,12 +387,7 @@ class TrainingProgramCreationFlowTest extends TestCase
 
     public function test_staff_can_persist_program_with_competency_and_delivery_fields(): void
     {
-        $staff = User::factory()->create([
-            'role_type' => 'staff',
-            'is_active' => true,
-            'email_verified_at' => now(),
-        ]);
-        $staff->assignRole('programs_management');
+        $staff = $this->staffWithProgramPermission();
 
         $program = TrainingProgram::query()->create([
             'title' => 'برنامج حفظ تجريبي',
@@ -434,19 +417,14 @@ class TrainingProgramCreationFlowTest extends TestCase
         $path = LearningPath::query()->create([
             'title' => 'مسار بقيمة غير صالحة',
             'slug' => 'invalid-competency-track-path',
-            'status' => \App\Enums\PathStatus::Draft,
+            'status' => PathStatus::Draft,
         ]);
 
-        \Illuminate\Support\Facades\DB::table('learning_paths')
+        DB::table('learning_paths')
             ->where('id', $path->id)
             ->update(['competency_track' => 'legacy-invalid']);
 
-        $staff = User::factory()->create([
-            'role_type' => 'staff',
-            'is_active' => true,
-            'email_verified_at' => now(),
-        ]);
-        $staff->assignRole('programs_management');
+        $staff = $this->staffWithProgramPermission();
 
         $this->withoutExceptionHandling()
             ->actingAs($staff)
@@ -457,13 +435,9 @@ class TrainingProgramCreationFlowTest extends TestCase
 
     public function test_admin_with_notification_modal_can_open_program_create_page(): void
     {
-        $admin = User::factory()->create([
-            'role_type' => 'admin',
-            'is_active' => true,
-            'email_verified_at' => now(),
+        $admin = $this->staffWithProgramPermission([
             'notification_prefs_set_at' => null,
         ]);
-        $admin->assignRole('admin');
 
         $this->withoutExceptionHandling()
             ->actingAs($admin)
@@ -473,9 +447,9 @@ class TrainingProgramCreationFlowTest extends TestCase
             ->assertSee('fi-training-schedule', false);
     }
 
-  /**
-   * @param  array<string, mixed>  $overrides
-   */
+    /**
+     * @param  array<string, mixed>  $overrides
+     */
     private function createPublishedProgram(array $overrides = []): TrainingProgram
     {
         return TrainingProgram::query()->create(array_merge([

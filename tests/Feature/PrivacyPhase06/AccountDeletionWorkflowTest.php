@@ -5,10 +5,9 @@ namespace Tests\Feature\PrivacyPhase06;
 use App\Enums\AccountStatus;
 use App\Enums\DataDeletionPlanStatus;
 use App\Enums\PrivacyRequestStatus;
-use App\Enums\PrivacyRequestType;
+use App\Exceptions\UserDeletionNotAllowedException;
 use App\Models\Certificate;
 use App\Models\DataDeletionPlan;
-use App\Models\PrivacyRequest;
 use App\Models\Profile;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
@@ -18,10 +17,11 @@ use App\Services\Privacy\DataDeletionPlanService;
 use App\Services\Privacy\PersonalDataDeletionService;
 use App\Services\Privacy\PrivacyRequestService;
 use Database\Seeders\RetentionPolicySeeder;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
@@ -126,12 +126,12 @@ class AccountDeletionWorkflowTest extends TestCase
         $executorRequest = $this->requestWithSession();
         SensitiveAccessVerification::markVerified($executorRequest);
 
-        $this->expectException(\Illuminate\Auth\Access\AuthorizationException::class);
+        $this->expectException(AuthorizationException::class);
 
         app(PersonalDataDeletionService::class)->executeApprovedPlan(
             $privacyRequest->fresh(),
             DataDeletionPlan::query()->create([
-                'uuid' => (string) \Illuminate\Support\Str::uuid(),
+                'uuid' => (string) Str::uuid(),
                 'privacy_request_id' => $privacyRequest->id,
                 'user_id' => $beneficiary->id,
                 'status' => DataDeletionPlanStatus::Approved,
@@ -146,7 +146,7 @@ class AccountDeletionWorkflowTest extends TestCase
 
     public function test_user_query_bulk_delete_is_blocked(): void
     {
-        $this->expectException(\App\Exceptions\UserDeletionNotAllowedException::class);
+        $this->expectException(UserDeletionNotAllowedException::class);
         User::query()->where('email', 'like', '%@example.com')->delete();
     }
 
@@ -189,7 +189,7 @@ class AccountDeletionWorkflowTest extends TestCase
             'password' => Hash::make($password),
             'account_status' => AccountStatus::Active,
         ]);
-        $user->assignRole('privacy_officer');
+        $user->assignRole('staff');
         $user->givePermissionTo($permissions);
 
         return $user;
@@ -198,14 +198,14 @@ class AccountDeletionWorkflowTest extends TestCase
     private function makeBeneficiary(string $email, string $password = 'SecretPass1!'): User
     {
         $user = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
             'email' => $email,
             'password' => Hash::make($password),
             'account_status' => AccountStatus::Active,
         ]);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
         Profile::query()->create(['user_id' => $user->id]);
 
         return $user->fresh();

@@ -36,10 +36,10 @@ class LoginBaselineTest extends TestCase
         $user = User::factory()->create([
             'email' => 'login@example.com',
             'password' => Hash::make('CorrectPass1!'),
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
         ]);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
 
         $response = $this->post(route('login'), [
             'email' => 'login@example.com',
@@ -88,10 +88,10 @@ class LoginBaselineTest extends TestCase
     public function test_portal_routes_require_otp_verification_in_session(): void
     {
         $user = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
         ]);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
 
         $this->actingAs($user)
             ->get(route('portal.dashboard'))
@@ -101,10 +101,10 @@ class LoginBaselineTest extends TestCase
     public function test_portal_dashboard_is_accessible_after_otp_session_flag(): void
     {
         $user = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
         ]);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
 
         $this->actingAsOtpVerified($user)
             ->get(route('portal.dashboard'))

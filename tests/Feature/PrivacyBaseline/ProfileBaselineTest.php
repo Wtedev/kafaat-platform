@@ -87,7 +87,7 @@ class ProfileBaselineTest extends TestCase
         unset($payload['email'], $payload['password'], $payload['password_confirmation']);
 
         $user = User::factory()->create(array_merge([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
             'first_name' => $payload['first_name'],
@@ -97,7 +97,7 @@ class ProfileBaselineTest extends TestCase
             'name' => 'أحمد محمد عبدالله السعود',
             'phone' => '+966501234567',
         ], $userAttributes));
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
         Profile::query()->create([
             'user_id' => $user->id,
             'birth_date' => $payload['birth_date'],

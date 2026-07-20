@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\PrivacyBaseline;
 
+use App\Enums\ProgramStatus;
 use App\Models\Certificate;
 use App\Models\Profile;
 use App\Models\TrainingProgram;
@@ -73,11 +74,11 @@ class CertificateBaselineTest extends TestCase
     private function makePortalUser(array $attributes = []): User
     {
         $user = User::factory()->create(array_merge([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
         ], $attributes));
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
         Profile::query()->create(['user_id' => $user->id]);
 
         return $user;
@@ -88,7 +89,7 @@ class CertificateBaselineTest extends TestCase
         $program = TrainingProgram::query()->create([
             'title' => 'برنامج الشهادة',
             'slug' => 'cert-program-'.uniqid(),
-            'status' => \App\Enums\ProgramStatus::Published,
+            'status' => ProgramStatus::Published,
             'published_at' => now(),
         ]);
 

@@ -4,12 +4,9 @@ namespace Tests\Feature\Security;
 
 use App\Enums\AccountStatus;
 use App\Enums\PrivacyExportFileStatus;
-use App\Enums\ProgramStatus;
 use App\Models\PrivacyExportFile;
 use App\Models\Profile;
-use App\Models\TrainingProgram;
 use App\Models\User;
-use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
@@ -70,20 +67,20 @@ class PrivacyIdorTest extends TestCase
 
         $this->actingAsOtpVerified($user->fresh())
             ->get(route('portal.dashboard'))
-            ->assertForbidden();
+            ->assertRedirect(route('login'));
     }
 
     private function makeBeneficiary(string $email): User
     {
         $user = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
             'email' => $email,
             'password' => Hash::make('SecretPass1!'),
             'account_status' => AccountStatus::Active,
         ]);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
         Profile::query()->create(['user_id' => $user->id, 'birth_date' => '1995-01-01']);
 
         return $user->fresh();

@@ -4,13 +4,15 @@ namespace Tests\Feature\PrivacyPhase04;
 
 use App\Enums\CandidatePoolConsentEventType;
 use App\Enums\CandidatePoolPreferenceStatus;
+use App\Enums\IdentityType;
 use App\Enums\PrivacyPolicyVersionStatus;
+use App\Enums\ProfileGender;
 use App\Models\CandidatePoolConsentVersion;
 use App\Models\Profile;
 use App\Models\User;
 use App\Services\CandidatePool\CandidatePoolConsentService;
+use App\Services\CandidatePool\CandidatePoolConsentVersionService;
 use App\Services\CandidatePool\CandidatePoolQuery;
-use App\Enums\IdentityType;
 use Database\Seeders\CandidatePoolConsentSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -133,7 +135,7 @@ class CandidatePoolConsentTest extends TestCase
         ]);
 
         CandidatePoolConsentVersion::query()->whereKey($oldVersionId)->update(['status' => PrivacyPolicyVersionStatus::Archived]);
-        \App\Services\CandidatePool\CandidatePoolConsentVersionService::forgetCache();
+        CandidatePoolConsentVersionService::forgetCache();
 
         $this->assertFalse(app(CandidatePoolQuery::class)->eligibleQuery()->where('users.id', $user->id)->exists());
         $this->assertTrue(app(CandidatePoolConsentService::class)->shouldPrompt($user->fresh()));
@@ -144,7 +146,7 @@ class CandidatePoolConsentTest extends TestCase
         $identity = $this->generateValidNationalId();
 
         $user = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
             'first_name' => 'أحمد',
@@ -156,8 +158,12 @@ class CandidatePoolConsentTest extends TestCase
             'identity_number_lookup_hash' => hash('sha256', $identity),
             'identity_number_last4' => substr($identity, -4),
         ]);
-        $user->assignRole('trainee');
-        Profile::query()->create(['user_id' => $user->id, 'birth_date' => '1995-01-01']);
+        $user->assignRole('beneficiary');
+        Profile::query()->create([
+            'user_id' => $user->id,
+            'birth_date' => '1995-01-01',
+            'gender' => ProfileGender::Male,
+        ]);
 
         return $user->fresh(['profile']);
     }

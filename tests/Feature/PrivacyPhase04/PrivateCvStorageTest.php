@@ -6,7 +6,6 @@ use App\Enums\AuditLogResult;
 use App\Enums\UserDocumentStatus;
 use App\Models\Profile;
 use App\Models\User;
-use App\Models\UserDocument;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -126,7 +125,7 @@ class PrivateCvStorageTest extends TestCase
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
-        $staff->assignRole('training_management');
+        $staff->assignRole('staff');
         $staff->givePermissionTo('candidate_pool.cv.download');
 
         $this->actingAsOtpVerified($beneficiary)->post(route('portal.competency.cv.store'), [
@@ -173,7 +172,7 @@ class PrivateCvStorageTest extends TestCase
     private function makePortalUserWithProfile(array $userAttributes = []): User
     {
         $user = User::factory()->create(array_merge([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
             'first_name' => 'أحمد',
@@ -182,7 +181,7 @@ class PrivateCvStorageTest extends TestCase
             'family_name' => 'السعود',
             'phone' => '0500000000',
         ], $userAttributes));
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
         Profile::query()->create([
             'user_id' => $user->id,
             'birth_date' => '1995-01-01',

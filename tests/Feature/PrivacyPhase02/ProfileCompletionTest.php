@@ -57,7 +57,7 @@ class ProfileCompletionTest extends TestCase
 
         User::factory()->create([
             'email' => 'existing-identity@example.com',
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'identity_type' => $existingPayload['identity_type']->value,
             'identity_number_ciphertext' => $existingPayload['identity_number_ciphertext'],
             'identity_number_lookup_hash' => $existingPayload['identity_number_lookup_hash'],

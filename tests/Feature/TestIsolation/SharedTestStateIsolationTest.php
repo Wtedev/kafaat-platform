@@ -82,11 +82,11 @@ class SharedTestStateIsolationTest extends TestCase
         $this->seedRbacRoles();
 
         $user = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
 
         Permission::findOrCreate('isolation.test.permission', 'web');
         $user->givePermissionTo('isolation.test.permission');
@@ -99,11 +99,11 @@ class SharedTestStateIsolationTest extends TestCase
         $this->seedRbacRoles();
 
         $user = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
 
         $this->assertFalse($user->can('isolation.test.permission'));
     }

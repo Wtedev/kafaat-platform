@@ -168,7 +168,7 @@ class UserDeletionProtectionTest extends TestCase
             'password' => Hash::make($password),
             'account_status' => AccountStatus::Active,
         ]);
-        $staff->assignRole('programs_management');
+        $staff->assignRole('staff');
         $staff->givePermissionTo($permissions);
 
         return $staff;
@@ -177,13 +177,13 @@ class UserDeletionProtectionTest extends TestCase
     private function makeBeneficiaryWithIdentity(string $email): User
     {
         $user = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
             'email' => $email,
             'account_status' => AccountStatus::Active,
         ]);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
         Profile::query()->create(['user_id' => $user->id]);
 
         return $user->fresh();

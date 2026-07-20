@@ -20,11 +20,13 @@ use App\Services\Identity\IdentityNumberService;
 use App\Services\Privacy\PrivacyCorrectionService;
 use App\Services\Privacy\PrivacyRequestService;
 use Database\Seeders\RetentionPolicySeeder;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\GeneratesTestIdentityData;
 use Tests\Concerns\SeedsActivePrivacyPolicy;
@@ -117,7 +119,7 @@ class PrivacyCenterTest extends TestCase
         $other = $this->makeBeneficiary('other@example.com');
 
         $ownRequest = PrivacyRequest::query()->create([
-            'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'uuid' => (string) Str::uuid(),
             'user_id' => $owner->id,
             'request_type' => PrivacyRequestType::DataAccess,
             'status' => PrivacyRequestStatus::Submitted,
@@ -125,7 +127,7 @@ class PrivacyCenterTest extends TestCase
         ]);
 
         PrivacyRequest::query()->create([
-            'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'uuid' => (string) Str::uuid(),
             'user_id' => $other->id,
             'request_type' => PrivacyRequestType::DataAccess,
             'status' => PrivacyRequestStatus::Submitted,
@@ -144,7 +146,7 @@ class PrivacyCenterTest extends TestCase
         $intruder = $this->makeBeneficiary('cancel-intruder@example.com');
 
         $request = PrivacyRequest::query()->create([
-            'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'uuid' => (string) Str::uuid(),
             'user_id' => $owner->id,
             'request_type' => PrivacyRequestType::DataAccess,
             'status' => PrivacyRequestStatus::Submitted,
@@ -290,7 +292,7 @@ class PrivacyCenterTest extends TestCase
 
         User::factory()->create([
             'email' => 'existing-id@example.com',
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'identity_type' => $storage['identity_type']->value,
             'identity_number_ciphertext' => $storage['identity_number_ciphertext'],
             'identity_number_lookup_hash' => $storage['identity_number_lookup_hash'],
@@ -402,7 +404,7 @@ class PrivacyCenterTest extends TestCase
 
         app(PrivacyRequestService::class)->approve($privacyRequest->fresh(), $reviewer);
 
-        $this->expectException(\Illuminate\Auth\Access\AuthorizationException::class);
+        $this->expectException(AuthorizationException::class);
         app(PrivacyCorrectionService::class)->apply($privacyRequest->fresh(['correctionPayload', 'user']), $reviewer);
     }
 
@@ -459,7 +461,7 @@ class PrivacyCenterTest extends TestCase
     private function makeBeneficiary(string $email, string $password = 'SecretPass1!'): User
     {
         $user = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
             'email' => $email,
@@ -470,7 +472,7 @@ class PrivacyCenterTest extends TestCase
             'grandfather_name' => 'علي',
             'family_name' => 'السعود',
         ]);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
         Profile::query()->create(['user_id' => $user->id, 'birth_date' => '1995-01-01']);
 
         return $user->fresh(['profile']);

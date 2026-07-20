@@ -12,17 +12,17 @@ use App\Models\PrivacyExportFile;
 use App\Models\PrivacyRequest;
 use App\Models\Profile;
 use App\Models\User;
-use App\Services\Access\SensitiveAccessVerification;
 use App\Services\Privacy\Export\PersonalDataExportService;
 use App\Services\Privacy\PrivacyRequestService;
 use Database\Seeders\RetentionPolicySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\SeedsActivePrivacyPolicy;
 use Tests\Concerns\SeedsRbacRoles;
@@ -188,7 +188,7 @@ class PersonalDataExportTest extends TestCase
         $other = $this->makeBeneficiary('other-export@example.com');
 
         $exportFile = PrivacyExportFile::query()->create([
-            'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'uuid' => (string) Str::uuid(),
             'privacy_request_id' => null,
             'user_id' => $owner->id,
             'disk' => 'private_documents',
@@ -212,7 +212,7 @@ class PersonalDataExportTest extends TestCase
         Storage::disk('private_documents')->put($path, 'zip');
 
         PrivacyExportFile::query()->create([
-            'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'uuid' => (string) Str::uuid(),
             'user_id' => $user->id,
             'disk' => 'private_documents',
             'path' => $path,
@@ -236,7 +236,7 @@ class PersonalDataExportTest extends TestCase
         Storage::disk('private_documents')->put($path, 'zip');
 
         PrivacyExportFile::query()->create([
-            'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'uuid' => (string) Str::uuid(),
             'user_id' => $user->id,
             'disk' => 'private_documents',
             'path' => $path,
@@ -288,14 +288,14 @@ class PersonalDataExportTest extends TestCase
     private function makeBeneficiary(string $email): User
     {
         $user = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
             'email' => $email,
             'password' => Hash::make('SecretPass1!'),
             'account_status' => AccountStatus::Active,
         ]);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
         Profile::query()->create(['user_id' => $user->id, 'birth_date' => '1995-01-01']);
 
         return $user->fresh(['profile']);

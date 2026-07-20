@@ -3,6 +3,7 @@
 namespace Tests\Feature\PrivacyPhase06;
 
 use App\Enums\DataDeletionPlanStatus;
+use App\Enums\DeletionHandlerName;
 use App\Enums\PrivacyRequestStatus;
 use App\Models\Profile;
 use App\Models\User;
@@ -52,7 +53,7 @@ class PrivacyDeletionPlanningTest extends TestCase
         $this->assertSame(DataDeletionPlanStatus::ReadyForReview, $plan->status);
         $this->assertNotEmpty($plan->plan_snapshot['resources'] ?? []);
         $this->assertCount(
-            count(\App\Enums\DeletionHandlerName::executionOrder()),
+            count(DeletionHandlerName::executionOrder()),
             $plan->steps,
         );
     }
@@ -96,7 +97,7 @@ class PrivacyDeletionPlanningTest extends TestCase
             'email_verified_at' => now(),
             'password' => Hash::make('password'),
         ]);
-        $user->assignRole('privacy_officer');
+        $user->assignRole('staff');
         $user->givePermissionTo($permissions);
 
         return $user;
@@ -105,13 +106,13 @@ class PrivacyDeletionPlanningTest extends TestCase
     private function makeBeneficiary(string $email): User
     {
         $user = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
             'email' => $email,
             'password' => Hash::make('SecretPass1!'),
         ]);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
         Profile::query()->create(['user_id' => $user->id]);
 
         return $user->fresh();

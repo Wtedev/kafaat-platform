@@ -24,7 +24,7 @@ class ProgramLaunchedNotificationTest extends TestCase
     public function test_program_launch_sends_email_when_in_app_disabled_but_notify_email_on(): void
     {
         $trainee = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'email' => 'trainee@example.com',
             'email_verified_at' => now(),
             'is_active' => true,
@@ -55,7 +55,7 @@ class ProgramLaunchedNotificationTest extends TestCase
     public function test_program_launch_skips_email_when_notify_email_off(): void
     {
         User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'email' => 'trainee@example.com',
             'email_verified_at' => now(),
             'is_active' => true,
@@ -88,7 +88,7 @@ class ProgramLaunchedNotificationTest extends TestCase
         ]);
 
         $trainee = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'email' => 'trainee-audience@example.com',
             'is_active' => true,
             'notify_email' => false,
@@ -150,7 +150,7 @@ class ProgramLaunchedNotificationTest extends TestCase
     public function test_path_linked_program_launch_does_not_blast_beneficiaries(): void
     {
         $trainee = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'email' => 'path-trainee@example.com',
             'is_active' => true,
             'notification_settings' => [
@@ -189,7 +189,7 @@ class ProgramLaunchedNotificationTest extends TestCase
     public function test_registration_window_closed_notifies_registrants_only(): void
     {
         $registrant = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'email' => 'registered@example.com',
             'is_active' => true,
             'notification_settings' => [
@@ -200,7 +200,7 @@ class ProgramLaunchedNotificationTest extends TestCase
         ]);
 
         $outsider = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'email' => 'outsider@example.com',
             'is_active' => true,
             'notification_settings' => [

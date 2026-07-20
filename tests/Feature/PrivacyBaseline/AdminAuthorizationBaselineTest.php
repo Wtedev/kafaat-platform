@@ -50,7 +50,8 @@ class AdminAuthorizationBaselineTest extends TestCase
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
-        $staff->assignRole('programs_management');
+        $staff->assignRole('staff');
+        $staff->givePermissionTo('certificates.issue');
 
         $policy = app(CertificatePolicy::class);
 
@@ -91,7 +92,9 @@ class AdminAuthorizationBaselineTest extends TestCase
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
-        $staff->assignRole('technical_admin');
+        $staff->assignRole('staff');
+        // Minimal assignable permissions: avoid admin-only roles.view for profile view.
+        $staff->givePermissionTo(['exports.beneficiaries.basic', 'edit_profile_badges']);
 
         $beneficiary = $this->makePortalUser(['email' => 'beneficiary-export@example.com']);
         $profile = Profile::query()->where('user_id', $beneficiary->id)->firstOrFail();
@@ -104,11 +107,11 @@ class AdminAuthorizationBaselineTest extends TestCase
     private function makePortalUser(array $attributes = []): User
     {
         $user = User::factory()->create(array_merge([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
         ], $attributes));
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
         Profile::query()->create(['user_id' => $user->id]);
 
         return $user;

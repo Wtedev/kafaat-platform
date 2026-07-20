@@ -60,7 +60,7 @@ class RegistrationIdentityTest extends TestCase
 
         $firstUser = User::factory()->create([
             'email' => 'first@example.com',
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
         ]);
 
         $payload = IdentityNumberService::prepareStoragePayload($identity, IdentityType::NationalId);

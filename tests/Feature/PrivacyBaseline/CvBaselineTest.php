@@ -100,11 +100,11 @@ class CvBaselineTest extends TestCase
     private function makePortalUserWithProfile(array $userAttributes = []): User
     {
         $user = User::factory()->create(array_merge([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
         ], $userAttributes));
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
         Profile::query()->create(['user_id' => $user->id]);
 
         return $user->fresh(['profile']);

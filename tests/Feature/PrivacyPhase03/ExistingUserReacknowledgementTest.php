@@ -29,7 +29,7 @@ class ExistingUserReacknowledgementTest extends TestCase
     public function test_existing_user_without_acknowledgement_is_not_forced_when_reack_not_required(): void
     {
         $user = User::factory()->create(['role_type' => 'beneficiary']);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
 
         $this->actingAs($user)
             ->withSession(['otp_verified' => true])
@@ -40,7 +40,7 @@ class ExistingUserReacknowledgementTest extends TestCase
     public function test_user_is_redirected_when_reacknowledgement_required(): void
     {
         $user = User::factory()->create(['role_type' => 'beneficiary']);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
 
         $draft = PrivacyPolicyVersion::factory()->create([
             'version' => '2.0',
@@ -57,7 +57,7 @@ class ExistingUserReacknowledgementTest extends TestCase
     public function test_user_can_access_public_privacy_page_while_reack_pending(): void
     {
         $user = User::factory()->create(['role_type' => 'beneficiary']);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
 
         $draft = PrivacyPolicyVersion::factory()->create([
             'version' => '2.0',
@@ -74,7 +74,7 @@ class ExistingUserReacknowledgementTest extends TestCase
     public function test_user_can_submit_reacknowledgement_and_access_portal(): void
     {
         $user = User::factory()->create(['role_type' => 'beneficiary']);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
 
         $draft = PrivacyPolicyVersion::factory()->create([
             'version' => '2.0',
@@ -103,7 +103,7 @@ class ExistingUserReacknowledgementTest extends TestCase
     public function test_acknowledged_user_not_redirected_after_reack(): void
     {
         $user = User::factory()->create(['role_type' => 'beneficiary']);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
 
         $draft = PrivacyPolicyVersion::factory()->create([
             'version' => '2.0',

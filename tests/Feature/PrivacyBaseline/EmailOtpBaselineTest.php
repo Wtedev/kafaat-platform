@@ -98,10 +98,10 @@ class EmailOtpBaselineTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
         ]);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
 
         app(EmailVerificationCodeService::class)->sendCode($user);
 

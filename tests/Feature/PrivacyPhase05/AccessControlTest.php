@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\PrivacyPhase05;
 
+use App\Enums\IdentityType;
 use App\Models\Profile;
+use App\Models\SecurityLog;
 use App\Models\User;
-use App\Policies\UserPolicy;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\Security\SensitiveDataRedactor;
+use App\Support\Privacy\SensitiveContactMasker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
@@ -33,7 +35,7 @@ class AccessControlTest extends TestCase
         $beneficiary = $this->makeBeneficiaryWithIdentity('staff-mask@example.com');
 
         $this->assertFalse($staff->can('viewContact', $beneficiary));
-        $this->assertSame('s***@example.com', \App\Support\Privacy\SensitiveContactMasker::maskEmail($beneficiary->email));
+        $this->assertSame('s***@example.com', SensitiveContactMasker::maskEmail($beneficiary->email));
     }
 
     public function test_staff_with_full_identity_permission_can_reveal_identity_with_password(): void
@@ -108,7 +110,7 @@ class AccessControlTest extends TestCase
             'event' => 'auth.login_failed',
         ]);
 
-        $log = \App\Models\SecurityLog::query()->where('event', 'auth.login_failed')->first();
+        $log = SecurityLog::query()->where('event', 'auth.login_failed')->first();
         $this->assertNotNull($log);
         $this->assertStringNotContainsString('fail-login@example.com', json_encode($log->metadata ?? []));
     }
@@ -132,7 +134,7 @@ class AccessControlTest extends TestCase
             'email_verified_at' => now(),
             'password' => Hash::make($password),
         ]);
-        $staff->assignRole('programs_management');
+        $staff->assignRole('staff');
         $staff->givePermissionTo($permissions);
 
         return $staff;
@@ -143,16 +145,16 @@ class AccessControlTest extends TestCase
         $nationalId = $this->generateValidNationalId();
 
         $user = User::factory()->create([
-            'role_type' => 'trainee',
+            'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
             'email' => $email,
             ...IdentityNumberService::prepareStoragePayload(
                 $nationalId,
-                \App\Enums\IdentityType::NationalId,
+                IdentityType::NationalId,
             ),
         ]);
-        $user->assignRole('trainee');
+        $user->assignRole('beneficiary');
         Profile::query()->create(['user_id' => $user->id]);
 
         return $user->fresh();
