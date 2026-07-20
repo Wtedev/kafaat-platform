@@ -105,7 +105,7 @@ class VolunteerTeamSeeder extends Seeder
                 [
                     'name' => $def['name'],
                     'password' => $pw,
-                    'role_type' => 'trainee',
+                    'role_type' => 'volunteer',
                     'is_active' => true,
                 ]
             );

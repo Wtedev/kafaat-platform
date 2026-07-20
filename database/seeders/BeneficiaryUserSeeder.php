@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\MembershipType;
 use App\Models\Profile;
 use App\Models\User;
+use App\Services\Rbac\RbacCatalog;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -51,9 +52,8 @@ class BeneficiaryUserSeeder extends Seeder
                     'password' => Hash::make(self::PASSWORD),
                     'phone' => $phone,
                     'role_type' => match ($membershipType) {
-                        MembershipType::Trainee => 'trainee',
-                        MembershipType::Volunteer => 'volunteer',
-                        default => 'beneficiary',
+                        MembershipType::Volunteer => RbacCatalog::ROLE_VOLUNTEER,
+                        default => RbacCatalog::ROLE_BENEFICIARY,
                     },
                     'is_active' => true,
                 ]
@@ -111,31 +111,19 @@ class BeneficiaryUserSeeder extends Seeder
     }
 
     /**
+     * Profile badges may still use legacy keys like `trainee`; Spatie roles are the 4-role model only.
+     *
      * @param  array<string>|null  $badges
      * @return list<string>
      */
     private function spatieRolesFromProfile(MembershipType $membershipType, ?array $badges): array
     {
-        $roles = [];
         $badgeKeys = is_array($badges) ? $badges : [];
 
-        if ($badgeKeys !== []) {
-            if (in_array('trainee', $badgeKeys, true)) {
-                $roles[] = 'trainee';
-            }
-            if (in_array('volunteer', $badgeKeys, true)) {
-                $roles[] = 'volunteer';
-            }
+        if (in_array('volunteer', $badgeKeys, true) || $membershipType === MembershipType::Volunteer) {
+            return [RbacCatalog::ROLE_VOLUNTEER];
         }
 
-        if ($roles === []) {
-            $roles[] = match ($membershipType) {
-                MembershipType::Volunteer => 'volunteer',
-                MembershipType::Trainee => 'trainee',
-                default => 'trainee',
-            };
-        }
-
-        return array_values(array_unique($roles));
+        return [RbacCatalog::ROLE_BENEFICIARY];
     }
 }

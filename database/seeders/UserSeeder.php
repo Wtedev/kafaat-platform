@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Profile;
 use App\Models\User;
+use App\Services\Rbac\RbacCatalog;
+use App\Services\Rbac\StaffPermissionService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -41,14 +43,16 @@ class UserSeeder extends Seeder
         }
 
         $staff = [
-            ['name' => 'آمنة البطي', 'email' => 'amna.albatti@kafaat.org.sa', 'role' => 'training_management'],
-            ['name' => 'وجدان الصمعاني', 'email' => 'wajdan.alsumani@kafaat.org.sa', 'role' => 'programs_management'],
-            ['name' => 'مالك القصير', 'email' => 'malik.alqasir@kafaat.org.sa', 'role' => 'programs_management'],
-            ['name' => 'إيمان المطيري', 'email' => 'eman.almutairi@kafaat.org.sa', 'role' => 'volunteer_management'],
-            ['name' => 'حسام التويجري', 'email' => 'husam.altuwaijri@kafaat.org.sa', 'role' => 'public_relations'],
-            ['name' => 'فيصل الحميضان', 'email' => 'faisal.alhumaidan@kafaat.org.sa', 'role' => 'media_management'],
-            ['name' => 'عبدالله السعوي', 'email' => 'abdullah.alsuwi@kafaat.org.sa', 'role' => 'media_management'],
+            ['name' => 'آمنة البطي', 'email' => 'amna.albatti@kafaat.org.sa'],
+            ['name' => 'وجدان الصمعاني', 'email' => 'wajdan.alsumani@kafaat.org.sa'],
+            ['name' => 'مالك القصير', 'email' => 'malik.alqasir@kafaat.org.sa'],
+            ['name' => 'إيمان المطيري', 'email' => 'eman.almutairi@kafaat.org.sa'],
+            ['name' => 'حسام التويجري', 'email' => 'husam.altuwaijri@kafaat.org.sa'],
+            ['name' => 'فيصل الحميضان', 'email' => 'faisal.alhumaidan@kafaat.org.sa'],
+            ['name' => 'عبدالله السعوي', 'email' => 'abdullah.alsuwi@kafaat.org.sa'],
         ];
+
+        $staffPermissions = app(StaffPermissionService::class);
 
         foreach ($staff as $row) {
             $user = User::updateOrCreate(
@@ -56,11 +60,12 @@ class UserSeeder extends Seeder
                 [
                     'name' => $row['name'],
                     'password' => $pw,
-                    'role_type' => 'staff',
+                    'role_type' => RbacCatalog::ROLE_STAFF,
                     'is_active' => true,
                 ]
             );
-            $user->syncRoles([$row['role']]);
+            $user->syncRoles([RbacCatalog::ROLE_STAFF]);
+            $staffPermissions->grantAllAssignable($user);
             Profile::firstOrCreate(['user_id' => $user->id]);
         }
     }

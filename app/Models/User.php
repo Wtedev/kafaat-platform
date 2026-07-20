@@ -6,20 +6,21 @@ use App\Enums\AccountStatus;
 use App\Enums\IdentityType;
 use App\Enums\ProfileGender;
 use App\Enums\VolunteerHoursStatus;
-use App\Services\Identity\IdentityNumberService;
-use App\Services\Identity\PersonNameService;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Services\Rbac\RbacCatalog;
-use App\Services\Rbac\RbacService;
-use App\Services\Privacy\AccountDeactivationService;
-use App\Support\Privacy\UserDeletionGuard;
-use App\Support\PublicDiskPath;
 use App\Models\Builders\UserQueryBuilder;
 use App\Models\Concerns\HasEntityNotes;
+use App\Services\Auth\EmailVerificationCodeService;
+use App\Services\Identity\IdentityNumberService;
+use App\Services\Identity\PersonNameService;
+use App\Services\Privacy\AccountDeactivationService;
+use App\Services\Rbac\RbacCatalog;
+use App\Services\Rbac\RbacService;
+use App\Support\Privacy\UserDeletionGuard;
+use App\Support\PublicDiskPath;
 use Database\Factories\UserFactory;
 use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -171,7 +172,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
      */
     public function sendEmailVerificationNotification(): void
     {
-        app(\App\Services\Auth\EmailVerificationCodeService::class)->sendCode($this);
+        app(EmailVerificationCodeService::class)->sendCode($this);
     }
 
     /**
@@ -330,10 +331,16 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     }
 
     // ─── Role helpers ─────────────────────────────────────────────────────────
+    // Transition: Spatie is the primary source of truth; role_type is a dual-write
+    // compatibility fallback until the column is retired. See docs/rbac/role-type-spatie-transition.md
 
     public function isAdmin(): bool
     {
-        return $this->role_type === 'admin' || $this->hasRole('admin');
+        if ($this->hasRole(RbacCatalog::ROLE_ADMIN)) {
+            return true;
+        }
+
+        return $this->role_type === 'admin';
     }
 
     /**
@@ -341,7 +348,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
      */
     public function isProtectedAdminUser(): bool
     {
-        if ($this->role_type === 'admin' || $this->hasRole('admin')) {
+        if ($this->hasRole(RbacCatalog::ROLE_ADMIN) || $this->role_type === 'admin') {
             return true;
         }
 
@@ -352,11 +359,11 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function isStaff(): bool
     {
-        if ($this->role_type === 'staff') {
+        if ($this->hasRole(RbacCatalog::ROLE_STAFF)) {
             return true;
         }
 
-        return $this->hasRole(RbacCatalog::ROLE_STAFF);
+        return $this->role_type === 'staff';
     }
 
     /**
@@ -455,15 +462,15 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             return false;
         }
 
-        // دور admin أو staff كافٍ للوصول للوحة
-        if (in_array($this->role_type, ['admin', 'staff'], true)) {
+        // Spatie أولاً، ثم role_type للتوافق المؤقت
+        if ($this->hasAnyRole([
+            RbacCatalog::ROLE_ADMIN,
+            RbacCatalog::ROLE_STAFF,
+        ])) {
             return true;
         }
 
-        return $this->hasAnyRole([
-            RbacCatalog::ROLE_ADMIN,
-            RbacCatalog::ROLE_STAFF,
-        ]);
+        return in_array($this->role_type, ['admin', 'staff'], true);
     }
 
     /**
