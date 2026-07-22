@@ -104,8 +104,7 @@ final class OrganizationalStructureCatalog
     /**
      * Avatar circle accents by role:
      * - مدراء الإدارات / المدير التنفيذي → primary (brand blue)
-     * - رؤساء الأقسام (رئيس قسم) → teal (brand secondary green)
-     * - باقي الموظفين (غير مدراء الأقسام) → gray
+     * - الجميع غير مدراء الإدارات (بما فيهم رؤساء الأقسام) → gray
      * - الفريق التطوعي → yellow
      * - متدربة سند (ريماس) → sanad (purple), kept when set explicitly
      *
@@ -130,16 +129,7 @@ final class OrganizationalStructureCatalog
                 || str_contains($title, 'مدير الإدارة')
                 || str_contains($title, 'مدير تنفيذي');
 
-            $isSectionHead = $role === 'section_head'
-                || str_contains($title, 'رئيس قسم');
-
-            if ($isDeptManager) {
-                $person['accent'] = 'primary';
-            } elseif ($isSectionHead) {
-                $person['accent'] = 'teal';
-            } else {
-                $person['accent'] = 'gray';
-            }
+            $person['accent'] = $isDeptManager ? 'primary' : 'gray';
 
             return $person;
         };
