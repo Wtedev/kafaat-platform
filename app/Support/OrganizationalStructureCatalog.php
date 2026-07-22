@@ -20,7 +20,7 @@ final class OrganizationalStructureCatalog
                     'manager' => ['name' => 'عبدالحكيم عبدالرحمن الشايعي', 'title' => 'مدير الإدارة'],
                     'members' => [
                         ['name' => 'جابر مريع الشريم'],
-                        ['name' => 'ريماس أحمد الصقر'],
+                        ['name' => 'ريماس أحمد الصقر', 'title' => 'متدرب'],
                     ],
                 ],
                 [

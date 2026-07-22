@@ -101,6 +101,11 @@
                                         @foreach($teamGroups as $team)
                                             <li class="oc-node oc-node--leaf">
                                                 <div class="oc-card oc-card--staff oc-card--team">
+                                                    <div class="oc-avatar oc-avatar--staff oc-avatar--team" aria-hidden="true">
+                                                        <svg class="oc-avatar__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M16 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm-8 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm0 2c-2.67 0-8 1.34-8 4v1h10v-1c0-2.66-5.33-4-8-4Zm8 0c-.33 0-.7.02-1.09.06A4.87 4.87 0 0 1 16 17v1h8v-1c0-2.66-5.33-4-8-4Z" fill="currentColor"/>
+                                                        </svg>
+                                                    </div>
                                                     <p class="oc-card__name oc-card__name--xs">{{ $team }}</p>
                                                 </div>
                                             </li>
@@ -366,6 +371,7 @@
         border: 1px solid #e5e7eb;
         box-shadow: 0 6px 20px -10px rgba(51, 84, 131, 0.18);
         box-sizing: border-box;
+        text-align: center;
     }
 
     @media (hover: hover) {
@@ -396,6 +402,13 @@
         border-color: #c5d4e4;
         background: linear-gradient(160deg, #ffffff 0%, #f0f5fa 100%);
         box-shadow: 0 16px 40px -14px rgba(51, 84, 131, 0.28);
+        text-align: center;
+    }
+
+    .oc-card--ceo .oc-card__name {
+        text-align: center;
+        margin-inline: auto;
+        width: 100%;
     }
 
     .oc-card--manager {
@@ -475,6 +488,16 @@
         height: 1.9rem;
         font-size: 0.62rem;
         background: var(--oc-teal);
+    }
+
+    .oc-avatar--team {
+        background: color-mix(in srgb, var(--oc-brand) 75%, var(--oc-teal));
+    }
+
+    .oc-avatar__icon {
+        width: 1rem;
+        height: 1rem;
+        display: block;
     }
 
     .oc-card__name {
