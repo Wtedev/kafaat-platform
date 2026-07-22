@@ -91,6 +91,20 @@
             transform: translateY(0);
         }
 
+        #kafaat-stats .stat-item {
+            border-radius: 1rem;
+            padding: 0.75rem 0.5rem;
+            transition: opacity 0.65s cubic-bezier(.22, 1, .36, 1),
+                transform 0.35s cubic-bezier(.22, 1, .36, 1),
+                background-color 0.35s ease;
+        }
+
+        #kafaat-stats.is-visible .stat-item:hover {
+            transform: translateY(-4px);
+            background-color: rgba(51, 84, 131, 0.04);
+            transition-delay: 0s;
+        }
+
         #kafaat-stats.is-visible .stat-item:nth-child(1) { transition-delay: 0.05s; }
         #kafaat-stats.is-visible .stat-item:nth-child(2) { transition-delay: 0.12s; }
         #kafaat-stats.is-visible .stat-item:nth-child(3) { transition-delay: 0.19s; }
@@ -691,18 +705,11 @@
     {{-- 4. STATISTICS / أرقام 2025                                               --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <section id="kafaat-stats" class="py-6 px-4 sm:px-6">
-        <div class="max-w-7xl mx-auto">
-            <div class="rounded-3xl py-16 px-8 sm:px-14" style="background: linear-gradient(135deg, #243a55 0%, #335483 60%, #3d6589 100%)">
+        <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6">
 
-                {{-- Decorative circles --}}
-                <div class="relative overflow-hidden rounded-3xl">
-                    <div class="absolute -top-10 -left-8 w-48 h-48 rounded-full bg-white opacity-5"></div>
-                    <div class="absolute bottom-0 right-1/4 w-64 h-64 rounded-full opacity-5" style="background:#335483"></div>
-                </div>
-
-                <div class="relative z-10 text-center mb-12">
-                    <h2 class="text-3xl font-bold text-white mb-2">أرقام كفاءات 2025</h2>
-                    <p class="text-sm" style="color:rgba(255,255,255,0.65)">نتائج نعتز بها</p>
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold mb-2" style="color:#335483">أرقام كفاءات 2025</h2>
+                    <p class="text-sm" style="color:#4B5563">نتائج نعتز بها</p>
                 </div>
 
                 @php
@@ -716,10 +723,10 @@
                 ];
                 @endphp
 
-                <div class="relative z-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-8">
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-8">
                     @foreach($stats as $stat)
                     <div class="stat-item text-center">
-                        <div class="mx-auto mb-3 flex h-9 w-9 items-center justify-center text-white/90" aria-hidden="true">
+                        <div class="mx-auto mb-3 flex h-9 w-9 items-center justify-center" style="color:#1a9399" aria-hidden="true">
                             <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 @switch($stat['icon'])
                                     @case('users')
@@ -749,18 +756,18 @@
                             </svg>
                         </div>
                         <div
-                            class="stat-counter text-4xl font-bold text-white mb-1"
+                            class="stat-counter text-4xl font-bold mb-1"
+                            style="color:#335483"
                             data-stat-count="{{ $stat['count'] }}"
                             data-stat-prefix="{{ $stat['prefix'] }}"
                             data-stat-suffix="{{ $stat['suffix'] }}"
                             aria-label="{{ $stat['prefix'] }}{{ number_format($stat['count']) }}{{ $stat['suffix'] }}"
                         >{{ $stat['prefix'] }}0{{ $stat['suffix'] }}</div>
-                        <div class="text-sm" style="color:rgba(255,255,255,0.65)">{{ $stat['label'] }}</div>
+                        <div class="text-sm" style="color:#4B5563">{{ $stat['label'] }}</div>
                     </div>
                     @endforeach
                 </div>
 
-            </div>
         </div>
     </section>
 
