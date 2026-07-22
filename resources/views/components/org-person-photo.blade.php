@@ -1,4 +1,4 @@
-{{-- Exact match for board member photo treatment (member-grid), with optional Sanad accent. --}}
+{{-- Org-chart avatar: real photo when present; otherwise solid accent circle + white icon. --}}
 @props([
     'name' => '',
     'photo' => null,
@@ -7,10 +7,17 @@
 ])
 
 @php
-    // Board: mb-4 h-20 w-20 rounded-full border-2 border-gray-100 object-cover shadow-sm
-    $isSanad = $accent === 'sanad';
-    $iconColor = $isSanad ? (string) config('brand.sanad', '#4f53a3') : '#335483';
-    $placeholderBg = $isSanad ? (string) config('brand.sanad_light', '#ededf7') : '#e9eff6';
+    // Board governance grid keeps its own gray placeholders — this component is org-chart only.
+    $accentKey = is_string($accent) ? strtolower(trim($accent)) : '';
+    $palette = [
+        'sanad' => (string) config('brand.sanad', '#4f53a3'),
+        'secondary' => (string) config('brand.secondary', '#1a9399'),
+        'teal' => (string) config('brand.secondary', '#1a9399'),
+        'primary' => (string) config('brand.primary', '#335483'),
+        'danger' => (string) config('brand.danger', '#ec6056'),
+    ];
+    $placeholderBg = $palette[$accentKey] ?? $palette['primary'];
+    $iconColor = '#ffffff';
     $frame = 'mx-auto mb-4 h-20 w-20 rounded-full border-2 border-gray-100 shadow-sm';
 @endphp
 
