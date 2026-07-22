@@ -202,11 +202,19 @@
             animation: home-hero-rise 0.9s cubic-bezier(.22, 1, .36, 1) 0.28s forwards;
         }
 
-        /* Tight line-height only — no letter-spacing on Arabic headline. */
+        /* Single-line slogan; fluid clamp keeps it fitting without touching other type. */
         .home-hero__headline {
             letter-spacing: normal;
             line-height: 1.08;
             padding-inline: 0.15em;
+            white-space: nowrap;
+            font-size: clamp(1.35rem, 3.6vw + 0.55rem, 3.35rem);
+        }
+
+        @media (max-width: 360px) {
+            .home-hero__headline {
+                white-space: normal;
+            }
         }
 
         .home-hero__actions {
@@ -499,9 +507,8 @@
                     </div>
 
                     <div class="home-hero__copy">
-                        <h1 class="home-hero__headline text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white mb-5">
-                            نمكن الشباب..<br>
-                            ونصنع الأثر
+                        <h1 class="home-hero__headline font-extrabold text-white mb-5">
+                            نمكن الشباب. ونصنع الأثر
                         </h1>
                         <p class="text-sm sm:text-base leading-relaxed text-white/70 max-w-md mb-8">
                             نؤهّل الشباب ونوسّع مشاركتهم المجتمعية عبر برامج تدريبية وفرص تطوعية وشراكات مستدامة.
