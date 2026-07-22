@@ -11,18 +11,18 @@ enum CompetencyTrack: string
     public function label(): string
     {
         return match ($this) {
-            self::Self => 'مسار الكفاءة الذاتية',
-            self::Professional => 'مسار الكفاءة المهنية',
-            self::Community => 'مسار الكفاءة المجتمعية',
+            self::Self => 'الكفاءة الذاتية',
+            self::Professional => 'الكفاءة المهنية',
+            self::Community => 'الكفاءة المجتمعية',
         };
     }
 
     public function shortLabel(): string
     {
         return match ($this) {
-            self::Self => 'مسار الكفاءة الذاتية',
-            self::Professional => 'مسار الكفاءة المهنية',
-            self::Community => 'مسار الكفاءة المجتمعية',
+            self::Self => 'الكفاءة الذاتية',
+            self::Professional => 'الكفاءة المهنية',
+            self::Community => 'الكفاءة المجتمعية',
         };
     }
 

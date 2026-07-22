@@ -16,20 +16,17 @@
     $defaultTrack = $trackKeys[0] ?? CompetencyTrack::Self->value;
 
     $collapsedLabels = [
-        CompetencyTrack::Self->value => 'الذاتية',
-        CompetencyTrack::Professional->value => 'المهنية',
-        CompetencyTrack::Community->value => 'المجتمعية',
+        CompetencyTrack::Self->value => 'الكفاءة الذاتية',
+        CompetencyTrack::Professional->value => 'الكفاءة المهنية',
+        CompetencyTrack::Community->value => 'الكفاءة المجتمعية',
     ];
 @endphp
 
 <section class="reveal-fade" aria-labelledby="competency-tracks-heading">
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="text-right">
-            <p class="mb-1 text-sm font-semibold" style="color:#1a9399">
-                {{ config('competency_tracks.intro.badge') }}
-            </p>
             <h2 id="competency-tracks-heading" class="text-2xl font-bold">
-                {{ config('competency_tracks.intro.title') }}
+                {{ config('competency_tracks.intro.badge') }}
             </h2>
         </div>
         <a

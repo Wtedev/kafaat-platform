@@ -210,7 +210,7 @@ class TrainingProgramCreationFlowTest extends TestCase
         $this->get(route('public.programs.show', $program->slug))
             ->assertOk()
             ->assertSee('برنامج عن بُعد تجريبي')
-            ->assertSee('مسار الكفاءة الذاتية')
+            ->assertSee('الكفاءة الذاتية')
             ->assertSee('عن بُعد');
 
         $this->get(route('public.programs.track', CompetencyTrack::Self))
@@ -230,7 +230,7 @@ class TrainingProgramCreationFlowTest extends TestCase
 
         $this->get(route('public.programs.show', $program->slug))
             ->assertOk()
-            ->assertSee('مسار الكفاءة المهنية')
+            ->assertSee('الكفاءة المهنية')
             ->assertSee('حضوري — قاعة الاختبار');
 
         $this->get(route('public.programs.track', CompetencyTrack::Professional))

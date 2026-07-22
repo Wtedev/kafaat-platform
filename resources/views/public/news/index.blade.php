@@ -1,10 +1,10 @@
 @extends('layouts.public')
-@section('title', 'الأخبار والفعاليات')
+@section('title', 'أحدث الأخبار')
 @section('content')
 
 {{-- Page header --}}
 <div class="mb-8">
-    <h1 class="text-3xl font-bold">الأخبار والفعاليات</h1>
+    <h1 class="text-3xl font-bold">أحدث الأخبار</h1>
     <p class="mt-2 text-sm" style="color:#6B7280">آخر أخبار وفعاليات جمعية كفاءات.</p>
 </div>
 

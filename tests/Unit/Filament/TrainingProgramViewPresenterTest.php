@@ -54,7 +54,7 @@ class TrainingProgramViewPresenterTest extends TestCase
             collect($overviewRows)->firstWhere('label', 'نوع البرنامج')['value'],
         );
         $this->assertSame(
-            'مسار الكفاءة الذاتية',
+            'الكفاءة الذاتية',
             collect($overviewRows)->firstWhere('label', 'مسار الكفاءة')['value'],
         );
         $this->assertSame(

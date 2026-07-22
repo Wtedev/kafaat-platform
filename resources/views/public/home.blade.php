@@ -550,7 +550,7 @@
                 </div>
 
                 <div class="relative z-10 text-center mb-12">
-                    <h2 class="text-3xl font-bold text-white mb-2">أرقام كفاءات للسنة الماضية</h2>
+                    <h2 class="text-3xl font-bold text-white mb-2">أرقام كفاءات لعام 2025</h2>
                     <p class="text-sm" style="color:rgba(255,255,255,0.65)">نتائج نعتز بها</p>
                 </div>
 
@@ -620,8 +620,7 @@
     <section id="work" class="py-20 bg-[#F7FAFC] scroll-mt-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:#1a9399">أنشطة كفاءات</p>
-                <h2 class="text-3xl sm:text-4xl font-bold mb-4">ماذا نقدم</h2>
+                <h2 class="text-3xl sm:text-4xl font-bold mb-4">مشاريع كفاءات</h2>
                 <p class="text-lg leading-relaxed max-w-2xl mx-auto" style="color:#6B7280">
                     مسارات تأهيلية وبرامج تدريبية وفرص تطوعية تُسهم في بناء قدرات الشباب وتمكينهم من المشاركة المجتمعية.
                 </p>
@@ -705,8 +704,7 @@
 
             <div class="mb-10 flex flex-row items-end justify-between gap-4">
                 <div class="text-right">
-                    <p class="mb-1 text-sm font-semibold" style="color:#1a9399">آخر التحديثات</p>
-                    <h2 class="text-2xl font-bold">الأخبار والفعاليات</h2>
+                    <h2 class="text-2xl font-bold">أحدث الأخبار</h2>
                 </div>
                 <a href="{{ route('public.news.index') }}" class="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold hover:underline" style="color:#335483">
                     عرض كل الأخبار
@@ -901,7 +899,7 @@
             ['q' => 'أين مقر الجمعية؟',
             'a' => 'مقرّنا في بريدة — القصيم. تجد العنوان التفصيلي وساعات العمل وخريطة الموقع في أسفل الصفحة ضمن «تواصل معنا».'],
             ['q' => 'كيف أتابع أخبار الجمعية؟',
-            'a' => 'من قسم «الأخبار والفعاليات» في الموقع، أو عبر حسابات الجمعية على منصات التواصل الاجتماعي المذكورة في التذييل.'],
+            'a' => 'من قسم «أحدث الأخبار» في الموقع، أو عبر حسابات الجمعية على منصات التواصل الاجتماعي المذكورة في التذييل.'],
             ];
             @endphp
 
