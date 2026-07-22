@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Sets durable program + registration dates for «قادة التطوع». Safe to re-run.
  *
- * Program: 2026-08-03 → 2026-09-03
+ * Program: 2026-08-03 → 2026-09-01 (~30 days inclusive)
  * Registration window: 2026-07-22 → 2026-08-03 (inclusive)
  */
 class VolunteerLeadersProgramDatesSeeder extends Seeder
@@ -19,7 +19,7 @@ class VolunteerLeadersProgramDatesSeeder extends Seeder
 
     public const START_DATE = '2026-08-03';
 
-    public const END_DATE = '2026-09-03';
+    public const END_DATE = '2026-09-01';
 
     public const REGISTRATION_START = '2026-07-22';
 

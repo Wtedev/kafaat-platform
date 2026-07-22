@@ -14,6 +14,10 @@ if ($trainingProgram->start_date && $trainingProgram->end_date) {
     $programDateRange = ar_date($trainingProgram->end_date, 'd MMM y');
 }
 
+$venueMapUrl = filled($trainingProgram->venue)
+    && str_contains((string) $trainingProgram->title, 'قادة التطوع')
+    ? 'https://share.google/kqJFTgCRM2b0GT1jO'
+    : null;
 @endphp
 
 <x-public.info-sidebar title="معلومات البرنامج" dense>
@@ -21,14 +25,6 @@ if ($trainingProgram->start_date && $trainingProgram->end_date) {
     <x-public.info-sidebar-item dense label="أسلوب التنفيذ" :value="$trainingProgram->delivery_mode->label()">
         <x-slot:icon>
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-        </x-slot:icon>
-    </x-public.info-sidebar-item>
-    @endif
-
-    @if (filled($trainingProgram->venue))
-    <x-public.info-sidebar-item dense label="موقع البرنامج" :value="$trainingProgram->venue">
-        <x-slot:icon>
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         </x-slot:icon>
     </x-public.info-sidebar-item>
     @endif
@@ -86,6 +82,20 @@ if ($trainingProgram->start_date && $trainingProgram->end_date) {
     <x-public.info-sidebar-item dense label="المسار التدريبي" :value="$trainingProgram->learningPath->title">
         <x-slot:icon>
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+        </x-slot:icon>
+    </x-public.info-sidebar-item>
+    @endif
+
+    @if (filled($trainingProgram->venue))
+    <x-public.info-sidebar-item
+        dense
+        separated
+        label="موقع البرنامج"
+        :value="$trainingProgram->venue"
+        :href="$venueMapUrl"
+    >
+        <x-slot:icon>
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         </x-slot:icon>
     </x-public.info-sidebar-item>
     @endif

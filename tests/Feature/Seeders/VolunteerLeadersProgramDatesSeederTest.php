@@ -58,6 +58,7 @@ class VolunteerLeadersProgramDatesSeederTest extends TestCase
         );
         $this->assertTrue($program->isRegistrationOpen());
         $this->assertSame('مفتوح', $program->registrationWindowStatusLabel());
+        $this->assertSame('30 يوماً', $program->programDurationDescription());
     }
 
     public function test_re_run_is_idempotent_when_dates_already_set(): void

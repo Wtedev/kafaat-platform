@@ -36,6 +36,10 @@ class VolunteerLeadersProgramDescriptionSeederTest extends TestCase
         $this->assertStringContainsString(VolunteerLeadersProgramDescriptionSeeder::HYBRID_MARKER, (string) $program->description);
         $this->assertStringContainsString('عن بعد', (string) $program->description);
         $this->assertStringNotContainsString('بهذا التوازن', (string) $program->description);
+        $this->assertStringNotContainsString('<strong>أسلوب التنفيذ', (string) $program->description);
+        $this->assertStringNotContainsString('<strong>هايبرد</strong>', (string) $program->description);
+        $this->assertStringNotContainsString('<strong>6 أيام حضورية</strong>', (string) $program->description);
+        $this->assertStringNotContainsString('<strong>بقية أيام البرنامج وجلساته عن بعد</strong>', (string) $program->description);
         $this->assertStringEndsWith(
             'عبر المنصات الرقمية.</p>',
             trim((string) $program->description),

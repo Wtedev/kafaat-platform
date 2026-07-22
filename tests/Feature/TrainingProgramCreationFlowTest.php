@@ -234,11 +234,41 @@ class TrainingProgramCreationFlowTest extends TestCase
             ->assertSee('أسلوب التنفيذ')
             ->assertSee('حضوري')
             ->assertSee('موقع البرنامج')
-            ->assertSee('قاعة الاختبار');
+            ->assertSee('قاعة الاختبار')
+            ->assertDontSee('https://share.google/kqJFTgCRM2b0GT1jO', false);
 
         $this->get(route('public.programs.track', CompetencyTrack::Professional))
             ->assertOk()
             ->assertSee('برنامج حضوري تجريبي');
+    }
+
+    public function test_qadah_program_shows_venue_map_link_last_on_public_show_page(): void
+    {
+        $program = $this->createPublishedProgram([
+            'title' => 'برنامج قادة التطوع',
+            'slug' => 'kad-alttoaa-venue-map',
+            'competency_track' => CompetencyTrack::Community,
+            'delivery_mode' => ProgramDeliveryMode::Hybrid,
+            'venue' => 'بريدة - بيت الثقافة',
+            'start_date' => Carbon::parse('2026-08-03'),
+            'end_date' => Carbon::parse('2026-09-01'),
+        ]);
+
+        $html = $this->get(route('public.programs.show', $program->slug))
+            ->assertOk()
+            ->assertSee('موقع البرنامج')
+            ->assertSee('بريدة - بيت الثقافة')
+            ->assertSee('https://share.google/kqJFTgCRM2b0GT1jO', false)
+            ->assertSee('target="_blank"', false)
+            ->assertSee('rel="noopener noreferrer"', false)
+            ->assertSee('30 يوماً')
+            ->getContent();
+
+        $venuePos = strrpos($html, 'موقع البرنامج');
+        $feesPos = strpos($html, 'الرسوم');
+        $this->assertNotFalse($venuePos);
+        $this->assertNotFalse($feesPos);
+        $this->assertGreaterThan($feesPos, $venuePos);
     }
 
     public function test_track_catalog_card_shows_plain_text_excerpt_for_tiptap_description(): void
