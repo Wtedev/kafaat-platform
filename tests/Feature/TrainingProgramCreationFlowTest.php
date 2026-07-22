@@ -273,7 +273,7 @@ class TrainingProgramCreationFlowTest extends TestCase
             ->assertDontSee('موعد التسجيل');
     }
 
-    public function test_public_show_page_renders_program_presenters_section(): void
+    public function test_public_show_page_does_not_render_program_presenters_section(): void
     {
         $program = $this->createPublishedProgram([
             'title' => 'برنامج قادة التطوع',
@@ -288,11 +288,9 @@ class TrainingProgramCreationFlowTest extends TestCase
 
         $this->get(route('public.programs.show', $program->slug))
             ->assertOk()
-            ->assertSee('مقدمو البرنامج')
-            ->assertSee('أ. أحمد الرفاعي')
-            ->assertSee('دكتوراه في التمكين الشخصي والقيادي')
-            ->assertSee('د. محمد النصار')
-            ->assertSee('دكتوراه في القيادة والإدارة التربوية');
+            ->assertDontSee('مقدمو البرنامج')
+            ->assertDontSee('أ. أحمد الرفاعي')
+            ->assertDontSee('د. محمد النصار');
     }
 
     public function test_apply_delivery_mode_fields_clears_venue_for_remote_programs(): void

@@ -6,7 +6,6 @@ use App\Enums\CompetencyTrack;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
 use App\Models\TrainingProgram;
-use App\Support\TrainingProgramExtrasSupport;
 use Database\Seeders\VolunteerLeadersProgramPresentersSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -15,38 +14,16 @@ class VolunteerLeadersProgramPresentersSeederTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_sets_presenters_for_matching_title(): void
+    public function test_clears_presenters_for_matching_title(): void
     {
         $program = TrainingProgram::query()->create([
             'title' => 'برنامج قادة التطوع',
             'program_kind' => TrainingProgramKind::Course,
             'competency_track' => CompetencyTrack::Community,
             'status' => ProgramStatus::Published,
-            'program_presenters' => null,
-        ]);
-
-        $this->seed(VolunteerLeadersProgramPresentersSeeder::class);
-
-        $program->refresh();
-
-        $this->assertSame(
-            TrainingProgramExtrasSupport::normalizeProgramPresenters(
-                VolunteerLeadersProgramPresentersSeeder::PRESENTERS,
-            ),
-            $program->program_presenters,
-        );
-    }
-
-    public function test_updates_presenters_when_canonical_list_changes(): void
-    {
-        $program = TrainingProgram::query()->create([
-            'title' => 'قادة التطوع',
-            'program_kind' => TrainingProgramKind::Course,
-            'competency_track' => CompetencyTrack::Community,
-            'status' => ProgramStatus::Published,
             'program_presenters' => [
-                ['name' => 'أحمد الرفاعي', 'role' => ''],
-                ['name' => 'د. محمد النصار', 'role' => ''],
+                ['name' => 'أ. أحمد الرفاعي', 'role' => 'دكتوراه في التمكين الشخصي والقيادي'],
+                ['name' => 'د. محمد النصار', 'role' => 'دكتوراه في القيادة والإدارة التربوية'],
             ],
         ]);
 
@@ -54,26 +31,17 @@ class VolunteerLeadersProgramPresentersSeederTest extends TestCase
 
         $program->refresh();
 
-        $this->assertSame(
-            TrainingProgramExtrasSupport::normalizeProgramPresenters(
-                VolunteerLeadersProgramPresentersSeeder::PRESENTERS,
-            ),
-            $program->program_presenters,
-        );
+        $this->assertNull($program->program_presenters);
     }
 
-    public function test_re_run_is_idempotent_when_presenters_already_set(): void
+    public function test_re_run_is_idempotent_when_presenters_already_cleared(): void
     {
-        $canonical = TrainingProgramExtrasSupport::normalizeProgramPresenters(
-            VolunteerLeadersProgramPresentersSeeder::PRESENTERS,
-        );
-
         $program = TrainingProgram::query()->create([
             'title' => 'قادة التطوع',
             'program_kind' => TrainingProgramKind::Course,
             'competency_track' => CompetencyTrack::Community,
             'status' => ProgramStatus::Published,
-            'program_presenters' => $canonical,
+            'program_presenters' => null,
         ]);
 
         $this->seed(VolunteerLeadersProgramPresentersSeeder::class);
@@ -81,6 +49,6 @@ class VolunteerLeadersProgramPresentersSeederTest extends TestCase
 
         $program->refresh();
 
-        $this->assertSame($canonical, $program->program_presenters);
+        $this->assertNull($program->program_presenters);
     }
 }

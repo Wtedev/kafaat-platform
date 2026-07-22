@@ -3,24 +3,15 @@
 namespace Database\Seeders;
 
 use App\Models\TrainingProgram;
-use App\Support\TrainingProgramExtrasSupport;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Sets durable «مقدمو البرنامج» for قادة التطوع. Safe to re-run.
+ * Clears «مقدمو البرنامج» for قادة التطوع (public section removed). Safe to re-run.
  */
 class VolunteerLeadersProgramPresentersSeeder extends Seeder
 {
     public const TITLE_NEEDLE = 'قادة التطوع';
-
-    /**
-     * @var list<array{name: string, role: string}>
-     */
-    public const PRESENTERS = [
-        ['name' => 'أ. أحمد الرفاعي', 'role' => 'دكتوراه في التمكين الشخصي والقيادي'],
-        ['name' => 'د. محمد النصار', 'role' => 'دكتوراه في القيادة والإدارة التربوية'],
-    ];
 
     public function run(): void
     {
@@ -35,8 +26,6 @@ class VolunteerLeadersProgramPresentersSeeder extends Seeder
 
             return;
         }
-
-        $canonical = TrainingProgramExtrasSupport::normalizeProgramPresenters(self::PRESENTERS);
 
         $matched = TrainingProgram::query()
             ->where('title', 'like', '%'.self::TITLE_NEEDLE.'%')
@@ -53,20 +42,16 @@ class VolunteerLeadersProgramPresentersSeeder extends Seeder
         $updated = 0;
 
         foreach ($matched as $program) {
-            $current = TrainingProgramExtrasSupport::normalizeProgramPresenters(
-                is_array($program->program_presenters) ? $program->program_presenters : null,
-            );
-
-            if ($current === $canonical) {
+            if ($program->program_presenters === null) {
                 continue;
             }
 
-            $program->forceFill(['program_presenters' => $canonical])->save();
+            $program->forceFill(['program_presenters' => null])->save();
             $updated++;
         }
 
         $this->command?->info(sprintf(
-            'VolunteerLeadersProgramPresentersSeeder: matched %d program(s), updated %d.',
+            'VolunteerLeadersProgramPresentersSeeder: matched %d program(s), cleared presenters on %d.',
             $matched->count(),
             $updated,
         ));

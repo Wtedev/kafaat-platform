@@ -58,15 +58,6 @@ $ackLabel = $inPerson
                 'mt-0 border-0 pt-0' => blank($trainingProgram->description),
             ])
         />
-        <x-public.program-presenters
-            :presenters="$trainingProgram->program_presenters"
-            @class([
-                'mt-8 border-t border-[#c5d4e4]/70 pt-8' => filled($trainingProgram->description)
-                    || ((bool) $trainingProgram->session_topics_enabled && filled(\App\Support\TrainingProgramExtrasSupport::publicSessionTopics($trainingProgram))),
-                'mt-0 border-0 pt-0' => blank($trainingProgram->description)
-                    && ! ((bool) $trainingProgram->session_topics_enabled && filled(\App\Support\TrainingProgramExtrasSupport::publicSessionTopics($trainingProgram))),
-            ])
-        />
     </x-slot:afterDescription>
 
     <x-slot:sidebar>
