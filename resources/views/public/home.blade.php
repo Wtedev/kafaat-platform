@@ -98,9 +98,160 @@
         #kafaat-stats.is-visible .stat-item:nth-child(5) { transition-delay: 0.33s; }
         #kafaat-stats.is-visible .stat-item:nth-child(6) { transition-delay: 0.4s; }
 
+        /* ── Project / work-area cards ─────────────────────────────────── */
         .vm-card {
-            transition: transform 0.35s cubic-bezier(.22, 1, .36, 1),
-                box-shadow 0.35s cubic-bezier(.22, 1, .36, 1);
+            position: relative;
+            display: block;
+            overflow: hidden;
+            border-radius: 1.25rem;
+            border: 1px solid rgba(197, 212, 228, 0.55);
+            background: #fff;
+            padding: 1.75rem 1.5rem 1.5rem;
+            text-align: right;
+            box-shadow:
+                0 1px 2px rgba(36, 58, 85, 0.04),
+                0 8px 24px rgba(36, 58, 85, 0.05);
+            transition:
+                transform 0.4s cubic-bezier(.22, 1, .36, 1),
+                box-shadow 0.4s cubic-bezier(.22, 1, .36, 1),
+                border-color 0.4s ease,
+                background-color 0.4s ease;
+        }
+
+        .vm-card::before {
+            content: '';
+            position: absolute;
+            inset-block-start: 0;
+            inset-inline: 0;
+            height: 3px;
+            background: var(--vm-accent, var(--brand-primary, #335483));
+            opacity: 0.85;
+            transform: scaleX(0.28);
+            transform-origin: right center;
+            transition: transform 0.4s cubic-bezier(.22, 1, .36, 1), opacity 0.4s ease;
+        }
+
+        .vm-card__icon {
+            width: 3.25rem;
+            height: 3.25rem;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--vm-tint, #e9eff6);
+            transition: transform 0.4s cubic-bezier(.22, 1, .36, 1);
+        }
+
+        .vm-card__dot {
+            width: 0.7rem;
+            height: 0.7rem;
+            border-radius: 9999px;
+            background: var(--vm-accent, #335483);
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--vm-accent, #335483) 18%, transparent);
+        }
+
+        .vm-card__title {
+            margin: 0 0 0.5rem;
+            font-size: 1.125rem;
+            line-height: 1.4;
+            font-weight: 700;
+            color: #111827;
+            letter-spacing: -0.01em;
+        }
+
+        .vm-card__desc {
+            margin: 0;
+            font-size: 0.875rem;
+            line-height: 1.75;
+            color: #6B7280;
+        }
+
+        .vm-card__badge {
+            font-size: 0.625rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 0.3rem 0.65rem;
+            border-radius: 0.5rem;
+            background: #ededf7;
+            color: var(--brand-sanad, #4f53a3);
+        }
+
+        .vm-card__cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-top: 1.25rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--brand-primary, #335483);
+            opacity: 0.72;
+            transition: opacity 0.3s ease, gap 0.3s ease;
+        }
+
+        .vm-card__cta svg {
+            width: 1rem;
+            height: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        a.vm-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(51, 84, 131, 0.22);
+            box-shadow:
+                0 2px 4px rgba(36, 58, 85, 0.04),
+                0 16px 36px rgba(36, 58, 85, 0.09);
+        }
+
+        a.vm-card:hover::before {
+            transform: scaleX(1);
+            opacity: 1;
+        }
+
+        a.vm-card:hover .vm-card__icon {
+            transform: scale(1.05);
+        }
+
+        a.vm-card:hover .vm-card__cta {
+            opacity: 1;
+            gap: 0.5rem;
+        }
+
+        a.vm-card:hover .vm-card__cta svg {
+            transform: translateX(-3px);
+        }
+
+        .vm-card--soon {
+            border-style: dashed;
+            border-color: rgba(197, 212, 228, 0.9);
+            background: rgba(255, 255, 255, 0.78);
+            opacity: 0.92;
+            cursor: default;
+        }
+
+        .vm-card--soon::before {
+            opacity: 0.45;
+            transform: scaleX(0.2);
+        }
+
+        @media (min-width: 640px) {
+            .vm-card {
+                padding: 2rem 1.75rem 1.75rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .vm-card,
+            .vm-card::before,
+            .vm-card__icon,
+            .vm-card__cta,
+            .vm-card__cta svg {
+                transition: none;
+            }
+
+            a.vm-card:hover {
+                transform: none;
+            }
         }
 
         .news-slider-track {
@@ -110,11 +261,6 @@
 
         .news-slider-track::-webkit-scrollbar {
             display: none;
-        }
-
-        .vm-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 24px 48px rgba(37, 59, 91, 0.12);
         }
 
         /* ── Homepage hero ─────────────────────────────────────────────── */
@@ -626,7 +772,7 @@
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-7">
                 @php
                 $workAreas = [
                 [
@@ -659,28 +805,42 @@
                 ];
                 @endphp
                 @foreach($workAreas as $area)
-                @if ($area['href'] && ! ($area['soon'] ?? false))
-                <a href="{{ $area['href'] }}" class="vm-card block rounded-3xl border border-gray-100 bg-white p-6 text-right shadow-sm hover:shadow-md transition-all">
-                    @else
-                    <div class="vm-card block rounded-3xl border border-dashed border-gray-200 bg-white/80 p-6 text-right shadow-sm opacity-90">
-                        @endif
-                        <div class="flex items-center justify-end gap-2 mb-4">
-                            @if (! empty($area['badge']))
-                            <span class="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-lg bg-[#ededf7] text-brand-sanad">{{ $area['badge'] }}</span>
-                            @endif
-                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center" style="background:{{ $area['bg'] }}">
-                                <span class="w-3 h-3 rounded-full" style="background:{{ $area['color'] }}"></span>
-                            </div>
+                @php $isLink = $area['href'] && ! ($area['soon'] ?? false); @endphp
+                @if ($isLink)
+                <a
+                    href="{{ $area['href'] }}"
+                    class="vm-card group"
+                    style="--vm-accent: {{ $area['color'] }}; --vm-tint: {{ $area['bg'] }};"
+                >
+                @else
+                <div
+                    class="vm-card vm-card--soon"
+                    style="--vm-accent: {{ $area['color'] }}; --vm-tint: {{ $area['bg'] }};"
+                >
+                @endif
+                    <div class="mb-5 flex items-center justify-between gap-3">
+                        <div class="vm-card__icon" aria-hidden="true">
+                            <span class="vm-card__dot"></span>
                         </div>
-                        <h3 class="text-lg font-bold mb-2">{{ $area['title'] }}</h3>
-                        <p class="text-sm leading-relaxed" style="color:#6B7280">{{ $area['desc'] }}</p>
-                        @if ($area['href'] && ! ($area['soon'] ?? false))
+                        @if (! empty($area['badge']))
+                        <span class="vm-card__badge">{{ $area['badge'] }}</span>
+                        @endif
+                    </div>
+                    <h3 class="vm-card__title">{{ $area['title'] }}</h3>
+                    <p class="vm-card__desc">{{ $area['desc'] }}</p>
+                    @if ($isLink)
+                    <span class="vm-card__cta">
+                        استكشف
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </span>
                 </a>
                 @else
+                </div>
+                @endif
+                @endforeach
             </div>
-            @endif
-            @endforeach
-        </div>
         </div>
     </section>
 
