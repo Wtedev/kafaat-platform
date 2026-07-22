@@ -85,6 +85,9 @@ final class OrganizationalStructureCatalog
                         [
                             'name' => 'قسم العلاقات العامة والشراكات',
                             'manager' => ['name' => 'حسام عبدالعزيز التويجري', 'title' => 'رئيس قسم'],
+                            'members' => [
+                                ['name' => 'زياد عبدالله الحصيان', 'title' => ''],
+                            ],
                         ],
                     ],
                 ],
