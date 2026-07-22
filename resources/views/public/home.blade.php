@@ -805,7 +805,7 @@
                         <img
                             src="{{ asset('images/home/riyada-tulhim-logo.png') }}"
                             alt="ريادة تلهم — الحفل السنوي لعام 2025م"
-                            class="mb-7 inline-block h-28 w-auto rounded-md sm:mb-8 sm:h-32 lg:mb-9 lg:h-36"
+                            class="mb-12 inline-block h-28 w-auto rounded-md sm:mb-14 sm:h-32 lg:mb-16 lg:h-36"
                             width="560"
                             height="224"
                         >
