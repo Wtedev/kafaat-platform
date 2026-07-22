@@ -28,7 +28,7 @@ final class OrganizationalStructureCatalog
                 [
                     'name' => 'إدارة الموارد البشرية',
                     'members' => [
-                        ['name' => 'ريماس أحمد الصقر', 'title' => 'الموارد البشرية (متدرب سند)'],
+                        ['name' => 'ريماس أحمد الصقر', 'title' => 'متدرب'],
                     ],
                 ],
                 [
