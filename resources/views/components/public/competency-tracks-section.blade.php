@@ -83,7 +83,7 @@
                     aria-label="توسيع {{ $track->shortLabel() }}"
                     tabindex="{{ $isDefault ? '0' : '-1' }}"
                 >
-                    <span class="track-collapsed-label">{{ $collapsedLabels[$trackKey] ?? $track->shortLabel() }}</span>
+                    <span class="track-collapsed-label text-white">{{ $collapsedLabels[$trackKey] ?? $track->shortLabel() }}</span>
                     <span class="track-expand-chevron" aria-hidden="true">
                         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6" />
@@ -100,8 +100,8 @@
                 >
                     <div class="track-panel-top">
                         <div class="track-panel-intro">
-                            <h3 class="track-panel-title">{{ $track->shortLabel() }}</h3>
-                            <p class="track-panel-desc clamp-2">{{ $cfg['description'] ?? '' }}</p>
+                            <h3 class="track-panel-title text-white">{{ $track->shortLabel() }}</h3>
+                            <p class="track-panel-desc clamp-2 text-white">{{ $cfg['description'] ?? '' }}</p>
                         </div>
                     </div>
 
@@ -143,7 +143,7 @@
                         @endif
                     @else
                         <div class="track-empty">
-                            <p class="track-empty-text">لا توجد برامج منشورة حالياً.</p>
+                            <p class="track-empty-text text-white">لا توجد برامج منشورة حالياً.</p>
                             <a href="{{ route('public.programs.track', $track) }}" class="track-empty-link">تصفّح المسار</a>
                         </div>
                     @endif
@@ -345,6 +345,7 @@
             line-height: 1.35;
             text-align: center;
             white-space: normal;
+            color: #fff;
             text-shadow: 0 1px 8px rgba(0, 0, 0, 0.15);
         }
 
@@ -477,6 +478,20 @@
             min-width: 0;
         }
 
+        /*
+         | Brand typography (html:not(.fi) h3/h4/p) paints titles teal/blue.
+         | Colored track panels need white copy — scoped here only.
+         */
+        .track-panel .track-panel-title,
+        .track-panel .track-collapsed-label {
+            color: #fff;
+        }
+
+        .track-panel .track-panel-desc,
+        .track-panel .track-empty-text {
+            color: rgba(255, 255, 255, 0.92);
+        }
+
         .track-panel-title {
             font-size: 1.25rem;
             font-weight: 700;
@@ -543,7 +558,8 @@
             padding: 1rem 1.15rem 1.15rem;
         }
 
-        .track-program-title {
+        /* White program cards — keep dark titles (beat global h4 brand color). */
+        .track-program-card .track-program-title {
             margin-bottom: 0.4rem;
             font-size: 0.9375rem;
             font-weight: 700;
