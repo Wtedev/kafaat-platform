@@ -608,15 +608,21 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 10px rgba(0, 0, 0, 0.22);
         }
 
+        /* Physical left/bottom — do not use Tailwind left-* here; production
+           build may omit those utilities, and the CTA then sticks to RTL static (right). */
         .annual-report-cta {
+            position: absolute;
+            left: 1.25rem;
+            right: auto;
+            bottom: 1.25rem;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.35rem;
+            gap: 0.4rem;
             padding: 0;
             border-radius: 0;
             color: #fff;
-            font-size: 0.75rem;
+            font-size: 0.875rem;
             font-weight: 400;
             line-height: 1.25;
             background: transparent;
@@ -630,9 +636,30 @@
         }
 
         .annual-report-cta svg {
-            width: 0.7rem;
-            height: 0.7rem;
+            width: 0.9rem;
+            height: 0.9rem;
             flex-shrink: 0;
+        }
+
+        @media (min-width: 640px) {
+            .annual-report-cta {
+                left: 1.5rem;
+                bottom: 1.5rem;
+                font-size: 1rem;
+                gap: 0.45rem;
+            }
+
+            .annual-report-cta svg {
+                width: 1rem;
+                height: 1rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .annual-report-cta {
+                left: 1.75rem;
+                bottom: 1.75rem;
+            }
         }
 
     </style>
@@ -820,7 +847,7 @@
                         href="{{ asset('reports/annual-report-2025.pdf') }}"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="annual-report-cta absolute bottom-5 left-5 sm:bottom-6 sm:left-10 lg:bottom-7 lg:left-16"
+                        class="annual-report-cta"
                         aria-label="عرض التقرير السنوي 2025"
                     >
                         <span>عرض التقرير السنوي 2025</span>
