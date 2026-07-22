@@ -613,20 +613,20 @@
             align-items: center;
             justify-content: center;
             gap: 0.35rem;
-            padding: 0.4rem 0.75rem;
-            border-radius: 0.25rem;
+            padding: 0;
+            border-radius: 0;
             color: #fff;
             font-size: 0.75rem;
             font-weight: 400;
             line-height: 1.25;
-            background: #53565A;
+            background: transparent;
             border: none;
             white-space: nowrap;
-            transition: background 0.2s ease, opacity 0.2s ease;
+            transition: opacity 0.2s ease;
         }
 
         .annual-report-cta:hover {
-            background: #45484c;
+            opacity: 0.85;
         }
 
         .annual-report-cta svg {
