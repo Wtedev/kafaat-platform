@@ -600,7 +600,10 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 18px rgba(0, 0, 0, 0.28);
         }
 
-        .annual-report-banner__subtitle,
+        .annual-report-banner__subtitle {
+            color: #1a9399;
+        }
+
         .annual-report-banner__body {
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 10px rgba(0, 0, 0, 0.22);
         }
@@ -609,37 +612,27 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.75rem;
-            min-height: 3.25rem;
-            width: 100%;
-            padding: 0.9rem 1.35rem;
-            border-radius: 1rem;
+            gap: 0.35rem;
+            padding: 0.4rem 0.75rem;
+            border-radius: 0.25rem;
             color: #fff;
-            font-size: 0.95rem;
-            font-weight: 600;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            font-size: 0.75rem;
+            font-weight: 400;
+            line-height: 1.25;
+            background: #53565A;
+            border: none;
+            white-space: nowrap;
+            transition: background 0.2s ease, opacity 0.2s ease;
         }
 
         .annual-report-cta:hover {
-            background: rgba(255, 255, 255, 0.16);
-            border-color: rgba(255, 255, 255, 0.4);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+            background: #45484c;
         }
 
-        @media (min-width: 768px) {
-            .annual-report-cta {
-                width: 10rem;
-                height: 10rem;
-                flex-direction: column;
-                min-height: 0;
-                padding: 1.25rem;
-                border-radius: 1.5rem;
-            }
+        .annual-report-cta svg {
+            width: 0.7rem;
+            height: 0.7rem;
+            flex-shrink: 0;
         }
 
     </style>
@@ -806,38 +799,35 @@
     <section class="py-6 sm:py-8 px-4 sm:px-6" aria-labelledby="annual-report-heading">
         <div class="mx-auto max-w-7xl">
             <div class="annual-report-banner">
-                <div class="relative z-10 flex flex-col gap-7 px-5 py-9 sm:gap-9 sm:px-10 sm:py-12 md:flex-row md:items-center md:justify-between lg:gap-12 lg:px-16 lg:py-14">
+                <div class="relative z-10 px-5 py-9 pb-16 sm:px-10 sm:py-12 sm:pb-[4.25rem] lg:px-16 lg:py-14 lg:pb-[4.5rem]">
 
-                    <div class="min-w-0 flex-1 text-right">
+                    <div class="min-w-0 text-right">
                         <img
                             src="{{ asset('images/home/riyada-tulhim-logo.png') }}"
                             alt="ريادة تلهم — الحفل السنوي لعام 2025م"
-                            class="mb-4 inline-block h-28 w-auto rounded-md sm:h-32 lg:h-36"
+                            class="mb-7 inline-block h-28 w-auto rounded-md sm:mb-8 sm:h-32 lg:mb-9 lg:h-36"
                             width="560"
                             height="224"
                         >
                         <h2 id="annual-report-heading" class="annual-report-banner__title mb-1 text-2xl font-bold text-white sm:text-3xl">أبرز أرقام جمعية كفاءات</h2>
-                        <p class="annual-report-banner__subtitle mb-3 text-sm font-medium text-white/90 sm:text-base">لعام 2025</p>
+                        <p class="annual-report-banner__subtitle mb-3 text-sm font-bold sm:text-base">لعام 2025</p>
                         <p class="annual-report-banner__body max-w-md text-sm leading-relaxed sm:text-base" style="color:rgba(255,255,255,0.88)">
                             تقرير شامل يرصد إنجازات جمعية كفاءات خلال عام 2025: برامجها التدريبية، عملها التطوعي، وأثرها المجتمعي.
                         </p>
                     </div>
 
-                    <div class="w-full shrink-0 md:w-auto">
-                        <a
-                            href="{{ asset('reports/annual-report-2025.pdf') }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="annual-report-cta"
-                            aria-label="عرض التقرير السنوي 2025"
-                        >
-                            <svg class="h-6 w-6 shrink-0 opacity-95 sm:h-9 sm:w-9" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            <span>عرض التقرير</span>
-                        </a>
-                    </div>
+                    <a
+                        href="{{ asset('reports/annual-report-2025.pdf') }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="annual-report-cta absolute bottom-5 left-5 sm:bottom-6 sm:left-10 lg:bottom-7 lg:left-16"
+                        aria-label="عرض التقرير السنوي 2025"
+                    >
+                        <span>عرض التقرير السنوي 2025</span>
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </a>
 
                 </div>
             </div>
