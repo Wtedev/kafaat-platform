@@ -14,7 +14,7 @@
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             مسارات الكفاءة
         </a>
-        <h1 class="text-2xl font-bold sm:text-3xl" style="color:#111827">{{ $track->label() }}</h1>
+        <h1 class="text-2xl font-bold sm:text-3xl">{{ $track->label() }}</h1>
         <p class="mt-2 max-w-2xl text-sm leading-relaxed sm:text-base" style="color:#6B7280">{{ $meta['description'] ?? '' }}</p>
         @if (! empty($meta['stat_label']))
         <p class="mt-3 inline-flex rounded-lg px-3 py-1 text-xs font-semibold" style="background:{{ $color }}12; color:{{ $color }}">{{ $meta['stat_label'] }}</p>
@@ -29,12 +29,12 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
         </svg>
     </span>
-    <p class="text-base font-semibold" style="color:#111827">لا توجد برامج في هذا المسار حالياً</p>
+    <p class="text-base font-semibold" style="color:var(--brand-body)">لا توجد برامج في هذا المسار حالياً</p>
     <p class="mt-1.5 text-sm" style="color:#6B7280">اختر مساراً آخر من قائمة البرامج في الأعلى.</p>
 </div>
 @else
 <p class="mb-5 text-sm" style="color:#6B7280">
-    <span class="font-bold tabular-nums" style="color:#111827">{{ en_num($programs->total()) }}</span> برنامج متاح
+    <span class="font-bold tabular-nums" style="color:var(--brand-body)">{{ en_num($programs->total()) }}</span> برنامج متاح
 </p>
 
 <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -54,7 +54,7 @@
         />
 
         <div class="p-5">
-            <h3 class="mb-2 font-bold leading-snug transition-colors group-hover:text-[#335483]" style="color:#111827">{{ $program->title }}</h3>
+            <h3 class="mb-2 font-bold leading-snug transition-colors group-hover:text-[#335483]">{{ $program->title }}</h3>
             @if (filled($descriptionExcerpt))
             <p class="line-clamp-2 text-sm leading-relaxed" style="color:#6B7280">{{ $descriptionExcerpt }}</p>
             @endif

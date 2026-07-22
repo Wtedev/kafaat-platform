@@ -3,7 +3,7 @@
 @section('content')
 
 <div class="mb-8">
-    <h1 class="text-3xl font-bold" style="color:#111827">الفرص التطوعية</h1>
+    <h1 class="text-3xl font-bold">الفرص التطوعية</h1>
     <p class="mt-2 text-sm" style="color:#6B7280">أسهم في خدمة مجتمعك من خلال فرص تطوعية متنوعة ذات أثر حقيقي.</p>
 </div>
 
@@ -27,7 +27,7 @@
         />
 
         <div class="p-5">
-        <h3 class="font-semibold mb-2 group-hover:text-[#335483] transition-colors" style="color:#111827">{{ $opp->title }}</h3>
+        <h3 class="font-semibold mb-2 group-hover:text-[#335483] transition-colors">{{ $opp->title }}</h3>
         <p class="text-sm line-clamp-3" style="color:#6B7280">{{ $opp->description }}</p>
         <div class="mt-3 flex flex-wrap gap-3 text-xs" style="color:#6B7280">
             @if ($opp->hours_expected)

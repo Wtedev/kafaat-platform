@@ -8,7 +8,7 @@
     <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl" style="background:#e9eff6">
         <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
     </div>
-    <h3 class="mb-1 text-lg font-semibold" style="color:#374151">{{ $emptyTitle }}</h3>
+    <h3 class="mb-1 text-lg font-semibold">{{ $emptyTitle }}</h3>
     <p class="text-sm" style="color:#9CA3AF">سيتم إضافة المحتوى قريباً.</p>
 </div>
 @else
@@ -25,7 +25,7 @@
         </div>
         @endif
 
-        <h3 class="mb-1 text-base font-bold" style="color:#111827">{{ $member->name }}</h3>
+        <h3 class="mb-1 text-base font-bold">{{ $member->name }}</h3>
         @if ($member->role)
         <p class="mb-3 rounded-full px-3 py-1 text-xs font-medium" style="background:#e9eff6; color:#335483">{{ $member->role }}</p>
         @endif

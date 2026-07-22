@@ -25,7 +25,7 @@
     </div>
 
     {{-- Title --}}
-    <h1 class="text-3xl font-bold leading-snug mb-5 text-right" style="color:#111827">{{ $news->title }}</h1>
+    <h1 class="text-3xl font-bold leading-snug mb-5 text-right">{{ $news->title }}</h1>
 
     {{-- Excerpt --}}
     @if ($news->excerpt)

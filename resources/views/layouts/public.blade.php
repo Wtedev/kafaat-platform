@@ -21,7 +21,7 @@
 
         button:focus-visible,
         a:focus-visible {
-            outline: 2px solid #335483;
+            outline: 2px solid var(--brand-primary, #335483);
             outline-offset: 3px;
             border-radius: 8px;
         }
@@ -30,7 +30,7 @@
 
     @yield('head')
 </head>
-<body class="bg-[#F7FAFC] text-[#111827] antialiased font-sans">
+<body class="bg-[#F7FAFC] text-brand-body antialiased font-sans">
 
     {{-- ── Navbar ──────────────────────────────────────────────────────── --}}
     <x-public-navbar />

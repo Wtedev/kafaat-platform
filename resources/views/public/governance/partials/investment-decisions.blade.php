@@ -7,7 +7,7 @@
     <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl" style="background:#e9eff6">
         <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
     </div>
-    <h3 class="mb-1 text-lg font-semibold" style="color:#374151">لا توجد قرارات استثمارية منشورة حالياً</h3>
+    <h3 class="mb-1 text-lg font-semibold">لا توجد قرارات استثمارية منشورة حالياً</h3>
     <p class="text-sm" style="color:#9CA3AF">سيتم إضافة المحتوى قريباً.</p>
 </div>
 @else
@@ -26,7 +26,7 @@
                     {{ en_num($yearRecord->year) }}
                 </span>
                 <div class="min-w-0 flex-1">
-                    <h3 class="text-base font-bold leading-snug" style="color:#111827">{{ $yearRecord->title }}</h3>
+                    <h3 class="text-base font-bold leading-snug">{{ $yearRecord->title }}</h3>
                     <p class="mt-0.5 text-xs" style="color:#9CA3AF">
                         @if ($items->isNotEmpty())
                             {{ en_num($items->count()) }} {{ $items->count() === 1 ? 'قرار' : 'قرارات' }}
@@ -51,7 +51,7 @@
                     <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold" style="background:#335483; color:#fff">
                         {{ en_num($loop->iteration) }}
                     </span>
-                    <p class="flex-1 pt-0.5 text-sm leading-relaxed" style="color:#374151">{{ $item->content }}</p>
+                    <p class="flex-1 pt-0.5 text-sm leading-relaxed" style="color:var(--brand-body)">{{ $item->content }}</p>
                 </li>
                 @endforeach
             </ol>
@@ -69,7 +69,7 @@
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                     </span>
                     <div class="min-w-0">
-                        <p class="text-sm font-semibold" style="color:#111827">مرفق PDF</p>
+                        <p class="text-sm font-semibold" style="color:var(--brand-body)">مرفق PDF</p>
                         <p class="truncate text-xs" style="color:#9CA3AF">{{ $downloadName }}</p>
                     </div>
                 </div>

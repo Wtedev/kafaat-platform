@@ -20,7 +20,7 @@
 {{-- Page Header --}}
 <div class="text-right mb-10">
     <p class="text-sm font-semibold uppercase tracking-widest mb-2" style="color:#1a9399">الشفافية والامتثال</p>
-    <h1 class="text-3xl sm:text-4xl font-bold mb-3" style="color:#111827">اللوائح والأنظمة</h1>
+    <h1 class="text-3xl sm:text-4xl font-bold mb-3">اللوائح والأنظمة</h1>
     <p class="text-base leading-relaxed max-w-2xl" style="color:#6B7280">
         تعرّف على اللوائح والأنظمة التي تحكم عمل الجمعية وتضمن الشفافية والمساءلة في جميع مستوياتها.
     </p>
@@ -32,7 +32,7 @@
         <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:#e9eff6">
             <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         </div>
-        <h2 class="text-xl font-semibold mb-2" style="color:#374151">لا توجد لوائح منشورة حالياً</h2>
+        <h2 class="text-xl font-semibold mb-2">لا توجد لوائح منشورة حالياً</h2>
         <p class="text-sm" style="color:#9CA3AF">تابعنا قريباً لمزيد من المستجدات.</p>
     </div>
 @else
@@ -42,7 +42,7 @@
             @if($category)
             <div class="flex items-center gap-3 mb-6">
                 <div class="w-1 h-7 rounded-full" style="background:#335483"></div>
-                <h2 class="text-xl font-bold" style="color:#111827">{{ $category }}</h2>
+                <h2 class="text-xl font-bold">{{ $category }}</h2>
             </div>
             @endif
 
@@ -55,7 +55,7 @@
                     </div>
 
                     {{-- Title --}}
-                    <h3 class="text-base font-bold mb-2 leading-snug" style="color:#111827">{{ $regulation->title }}</h3>
+                    <h3 class="text-base font-bold mb-2 leading-snug">{{ $regulation->title }}</h3>
 
                     {{-- Description --}}
                     @if($regulation->description)

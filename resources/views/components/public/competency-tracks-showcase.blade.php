@@ -20,7 +20,7 @@ $order = CompetencyTrackCatalog::order();
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             {{ $intro['badge'] ?? 'مسارات الكفاءة' }}
         </div>
-        <h2 class="mb-3 text-3xl font-bold sm:text-4xl" style="color:#111827">{{ $intro['title'] ?? 'مسارات الكفاءة' }}</h2>
+        <h2 class="mb-3 text-3xl font-bold sm:text-4xl">{{ $intro['title'] ?? 'مسارات الكفاءة' }}</h2>
         <p class="mx-auto max-w-3xl text-base leading-relaxed sm:text-lg" style="color:#6B7280">{{ $intro['subtitle'] ?? '' }}</p>
     </div>
     @endunless
@@ -75,7 +75,7 @@ $order = CompetencyTrackCatalog::order();
     @unless ($compact)
     <div class="mt-10 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
         <div class="mb-6 text-center">
-            <h3 class="text-xl font-bold" style="color:#111827">أرقام تعكس تنوّع مساراتنا</h3>
+            <h3 class="text-xl font-bold">أرقام تعكس تنوّع مساراتنا</h3>
             <p class="mt-2 text-sm" style="color:#6B7280">برامج الجمعية موزّعة على مسارات الكفاءة الثلاثة لخدمة احتياجات الشباب المتنوعة.</p>
         </div>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -89,7 +89,7 @@ $order = CompetencyTrackCatalog::order();
                     <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl" style="background: {{ ($meta['color'] ?? '#335483') }}22">
                         <span class="h-3 w-3 rounded-full" style="background: {{ $meta['color'] ?? '#335483' }}"></span>
                     </div>
-                    <div class="text-3xl font-bold tabular-nums" style="color:#111827">{{ en_num($count) }}</div>
+                    <div class="text-3xl font-bold tabular-nums" style="color:var(--brand-body)">{{ en_num($count) }}</div>
                     <div class="mt-1 text-sm font-semibold" style="color:#335483">{{ $track->shortLabel() }}</div>
                     <div class="mt-1 text-xs" style="color:#9CA3AF">{{ $meta['stat_label'] ?? '' }}</div>
                 </div>

@@ -58,7 +58,7 @@
 {{-- Page Header --}}
 <div class="text-right mb-8">
     <p class="text-sm font-semibold uppercase tracking-widest mb-2" style="color:#1a9399">أخبار وصور</p>
-    <h1 class="text-3xl sm:text-4xl font-bold mb-3" style="color:#111827">المركز الإعلامي</h1>
+    <h1 class="text-3xl sm:text-4xl font-bold mb-3">المركز الإعلامي</h1>
     <p class="text-base leading-relaxed max-w-2xl" style="color:#6B7280">
         تابع آخر أخبار الجمعية وتصفّح مكتبة الصور من فعالياتنا وبرامجنا.
     </p>
@@ -96,7 +96,7 @@
         <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:#e9eff6">
             <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
         </div>
-        <h3 class="text-lg font-semibold mb-1" style="color:#374151">لا توجد أخبار منشورة حالياً</h3>
+        <h3 class="text-lg font-semibold mb-1">لا توجد أخبار منشورة حالياً</h3>
         <p class="text-sm" style="color:#9CA3AF">تابعنا قريباً لمزيد من الأخبار.</p>
     </div>
     @else
@@ -117,7 +117,7 @@
                 <span class="text-xs font-semibold mb-2 inline-block" style="color:#1a9399">{{ $item->category }}</span>
                 @endif
 
-                <h3 class="text-base font-bold leading-snug mb-2 flex-1" style="color:#111827">{{ Str::limit($item->title, 80) }}</h3>
+                <h3 class="text-base font-bold leading-snug mb-2 flex-1">{{ Str::limit($item->title, 80) }}</h3>
 
                 @if($item->excerpt)
                 <p class="text-sm leading-relaxed mb-3" style="color:#6B7280">{{ Str::limit($item->excerpt, 100) }}</p>
@@ -154,14 +154,14 @@
         <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:#e9eff6">
             <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         </div>
-        <h3 class="text-lg font-semibold mb-1" style="color:#374151">لا توجد صور منشورة حالياً</h3>
+        <h3 class="text-lg font-semibold mb-1">لا توجد صور منشورة حالياً</h3>
         <p class="text-sm" style="color:#9CA3AF">سيتم إضافة الصور قريباً.</p>
     </div>
     @else
     @foreach($photoSections as $category => $albums)
     <section class="mb-12">
         <div class="mb-6 text-right">
-            <h2 class="text-2xl font-bold mb-2" style="color:#111827">{{ $category }}</h2>
+            <h2 class="text-2xl font-bold mb-2">{{ $category }}</h2>
             <p class="text-sm leading-relaxed max-w-3xl" style="color:#6B7280">{{ \App\Support\MediaPhotoLibrarySupport::categoryDescription($category) }}</p>
         </div>
 
@@ -169,7 +169,7 @@
         <div class="mb-10">
             <div class="flex items-center gap-3 mb-5">
                 <div class="w-1 h-6 rounded-full" style="background:#335483"></div>
-                <h3 class="text-lg font-bold" style="color:#111827">{{ $album }}</h3>
+                <h3 class="text-lg font-bold">{{ $album }}</h3>
                 <span class="text-xs px-2 py-0.5 rounded-full" style="background:#e9eff6; color:#335483">{{ $albumPhotos->count() }} صورة</span>
             </div>
 

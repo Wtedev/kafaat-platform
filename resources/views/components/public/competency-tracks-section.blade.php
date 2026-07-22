@@ -28,7 +28,7 @@
             <p class="mb-1 text-sm font-semibold" style="color:#1a9399">
                 {{ config('competency_tracks.intro.badge') }}
             </p>
-            <h2 id="competency-tracks-heading" class="text-2xl font-bold" style="color:#111827">
+            <h2 id="competency-tracks-heading" class="text-2xl font-bold">
                 {{ config('competency_tracks.intro.title') }}
             </h2>
         </div>

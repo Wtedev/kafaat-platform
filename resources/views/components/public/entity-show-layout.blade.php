@@ -63,7 +63,7 @@ $hasMobileStickyAction = isset($mobileStickyAction) && ! $mobileStickyAction->is
                     $isRichHtml = \App\Support\RichContentSupport::isRichContent($descriptionBody);
                     $descriptionHtml = \App\Support\RichContentSupport::toDisplayHtml($descriptionBody);
                 @endphp
-                <div class="max-w-none text-[15px] leading-8 text-gray-600 sm:text-base text-right font-sans {{ $isRichHtml ? 'prose prose-lg prose-headings:text-[#111827] prose-a:text-[#335483] prose-strong:text-[#111827]' : 'whitespace-pre-line' }}" style="direction: rtl">
+                <div class="max-w-none text-[15px] leading-8 text-gray-600 sm:text-base text-right font-sans {{ $isRichHtml ? 'prose prose-lg prose-headings:text-brand prose-a:text-brand prose-strong:text-brand-body' : 'whitespace-pre-line' }}" style="direction: rtl">
                     {!! $descriptionHtml !!}
                 </div>
                 @elseif (isset($descriptionSlot) && ! $descriptionSlot->isEmpty())

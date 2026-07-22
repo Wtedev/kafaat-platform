@@ -10,14 +10,14 @@
         button:focus-visible,
         a:focus-visible,
         input:focus-visible {
-            outline: 2px solid #335483;
+            outline: 2px solid var(--brand-primary, #335483);
             outline-offset: 3px;
             border-radius: 8px;
         }
     </style>
     @stack('head')
 </head>
-<body class="min-h-screen antialiased font-sans" style="background: linear-gradient(160deg, #EEF5FB 0%, #F7FAFC 45%, #e8eef6 100%)">
+<body class="min-h-screen antialiased font-sans text-brand-body" style="background: linear-gradient(160deg, #EEF5FB 0%, #F7FAFC 45%, #e8eef6 100%)">
     <div class="min-h-screen flex flex-col">
         <header class="px-4 pt-6 pb-2">
             <div class="mx-auto max-w-lg text-center">

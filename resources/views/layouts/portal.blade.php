@@ -15,7 +15,7 @@
 
         button:focus-visible,
         a:focus-visible {
-            outline: 2px solid #335483;
+            outline: 2px solid var(--brand-primary, #335483);
             outline-offset: 3px;
             border-radius: 8px;
         }
@@ -41,7 +41,7 @@
 
     @stack('styles')
 </head>
-<body class="min-h-screen bg-[#F7FAFC] text-[#111827] antialiased font-sans">
+<body class="min-h-screen bg-[#F7FAFC] text-brand-body antialiased font-sans">
 
     <header class="sticky top-0 z-40 border-b border-slate-200/70 bg-white/95 backdrop-blur-sm">
         <div class="mx-auto flex h-14 max-w-7xl min-w-0 items-center justify-between gap-3 px-3 sm:px-6 lg:px-8">

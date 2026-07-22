@@ -53,7 +53,7 @@
         box-shadow: 0 12px 32px rgba(51,84,131,0.08);
     }
     .inv-year-card summary:focus-visible {
-        outline: 2px solid #335483;
+        outline: 2px solid var(--brand-primary, #335483);
         outline-offset: 2px;
     }
 </style>
@@ -64,7 +64,7 @@
 {{-- Page Header --}}
 <div class="text-right mb-8">
     <p class="text-sm font-semibold uppercase tracking-widest mb-2" style="color:#1a9399">الشفافية والمساءلة</p>
-    <h1 class="text-3xl sm:text-4xl font-bold mb-3" style="color:#111827">الحوكمة</h1>
+    <h1 class="text-3xl sm:text-4xl font-bold mb-3">الحوكمة</h1>
     <p class="text-base leading-relaxed max-w-2xl" style="color:#6B7280">
         نلتزم بأعلى معايير الحوكمة والشفافية. تصفّح وثائق الجمعية وتقاريرها وهيكلها التنظيمي.
     </p>
@@ -103,11 +103,11 @@ $tabs = array_merge([
 
 {{-- Board Members --}}
 <div id="tab-board" class="gov-tab-panel active" role="tabpanel" aria-labelledby="gov-tabbtn-board">
-    <h2 class="gov-panel-heading mb-5 text-xl font-bold" style="color:#111827">{{ $tabs['board'] }}</h2>
+    <h2 class="gov-panel-heading mb-5 text-xl font-bold">{{ $tabs['board'] }}</h2>
 
     @if (! empty($boardTerm['label']))
     <div class="mb-6 rounded-2xl border border-gray-100 bg-[#F8FAFC] px-5 py-4 text-right">
-        <p class="text-base font-bold" style="color:#111827">{{ $boardTerm['label'] }}</p>
+        <p class="text-base font-bold" style="color:var(--brand-body)">{{ $boardTerm['label'] }}</p>
         @if (! empty($boardTerm['starts_at']) && ! empty($boardTerm['ends_at']))
         <p class="mt-2 text-sm leading-relaxed" style="color:#6B7280">
             تاريخ بداية مجلس الإدارة
@@ -126,7 +126,7 @@ $tabs = array_merge([
 </div>
 
 <div id="tab-general_assembly" class="gov-tab-panel" role="tabpanel" aria-labelledby="gov-tabbtn-general_assembly">
-    <h2 class="gov-panel-heading mb-5 text-xl font-bold" style="color:#111827">{{ $tabs['general_assembly'] }}</h2>
+    <h2 class="gov-panel-heading mb-5 text-xl font-bold">{{ $tabs['general_assembly'] }}</h2>
     @include('public.governance.partials.member-grid', [
         'members' => $generalAssemblyMembers,
         'emptyTitle' => 'لم يتم إضافة أعضاء الجمعية العمومية بعد',
@@ -134,14 +134,14 @@ $tabs = array_merge([
 </div>
 
 <div id="tab-standing_committees" class="gov-tab-panel" role="tabpanel" aria-labelledby="gov-tabbtn-standing_committees">
-    <h2 class="gov-panel-heading mb-5 text-xl font-bold" style="color:#111827">{{ $tabs['standing_committees'] }}</h2>
+    <h2 class="gov-panel-heading mb-5 text-xl font-bold">{{ $tabs['standing_committees'] }}</h2>
     @include('public.governance.partials.committee-grid', ['committees' => $standingCommittees])
 </div>
 
 {{-- Document-based tabs --}}
 @foreach(\App\Models\GovernanceDocument::TYPES as $type => $typeLabel)
 <div id="tab-{{ $type }}" class="gov-tab-panel" role="tabpanel" aria-labelledby="gov-tabbtn-{{ $type }}">
-    <h2 class="gov-panel-heading text-xl font-bold mb-5" style="color:#111827">{{ $typeLabel }}</h2>
+    <h2 class="gov-panel-heading text-xl font-bold mb-5">{{ $typeLabel }}</h2>
 
     @if($type === 'organizational_structure')
         <x-org-chart />
@@ -149,7 +149,7 @@ $tabs = array_merge([
         @php $docs = $documents[$type] ?? collect(); @endphp
         @if($docs->isNotEmpty())
         <div class="mt-12 pt-8 border-t border-gray-200">
-            <h3 class="text-lg font-bold mb-5 text-right" style="color:#111827">وثائق الهيكل التنظيمي</h3>
+            <h3 class="text-lg font-bold mb-5 text-right">وثائق الهيكل التنظيمي</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 @foreach($docs as $doc)
                 <div class="doc-card bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-right flex flex-col">
@@ -165,7 +165,7 @@ $tabs = array_merge([
                     </span>
                     @endif
 
-                    <h3 class="text-base font-bold mb-2 leading-snug flex-1" style="color:#111827">{{ $doc->title }}</h3>
+                    <h3 class="text-base font-bold mb-2 leading-snug flex-1">{{ $doc->title }}</h3>
 
                     @if($doc->description)
                     <p class="text-sm leading-relaxed mb-4" style="color:#6B7280">{{ Str::limit($doc->description, 120) }}</p>
@@ -207,7 +207,7 @@ $tabs = array_merge([
         <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background:#e9eff6">
             <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
         </div>
-        <h3 class="text-lg font-semibold mb-1" style="color:#374151">لا توجد وثائق منشورة حالياً</h3>
+        <h3 class="text-lg font-semibold mb-1">لا توجد وثائق منشورة حالياً</h3>
         <p class="text-sm" style="color:#9CA3AF">سيتم إضافة المحتوى قريباً.</p>
     </div>
     @else
@@ -228,7 +228,7 @@ $tabs = array_merge([
             </span>
             @endif
 
-            <h3 class="text-base font-bold mb-2 leading-snug flex-1" style="color:#111827">{{ $doc->title }}</h3>
+            <h3 class="text-base font-bold mb-2 leading-snug flex-1">{{ $doc->title }}</h3>
 
             @if($doc->description)
             <p class="text-sm leading-relaxed mb-4" style="color:#6B7280">{{ Str::limit($doc->description, 120) }}</p>

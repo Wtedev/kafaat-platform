@@ -11,6 +11,8 @@ return [
     'accent' => '#fbbb2e',
     'danger' => '#ec6056',
     'sanad' => '#4f53a3',
+    /** Body / paragraph text — neutral gray (WCAG AA on white). */
+    'body' => '#4B5563',
 
     'secondary_light' => '#e6f5f6',
     'secondary_border' => '#b8e0e2',

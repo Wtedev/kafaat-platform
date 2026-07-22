@@ -3,7 +3,7 @@
 @section('content')
 
 <div class="mb-8">
-    <h1 class="text-3xl font-bold" style="color:#111827">المسارات التدريبية</h1>
+    <h1 class="text-3xl font-bold">المسارات التدريبية</h1>
     <p class="mt-2 text-sm" style="color:#6B7280">استكشف المسارات المتاحة وسجّل في ما يناسبك.</p>
 </div>
 
@@ -27,7 +27,7 @@
         />
 
         <div class="p-5">
-            <h3 class="mb-2 font-semibold transition-colors group-hover:text-[#335483]" style="color:#111827">{{ $path->title }}</h3>
+            <h3 class="mb-2 font-semibold transition-colors group-hover:text-[#335483]">{{ $path->title }}</h3>
             <p class="line-clamp-3 text-sm" style="color:#6B7280">{{ $path->description }}</p>
             @if ($path->capacity)
             <p class="mt-3 flex items-center justify-end gap-1.5 text-xs" style="color:#6B7280">

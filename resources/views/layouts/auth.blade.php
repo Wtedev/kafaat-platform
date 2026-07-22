@@ -12,14 +12,14 @@
         button:focus-visible,
         a:focus-visible,
         input:focus-visible {
-            outline: 2px solid #335483;
+            outline: 2px solid var(--brand-primary, #335483);
             outline-offset: 3px;
             border-radius: 8px;
         }
 
     </style>
 </head>
-<body class="min-h-screen antialiased font-sans flex items-center justify-center py-12 px-4" style="background: linear-gradient(150deg, #EEF5FB 0%, #F3F7FB 55%, #e9eff6 100%)">
+<body class="min-h-screen antialiased font-sans flex items-center justify-center py-12 px-4 text-brand-body" style="background: linear-gradient(150deg, #EEF5FB 0%, #F3F7FB 55%, #e9eff6 100%)">
 
     <div class="w-full @yield('container_width', 'max-w-md')">
 

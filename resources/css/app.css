@@ -34,6 +34,8 @@
     --color-brand-accent: #fbbb2e;
     --color-brand-danger: #ec6056;
     --color-brand-sanad: #4f53a3;
+    /* نص المحتوى — رمادي محايد (gray-600) بتباين مناسب على خلفية بيضاء */
+    --color-brand-body: #4B5563;
 
     /*
      | طبقة توافق Tailwind v3 → v4
@@ -71,6 +73,7 @@
         --brand-accent: #fbbb2e;
         --brand-danger: #ec6056;
         --brand-sanad: #4f53a3;
+        --brand-body: #4B5563;
     }
 
     button:focus-visible,
@@ -82,4 +85,44 @@
         font-family: var(--font-sans);
         font-variant-numeric: lining-nums tabular-nums;
     }
+}
+
+/*
+ | طباعة الموقع العام / البوابة / المصادقة (وليس لوحة Filament .fi)
+ | عناوين رئيسية → أزرق كفاءات | عناوين ثانوية → أخضر/تركواز | نص → رمادي محايد
+ | قواعد خارج الطبقات حتى تطغى على أدوات Tailwind القديمة (text-gray-900 وغيرها).
+ */
+html:not(.fi) {
+    color: var(--brand-body);
+}
+
+html:not(.fi) h1 {
+    color: var(--brand-primary);
+}
+
+html:not(.fi) h2,
+html:not(.fi) h3 {
+    color: var(--brand-secondary);
+}
+
+html:not(.fi) :is(h1, h2, h3).text-white,
+html:not(.fi) :is(h1, h2, h3)[class*='text-white'] {
+    color: #fff;
+}
+
+html:not(.fi) :is(h1, h2, h3)[class*='text-brand-secondary'] {
+    color: var(--brand-secondary);
+}
+
+html:not(.fi) :is(h1, h2, h3)[class*='text-brand-danger'],
+html:not(.fi) :is(h1, h2, h3)[class*='text-red-'] {
+    color: var(--brand-danger);
+}
+
+html:not(.fi) :is(h1, h2, h3)[class*='text-brand-sanad'] {
+    color: var(--brand-sanad);
+}
+
+html:not(.fi) :is(h1, h2, h3)[class*='text-brand-accent'] {
+    color: var(--brand-accent);
 }

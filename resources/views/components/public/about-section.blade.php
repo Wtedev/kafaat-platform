@@ -11,7 +11,7 @@
             <p class="mb-1 text-sm font-semibold" style="color:#1a9399">
                 {{ $about['badge'] ?? 'من نحن' }}
             </p>
-            <h2 class="text-2xl font-bold" style="color:#111827">
+            <h2 class="text-2xl font-bold">
                 {{ $about['title'] ?? 'جمعية كفاءات' }}
             </h2>
             <p class="mt-3 text-sm leading-relaxed sm:text-base" style="color:#6B7280">
@@ -24,7 +24,7 @@
                 <p class="mb-3 text-sm font-semibold" style="color:#335483">
                     {{ $about['vision']['label'] ?? 'الرؤية' }}
                 </p>
-                <p class="text-sm leading-relaxed sm:text-base" style="color:#374151">
+                <p class="text-sm leading-relaxed sm:text-base" style="color:var(--brand-body)">
                     {{ $about['vision']['text'] ?? '' }}
                 </p>
             </article>
@@ -33,7 +33,7 @@
                 <p class="mb-3 text-sm font-semibold" style="color:#1a9399">
                     {{ $about['mission']['label'] ?? 'الرسالة' }}
                 </p>
-                <p class="text-sm leading-relaxed sm:text-base" style="color:#374151">
+                <p class="text-sm leading-relaxed sm:text-base" style="color:var(--brand-body)">
                     {{ $about['mission']['text'] ?? '' }}
                 </p>
             </article>

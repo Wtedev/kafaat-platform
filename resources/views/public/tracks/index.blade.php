@@ -19,7 +19,7 @@ $order = CompetencyTrackCatalog::order();
     <p class="mb-1 text-sm font-semibold" style="color:#1a9399">
         {{ $intro['badge'] ?? 'مسارات الكفاءة' }}
     </p>
-    <h1 class="text-2xl font-bold" style="color:#111827">
+    <h1 class="text-2xl font-bold">
         {{ $intro['title'] ?? 'مسارات الكفاءة' }}
     </h1>
     <p class="mt-3 max-w-3xl text-sm leading-relaxed sm:text-base" style="color:#6B7280">
@@ -29,7 +29,7 @@ $order = CompetencyTrackCatalog::order();
 
 <div class="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
     <section class="rounded-2xl border border-gray-100 bg-white p-6 sm:p-7">
-        <h2 class="mb-3 text-lg font-bold" style="color:#111827">
+        <h2 class="mb-3 text-lg font-bold">
             {{ $about['heading'] ?? 'ما المقصود بمسارات الكفاءة؟' }}
         </h2>
         <p class="text-sm leading-relaxed sm:text-base" style="color:#6B7280">
@@ -38,7 +38,7 @@ $order = CompetencyTrackCatalog::order();
     </section>
 
     <section class="rounded-2xl border border-gray-100 bg-white p-6 sm:p-7">
-        <h2 class="mb-3 text-lg font-bold" style="color:#111827">
+        <h2 class="mb-3 text-lg font-bold">
             {{ $about['why_heading'] ?? 'لماذا نعتمد هذا التصنيف؟' }}
         </h2>
         <p class="text-sm leading-relaxed sm:text-base" style="color:#6B7280">
@@ -48,7 +48,7 @@ $order = CompetencyTrackCatalog::order();
 </div>
 
 <section class="mb-10 rounded-2xl border border-gray-100 bg-[#F8FAFC] p-6 sm:p-7">
-    <h2 class="mb-3 text-lg font-bold" style="color:#111827">
+    <h2 class="mb-3 text-lg font-bold">
         {{ $about['relation_heading'] ?? 'كيف ترتبط بالبرامج؟' }}
     </h2>
     <p class="max-w-3xl text-sm leading-relaxed sm:text-base" style="color:#6B7280">
@@ -58,7 +58,7 @@ $order = CompetencyTrackCatalog::order();
 
 <section class="mb-10">
     <div class="mb-6 text-right">
-        <h2 class="text-xl font-bold" style="color:#111827">
+        <h2 class="text-xl font-bold">
             {{ $about['tracks_heading'] ?? 'المسارات الثلاثة' }}
         </h2>
         <p class="mt-2 text-sm sm:text-base" style="color:#6B7280">
@@ -98,7 +98,7 @@ $order = CompetencyTrackCatalog::order();
                 </div>
 
                 <div class="space-y-4 px-5 py-5 sm:px-7 sm:py-6">
-                    <p class="text-sm font-medium leading-relaxed sm:text-base" style="color:#374151">
+                    <p class="text-sm font-medium leading-relaxed sm:text-base" style="color:var(--brand-body)">
                         {{ $meta['description'] ?? '' }}
                     </p>
 
@@ -110,7 +110,7 @@ $order = CompetencyTrackCatalog::order();
 
                     @if (! empty($focus))
                         <div class="pt-1">
-                            <p class="mb-3 text-sm font-semibold" style="color:#111827">
+                            <p class="mb-3 text-sm font-semibold" style="color:var(--brand-body)">
                                 {{ $meta['focus_heading'] ?? 'أبرز مجالات عمل كفاءات في هذا المسار' }}
                             </p>
                             <ul class="space-y-2.5" dir="rtl">
@@ -159,7 +159,7 @@ $order = CompetencyTrackCatalog::order();
 </section>
 
 <section class="pt-2 text-right">
-    <h2 class="text-lg font-bold sm:text-xl" style="color:#111827">
+    <h2 class="text-lg font-bold sm:text-xl">
         {{ $about['cta_heading'] ?? 'من التعريف إلى المشاركة' }}
     </h2>
     <p class="mt-2 max-w-2xl text-sm leading-relaxed sm:text-base" style="color:#6B7280">

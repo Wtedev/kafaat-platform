@@ -55,7 +55,7 @@
         /* Subtle focus ring for accessibility */
         button:focus-visible,
         a:focus-visible {
-            outline: 2px solid #335483;
+            outline: 2px solid var(--brand-primary, #335483);
             outline-offset: 3px;
             border-radius: 8px;
         }
@@ -451,7 +451,7 @@
 
     </style>
 </head>
-<body class="bg-[#F7FAFC] text-[#111827] antialiased font-sans">
+<body class="bg-[#F7FAFC] text-brand-body antialiased font-sans">
 
     @php
     $homeAboutHref = request()->routeIs('home') ? '#about' : route('home') . '#about';
@@ -621,7 +621,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
                 <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:#1a9399">أنشطة كفاءات</p>
-                <h2 class="text-3xl sm:text-4xl font-bold mb-4" style="color:#111827">ماذا نقدم</h2>
+                <h2 class="text-3xl sm:text-4xl font-bold mb-4">ماذا نقدم</h2>
                 <p class="text-lg leading-relaxed max-w-2xl mx-auto" style="color:#6B7280">
                     مسارات تأهيلية وبرامج تدريبية وفرص تطوعية تُسهم في بناء قدرات الشباب وتمكينهم من المشاركة المجتمعية.
                 </p>
@@ -673,7 +673,7 @@
                                 <span class="w-3 h-3 rounded-full" style="background:{{ $area['color'] }}"></span>
                             </div>
                         </div>
-                        <h3 class="text-lg font-bold mb-2" style="color:#111827">{{ $area['title'] }}</h3>
+                        <h3 class="text-lg font-bold mb-2">{{ $area['title'] }}</h3>
                         <p class="text-sm leading-relaxed" style="color:#6B7280">{{ $area['desc'] }}</p>
                         @if ($area['href'] && ! ($area['soon'] ?? false))
                 </a>
@@ -706,7 +706,7 @@
             <div class="mb-10 flex flex-row items-end justify-between gap-4">
                 <div class="text-right">
                     <p class="mb-1 text-sm font-semibold" style="color:#1a9399">آخر التحديثات</p>
-                    <h2 class="text-2xl font-bold" style="color:#111827">الأخبار والفعاليات</h2>
+                    <h2 class="text-2xl font-bold">الأخبار والفعاليات</h2>
                 </div>
                 <a href="{{ route('public.news.index') }}" class="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold hover:underline" style="color:#335483">
                     عرض كل الأخبار
@@ -760,7 +760,7 @@
                                 <span class="text-xs shrink-0" style="color:#6B7280">{{ $item->published_at->format('Y/m/d') }}</span>
                                 @endif
                             </div>
-                            <h3 class="mb-2 line-clamp-2 text-base font-bold transition-colors group-hover:text-[#335483]" style="color:#111827">{{ $item->title }}</h3>
+                            <h3 class="mb-2 line-clamp-2 text-base font-bold transition-colors group-hover:text-[#335483]">{{ $item->title }}</h3>
                             @if ($item->excerpt)
                             <p class="line-clamp-3 text-sm" style="color:#6B7280">{{ $item->excerpt }}</p>
                             @endif
@@ -822,7 +822,7 @@
     <section class="overflow-hidden bg-white py-16 sm:py-20" dir="rtl" aria-labelledby="partners-heading">
         <div class="mx-auto mb-10 max-w-7xl px-4 text-center sm:mb-12 sm:px-6 lg:px-8">
             <p class="mb-2 text-sm font-semibold" style="color:#1a9399">شركاء النجاح</p>
-            <h2 id="partners-heading" class="text-2xl font-bold sm:text-3xl" style="color:#111827">شركاؤنا</h2>
+            <h2 id="partners-heading" class="text-2xl font-bold sm:text-3xl">شركاؤنا</h2>
             <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed" style="color:#6B7280">مؤسسات وشركات نفتخر بشراكتها معنا في بناء قدرات الشباب.</p>
         </div>
 
@@ -885,7 +885,7 @@
 
             <div class="text-center mb-12">
                 <p class="text-sm font-semibold uppercase tracking-widest mb-2" style="color:#1a9399">لديك سؤال؟</p>
-                <h2 class="text-3xl font-bold" style="color:#111827">الأسئلة الشائعة</h2>
+                <h2 class="text-3xl font-bold">الأسئلة الشائعة</h2>
             </div>
 
             @php
@@ -910,7 +910,7 @@
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                     {{-- Button: text first (right in RTL), icon second (left in RTL) --}}
                     <button onclick="toggleFaq({{ $idx }})" class="w-full flex items-center justify-between px-6 py-5 hover:bg-gray-50 transition-colors cursor-pointer">
-                        <span id="faq-q-{{ $idx }}" class="font-semibold text-base text-right flex-1 leading-snug" style="color:#111827">{{ $faq['q'] }}</span>
+                        <span id="faq-q-{{ $idx }}" class="font-semibold text-base text-right flex-1 leading-snug" style="color:var(--brand-body)">{{ $faq['q'] }}</span>
                         <svg id="faq-icon-{{ $idx }}" class="faq-chevron w-5 h-5 flex-shrink-0 ms-4" style="color:#6B7280" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
