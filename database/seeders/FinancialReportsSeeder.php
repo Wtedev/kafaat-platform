@@ -77,18 +77,25 @@ class FinancialReportsSeeder extends Seeder
             'sort_order' => 8,
         ],
         [
+            'title' => 'الموازنة التقديرية لعام 2026',
+            'category' => self::CATEGORY_ESTIMATED_BUDGETS,
+            'pdf' => 'estimated-budget-2026.pdf',
+            'document_date' => '2026-01-01',
+            'sort_order' => 9,
+        ],
+        [
             'title' => 'الموازنة التقديرية — 2022',
             'category' => self::CATEGORY_ESTIMATED_BUDGETS,
             'pdf' => 'estimated-budget-2022.pdf',
             'document_date' => '2022-01-01',
-            'sort_order' => 9,
+            'sort_order' => 10,
         ],
         [
             'title' => 'التقرير المالي السنوي — 2021',
             'category' => self::CATEGORY_ANNUAL_REPORTS,
             'pdf' => 'annual-financial-report-2021.pdf',
             'document_date' => '2021-12-31',
-            'sort_order' => 10,
+            'sort_order' => 11,
         ],
     ];
 
