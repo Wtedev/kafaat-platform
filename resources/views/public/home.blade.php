@@ -826,6 +826,11 @@
     <section class="bg-white py-6 sm:py-8 px-4 sm:px-6" aria-labelledby="annual-report-heading">
         <div class="mx-auto max-w-7xl">
             <div class="annual-report-banner">
+                {{-- Soft dark veil for text readability on small screens only; desktop keeps the raw banner image. --}}
+                <div
+                    class="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-black/35 via-black/20 to-black/10 lg:hidden"
+                    aria-hidden="true"
+                ></div>
                 <div class="relative z-10 px-5 py-9 pb-16 sm:px-10 sm:py-12 sm:pb-[4.25rem] lg:px-16 lg:py-14 lg:pb-[4.5rem]">
 
                     <div class="min-w-0 text-right">
