@@ -85,7 +85,7 @@ class PublicTrainingProgramController extends Controller
             abort(403);
         }
 
-        $inPerson = $trainingProgram->delivery_mode === ProgramDeliveryMode::InPerson;
+        $inPerson = $trainingProgram->delivery_mode?->hasPhysicalComponent() ?? false;
 
         $request->validate(
             [

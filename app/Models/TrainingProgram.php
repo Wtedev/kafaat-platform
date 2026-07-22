@@ -459,10 +459,12 @@ class TrainingProgram extends Model
             return null;
         }
 
-        if ($this->delivery_mode === ProgramDeliveryMode::InPerson) {
+        if ($this->delivery_mode->hasPhysicalComponent()) {
+            $label = $this->delivery_mode->label();
+
             return filled($this->venue)
-                ? 'حضوري — '.$this->venue
-                : 'حضوري';
+                ? $label.' — '.$this->venue
+                : $label;
         }
 
         return $this->delivery_mode->label();

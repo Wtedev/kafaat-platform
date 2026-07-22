@@ -19,13 +19,10 @@ class VolunteerLeadersProgramDescriptionSeeder extends Seeder
     public const HYBRID_MARKER = '6 أيام حضورية';
 
     /**
-     * Canonical public description — includes هايبرد (حضوري وعن بعد) details.
+     * Canonical public description — hybrid delivery details at the end (no التوازن sentence).
      */
     public const DESCRIPTION = <<<'HTML'
 <p>برنامج تأهيلي لإعداد وتطوير قادة العمل التطوعي، من خلال تنمية المهارات القيادية والإدارية والتطبيق العملي، بما يسهم في بناء قيادات قادرة على قيادة المبادرات وإحداث أثر مجتمعي مستدام.</p>
-<p></p>
-<p><strong>أسلوب التنفيذ — هايبرد (حضوري وعن بعد):</strong></p>
-<p>يُقدَّم البرنامج بنمط <strong>هايبرد</strong> يجمع بوضوح بين الحضوري وعن بعد: يتضمن <strong>6 أيام حضورية</strong> للتدريب التفاعلي والتطبيق العملي المباشر، فيما تُنفَّذ <strong>بقية أيام البرنامج وجلساته عن بعد</strong> عبر المنصات الرقمية. بهذا التوازن يستفيد المشارك من التجربة الحضورية وجهاً لوجه مع مرونة التعلم عن بعد خلال مدة البرنامج.</p>
 <p></p>
 <p><strong>الفئة المستهدفة:</strong></p>
 <p>القادة الشباب، وأعضاء الفرق التطوعية، ومسؤولو التطوع في الجهات الحكومية والمنظمات غير الربحية.</p>
@@ -39,6 +36,9 @@ class VolunteerLeadersProgramDescriptionSeeder extends Seeder
 <li><p>الموارد البشرية والتنمية الإجتماعية</p></li>
 <li><p>المركز الوطني لتنمية القطاع غير الربحي</p></li>
 </ul>
+<p></p>
+<p><strong>أسلوب التنفيذ — هايبرد (حضوري وعن بعد):</strong></p>
+<p>يُقدَّم البرنامج بنمط <strong>هايبرد</strong> يجمع بوضوح بين الحضوري وعن بعد: يتضمن <strong>6 أيام حضورية</strong> للتدريب التفاعلي والتطبيق العملي المباشر، فيما تُنفَّذ <strong>بقية أيام البرنامج وجلساته عن بعد</strong> عبر المنصات الرقمية.</p>
 HTML;
 
     public function run(): void

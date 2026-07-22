@@ -231,7 +231,10 @@ class TrainingProgramCreationFlowTest extends TestCase
         $this->get(route('public.programs.show', $program->slug))
             ->assertOk()
             ->assertSee('الكفاءة المهنية')
-            ->assertSee('حضوري — قاعة الاختبار');
+            ->assertSee('أسلوب التنفيذ')
+            ->assertSee('حضوري')
+            ->assertSee('موقع البرنامج')
+            ->assertSee('قاعة الاختبار');
 
         $this->get(route('public.programs.track', CompetencyTrack::Professional))
             ->assertOk()

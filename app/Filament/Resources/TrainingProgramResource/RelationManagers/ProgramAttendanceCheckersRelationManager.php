@@ -32,7 +32,7 @@ class ProgramAttendanceCheckersRelationManager extends RelationManager
             return false;
         }
 
-        if ($ownerRecord->delivery_mode !== ProgramDeliveryMode::InPerson) {
+        if ($ownerRecord->delivery_mode?->hasPhysicalComponent() !== true) {
             return false;
         }
 

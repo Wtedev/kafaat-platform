@@ -100,7 +100,7 @@ final class TrainingProgramViewPresenter
                     'heroicon-o-squares-2x2',
                 ),
                 EntityViewPresenterSupport::row(
-                    'طريقة التنفيذ',
+                    'أسلوب التنفيذ',
                     $program->deliveryModeDescription() ?? '—',
                     'heroicon-o-map-pin',
                 ),

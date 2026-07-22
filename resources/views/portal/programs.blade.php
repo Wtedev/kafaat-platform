@@ -78,7 +78,7 @@ $statusLabels = [
             $programShowUrl = ($program && filled($program->slug))
                 ? route('public.programs.show', $program)
                 : null;
-            $isInPerson = $program?->delivery_mode === ProgramDeliveryMode::InPerson;
+            $isInPerson = $program?->delivery_mode?->hasPhysicalComponent() ?? false;
             $attendancePass = $reg->attendance_pass ?? [];
             $liveSession = $reg->live_session ?? null;
             $canOpenAttendance = $isAccepted && $program;
@@ -333,7 +333,7 @@ $statusLabels = [
             if (! $isAccepted) {
                 continue;
             }
-            $isInPerson = $program->delivery_mode === \App\Enums\ProgramDeliveryMode::InPerson;
+            $isInPerson = $program->delivery_mode?->hasPhysicalComponent() ?? false;
             $attendancePass = $reg->attendance_pass ?? [];
             $liveSession = $reg->live_session ?? null;
             $canRemoteCheckIn = ! $isInPerson

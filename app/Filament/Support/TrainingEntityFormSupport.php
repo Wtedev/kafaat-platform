@@ -1206,7 +1206,8 @@ final class TrainingEntityFormSupport
       ->native(false)
       ->live()
       ->afterStateUpdated(function (Set $set, ?string $state): void {
-        if ($state !== ProgramDeliveryMode::InPerson->value) {
+        $mode = ProgramDeliveryMode::tryFrom((string) $state);
+        if ($mode === null || ! $mode->hasPhysicalComponent()) {
           $set('venue', null);
         }
       });
@@ -1218,8 +1219,16 @@ final class TrainingEntityFormSupport
       ->label('مكان الانعقاد / القاعة')
       ->maxLength(255)
       ->placeholder('مثال: قاعة الأمير — مقر الجمعية')
-      ->visible(fn (Get $get): bool => $get('delivery_mode') === ProgramDeliveryMode::InPerson->value)
-      ->required(fn (Get $get): bool => $get('delivery_mode') === ProgramDeliveryMode::InPerson->value)
+      ->visible(function (Get $get): bool {
+        $mode = ProgramDeliveryMode::tryFrom((string) $get('delivery_mode'));
+
+        return $mode?->hasPhysicalComponent() ?? false;
+      })
+      ->required(function (Get $get): bool {
+        $mode = ProgramDeliveryMode::tryFrom((string) $get('delivery_mode'));
+
+        return $mode?->hasPhysicalComponent() ?? false;
+      })
       ->columnSpanFull();
   }
 
@@ -1240,9 +1249,9 @@ final class TrainingEntityFormSupport
    */
   public static function applyDeliveryModeFields(array $data): array
   {
-    $mode = $data['delivery_mode'] ?? null;
+    $mode = ProgramDeliveryMode::tryFrom((string) ($data['delivery_mode'] ?? ''));
 
-    if ($mode !== ProgramDeliveryMode::InPerson->value) {
+    if ($mode === null || ! $mode->hasPhysicalComponent()) {
       $data['venue'] = null;
     }
 

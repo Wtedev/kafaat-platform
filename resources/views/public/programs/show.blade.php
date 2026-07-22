@@ -12,7 +12,7 @@ RegistrationStatus::Completed->value => 'مكتمل',
 $statusColors = RegistrationStatus::badgeClasses();
 
 $viaPathOnly = $trainingProgram->learning_path_id !== null;
-$inPerson = $trainingProgram->delivery_mode === ProgramDeliveryMode::InPerson;
+$inPerson = $trainingProgram->delivery_mode?->hasPhysicalComponent() ?? false;
 $venueHint = filled($trainingProgram->venue) ? $trainingProgram->venue : 'مدينة وموقع الانعقاد';
 
 $canRegister = auth()->check()

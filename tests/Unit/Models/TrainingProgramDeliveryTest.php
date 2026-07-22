@@ -27,6 +27,20 @@ class TrainingProgramDeliveryTest extends TestCase
         $this->assertSame('حضوري — قاعة الأمير', $program->deliveryModeDescription());
     }
 
+    public function test_delivery_mode_description_for_hybrid_with_venue(): void
+    {
+        $program = new TrainingProgram([
+            'delivery_mode' => ProgramDeliveryMode::Hybrid,
+            'venue' => 'بريدة - بيت الثقافة',
+        ]);
+
+        $this->assertSame(
+            'هايبرد (حضوري وعن بعد) — بريدة - بيت الثقافة',
+            $program->deliveryModeDescription(),
+        );
+        $this->assertTrue($program->delivery_mode->hasPhysicalComponent());
+    }
+
     public function test_delivery_mode_description_is_null_when_unset(): void
     {
         $program = new TrainingProgram();

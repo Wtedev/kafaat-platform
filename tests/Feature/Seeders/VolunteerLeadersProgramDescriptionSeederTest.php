@@ -35,6 +35,11 @@ class VolunteerLeadersProgramDescriptionSeederTest extends TestCase
         $this->assertStringContainsString('هايبرد (حضوري وعن بعد)', (string) $program->description);
         $this->assertStringContainsString(VolunteerLeadersProgramDescriptionSeeder::HYBRID_MARKER, (string) $program->description);
         $this->assertStringContainsString('عن بعد', (string) $program->description);
+        $this->assertStringNotContainsString('بهذا التوازن', (string) $program->description);
+        $this->assertStringEndsWith(
+            'عبر المنصات الرقمية.</p>',
+            trim((string) $program->description),
+        );
     }
 
     public function test_re_run_is_idempotent_when_description_already_set(): void

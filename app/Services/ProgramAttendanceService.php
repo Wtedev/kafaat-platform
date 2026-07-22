@@ -220,7 +220,7 @@ class ProgramAttendanceService
             return $this->gateResult(false, 'invalid_pass', 'رمز المرور غير صالح.', null, null);
         }
 
-        if ($program->delivery_mode !== ProgramDeliveryMode::InPerson) {
+        if ($program->delivery_mode?->hasPhysicalComponent() !== true) {
             return $this->gateResult(false, 'not_in_person', 'مسح QR متاح للبرامج الحضورية فقط.', null, null);
         }
 

@@ -23,7 +23,7 @@ class EnsureGateAttendanceAccess
             abort(404);
         }
 
-        if ($program->delivery_mode !== ProgramDeliveryMode::InPerson) {
+        if ($program->delivery_mode?->hasPhysicalComponent() !== true) {
             abort(404);
         }
 

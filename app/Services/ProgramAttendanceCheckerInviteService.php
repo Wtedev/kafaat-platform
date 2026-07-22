@@ -149,7 +149,7 @@ class ProgramAttendanceCheckerInviteService
 
     private function assertInPerson(TrainingProgram $program): void
     {
-        if ($program->delivery_mode !== ProgramDeliveryMode::InPerson) {
+        if ($program->delivery_mode?->hasPhysicalComponent() !== true) {
             throw ValidationException::withMessages([
                 'email' => 'عضوية التحضير متاحة للبرامج الحضورية فقط.',
             ]);

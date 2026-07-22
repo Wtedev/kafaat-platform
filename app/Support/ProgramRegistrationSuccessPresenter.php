@@ -31,7 +31,7 @@ final class ProgramRegistrationSuccessPresenter
         $user->loadMissing('profile');
         $approved = $registration->status === RegistrationStatus::Approved
             || $registration->status === RegistrationStatus::Completed;
-        $inPerson = $program->delivery_mode === ProgramDeliveryMode::InPerson;
+        $inPerson = $program->delivery_mode?->hasPhysicalComponent() ?? false;
         $whatsapp = $approved
             ? TrainingProgramExtrasSupport::whatsappGroupUrlFor($program, $user)
             : null;

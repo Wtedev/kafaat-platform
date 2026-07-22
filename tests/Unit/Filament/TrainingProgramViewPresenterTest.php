@@ -59,7 +59,7 @@ class TrainingProgramViewPresenterTest extends TestCase
         );
         $this->assertSame(
             'حضوري — قاعة التدريب',
-            collect($overviewRows)->firstWhere('label', 'طريقة التنفيذ')['value'],
+            collect($overviewRows)->firstWhere('label', 'أسلوب التنفيذ')['value'],
         );
         $this->assertSame(
             'برنامج مستقل',

@@ -144,7 +144,7 @@ class GateAttendanceController extends Controller
 
     private function assertInPersonProgram(TrainingProgram $program): void
     {
-        if ($program->delivery_mode !== ProgramDeliveryMode::InPerson) {
+        if ($program->delivery_mode?->hasPhysicalComponent() !== true) {
             abort(404);
         }
     }

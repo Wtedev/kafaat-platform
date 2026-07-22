@@ -163,7 +163,7 @@ class ProgramAttendanceRegistrationsRelationManager extends RelationManager
 
     protected function isInPersonProgram(): bool
     {
-        return $this->ownerProgram()->delivery_mode === ProgramDeliveryMode::InPerson;
+        return $this->ownerProgram()->delivery_mode?->hasPhysicalComponent() ?? false;
     }
 
     protected function isRemoteProgram(): bool
