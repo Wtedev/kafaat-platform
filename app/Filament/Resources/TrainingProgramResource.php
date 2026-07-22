@@ -368,7 +368,7 @@ class TrainingProgramResource extends Resource
                             ->formatStateUsing(fn (TrainingProgram $record): string => $record->competency_track?->shortLabel() ?? '—'),
 
                         TextEntry::make('delivery_mode')
-                            ->label('طريقة التنفيذ')
+                            ->label('أسلوب التنفيذ')
                             ->formatStateUsing(fn (TrainingProgram $record): string => $record->deliveryModeDescription() ?? '—'),
 
                         TextEntry::make('registration_window_status')

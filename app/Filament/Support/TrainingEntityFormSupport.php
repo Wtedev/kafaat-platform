@@ -1200,7 +1200,7 @@ final class TrainingEntityFormSupport
   public static function deliveryModeSelect(): Select
   {
     return Select::make('delivery_mode')
-      ->label('طريقة التنفيذ')
+      ->label('أسلوب التنفيذ')
       ->options(ProgramDeliveryMode::options())
       ->required()
       ->native(false)
