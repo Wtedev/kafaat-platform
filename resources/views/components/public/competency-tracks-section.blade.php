@@ -646,6 +646,12 @@
             opacity: 0.9;
         }
 
+        /*
+         | Mobile stacks panels vertically, but expand/collapse must use the
+         | same duration/easing as desktop. Explicit height endpoints let the
+         | panel grow/shrink smoothly (flex/min-height alone snaps when the
+         | body is toggled with [hidden]).
+         */
         @media (max-width: 1023px) {
             .track-accordion {
                 flex-direction: column;
@@ -657,6 +663,12 @@
                 flex: 0 0 auto;
                 min-width: 0;
                 width: 100%;
+                height: 3.5rem;
+                min-height: 0;
+                transition:
+                    height var(--track-expand-duration) var(--track-expand-ease),
+                    box-shadow 0.45s ease,
+                    transform 0.45s ease;
             }
 
             .track-panel:not(.is-active) {
@@ -664,13 +676,9 @@
             }
 
             .track-panel.is-active {
-                flex: 1 1 auto;
-                min-height: 20rem;
-                transition:
-                    flex var(--track-expand-duration) var(--track-expand-ease),
-                    min-height var(--track-expand-duration) var(--track-expand-ease),
-                    box-shadow 0.45s ease,
-                    transform 0.45s ease;
+                flex: 0 0 auto;
+                height: 28rem;
+                min-height: 0;
             }
 
             .track-panel-trigger {
