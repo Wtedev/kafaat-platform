@@ -98,7 +98,65 @@ final class OrganizationalStructureCatalog
             ],
         ];
 
-        return self::withResolvedPhotos($data);
+        return self::withResolvedPhotos(self::withResolvedAccents($data));
+    }
+
+    /**
+     * Avatar circle accents by role:
+     * - مدراء الإدارات / المدير التنفيذي → primary (brand blue)
+     * - رئيس قسم وباقي الموظفين → teal (brand secondary green)
+     * - متدربة سند (ريماس) → sanad (purple), kept when set explicitly
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private static function withResolvedAccents(array $data): array
+    {
+        $apply = static function (?array $person, string $role) {
+            if ($person === null || ! isset($person['name'])) {
+                return $person;
+            }
+
+            // Explicit accents (e.g. Remas → sanad) win.
+            if (isset($person['accent']) && is_string($person['accent']) && trim($person['accent']) !== '') {
+                return $person;
+            }
+
+            $title = (string) ($person['title'] ?? '');
+            $isDeptManager = $role === 'ceo'
+                || $role === 'dept_manager'
+                || str_contains($title, 'مدير الإدارة')
+                || str_contains($title, 'مدير تنفيذي');
+
+            $person['accent'] = $isDeptManager ? 'primary' : 'teal';
+
+            return $person;
+        };
+
+        $data['ceo'] = $apply($data['ceo'] ?? null, 'ceo') ?? $data['ceo'];
+
+        foreach ($data['departments'] as &$dept) {
+            if (isset($dept['manager'])) {
+                $dept['manager'] = $apply($dept['manager'], 'dept_manager');
+            }
+
+            foreach ($dept['members'] ?? [] as $i => $member) {
+                $dept['members'][$i] = $apply($member, 'staff');
+            }
+
+            foreach ($dept['sub_departments'] ?? [] as $si => $sub) {
+                if (isset($sub['manager'])) {
+                    $dept['sub_departments'][$si]['manager'] = $apply($sub['manager'], 'section_head');
+                }
+
+                foreach ($sub['members'] ?? [] as $mi => $member) {
+                    $dept['sub_departments'][$si]['members'][$mi] = $apply($member, 'staff');
+                }
+            }
+        }
+        unset($dept);
+
+        return $data;
     }
 
     /**
