@@ -596,19 +596,13 @@
             }
         }
 
-        .annual-report-banner__veil {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            background:
-                linear-gradient(105deg,
-                    rgba(17, 24, 39, 0.55) 0%,
-                    rgba(17, 24, 39, 0.42) 45%,
-                    rgba(17, 24, 39, 0.62) 100%),
-                linear-gradient(180deg,
-                    rgba(17, 24, 39, 0.28) 0%,
-                    transparent 35%,
-                    rgba(17, 24, 39, 0.45) 100%);
+        .annual-report-banner__title {
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 18px rgba(0, 0, 0, 0.28);
+        }
+
+        .annual-report-banner__subtitle,
+        .annual-report-banner__body {
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 10px rgba(0, 0, 0, 0.22);
         }
 
         .annual-report-cta {
@@ -812,21 +806,19 @@
     <section class="py-6 sm:py-8 px-4 sm:px-6" aria-labelledby="annual-report-heading">
         <div class="mx-auto max-w-7xl">
             <div class="annual-report-banner">
-                <div class="annual-report-banner__veil" aria-hidden="true"></div>
-
                 <div class="relative z-10 flex flex-col gap-7 px-5 py-9 sm:gap-9 sm:px-10 sm:py-12 md:flex-row md:items-center md:justify-between lg:gap-12 lg:px-16 lg:py-14">
 
                     <div class="min-w-0 flex-1 text-right">
                         <img
                             src="{{ asset('images/home/riyada-tulhim-logo.png') }}"
                             alt="ريادة تلهم — الحفل السنوي لعام 2025م"
-                            class="mb-4 inline-block h-14 w-auto rounded-md sm:h-16 lg:h-[4.5rem]"
-                            width="280"
-                            height="112"
+                            class="mb-4 inline-block h-28 w-auto rounded-md sm:h-32 lg:h-36"
+                            width="560"
+                            height="224"
                         >
-                        <div class="mb-1 text-5xl font-black leading-none sm:text-7xl lg:text-8xl" style="color:rgba(255,255,255,0.12)" aria-hidden="true">2025</div>
-                        <h2 id="annual-report-heading" class="mb-3 text-2xl font-bold text-white sm:text-3xl">أبرز أرقام جمعية كفاءات في عام 2025</h2>
-                        <p class="max-w-md text-sm leading-relaxed sm:text-base" style="color:rgba(255,255,255,0.7)">
+                        <h2 id="annual-report-heading" class="annual-report-banner__title mb-1 text-2xl font-bold text-white sm:text-3xl">أبرز أرقام جمعية كفاءات</h2>
+                        <p class="annual-report-banner__subtitle mb-3 text-sm font-medium text-white/90 sm:text-base">لعام 2025</p>
+                        <p class="annual-report-banner__body max-w-md text-sm leading-relaxed sm:text-base" style="color:rgba(255,255,255,0.88)">
                             تقرير شامل يرصد إنجازات جمعية كفاءات خلال عام 2025: برامجها التدريبية، عملها التطوعي، وأثرها المجتمعي.
                         </p>
                     </div>
