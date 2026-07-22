@@ -1050,17 +1050,17 @@
 
             <div class="space-y-3">
                 @foreach($faqs as $idx => $faq)
-                <div class="rounded-2xl border border-gray-100 bg-[#FFFFFF] overflow-hidden">
+                <div class="rounded-2xl border border-white/10 bg-[#111111] overflow-hidden">
                     {{-- Button: text first (right in RTL), icon second (left in RTL) --}}
-                    <button onclick="toggleFaq({{ $idx }})" class="w-full flex items-center justify-between px-6 py-5 bg-[#FFFFFF] transition-colors cursor-pointer">
-                        <span id="faq-q-{{ $idx }}" class="font-semibold text-base text-right flex-1 leading-snug" style="color:var(--brand-body)">{{ $faq['q'] }}</span>
-                        <svg id="faq-icon-{{ $idx }}" class="faq-chevron w-5 h-5 flex-shrink-0 ms-4" style="color:#6B7280" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <button onclick="toggleFaq({{ $idx }})" class="w-full flex items-center justify-between px-6 py-5 bg-[#111111] transition-colors cursor-pointer">
+                        <span id="faq-q-{{ $idx }}" class="font-semibold text-base text-right flex-1 leading-snug text-white">{{ $faq['q'] }}</span>
+                        <svg id="faq-icon-{{ $idx }}" class="faq-chevron w-5 h-5 flex-shrink-0 ms-4 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
                     </button>
                     <div id="faq-body-{{ $idx }}" class="faq-body">
                         <div class="px-6 pb-5 pt-1 text-right">
-                            <p class="text-sm leading-relaxed" style="color:#6B7280">{{ $faq['a'] }}</p>
+                            <p class="text-sm leading-relaxed text-white/70">{{ $faq['a'] }}</p>
                         </div>
                     </div>
                 </div>
