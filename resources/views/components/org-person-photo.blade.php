@@ -15,6 +15,10 @@
         'teal' => (string) config('brand.secondary', '#1a9399'),
         'primary' => (string) config('brand.primary', '#335483'),
         'danger' => (string) config('brand.danger', '#ec6056'),
+        // Volunteer team — clear yellow that keeps white icons readable.
+        'yellow' => (string) config('brand.accent', '#EAB308'),
+        // Regular staff (non–section-heads).
+        'gray' => '#6B7280',
     ];
     $placeholderBg = $palette[$accentKey] ?? $palette['primary'];
     $iconColor = '#ffffff';

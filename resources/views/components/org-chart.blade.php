@@ -111,10 +111,14 @@
                                 @elseif($teamGroups !== [])
                                     <ul class="oc-level oc-level--staff">
                                         @foreach($teamGroups as $team)
+                                            @php
+                                                $teamName = is_array($team) ? ($team['name'] ?? '') : (string) $team;
+                                                $teamAccent = is_array($team) ? ($team['accent'] ?? 'yellow') : 'yellow';
+                                            @endphp
                                             <li class="oc-node oc-node--leaf">
                                                 <div class="oc-card oc-card--staff oc-card--team">
-                                                    <x-org-person-photo :team="true" />
-                                                    <p class="oc-card__name oc-card__name--xs">{{ $team }}</p>
+                                                    <x-org-person-photo :team="true" :accent="$teamAccent" />
+                                                    <p class="oc-card__name oc-card__name--xs">{{ $teamName }}</p>
                                                 </div>
                                             </li>
                                         @endforeach

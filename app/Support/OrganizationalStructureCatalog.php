@@ -104,7 +104,9 @@ final class OrganizationalStructureCatalog
     /**
      * Avatar circle accents by role:
      * - مدراء الإدارات / المدير التنفيذي → primary (brand blue)
-     * - رئيس قسم وباقي الموظفين → teal (brand secondary green)
+     * - رؤساء الأقسام (رئيس قسم) → teal (brand secondary green)
+     * - باقي الموظفين (غير مدراء الأقسام) → gray
+     * - الفريق التطوعي → yellow
      * - متدربة سند (ريماس) → sanad (purple), kept when set explicitly
      *
      * @param  array<string, mixed>  $data
@@ -128,7 +130,16 @@ final class OrganizationalStructureCatalog
                 || str_contains($title, 'مدير الإدارة')
                 || str_contains($title, 'مدير تنفيذي');
 
-            $person['accent'] = $isDeptManager ? 'primary' : 'teal';
+            $isSectionHead = $role === 'section_head'
+                || str_contains($title, 'رئيس قسم');
+
+            if ($isDeptManager) {
+                $person['accent'] = 'primary';
+            } elseif ($isSectionHead) {
+                $person['accent'] = 'teal';
+            } else {
+                $person['accent'] = 'gray';
+            }
 
             return $person;
         };
@@ -142,6 +153,27 @@ final class OrganizationalStructureCatalog
 
             foreach ($dept['members'] ?? [] as $i => $member) {
                 $dept['members'][$i] = $apply($member, 'staff');
+            }
+
+            foreach ($dept['team_groups'] ?? [] as $ti => $team) {
+                if (is_string($team)) {
+                    $dept['team_groups'][$ti] = [
+                        'name' => $team,
+                        'accent' => 'yellow',
+                    ];
+
+                    continue;
+                }
+
+                if (! is_array($team)) {
+                    continue;
+                }
+
+                if (! isset($team['accent']) || ! is_string($team['accent']) || trim($team['accent']) === '') {
+                    $team['accent'] = 'yellow';
+                }
+
+                $dept['team_groups'][$ti] = $team;
             }
 
             foreach ($dept['sub_departments'] ?? [] as $si => $sub) {
