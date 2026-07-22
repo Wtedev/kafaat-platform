@@ -27,7 +27,7 @@
         />
 
         <div class="p-5">
-        <h3 class="font-semibold mb-2 group-hover:text-[#335483] transition-colors">{{ $opp->title }}</h3>
+        <h3 class="mb-2 font-semibold text-brand transition-colors">{{ $opp->title }}</h3>
         <p class="text-sm line-clamp-3" style="color:#6B7280">{{ $opp->description }}</p>
         <div class="mt-3 flex flex-wrap gap-3 text-xs" style="color:#6B7280">
             @if ($opp->hours_expected)
