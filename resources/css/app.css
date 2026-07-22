@@ -89,40 +89,62 @@
 
 /*
  | طباعة الموقع العام / البوابة / المصادقة (وليس لوحة Filament .fi)
- | عناوين الصفحة والسكشنات (h1/h2) → أزرق كفاءات | عناوين فرعية (h3) → أخضر/تركواز | نص → رمادي محايد
+ | عنوان أساسي (h1/h2 + .text-heading-primary) → أزرق كفاءات
+ | عنوان فرعي (h3/h4 + .text-heading-secondary) → أخضر/تركواز
+ | نصوص وفقرات → رمادي محايد (--brand-body)
+ | استثناء: نص أبيض/فاتح على خلفيات غامقة (hero / إحصائيات / تذييل / بطاقات داكنة) يبقى كما هو
  | قواعد خارج الطبقات حتى تطغى على أدوات Tailwind القديمة (text-gray-900 وغيرها).
  */
 html:not(.fi) {
     color: var(--brand-body);
 }
 
+/* عناوين أساسية — أزرق الهوية */
 html:not(.fi) h1,
-html:not(.fi) h2 {
+html:not(.fi) h2,
+html:not(.fi) .text-heading-primary {
     color: var(--brand-primary);
 }
 
-html:not(.fi) h3 {
+/* عناوين فرعية — أخضر/تركواز الهوية */
+html:not(.fi) h3,
+html:not(.fi) h4,
+html:not(.fi) .text-heading-secondary {
     color: var(--brand-secondary);
 }
 
-html:not(.fi) :is(h1, h2, h3).text-white,
-html:not(.fi) :is(h1, h2, h3)[class*='text-white'] {
+/* خلفيات غامقة / نص أبيض — لا تفرض ألوان العناوين أو النص */
+html:not(.fi) :is(h1, h2, h3, h4, p, span, small, li, a, div, label).text-white,
+html:not(.fi) :is(h1, h2, h3, h4, p, span, small, li, a, div, label)[class*='text-white'] {
     color: #fff;
 }
 
-html:not(.fi) :is(h1, h2, h3)[class*='text-brand-secondary'] {
+/* أدوات هوية صريحة على العناوين (أولوية على اللون الافتراضي للمستوى) */
+html:not(.fi) :is(h1, h2, h3, h4)[class*='text-brand']:not([class*='text-brand-']) {
+    color: var(--brand-primary);
+}
+
+html:not(.fi) :is(h1, h2, h3, h4, p, span, small)[class*='text-brand-secondary'] {
     color: var(--brand-secondary);
 }
 
-html:not(.fi) :is(h1, h2, h3)[class*='text-brand-danger'],
-html:not(.fi) :is(h1, h2, h3)[class*='text-red-'] {
+html:not(.fi) :is(h1, h2, h3, h4)[class*='text-brand-danger'],
+html:not(.fi) :is(h1, h2, h3, h4)[class*='text-red-'] {
     color: var(--brand-danger);
 }
 
-html:not(.fi) :is(h1, h2, h3)[class*='text-brand-sanad'] {
+html:not(.fi) :is(h1, h2, h3, h4)[class*='text-brand-sanad'] {
     color: var(--brand-sanad);
 }
 
-html:not(.fi) :is(h1, h2, h3)[class*='text-brand-accent'] {
+html:not(.fi) :is(h1, h2, h3, h4)[class*='text-brand-accent'] {
     color: var(--brand-accent);
+}
+
+/*
+ | رمادي Tailwind الشائع على النصوص → درجة النص الرسمية.
+ | لا تشمل gray-300/400 المستخدمة في التذييل الداكن والخلفيات الغامقة.
+ */
+html:not(.fi) :is(.text-gray-500, .text-gray-600, .text-gray-700, .text-slate-500, .text-slate-600, .text-slate-700) {
+    color: var(--brand-body);
 }
