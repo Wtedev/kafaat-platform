@@ -752,7 +752,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 4. STATISTICS / أرقام 2025                                               --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section id="kafaat-stats" class="py-6 px-4 sm:px-6">
+    <section id="kafaat-stats" class="bg-white py-6 px-4 sm:px-6">
         <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6">
 
                 <div class="text-center mb-12">
@@ -823,7 +823,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 5. ANNUAL REPORT / التقرير                                            --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section class="py-6 sm:py-8 px-4 sm:px-6" aria-labelledby="annual-report-heading">
+    <section class="bg-white py-6 sm:py-8 px-4 sm:px-6" aria-labelledby="annual-report-heading">
         <div class="mx-auto max-w-7xl">
             <div class="annual-report-banner">
                 <div class="relative z-10 px-5 py-9 pb-16 sm:px-10 sm:py-12 sm:pb-[4.25rem] lg:px-16 lg:py-14 lg:pb-[4.5rem]">
@@ -865,7 +865,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 6. COMPETENCY TRACKS / ثلاثة مسارات                                     --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section id="programs" class="scroll-mt-24 bg-[#F7FAFC] py-20 sm:py-24">
+    <section id="programs" class="scroll-mt-24 bg-white py-20 sm:py-24">
         <div class="mx-auto max-w-[94rem] px-4 sm:px-6 lg:px-10">
             <x-public.competency-tracks-section :programCounts="$programCounts" :trackPrograms="$trackPrograms" />
         </div>
@@ -875,7 +875,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 7. WORK AREAS / مشاريع كفاءات                                               --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section id="work" class="py-20 bg-[#F7FAFC] scroll-mt-24">
+    <section id="work" class="py-20 bg-white scroll-mt-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
                 <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:#1a9399">مشاريع كفاءات</p>
@@ -1023,7 +1023,7 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     {{-- 9. FAQ / الأسئلة الشائعة                                                     --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section id="faq" class="scroll-mt-24 py-20" style="background:#F3F7FB">
+    <section id="faq" class="scroll-mt-24 bg-white py-20">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <div class="text-center mb-12">
