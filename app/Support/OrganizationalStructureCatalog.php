@@ -28,11 +28,7 @@ final class OrganizationalStructureCatalog
                 [
                     'name' => 'إدارة الموارد البشرية',
                     'members' => [
-                        [
-                            'name' => 'ريماس أحمد الصقر',
-                            'title' => 'متدرب',
-                            'accent' => 'sanad',
-                        ],
+                        ['name' => 'ريماس أحمد الصقر', 'title' => 'الموارد البشرية (متدرب سند)'],
                     ],
                 ],
                 [
@@ -58,11 +54,11 @@ final class OrganizationalStructureCatalog
                     'sub_departments' => [
                         [
                             'name' => 'قسم المشاريع',
-                            'manager' => ['name' => 'وجدان عبدالله الصمعاني', 'title' => 'رئيس قسم'],
+                            'manager' => ['name' => 'وجدان عبدالله الصمعاني', 'title' => 'رئيس قسم المشاريع'],
                         ],
                         [
                             'name' => 'قسم المستفيدين',
-                            'manager' => ['name' => 'محمد زيد الزلفاوي', 'title' => 'رئيس قسم'],
+                            'manager' => ['name' => 'محمد زيد الزلفاوي', 'title' => 'رئيس قسم المستفيدين'],
                         ],
                     ],
                 ],
@@ -80,11 +76,11 @@ final class OrganizationalStructureCatalog
                     'sub_departments' => [
                         [
                             'name' => 'قسم الاتصال المؤسسي',
-                            'manager' => ['name' => 'عبدالله عبدالرحمن السعوي', 'title' => 'رئيس قسم'],
+                            'manager' => ['name' => 'عبدالله عبدالرحمن السعوي', 'title' => 'مدير الإدارة'],
                         ],
                         [
                             'name' => 'قسم العلاقات العامة والشراكات',
-                            'manager' => ['name' => 'حسام عبدالعزيز التويجري', 'title' => 'رئيس قسم'],
+                            'manager' => ['name' => 'حسام عبدالعزيز التويجري', 'title' => 'مدير الإدارة'],
                             'members' => [
                                 ['name' => 'زياد عبدالله الحصيان', 'title' => 'عضو في قسم العلاقات العامة والشراكات'],
                             ],
