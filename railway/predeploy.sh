@@ -6,6 +6,7 @@
 # delete storage/app/public/news/images (staff news uploads). See docs/deployment/public-media-storage.md
 # VolunteerLeadersProgramCoverSeeder only sets image=images/programs/... for «قادة التطوع».
 # VolunteerLeadersProgramDatesSeeder sets start/end for «قادة التطوع» (2025-08-03 → 2025-09-03).
+# VolunteerLeadersProgramDescriptionSeeder sets hybrid (هايبرد) public description for «قادة التطوع».
 # VolunteerLeadersProgramPresentersSeeder clears program_presenters for «قادة التطوع» (public section removed).
 # NewsCoverAssetsSeeder only sets image=images/news/... for named articles (git-backed covers).
 set -euo pipefail
@@ -32,6 +33,7 @@ php artisan db:seed --class=PartnerSeeder --force
 php artisan db:seed --class=MediaPhotoSeeder --force
 php artisan db:seed --class=VolunteerLeadersProgramCoverSeeder --force
 php artisan db:seed --class=VolunteerLeadersProgramDatesSeeder --force
+php artisan db:seed --class=VolunteerLeadersProgramDescriptionSeeder --force
 php artisan db:seed --class=VolunteerLeadersProgramPresentersSeeder --force
 php artisan db:seed --class=NewsCoverAssetsSeeder --force
 php artisan permission:cache-reset
