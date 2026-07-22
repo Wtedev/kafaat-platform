@@ -1,6 +1,6 @@
 {{--
     resources/views/components/public-footer.blade.php
-    Public footer — dark theme (headquarters/map live in public-headquarters).
+    Public footer — dark theme (headquarters/map: homepage section only).
 --}}
 @php
     $site = config('site');

@@ -55,10 +55,7 @@
         @yield('content')
     </main>
 
-    {{-- Headquarters / مقر الجمعية — immediately before footer --}}
-    <x-public-headquarters />
-
-    {{-- Footer --}}
+    {{-- Footer (headquarters / map lives on the homepage only) --}}
     <x-public-footer />
 
     <x-support-ticket-fab />
