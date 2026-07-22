@@ -750,7 +750,54 @@
 
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 4. STATISTICS / أرقام 2025                                               --}}
+    {{-- 4. ANNUAL REPORT / التقرير                                            --}}
+    {{-- ═══════════════════════════════════════════════════════════════════ --}}
+    <section class="bg-white py-6 sm:py-8 px-4 sm:px-6" aria-labelledby="annual-report-heading">
+        <div class="mx-auto max-w-7xl">
+            <div class="annual-report-banner">
+                {{-- Soft dark veil for text readability on small screens only; desktop keeps the raw banner image. --}}
+                <div
+                    class="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-black/35 via-black/20 to-black/10 lg:hidden"
+                    aria-hidden="true"
+                ></div>
+                <div class="relative z-10 px-5 py-9 pb-16 sm:px-10 sm:py-12 sm:pb-[4.25rem] lg:px-16 lg:py-14 lg:pb-[4.5rem]">
+
+                    <div class="min-w-0 text-right">
+                        <img
+                            src="{{ asset('images/home/riyada-tulhim-logo.png') }}"
+                            alt="ريادة تلهم — الحفل السنوي لعام 2025م"
+                            class="mb-12 inline-block h-28 w-auto rounded-md sm:mb-14 sm:h-32 lg:mb-16 lg:h-36"
+                            width="560"
+                            height="224"
+                        >
+                        <h2 id="annual-report-heading" class="annual-report-banner__title mb-1 text-2xl font-bold text-white sm:text-3xl">أبرز أرقام جمعية كفاءات</h2>
+                        <p class="annual-report-banner__subtitle mb-3 text-sm font-bold sm:text-base">لعام 2025</p>
+                        <p class="annual-report-banner__body max-w-md text-sm leading-relaxed sm:text-base" style="color:rgba(255,255,255,0.88)">
+                            تقرير شامل يرصد إنجازات جمعية كفاءات خلال عام 2025: برامجها التدريبية، عملها التطوعي، وأثرها المجتمعي.
+                        </p>
+                    </div>
+
+                    <a
+                        href="{{ asset('reports/annual-report-2025.pdf') }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="annual-report-cta"
+                        aria-label="عرض التقرير السنوي 2025"
+                    >
+                        <span>عرض التقرير السنوي 2025</span>
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </a>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    {{-- ═══════════════════════════════════════════════════════════════════ --}}
+    {{-- 5. STATISTICS / أرقام 2025                                               --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <section id="kafaat-stats" class="bg-white py-6 px-4 sm:px-6">
         <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6">
@@ -816,53 +863,6 @@
                     @endforeach
                 </div>
 
-        </div>
-    </section>
-
-
-    {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 5. ANNUAL REPORT / التقرير                                            --}}
-    {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section class="bg-white py-6 sm:py-8 px-4 sm:px-6" aria-labelledby="annual-report-heading">
-        <div class="mx-auto max-w-7xl">
-            <div class="annual-report-banner">
-                {{-- Soft dark veil for text readability on small screens only; desktop keeps the raw banner image. --}}
-                <div
-                    class="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-black/35 via-black/20 to-black/10 lg:hidden"
-                    aria-hidden="true"
-                ></div>
-                <div class="relative z-10 px-5 py-9 pb-16 sm:px-10 sm:py-12 sm:pb-[4.25rem] lg:px-16 lg:py-14 lg:pb-[4.5rem]">
-
-                    <div class="min-w-0 text-right">
-                        <img
-                            src="{{ asset('images/home/riyada-tulhim-logo.png') }}"
-                            alt="ريادة تلهم — الحفل السنوي لعام 2025م"
-                            class="mb-12 inline-block h-28 w-auto rounded-md sm:mb-14 sm:h-32 lg:mb-16 lg:h-36"
-                            width="560"
-                            height="224"
-                        >
-                        <h2 id="annual-report-heading" class="annual-report-banner__title mb-1 text-2xl font-bold text-white sm:text-3xl">أبرز أرقام جمعية كفاءات</h2>
-                        <p class="annual-report-banner__subtitle mb-3 text-sm font-bold sm:text-base">لعام 2025</p>
-                        <p class="annual-report-banner__body max-w-md text-sm leading-relaxed sm:text-base" style="color:rgba(255,255,255,0.88)">
-                            تقرير شامل يرصد إنجازات جمعية كفاءات خلال عام 2025: برامجها التدريبية، عملها التطوعي، وأثرها المجتمعي.
-                        </p>
-                    </div>
-
-                    <a
-                        href="{{ asset('reports/annual-report-2025.pdf') }}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="annual-report-cta"
-                        aria-label="عرض التقرير السنوي 2025"
-                    >
-                        <span>عرض التقرير السنوي 2025</span>
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </a>
-
-                </div>
-            </div>
         </div>
     </section>
 
