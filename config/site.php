@@ -24,7 +24,7 @@ return [
         'number' => env('SITE_LICENSE_NUMBER', '864'),
     ],
 
-    'contact_email' => env('SITE_CONTACT_EMAIL', 'info@kafaat.org.sa'),
+    'contact_email' => env('SITE_CONTACT_EMAIL', 'Kafaatbyc@gmail.com'),
 
     /** National mobile, digits only (e.g. 05xxxxxxxx) */
     'contact_phone_local' => env('SITE_CONTACT_PHONE_LOCAL', '0537527747'),
