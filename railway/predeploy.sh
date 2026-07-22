@@ -5,7 +5,8 @@
 # PartnerSeeder / MediaPhotoSeeder only upsert their own public-disk prefixes; they never
 # delete storage/app/public/news/images (staff news uploads). See docs/deployment/public-media-storage.md
 # VolunteerLeadersProgramCoverSeeder only sets image=images/programs/... for «قادة التطوع».
-# VolunteerLeadersProgramDatesSeeder sets start/end for «قادة التطوع» (2025-08-03 → 2025-09-03).
+# VolunteerLeadersProgramDatesSeeder sets start/end + registration window for «قادة التطوع»
+#   (program 2026-08-03 → 2026-09-03; registration 2026-07-22 → 2026-08-03).
 # VolunteerLeadersProgramDescriptionSeeder sets hybrid (هايبرد) public description for «قادة التطوع».
 # VolunteerLeadersProgramDeliverySeeder sets delivery_mode=hybrid + venue «بريدة - بيت الثقافة».
 # VolunteerLeadersProgramPresentersSeeder clears program_presenters for «قادة التطوع» (public section removed).
