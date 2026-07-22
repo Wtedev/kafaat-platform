@@ -33,7 +33,7 @@ class VolunteerLeadersProgramDescriptionSeederTest extends TestCase
             trim((string) $program->description),
         );
         $this->assertStringContainsString('هايبرد (حضوري وعن بعد)', (string) $program->description);
-        $this->assertStringContainsString('ستة أيام حضورية', (string) $program->description);
+        $this->assertStringContainsString(VolunteerLeadersProgramDescriptionSeeder::HYBRID_MARKER, (string) $program->description);
         $this->assertStringContainsString('عن بعد', (string) $program->description);
     }
 
