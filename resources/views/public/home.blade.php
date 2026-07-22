@@ -52,15 +52,6 @@
             transform: rotate(45deg);
         }
 
-        /*
-         | FAQ questions match the section heading (text-brand / #335483).
-         | Unlayered page style beats html:not(.fi) brand body inherit and
-         | layered Tailwind text-* utilities (same pattern as text-white escapes).
-         */
-        html:not(.fi) #faq .faq-question {
-            color: var(--brand-primary, #335483);
-        }
-
         /* Subtle focus ring for accessibility */
         button:focus-visible,
         a:focus-visible {
@@ -1059,10 +1050,10 @@
 
             <div class="space-y-3">
                 @foreach($faqs as $idx => $faq)
-                <div class="rounded-2xl border border-slate-100 bg-white/95 shadow-sm overflow-hidden">
+                <div class="rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden">
                     {{-- Button: text first (right in RTL), icon second (left in RTL) --}}
-                    <button onclick="toggleFaq({{ $idx }})" class="w-full flex items-center justify-between px-6 py-5 bg-white/95 transition-colors cursor-pointer hover:bg-slate-50">
-                        <span id="faq-q-{{ $idx }}" class="faq-question font-semibold text-base text-brand text-right flex-1 leading-snug">{{ $faq['q'] }}</span>
+                    <button onclick="toggleFaq({{ $idx }})" class="w-full flex items-center justify-between px-6 py-5 bg-white transition-colors cursor-pointer hover:bg-slate-50">
+                        <span id="faq-q-{{ $idx }}" class="font-semibold text-base text-right flex-1 leading-snug text-black">{{ $faq['q'] }}</span>
                         <svg id="faq-icon-{{ $idx }}" class="faq-chevron w-5 h-5 flex-shrink-0 ms-4 text-[#6B7280]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>

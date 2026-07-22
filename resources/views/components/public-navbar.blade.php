@@ -119,7 +119,7 @@ $govActive = request()->routeIs('public.governance.*');
     }
 </style>
 
-<header id="pub-nav" class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100 shadow-sm transition-shadow duration-200">
+<header id="pub-nav" class="sticky top-0 z-50 bg-white border-b border-slate-100 shadow-sm transition-shadow duration-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16 gap-6">
 
