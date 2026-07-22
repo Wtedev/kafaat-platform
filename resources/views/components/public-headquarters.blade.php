@@ -1,6 +1,6 @@
 {{--
     resources/views/components/public-headquarters.blade.php
-    Homepage headquarters / location section — brand tokens; map: Leaflet + CARTO Positron (two-tone).
+    Homepage headquarters / location section — brand tokens; map: Leaflet + CARTO Positron (readable light basemap + brand marker).
 --}}
 @php
     $site = config('site');
@@ -92,14 +92,10 @@
     @once
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <style>
-        /* Two-tone map: light gray base + brand blue (CARTO Positron + CSS filter) */
+        /* Light CARTO Positron basemap (no colorizing filters) + brand blue accents */
         .kafaat-footer-leaflet.leaflet-container {
             font-family: 'FF Shamel', sans-serif;
-            background: #e9eff6;
-        }
-        .kafaat-footer-leaflet .leaflet-tile-pane {
-            filter: grayscale(1) contrast(1.05) brightness(1.06)
-                    sepia(0.55) hue-rotate(175deg) saturate(2.4);
+            background: #f0f0f0;
         }
         .kafaat-footer-leaflet .leaflet-control-attribution {
             background: rgba(247, 250, 252, 0.94);
