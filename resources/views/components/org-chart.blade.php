@@ -8,10 +8,22 @@
     $branchStaff = static function (array $dept): array {
         $out = [];
         foreach ($dept['sub_units'] ?? [] as $unit) {
-            $out[] = ['name' => $unit['name'], 'title' => $unit['title'], 'kind' => 'member'];
+            $out[] = [
+                'name' => $unit['name'],
+                'title' => $unit['title'],
+                'kind' => 'member',
+                'photo' => $unit['photo'] ?? null,
+                'accent' => $unit['accent'] ?? null,
+            ];
         }
         foreach ($dept['members'] ?? [] as $member) {
-            $out[] = ['name' => $member['name'], 'title' => $member['title'] ?? null, 'kind' => 'member'];
+            $out[] = [
+                'name' => $member['name'],
+                'title' => $member['title'] ?? null,
+                'kind' => 'member',
+                'photo' => $member['photo'] ?? null,
+                'accent' => $member['accent'] ?? null,
+            ];
         }
 
         return $out;
@@ -27,7 +39,7 @@
                 <li class="oc-node oc-node--root">
                     <div class="oc-card oc-card--ceo">
                         <span class="oc-card__badge">القيادة التنفيذية</span>
-                        <div class="oc-avatar oc-avatar--ceo" aria-hidden="true">{{ OrganizationalStructureCatalog::initials($ceo['name']) }}</div>
+                        <x-org-person-photo :name="$ceo['name']" :photo="$ceo['photo'] ?? null" :accent="$ceo['accent'] ?? null" />
                         <p class="oc-card__name">{{ $ceo['name'] }}</p>
                         <p class="oc-card__role">{{ $ceo['title'] }}</p>
                     </div>
@@ -49,7 +61,7 @@
 
                                     @if(! $isGroupOnly && isset($dept['manager']))
                                         <div class="oc-card oc-card--manager">
-                                            <div class="oc-avatar oc-avatar--manager" aria-hidden="true">{{ OrganizationalStructureCatalog::initials($dept['manager']['name']) }}</div>
+                                            <x-org-person-photo :name="$dept['manager']['name']" :photo="$dept['manager']['photo'] ?? null" :accent="$dept['manager']['accent'] ?? null" />
                                             <p class="oc-card__name oc-card__name--sm">{{ $dept['manager']['name'] }}</p>
                                             <p class="oc-card__role">{{ $dept['manager']['title'] }}</p>
                                         </div>
@@ -71,7 +83,7 @@
                                                 <div class="oc-subdept-block">
                                                     <span class="oc-dept-pill oc-dept-pill--sub">{{ $sub['name'] }}</span>
                                                     <div class="oc-card oc-card--manager oc-card--sub-manager">
-                                                        <div class="oc-avatar oc-avatar--manager" aria-hidden="true">{{ OrganizationalStructureCatalog::initials($sub['manager']['name']) }}</div>
+                                                        <x-org-person-photo :name="$sub['manager']['name']" :photo="$sub['manager']['photo'] ?? null" :accent="$sub['manager']['accent'] ?? null" />
                                                         <p class="oc-card__name oc-card__name--sm">{{ $sub['manager']['name'] }}</p>
                                                         <p class="oc-card__role">{{ $sub['manager']['title'] }}</p>
                                                     </div>
@@ -83,7 +95,7 @@
                                                         @foreach($subStaff as $child)
                                                             <li class="oc-node oc-node--leaf">
                                                                 <div class="oc-card oc-card--staff">
-                                                                    <div class="oc-avatar oc-avatar--staff" aria-hidden="true">{{ OrganizationalStructureCatalog::initials($child['name']) }}</div>
+                                                                    <x-org-person-photo :name="$child['name']" :photo="$child['photo'] ?? null" :accent="$child['accent'] ?? null" />
                                                                     <p class="oc-card__name oc-card__name--xs">{{ $child['name'] }}</p>
                                                                     @if(filled($child['title']))
                                                                         <p class="oc-card__role oc-card__role--member">{{ $child['title'] }}</p>
@@ -101,11 +113,7 @@
                                         @foreach($teamGroups as $team)
                                             <li class="oc-node oc-node--leaf">
                                                 <div class="oc-card oc-card--staff oc-card--team">
-                                                    <div class="oc-avatar oc-avatar--staff oc-avatar--team" aria-hidden="true">
-                                                        <svg class="oc-avatar__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M16 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm-8 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm0 2c-2.67 0-8 1.34-8 4v1h10v-1c0-2.66-5.33-4-8-4Zm8 0c-.33 0-.7.02-1.09.06A4.87 4.87 0 0 1 16 17v1h8v-1c0-2.66-5.33-4-8-4Z" fill="currentColor"/>
-                                                        </svg>
-                                                    </div>
+                                                    <x-org-person-photo :team="true" />
                                                     <p class="oc-card__name oc-card__name--xs">{{ $team }}</p>
                                                 </div>
                                             </li>
@@ -116,7 +124,7 @@
                                         @foreach($staff as $child)
                                             <li class="oc-node oc-node--leaf">
                                                 <div class="oc-card oc-card--staff">
-                                                    <div class="oc-avatar oc-avatar--staff" aria-hidden="true">{{ OrganizationalStructureCatalog::initials($child['name']) }}</div>
+                                                    <x-org-person-photo :name="$child['name']" :photo="$child['photo'] ?? null" :accent="$child['accent'] ?? null" />
                                                     <p class="oc-card__name oc-card__name--xs">{{ $child['name'] }}</p>
                                                     @if(filled($child['title']))
                                                         <p class="oc-card__role oc-card__role--member">{{ $child['title'] }}</p>
@@ -455,49 +463,46 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 0.5rem;
+        width: 5rem;   /* h-20 — same as board member cards */
+        height: 5rem;
+        margin: 0 auto 1rem; /* mb-4 */
         border-radius: 9999px;
-        font-weight: 800;
-        color: #fff;
+        border: 2px solid #f3f4f6; /* border-gray-100 */
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* shadow-sm */
         flex-shrink: 0;
+        box-sizing: border-box;
     }
 
-    .oc-avatar--ceo {
-        width: 3.5rem;
-        height: 3.5rem;
-        font-size: 1rem;
-        background: linear-gradient(135deg, var(--oc-brand), var(--oc-brand-dark));
-        box-shadow: 0 6px 18px -6px rgba(51, 84, 131, 0.5);
-    }
-
-    .oc-avatar--manager {
-        width: 2.35rem;
-        height: 2.35rem;
-        font-size: 0.7rem;
-        background: var(--oc-brand);
-    }
-
-    .oc-card--sub-manager .oc-avatar--manager {
-        width: 2rem;
-        height: 2rem;
-        font-size: 0.65rem;
-    }
-
-    .oc-avatar--staff {
-        width: 1.9rem;
-        height: 1.9rem;
-        font-size: 0.62rem;
-        background: var(--oc-teal);
-    }
-
-    .oc-avatar--team {
-        background: color-mix(in srgb, var(--oc-brand) 75%, var(--oc-teal));
-    }
-
-    .oc-avatar__icon {
-        width: 1rem;
-        height: 1rem;
+    .oc-avatar--photo {
         display: block;
+        object-fit: cover;
+        background: #f3f4f6;
+    }
+
+    .oc-avatar--placeholder {
+        background: #e9eff6;
+        color: #335483;
+    }
+
+    .oc-avatar--sanad {
+        border-color: color-mix(in srgb, #4f53a3 28%, #f3f4f6);
+    }
+
+    .oc-avatar--sanad.oc-avatar--placeholder {
+        background: #ededf7;
+        color: #4f53a3;
+    }
+
+    .oc-avatar__glyph {
+        width: 2.25rem; /* h-9 */
+        height: 2.25rem;
+        display: block;
+    }
+
+    .oc-card--staff .oc-avatar,
+    .oc-card--sub-manager .oc-avatar {
+        width: 5rem;
+        height: 5rem;
     }
 
     .oc-card__name {

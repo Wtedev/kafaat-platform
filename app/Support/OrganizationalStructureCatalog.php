@@ -2,6 +2,9 @@
 
 namespace App\Support;
 
+use App\Models\User;
+use Illuminate\Support\Facades\Schema;
+
 /**
  * الهيكل التنظيمي لجمعية كفاءات — مصدر ثابت للعرض العام.
  */
@@ -9,7 +12,7 @@ final class OrganizationalStructureCatalog
 {
     public static function data(): array
     {
-        return [
+        $data = [
             'ceo' => [
                 'title' => 'مدير تنفيذي',
                 'name' => 'عبدالسلام محمد الصغير',
@@ -25,7 +28,11 @@ final class OrganizationalStructureCatalog
                 [
                     'name' => 'إدارة الموارد البشرية',
                     'members' => [
-                        ['name' => 'ريماس أحمد الصقر', 'title' => 'الموارد البشرية (متدرب سند)'],
+                        [
+                            'name' => 'ريماس أحمد الصقر',
+                            'title' => 'متدرب',
+                            'accent' => 'sanad',
+                        ],
                     ],
                 ],
                 [
@@ -51,11 +58,11 @@ final class OrganizationalStructureCatalog
                     'sub_departments' => [
                         [
                             'name' => 'قسم المشاريع',
-                            'manager' => ['name' => 'وجدان عبدالله الصمعاني', 'title' => 'رئيس قسم المشاريع'],
+                            'manager' => ['name' => 'وجدان عبدالله الصمعاني', 'title' => 'رئيس قسم'],
                         ],
                         [
                             'name' => 'قسم المستفيدين',
-                            'manager' => ['name' => 'محمد زيد الزلفاوي', 'title' => 'رئيس قسم المستفيدين'],
+                            'manager' => ['name' => 'محمد زيد الزلفاوي', 'title' => 'رئيس قسم'],
                         ],
                     ],
                 ],
@@ -73,11 +80,11 @@ final class OrganizationalStructureCatalog
                     'sub_departments' => [
                         [
                             'name' => 'قسم الاتصال المؤسسي',
-                            'manager' => ['name' => 'عبدالله عبدالرحمن السعوي', 'title' => 'مدير الإدارة'],
+                            'manager' => ['name' => 'عبدالله عبدالرحمن السعوي', 'title' => 'رئيس قسم'],
                         ],
                         [
                             'name' => 'قسم العلاقات العامة والشراكات',
-                            'manager' => ['name' => 'حسام عبدالعزيز التويجري', 'title' => 'مدير الإدارة'],
+                            'manager' => ['name' => 'حسام عبدالعزيز التويجري', 'title' => 'رئيس قسم'],
                             'members' => [
                                 ['name' => 'زياد عبدالله الحصيان', 'title' => 'عضو في قسم العلاقات العامة والشراكات'],
                             ],
@@ -90,6 +97,87 @@ final class OrganizationalStructureCatalog
                 ],
             ],
         ];
+
+        return self::withResolvedPhotos($data);
+    }
+
+    /**
+     * Attach public photo URLs from staff profiles when names match.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private static function withResolvedPhotos(array $data): array
+    {
+        $photosByName = self::staffPhotosByName();
+
+        if ($photosByName === []) {
+            return $data;
+        }
+
+        $attach = static function (?array $person) use ($photosByName): ?array {
+            if ($person === null || ! isset($person['name'])) {
+                return $person;
+            }
+
+            $key = trim((string) $person['name']);
+            if ($key !== '' && isset($photosByName[$key])) {
+                $person['photo'] = $photosByName[$key];
+            }
+
+            return $person;
+        };
+
+        $data['ceo'] = $attach($data['ceo'] ?? null) ?? $data['ceo'];
+
+        foreach ($data['departments'] as &$dept) {
+            if (isset($dept['manager'])) {
+                $dept['manager'] = $attach($dept['manager']);
+            }
+
+            foreach ($dept['members'] ?? [] as $i => $member) {
+                $dept['members'][$i] = $attach($member);
+            }
+
+            foreach ($dept['sub_departments'] ?? [] as $si => $sub) {
+                if (isset($sub['manager'])) {
+                    $dept['sub_departments'][$si]['manager'] = $attach($sub['manager']);
+                }
+
+                foreach ($sub['members'] ?? [] as $mi => $member) {
+                    $dept['sub_departments'][$si]['members'][$mi] = $attach($member);
+                }
+            }
+        }
+        unset($dept);
+
+        return $data;
+    }
+
+    /**
+     * @return array<string, string> name => public URL
+     */
+    private static function staffPhotosByName(): array
+    {
+        try {
+            if (! Schema::hasColumn('users', 'staff_photo')) {
+                return [];
+            }
+
+            return User::query()
+                ->whereNotNull('staff_photo')
+                ->where('staff_photo', '!=', '')
+                ->get(['name', 'staff_photo'])
+                ->mapWithKeys(function (User $user): array {
+                    $url = $user->staffPhotoUrl();
+                    $name = trim((string) $user->name);
+
+                    return ($url && $name !== '') ? [$name => $url] : [];
+                })
+                ->all();
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     public static function initials(string $name): string
