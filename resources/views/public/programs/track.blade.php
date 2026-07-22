@@ -14,7 +14,7 @@
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             مسارات الكفاءة
         </a>
-        <h1 class="text-2xl font-bold sm:text-3xl">{{ $track->label() }}</h1>
+        <h1 class="text-2xl font-bold sm:text-3xl" style="color:{{ $color }}">{{ $track->label() }}</h1>
         <p class="mt-2 max-w-2xl text-sm leading-relaxed sm:text-base" style="color:#6B7280">{{ $meta['description'] ?? '' }}</p>
         @if (! empty($meta['stat_label']))
         <p class="mt-3 inline-flex rounded-lg px-3 py-1 text-xs font-semibold" style="background:{{ $color }}12; color:{{ $color }}">{{ $meta['stat_label'] }}</p>
@@ -54,7 +54,7 @@
         />
 
         <div class="p-5">
-            <h3 class="mb-2 font-bold leading-snug transition-colors group-hover:text-[#335483]">{{ $program->title }}</h3>
+            <h3 class="mb-2 font-bold leading-snug text-brand transition-colors">{{ $program->title }}</h3>
             @if (filled($descriptionExcerpt))
             <p class="line-clamp-2 text-sm leading-relaxed" style="color:#6B7280">{{ $descriptionExcerpt }}</p>
             @endif

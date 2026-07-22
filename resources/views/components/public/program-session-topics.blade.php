@@ -33,7 +33,7 @@
             </svg>
         </span>
         <div class="min-w-0">
-            <h3 id="program-session-topics-heading" class="text-base font-semibold tracking-tight text-[#335483] sm:text-lg">
+            <h3 id="program-session-topics-heading" class="text-base font-semibold tracking-tight text-brand sm:text-lg">
                 محاور البرنامج
             </h3>
             <p class="mt-1 text-sm leading-relaxed text-gray-500">

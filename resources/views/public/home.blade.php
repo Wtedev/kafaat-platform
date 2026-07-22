@@ -951,7 +951,7 @@
                                 <span class="text-xs shrink-0" style="color:#6B7280">{{ $item->published_at->format('Y/m/d') }}</span>
                                 @endif
                             </div>
-                            <h3 class="mb-2 line-clamp-2 text-base font-bold transition-colors group-hover:text-[#335483]">{{ $item->title }}</h3>
+                            <h3 class="news-card-title mb-2 line-clamp-2 text-base font-bold text-brand">{{ $item->title }}</h3>
                             @if ($item->excerpt)
                             <p class="line-clamp-3 text-sm" style="color:#6B7280">{{ $item->excerpt }}</p>
                             @endif

@@ -124,6 +124,30 @@ html:not(.fi) :is(h1, h2, h3, h4)[class*='text-brand']:not([class*='text-brand-'
     color: var(--brand-primary);
 }
 
+/* تعتيم خفيف لعناوين البطاقات ذات text-brand عند المرور */
+html:not(.fi) .group:hover :is(h3, h4)[class*='text-brand']:not([class*='text-brand-']),
+html:not(.fi) .group:focus-within :is(h3, h4)[class*='text-brand']:not([class*='text-brand-']) {
+    color: #243a55;
+}
+
+/*
+ | عناوين بطاقات الأخبار — أزرق الهوية دائماً (يتفوق على h3 التركواز)
+ | مع تحريك خفيف عند المرور على البطاقة (يتماشى مع تذييل الموقع)
+ */
+html:not(.fi) h3.news-card-title {
+    color: var(--brand-primary);
+    transition: color 0.25s ease;
+}
+html:not(.fi) .group:hover h3.news-card-title,
+html:not(.fi) .group:focus-within h3.news-card-title {
+    color: #243a55;
+}
+@media (prefers-reduced-motion: reduce) {
+    html:not(.fi) h3.news-card-title {
+        transition: none;
+    }
+}
+
 html:not(.fi) :is(h1, h2, h3, h4, p, span, small)[class*='text-brand-secondary'] {
     color: var(--brand-secondary);
 }
