@@ -55,6 +55,9 @@
         @yield('content')
     </main>
 
+    {{-- Headquarters / مقر الجمعية — immediately before footer --}}
+    <x-public-headquarters />
+
     {{-- Footer --}}
     <x-public-footer />
 
