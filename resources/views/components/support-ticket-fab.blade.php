@@ -102,9 +102,13 @@
     font-weight: 700;
     box-shadow: 0 14px 32px -12px rgba(51, 84, 131, 0.65);
     cursor: pointer;
-    transition: transform 0.15s ease, opacity 0.15s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
-.support-fab__btn:hover { opacity: 0.95; transform: translateY(-1px); }
+.support-fab__btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    background: #2a466e;
+    box-shadow: 0 18px 36px -12px rgba(51, 84, 131, 0.75);
+}
 .support-fab__panel {
     width: min(22rem, calc(100vw - 2rem));
     border-radius: 1.25rem;

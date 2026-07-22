@@ -31,7 +31,7 @@
                             href="{{ $social['url'] }}"
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-gray-300 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1a9399]/20 hover:text-white hover:shadow-lg hover:shadow-[#1a9399]/20"
+                            class="kafaat-footer-social flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-gray-300"
                             aria-label="{{ $social['label'] }}"
                         >
                             @switch($social['key'] ?? '')
@@ -62,17 +62,17 @@
             <div class="text-center sm:text-right lg:col-span-2">
                 <h4 class="text-xs font-bold uppercase tracking-wider text-[#1a9399]">روابط سريعة</h4>
                 <ul class="mt-4 space-y-2.5 text-sm">
-                    <li><a href="{{ route('home') }}" class="text-gray-400 transition-colors hover:text-white">الرئيسية</a></li>
-                    <li><a href="{{ $aboutHref }}" class="text-gray-400 transition-colors hover:text-white">عن كفاءات</a></li>
+                    <li><a href="{{ route('home') }}" class="kafaat-footer-link">الرئيسية</a></li>
+                    <li><a href="{{ $aboutHref }}" class="kafaat-footer-link">عن كفاءات</a></li>
                     @if (Route::has('public.tracks.index'))
-                    <li><a href="{{ route('public.tracks.index') }}" class="text-gray-400 transition-colors hover:text-white">مسارات الكفاءة</a></li>
+                    <li><a href="{{ route('public.tracks.index') }}" class="kafaat-footer-link">مسارات الكفاءة</a></li>
                     @endif
-                    <li><a href="{{ route('public.volunteering.index') }}" class="text-gray-400 transition-colors hover:text-white">الفرص التطوعية</a></li>
+                    <li><a href="{{ route('public.volunteering.index') }}" class="kafaat-footer-link">الفرص التطوعية</a></li>
                     @if(Route::has('public.governance.index'))
-                    <li><a href="{{ route('public.governance.index') }}" class="text-gray-400 transition-colors hover:text-white">الحوكمة</a></li>
+                    <li><a href="{{ route('public.governance.index') }}" class="kafaat-footer-link">الحوكمة</a></li>
                     @endif
                     @if(Route::has('public.media.index'))
-                    <li><a href="{{ route('public.media.index') }}" class="text-gray-400 transition-colors hover:text-white">المركز الإعلامي</a></li>
+                    <li><a href="{{ route('public.media.index') }}" class="kafaat-footer-link">المركز الإعلامي</a></li>
                     @endif
                 </ul>
             </div>
@@ -82,24 +82,24 @@
                 <h4 class="text-xs font-bold uppercase tracking-wider text-[#1a9399]">المنصة والخدمات</h4>
                 <ul class="mt-4 space-y-2.5 text-sm">
                     @guest
-                    <li><a href="{{ route('login') }}" class="text-gray-400 transition-colors hover:text-white">تسجيل الدخول</a></li>
-                    <li><a href="{{ route('register') }}" class="text-gray-400 transition-colors hover:text-white">إنشاء حساب</a></li>
+                    <li><a href="{{ route('login') }}" class="kafaat-footer-link">تسجيل الدخول</a></li>
+                    <li><a href="{{ route('register') }}" class="kafaat-footer-link">إنشاء حساب</a></li>
                     @else
                     @if(auth()->user()->canAccessFilamentAdmin())
-                    <li><a href="{{ url('/admin') }}" class="text-gray-400 transition-colors hover:text-white">لوحة الإدارة</a></li>
+                    <li><a href="{{ url('/admin') }}" class="kafaat-footer-link">لوحة الإدارة</a></li>
                     @else
-                    <li><a href="{{ route('portal.dashboard') }}" class="text-gray-400 transition-colors hover:text-white">حسابي</a></li>
+                    <li><a href="{{ route('portal.dashboard') }}" class="kafaat-footer-link">حسابي</a></li>
                     @endif
                     @endguest
                     @if(Route::has('public.regulations.index'))
-                    <li><a href="{{ route('public.regulations.index') }}" class="text-gray-400 transition-colors hover:text-white">اللوائح والأنظمة</a></li>
+                    <li><a href="{{ route('public.regulations.index') }}" class="kafaat-footer-link">اللوائح والأنظمة</a></li>
                     @endif
                     @if(Route::has('public.news.index'))
-                    <li><a href="{{ route('public.news.index') }}" class="text-gray-400 transition-colors hover:text-white">الأخبار</a></li>
+                    <li><a href="{{ route('public.news.index') }}" class="kafaat-footer-link">الأخبار</a></li>
                     @endif
-                    <li><a href="{{ route('home') }}#faq" class="text-gray-400 transition-colors hover:text-white">الأسئلة الشائعة</a></li>
-                    <li><a href="{{ route('public.privacy') }}" class="text-gray-400 transition-colors hover:text-white">سياسة الخصوصية</a></li>
-                    <li><a href="{{ route('public.terms') }}" class="text-gray-400 transition-colors hover:text-white">الشروط والأحكام</a></li>
+                    <li><a href="{{ route('home') }}#faq" class="kafaat-footer-link">الأسئلة الشائعة</a></li>
+                    <li><a href="{{ route('public.privacy') }}" class="kafaat-footer-link">سياسة الخصوصية</a></li>
+                    <li><a href="{{ route('public.terms') }}" class="kafaat-footer-link">الشروط والأحكام</a></li>
                 </ul>
             </div>
 
@@ -107,15 +107,15 @@
             <div class="text-center sm:text-right lg:col-span-3">
                 <h4 class="text-xs font-bold uppercase tracking-wider text-[#1a9399]">تواصل معنا</h4>
                 <ul class="mt-4 space-y-3 text-sm">
-                    <li class="flex flex-wrap items-center justify-center gap-2 sm:flex-nowrap sm:justify-end">
-                        <a href="mailto:{{ $site['contact_email'] }}" class="min-w-0 break-all font-medium text-gray-200 transition-colors hover:text-white" dir="ltr">{{ $site['contact_email'] }}</a>
-                        <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5" aria-hidden="true">
+                    <li class="kafaat-footer-contact group flex flex-wrap items-center justify-center gap-2 sm:flex-nowrap sm:justify-end">
+                        <a href="mailto:{{ $site['contact_email'] }}" class="kafaat-footer-contact__link min-w-0 break-all font-medium" dir="ltr">{{ $site['contact_email'] }}</a>
+                        <span class="kafaat-footer-contact__icon inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5" aria-hidden="true">
                             <svg class="h-4 w-4 text-[#1a9399]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                         </span>
                     </li>
-                    <li class="flex flex-wrap items-center justify-center gap-2 sm:flex-nowrap sm:justify-end">
-                        <a href="tel:{{ $telHref }}" class="min-w-0 font-medium text-gray-200 transition-colors hover:text-white" dir="ltr">{{ $site['contact_phone_display'] ?? $site['contact_phone_local'] }}</a>
-                        <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5" aria-hidden="true">
+                    <li class="kafaat-footer-contact group flex flex-wrap items-center justify-center gap-2 sm:flex-nowrap sm:justify-end">
+                        <a href="tel:{{ $telHref }}" class="kafaat-footer-contact__link min-w-0 font-medium" dir="ltr">{{ $site['contact_phone_display'] ?? $site['contact_phone_local'] }}</a>
+                        <span class="kafaat-footer-contact__icon inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5" aria-hidden="true">
                             <svg class="h-4 w-4 text-[#1a9399]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                         </span>
                     </li>
@@ -150,11 +150,105 @@
             <div class="flex flex-col items-center gap-4 text-center text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:text-right">
                 <p class="leading-relaxed">© {{ date('Y') }} {{ $legalName }}. جميع الحقوق محفوظة.</p>
                 <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:justify-end">
-                    <a href="{{ route('public.privacy') }}" class="font-medium text-gray-400 transition-colors hover:text-white">سياسة الخصوصية</a>
-                    <a href="{{ route('public.terms') }}" class="font-medium text-gray-400 transition-colors hover:text-white">الشروط والأحكام</a>
+                    <a href="{{ route('public.privacy') }}" class="kafaat-footer-link font-medium">سياسة الخصوصية</a>
+                    <a href="{{ route('public.terms') }}" class="kafaat-footer-link font-medium">الشروط والأحكام</a>
                 </div>
             </div>
         </div>
     </div>
 
+    <style>
+        .kafaat-footer-social {
+            transition:
+                transform 0.25s ease,
+                background-color 0.25s ease,
+                border-color 0.25s ease,
+                color 0.25s ease,
+                box-shadow 0.25s ease;
+        }
+        .kafaat-footer-social:hover {
+            transform: translateY(-3px) scale(1.06);
+            border-color: rgba(26, 147, 153, 0.45);
+            background-color: rgba(26, 147, 153, 0.22);
+            color: #fff;
+            box-shadow: 0 10px 22px -10px rgba(26, 147, 153, 0.55);
+        }
+        .kafaat-footer-social:focus-visible {
+            outline: 2px solid #1a9399;
+            outline-offset: 2px;
+        }
+
+        .kafaat-footer-link {
+            position: relative;
+            display: inline-block;
+            color: #9ca3af;
+            text-decoration: none;
+            transition: color 0.25s ease;
+        }
+        .kafaat-footer-link::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            bottom: -2px;
+            width: 0;
+            height: 1.5px;
+            border-radius: 999px;
+            background: #1a9399;
+            transition: width 0.25s ease;
+        }
+        .kafaat-footer-link:hover,
+        .kafaat-footer-link:focus-visible {
+            color: #1a9399;
+        }
+        .kafaat-footer-link:hover::after,
+        .kafaat-footer-link:focus-visible::after {
+            width: 100%;
+        }
+        .kafaat-footer-link:focus-visible {
+            outline: none;
+        }
+
+        .kafaat-footer-contact__link {
+            color: #e5e7eb;
+            transition: color 0.25s ease;
+        }
+        .kafaat-footer-contact__icon {
+            transition:
+                transform 0.25s ease,
+                background-color 0.25s ease,
+                border-color 0.25s ease;
+        }
+        .kafaat-footer-contact:hover .kafaat-footer-contact__link,
+        .kafaat-footer-contact:focus-within .kafaat-footer-contact__link,
+        .kafaat-footer-contact__link:hover,
+        .kafaat-footer-contact__link:focus-visible {
+            color: #1a9399;
+        }
+        .kafaat-footer-contact:hover .kafaat-footer-contact__icon,
+        .kafaat-footer-contact:focus-within .kafaat-footer-contact__icon {
+            transform: translateY(-1px);
+            border-color: rgba(26, 147, 153, 0.4);
+            background-color: rgba(26, 147, 153, 0.14);
+        }
+        .kafaat-footer-contact__link:focus-visible {
+            outline: 2px solid #1a9399;
+            outline-offset: 2px;
+            border-radius: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .kafaat-footer-social,
+            .kafaat-footer-link,
+            .kafaat-footer-link::after,
+            .kafaat-footer-contact__link,
+            .kafaat-footer-contact__icon {
+                transition: none;
+            }
+            .kafaat-footer-social:hover,
+            .kafaat-footer-contact:hover .kafaat-footer-contact__icon,
+            .kafaat-footer-contact:focus-within .kafaat-footer-contact__icon {
+                transform: none;
+            }
+        }
+    </style>
 </footer>
