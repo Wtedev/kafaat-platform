@@ -11,7 +11,7 @@ final class OrganizationalStructureCatalog
     {
         return [
             'ceo' => [
-                'title' => 'المدير التنفيذي',
+                'title' => 'مدير تنفيذي',
                 'name' => 'عبدالسلام محمد الصغير',
             ],
             'departments' => [
