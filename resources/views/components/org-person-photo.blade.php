@@ -15,13 +15,13 @@
         'teal' => (string) config('brand.secondary', '#1a9399'),
         'primary' => (string) config('brand.primary', '#335483'),
         'danger' => (string) config('brand.danger', '#ec6056'),
-        // Volunteer team — clear yellow that keeps white icons readable.
-        'yellow' => (string) config('brand.accent', '#EAB308'),
+        // Volunteer team — light yellow; dark icon for contrast (white fails on this fill).
+        'yellow' => '#FCD34D',
         // Non–department-managers (incl. section heads): very light gray, still readable with white icons.
         'gray' => '#9CA3AF',
     ];
     $placeholderBg = $palette[$accentKey] ?? $palette['primary'];
-    $iconColor = '#ffffff';
+    $iconColor = $accentKey === 'yellow' ? '#854D0E' : '#ffffff';
     $frame = 'mx-auto mb-4 h-20 w-20 rounded-full border-2 border-gray-100 shadow-sm';
 @endphp
 
