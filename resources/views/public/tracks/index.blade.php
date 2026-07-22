@@ -16,8 +16,11 @@ $order = CompetencyTrackCatalog::order();
 @endphp
 
 <header class="mb-8 text-right">
+    <p class="mb-1 text-sm font-semibold" style="color:#1a9399">
+        {{ $intro['badge'] ?? 'مسارات الكفاءة' }}
+    </p>
     <h1 class="text-2xl font-bold">
-        {{ $intro['badge'] ?? 'مسارات البرامج' }}
+        {{ $intro['title'] ?? 'مسارات الكفاءة' }}
     </h1>
     <p class="mt-3 max-w-3xl text-sm leading-relaxed sm:text-base" style="color:#6B7280">
         {{ $intro['subtitle'] ?? '' }}

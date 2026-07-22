@@ -155,8 +155,13 @@
             font-size: 1.125rem;
             line-height: 1.4;
             font-weight: 700;
-            color: #111827;
             letter-spacing: -0.01em;
+            /* Beat global html:not(.fi) h3 teal — match each card’s icon accent */
+            color: var(--vm-accent, var(--brand-primary, #335483));
+        }
+
+        html:not(.fi) #work .vm-card .vm-card__title {
+            color: var(--vm-accent, var(--brand-primary, #335483));
         }
 
         .vm-card__desc {
@@ -683,7 +688,7 @@
 
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 4. STATISTICS SECTION                                               --}}
+    {{-- 4. STATISTICS / أرقام 2025                                               --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <section id="kafaat-stats" class="py-6 px-4 sm:px-6">
         <div class="max-w-7xl mx-auto">
@@ -696,7 +701,7 @@
                 </div>
 
                 <div class="relative z-10 text-center mb-12">
-                    <h2 class="text-3xl font-bold text-white mb-2">أرقام كفاءات لعام 2025</h2>
+                    <h2 class="text-3xl font-bold text-white mb-2">أرقام كفاءات 2025</h2>
                     <p class="text-sm" style="color:rgba(255,255,255,0.65)">نتائج نعتز بها</p>
                 </div>
 
@@ -761,18 +766,71 @@
 
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 6. WORK AREAS SECTION                                               --}}
+    {{-- 5. ANNUAL REPORT / التقرير                                            --}}
+    {{-- ═══════════════════════════════════════════════════════════════════ --}}
+    <section class="py-6 sm:py-8 px-4 sm:px-6" aria-labelledby="annual-report-heading">
+        <div class="mx-auto max-w-7xl">
+            <div class="relative overflow-hidden rounded-2xl sm:rounded-3xl" style="background: linear-gradient(135deg, #111827 0%, #335483 60%, #2a4566 100%)">
+
+                <div class="pointer-events-none absolute -start-10 -top-10 h-40 w-40 rounded-full bg-white opacity-5 sm:h-56 sm:w-56" aria-hidden="true"></div>
+                <div class="pointer-events-none absolute -bottom-16 end-1/4 h-48 w-48 rounded-full opacity-5 sm:h-72 sm:w-72" style="background:#335483" aria-hidden="true"></div>
+
+                <div class="relative z-10 flex flex-col gap-7 px-5 py-9 sm:gap-9 sm:px-10 sm:py-12 md:flex-row md:items-center md:justify-between lg:gap-12 lg:px-16 lg:py-14">
+
+                    <div class="min-w-0 flex-1 text-right">
+                        <div class="mb-1 text-5xl font-black leading-none sm:text-7xl lg:text-8xl" style="color:rgba(255,255,255,0.12)" aria-hidden="true">2025</div>
+                        <h2 id="annual-report-heading" class="mb-3 text-2xl font-bold text-white sm:text-3xl">أبرز أرقام جمعية كفاءات في عام 2025</h2>
+                        <p class="max-w-md text-sm leading-relaxed sm:text-base" style="color:rgba(255,255,255,0.7)">
+                            تقرير شامل يرصد إنجازات جمعية كفاءات خلال عام 2025: برامجها التدريبية، عملها التطوعي، وأثرها المجتمعي.
+                        </p>
+                    </div>
+
+                    <div class="w-full shrink-0 md:w-auto">
+                        <a
+                            href="{{ asset('reports/annual-report-2025.pdf') }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="annual-report-cta"
+                            aria-label="عرض التقرير السنوي 2025"
+                        >
+                            <svg class="h-6 w-6 shrink-0 opacity-95 sm:h-9 sm:w-9" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <span>عرض التقرير</span>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    {{-- ═══════════════════════════════════════════════════════════════════ --}}
+    {{-- 6. COMPETENCY TRACKS / ثلاثة مسارات                                     --}}
+    {{-- ═══════════════════════════════════════════════════════════════════ --}}
+    <section id="programs" class="scroll-mt-24 bg-[#F7FAFC] py-20 sm:py-24">
+        <div class="mx-auto max-w-[94rem] px-4 sm:px-6 lg:px-10">
+            <x-public.competency-tracks-section :programCounts="$programCounts" :trackPrograms="$trackPrograms" />
+        </div>
+    </section>
+
+
+    {{-- ═══════════════════════════════════════════════════════════════════ --}}
+    {{-- 7. WORK AREAS / مشاريع كفاءات                                               --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <section id="work" class="py-20 bg-[#F7FAFC] scroll-mt-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h2 class="text-3xl sm:text-4xl font-bold mb-4">مشاريع كفاءات</h2>
+                <p class="text-sm font-semibold uppercase tracking-widest mb-3" style="color:#1a9399">مشاريع كفاءات</p>
+                <h2 class="text-3xl sm:text-4xl font-bold text-brand mb-4">ماذا نقدم</h2>
                 <p class="text-lg leading-relaxed max-w-2xl mx-auto" style="color:#6B7280">
                     مسارات تأهيلية وبرامج تدريبية وفرص تطوعية تُسهم في بناء قدرات الشباب وتمكينهم من المشاركة المجتمعية.
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-7">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 @php
                 $workAreas = [
                 [
@@ -805,66 +863,41 @@
                 ];
                 @endphp
                 @foreach($workAreas as $area)
-                @php $isLink = $area['href'] && ! ($area['soon'] ?? false); @endphp
-                @if ($isLink)
-                <a
-                    href="{{ $area['href'] }}"
-                    class="vm-card group"
-                    style="--vm-accent: {{ $area['color'] }}; --vm-tint: {{ $area['bg'] }};"
-                >
-                @else
-                <div
-                    class="vm-card vm-card--soon"
-                    style="--vm-accent: {{ $area['color'] }}; --vm-tint: {{ $area['bg'] }};"
-                >
-                @endif
-                    <div class="mb-5 flex items-center justify-between gap-3">
-                        <div class="vm-card__icon" aria-hidden="true">
-                            <span class="vm-card__dot"></span>
-                        </div>
-                        @if (! empty($area['badge']))
-                        <span class="vm-card__badge">{{ $area['badge'] }}</span>
+                @if ($area['href'] && ! ($area['soon'] ?? false))
+                <a href="{{ $area['href'] }}" class="vm-card block" style="--vm-accent: {{ $area['color'] }}; --vm-tint: {{ $area['bg'] }}">
+                    @else
+                    <div class="vm-card vm-card--soon" style="--vm-accent: {{ $area['color'] }}; --vm-tint: {{ $area['bg'] }}">
                         @endif
-                    </div>
-                    <h3 class="vm-card__title">{{ $area['title'] }}</h3>
-                    <p class="vm-card__desc">{{ $area['desc'] }}</p>
-                    @if ($isLink)
-                    <span class="vm-card__cta">
-                        استكشف
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </span>
+                        <div class="flex items-center justify-end gap-2 mb-4">
+                            @if (! empty($area['badge']))
+                            <span class="vm-card__badge">{{ $area['badge'] }}</span>
+                            @endif
+                            <div class="vm-card__icon" aria-hidden="true">
+                                <span class="vm-card__dot"></span>
+                            </div>
+                        </div>
+                        <h3 class="vm-card__title">{{ $area['title'] }}</h3>
+                        <p class="vm-card__desc">{{ $area['desc'] }}</p>
+                        @if ($area['href'] && ! ($area['soon'] ?? false))
                 </a>
                 @else
-                </div>
-                @endif
-                @endforeach
             </div>
+            @endif
+            @endforeach
+        </div>
         </div>
     </section>
 
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 7. COMPETENCY TRACKS / PROGRAMS                                     --}}
-    {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section id="programs" class="scroll-mt-24 bg-[#F7FAFC] py-20 sm:py-24">
-        <div class="mx-auto max-w-[94rem] px-4 sm:px-6 lg:px-10">
-            <x-public.competency-tracks-section :programCounts="$programCounts" :trackPrograms="$trackPrograms" />
-        </div>
-    </section>
-
-
-    {{-- removed old "about platform" section --}}
-    {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 8. NEWS & EVENTS SECTION                                            --}}
+    {{-- 8. NEWS / أحدث الأخبار                                            --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <section id="news" class="scroll-mt-24 py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <div class="mb-10 flex flex-row items-end justify-between gap-4">
                 <div class="text-right">
-                    <h2 class="text-2xl font-bold">أحدث الأخبار</h2>
+                    <h2 class="text-2xl font-bold text-brand">أحدث الأخبار</h2>
                 </div>
                 <a href="{{ route('public.news.index') }}" class="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold hover:underline" style="color:#335483">
                     عرض كل الأخبار
@@ -933,49 +966,58 @@
 
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 8. ANNUAL REPORT SECTION                                            --}}
+    {{-- 9. FAQ / الأسئلة الشائعة                                                     --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section class="py-6 sm:py-8 px-4 sm:px-6" aria-labelledby="annual-report-heading">
-        <div class="mx-auto max-w-7xl">
-            <div class="relative overflow-hidden rounded-2xl sm:rounded-3xl" style="background: linear-gradient(135deg, #111827 0%, #335483 60%, #2a4566 100%)">
+    <section id="faq" class="scroll-mt-24 py-20" style="background:#F3F7FB">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 
-                <div class="pointer-events-none absolute -start-10 -top-10 h-40 w-40 rounded-full bg-white opacity-5 sm:h-56 sm:w-56" aria-hidden="true"></div>
-                <div class="pointer-events-none absolute -bottom-16 end-1/4 h-48 w-48 rounded-full opacity-5 sm:h-72 sm:w-72" style="background:#335483" aria-hidden="true"></div>
-
-                <div class="relative z-10 flex flex-col gap-7 px-5 py-9 sm:gap-9 sm:px-10 sm:py-12 md:flex-row md:items-center md:justify-between lg:gap-12 lg:px-16 lg:py-14">
-
-                    <div class="min-w-0 flex-1 text-right">
-                        <div class="mb-1 text-5xl font-black leading-none sm:text-7xl lg:text-8xl" style="color:rgba(255,255,255,0.12)" aria-hidden="true">2025</div>
-                        <h2 id="annual-report-heading" class="mb-3 text-2xl font-bold text-white sm:text-3xl">التقرير السنوي</h2>
-                        <p class="max-w-md text-sm leading-relaxed sm:text-base" style="color:rgba(255,255,255,0.7)">
-                            تقرير شامل يرصد إنجازات جمعية كفاءات خلال عام 2025: برامجها التدريبية، عملها التطوعي، وأثرها المجتمعي.
-                        </p>
-                    </div>
-
-                    <div class="w-full shrink-0 md:w-auto">
-                        <a
-                            href="{{ asset('reports/annual-report-2025.pdf') }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="annual-report-cta"
-                            aria-label="عرض التقرير السنوي 2025"
-                        >
-                            <svg class="h-6 w-6 shrink-0 opacity-95 sm:h-9 sm:w-9" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            <span>عرض التقرير</span>
-                        </a>
-                    </div>
-
-                </div>
+            <div class="text-center mb-12">
+                <p class="text-sm font-semibold uppercase tracking-widest mb-2" style="color:#1a9399">لديك سؤال؟</p>
+                <h2 class="text-3xl font-bold text-brand">الأسئلة الشائعة</h2>
             </div>
+
+            @php
+            $faqs = [
+            ['q' => 'ما هي جمعية كفاءات؟',
+            'a' => 'جمعية أهلية غير ربحية تُعنى ببناء قدرات الشباب وتأهيلهم للمشاركة المجتمعية، عبر برامج تدريبية وفرص تطوعية وشراكات مؤسسية.'],
+            ['q' => 'من يستفيد من برامج الجمعية؟',
+            'a' => 'تستهدف الجمعية الشباب والشابات الراغبين في تنمية مهاراتهم والمشاركة في العمل التطوعي والمجتمعي، وفق شروط كل برنامج أو فرصة.'],
+            ['q' => 'كيف أشارك في التطوع؟',
+            'a' => 'تصفّح قسم «الفرص التطوعية»، اختر الفرصة المناسبة لك، وقدّم طلب التسجيل. سيتواصل معك فريق الجمعية بعد مراجعة الطلب.'],
+            ['q' => 'كيف أسجّل في برنامج تدريبي؟',
+            'a' => 'من صفحة «البرامج» اختر البرنامج أو المسار المناسب، ثم اتبع خطوات التسجيل. بعض البرامج تتطلب إنشاء حساب ومتابعة حالة الطلب.'],
+            ['q' => 'أين مقر الجمعية؟',
+            'a' => 'مقرّنا في بريدة — القصيم. تجد العنوان التفصيلي وساعات العمل وخريطة الموقع في أسفل الصفحة ضمن «تواصل معنا».'],
+            ['q' => 'كيف أتابع أخبار الجمعية؟',
+            'a' => 'من قسم «أحدث الأخبار» في الموقع، أو عبر حسابات الجمعية على منصات التواصل الاجتماعي المذكورة في التذييل.'],
+            ];
+            @endphp
+
+            <div class="space-y-3">
+                @foreach($faqs as $idx => $faq)
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    {{-- Button: text first (right in RTL), icon second (left in RTL) --}}
+                    <button onclick="toggleFaq({{ $idx }})" class="w-full flex items-center justify-between px-6 py-5 hover:bg-gray-50 transition-colors cursor-pointer">
+                        <span id="faq-q-{{ $idx }}" class="font-semibold text-base text-right flex-1 leading-snug" style="color:var(--brand-body)">{{ $faq['q'] }}</span>
+                        <svg id="faq-icon-{{ $idx }}" class="faq-chevron w-5 h-5 flex-shrink-0 ms-4" style="color:#6B7280" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                    </button>
+                    <div id="faq-body-{{ $idx }}" class="faq-body">
+                        <div class="px-6 pb-5 pt-1 text-right">
+                            <p class="text-sm leading-relaxed" style="color:#6B7280">{{ $faq['a'] }}</p>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+
         </div>
     </section>
 
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 9. PARTNERS SECTION                                                 --}}
+    {{-- 10. PARTNERS / شركاؤنا                                                 --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <section class="overflow-hidden bg-white py-16 sm:py-20" dir="rtl" aria-labelledby="partners-heading">
         <div class="mx-auto mb-10 max-w-7xl px-4 text-center sm:mb-12 sm:px-6 lg:px-8">
@@ -1032,57 +1074,6 @@
             </div>
         </div>
         @endif
-    </section>
-
-
-    {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 10. FAQ SECTION                                                     --}}
-    {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section id="faq" class="scroll-mt-24 py-20" style="background:#F3F7FB">
-        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            <div class="text-center mb-12">
-                <p class="text-sm font-semibold uppercase tracking-widest mb-2" style="color:#1a9399">لديك سؤال؟</p>
-                <h2 class="text-3xl font-bold">الأسئلة الشائعة</h2>
-            </div>
-
-            @php
-            $faqs = [
-            ['q' => 'ما هي جمعية كفاءات؟',
-            'a' => 'جمعية أهلية غير ربحية تُعنى ببناء قدرات الشباب وتأهيلهم للمشاركة المجتمعية، عبر برامج تدريبية وفرص تطوعية وشراكات مؤسسية.'],
-            ['q' => 'من يستفيد من برامج الجمعية؟',
-            'a' => 'تستهدف الجمعية الشباب والشابات الراغبين في تنمية مهاراتهم والمشاركة في العمل التطوعي والمجتمعي، وفق شروط كل برنامج أو فرصة.'],
-            ['q' => 'كيف أشارك في التطوع؟',
-            'a' => 'تصفّح قسم «الفرص التطوعية»، اختر الفرصة المناسبة لك، وقدّم طلب التسجيل. سيتواصل معك فريق الجمعية بعد مراجعة الطلب.'],
-            ['q' => 'كيف أسجّل في برنامج تدريبي؟',
-            'a' => 'من صفحة «البرامج» اختر البرنامج أو المسار المناسب، ثم اتبع خطوات التسجيل. بعض البرامج تتطلب إنشاء حساب ومتابعة حالة الطلب.'],
-            ['q' => 'أين مقر الجمعية؟',
-            'a' => 'مقرّنا في بريدة — القصيم. تجد العنوان التفصيلي وساعات العمل وخريطة الموقع في أسفل الصفحة ضمن «تواصل معنا».'],
-            ['q' => 'كيف أتابع أخبار الجمعية؟',
-            'a' => 'من قسم «أحدث الأخبار» في الموقع، أو عبر حسابات الجمعية على منصات التواصل الاجتماعي المذكورة في التذييل.'],
-            ];
-            @endphp
-
-            <div class="space-y-3">
-                @foreach($faqs as $idx => $faq)
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                    {{-- Button: text first (right in RTL), icon second (left in RTL) --}}
-                    <button onclick="toggleFaq({{ $idx }})" class="w-full flex items-center justify-between px-6 py-5 hover:bg-gray-50 transition-colors cursor-pointer">
-                        <span id="faq-q-{{ $idx }}" class="font-semibold text-base text-right flex-1 leading-snug" style="color:var(--brand-body)">{{ $faq['q'] }}</span>
-                        <svg id="faq-icon-{{ $idx }}" class="faq-chevron w-5 h-5 flex-shrink-0 ms-4" style="color:#6B7280" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                    </button>
-                    <div id="faq-body-{{ $idx }}" class="faq-body">
-                        <div class="px-6 pb-5 pt-1 text-right">
-                            <p class="text-sm leading-relaxed" style="color:#6B7280">{{ $faq['a'] }}</p>
-                        </div>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-
-        </div>
     </section>
 
 
