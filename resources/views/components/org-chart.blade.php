@@ -13,6 +13,7 @@
                 'title' => $unit['title'],
                 'kind' => 'member',
                 'photo' => $unit['photo'] ?? null,
+                'accent' => $unit['accent'] ?? null,
             ];
         }
         foreach ($dept['members'] ?? [] as $member) {
@@ -21,6 +22,7 @@
                 'title' => $member['title'] ?? null,
                 'kind' => 'member',
                 'photo' => $member['photo'] ?? null,
+                'accent' => $member['accent'] ?? null,
             ];
         }
 
@@ -37,7 +39,7 @@
                 <li class="oc-node oc-node--root">
                     <div class="oc-card oc-card--ceo">
                         <span class="oc-card__badge">القيادة التنفيذية</span>
-                        <x-org-person-photo :name="$ceo['name']" :photo="$ceo['photo'] ?? null" />
+                        <x-org-person-photo :name="$ceo['name']" :photo="$ceo['photo'] ?? null" :accent="$ceo['accent'] ?? null" />
                         <p class="oc-card__name">{{ $ceo['name'] }}</p>
                         <p class="oc-card__role">{{ $ceo['title'] }}</p>
                     </div>
@@ -59,7 +61,7 @@
 
                                     @if(! $isGroupOnly && isset($dept['manager']))
                                         <div class="oc-card oc-card--manager">
-                                            <x-org-person-photo :name="$dept['manager']['name']" :photo="$dept['manager']['photo'] ?? null" />
+                                            <x-org-person-photo :name="$dept['manager']['name']" :photo="$dept['manager']['photo'] ?? null" :accent="$dept['manager']['accent'] ?? null" />
                                             <p class="oc-card__name oc-card__name--sm">{{ $dept['manager']['name'] }}</p>
                                             <p class="oc-card__role">{{ $dept['manager']['title'] }}</p>
                                         </div>
@@ -81,7 +83,7 @@
                                                 <div class="oc-subdept-block">
                                                     <span class="oc-dept-pill oc-dept-pill--sub">{{ $sub['name'] }}</span>
                                                     <div class="oc-card oc-card--manager oc-card--sub-manager">
-                                                        <x-org-person-photo :name="$sub['manager']['name']" :photo="$sub['manager']['photo'] ?? null" />
+                                                        <x-org-person-photo :name="$sub['manager']['name']" :photo="$sub['manager']['photo'] ?? null" :accent="$sub['manager']['accent'] ?? null" />
                                                         <p class="oc-card__name oc-card__name--sm">{{ $sub['manager']['name'] }}</p>
                                                         <p class="oc-card__role">{{ $sub['manager']['title'] }}</p>
                                                     </div>
@@ -93,7 +95,7 @@
                                                         @foreach($subStaff as $child)
                                                             <li class="oc-node oc-node--leaf">
                                                                 <div class="oc-card oc-card--staff">
-                                                                    <x-org-person-photo :name="$child['name']" :photo="$child['photo'] ?? null" />
+                                                                    <x-org-person-photo :name="$child['name']" :photo="$child['photo'] ?? null" :accent="$child['accent'] ?? null" />
                                                                     <p class="oc-card__name oc-card__name--xs">{{ $child['name'] }}</p>
                                                                     @if(filled($child['title']))
                                                                         <p class="oc-card__role oc-card__role--member">{{ $child['title'] }}</p>
@@ -122,7 +124,7 @@
                                         @foreach($staff as $child)
                                             <li class="oc-node oc-node--leaf">
                                                 <div class="oc-card oc-card--staff">
-                                                    <x-org-person-photo :name="$child['name']" :photo="$child['photo'] ?? null" />
+                                                    <x-org-person-photo :name="$child['name']" :photo="$child['photo'] ?? null" :accent="$child['accent'] ?? null" />
                                                     <p class="oc-card__name oc-card__name--xs">{{ $child['name'] }}</p>
                                                     @if(filled($child['title']))
                                                         <p class="oc-card__role oc-card__role--member">{{ $child['title'] }}</p>
