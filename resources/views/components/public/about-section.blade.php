@@ -21,7 +21,7 @@
 
         <div class="reveal-fade grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
             <article class="rounded-2xl border border-gray-100 bg-[#F8FAFC] p-6 sm:p-7">
-                <p class="mb-3 text-sm font-semibold" style="color:#335483">
+                <p class="mb-3 text-sm font-semibold" style="color:#1a9399">
                     {{ $about['vision']['label'] ?? 'الرؤية' }}
                 </p>
                 <p class="text-sm leading-relaxed sm:text-base" style="color:var(--brand-body)">
