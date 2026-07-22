@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Support\PublicDiskPath;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 
 class BoardMember extends Model
 {
@@ -56,10 +56,6 @@ class BoardMember extends Model
 
     public function photoPublicUrl(): ?string
     {
-        if (! $this->photo) {
-            return null;
-        }
-
-        return Storage::disk('public')->url($this->photo);
+        return PublicDiskPath::url($this->photo);
     }
 }
