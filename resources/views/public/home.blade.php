@@ -817,6 +817,13 @@
                 <div class="relative z-10 flex flex-col gap-7 px-5 py-9 sm:gap-9 sm:px-10 sm:py-12 md:flex-row md:items-center md:justify-between lg:gap-12 lg:px-16 lg:py-14">
 
                     <div class="min-w-0 flex-1 text-right">
+                        <img
+                            src="{{ asset('images/home/riyada-tulhim-logo.png') }}"
+                            alt="ريادة تلهم — الحفل السنوي لعام 2025م"
+                            class="mb-4 inline-block h-14 w-auto rounded-md sm:h-16 lg:h-[4.5rem]"
+                            width="280"
+                            height="112"
+                        >
                         <div class="mb-1 text-5xl font-black leading-none sm:text-7xl lg:text-8xl" style="color:rgba(255,255,255,0.12)" aria-hidden="true">2025</div>
                         <h2 id="annual-report-heading" class="mb-3 text-2xl font-bold text-white sm:text-3xl">أبرز أرقام جمعية كفاءات في عام 2025</h2>
                         <p class="max-w-md text-sm leading-relaxed sm:text-base" style="color:rgba(255,255,255,0.7)">
