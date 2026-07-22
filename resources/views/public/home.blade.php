@@ -579,6 +579,38 @@
         }
 
         /* ── Annual report banner ──────────────────────────────────────── */
+        .annual-report-banner {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            background-color: #111827;
+            background-image: url("{{ asset('images/home/annual-report-2025-banner.png') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        @media (min-width: 640px) {
+            .annual-report-banner {
+                border-radius: 1.5rem;
+            }
+        }
+
+        .annual-report-banner__veil {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(105deg,
+                    rgba(17, 24, 39, 0.55) 0%,
+                    rgba(17, 24, 39, 0.42) 45%,
+                    rgba(17, 24, 39, 0.62) 100%),
+                linear-gradient(180deg,
+                    rgba(17, 24, 39, 0.28) 0%,
+                    transparent 35%,
+                    rgba(17, 24, 39, 0.45) 100%);
+        }
+
         .annual-report-cta {
             display: inline-flex;
             align-items: center;
@@ -593,6 +625,8 @@
             font-weight: 600;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
             transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
         }
 
@@ -777,10 +811,8 @@
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <section class="py-6 sm:py-8 px-4 sm:px-6" aria-labelledby="annual-report-heading">
         <div class="mx-auto max-w-7xl">
-            <div class="relative overflow-hidden rounded-2xl sm:rounded-3xl" style="background: linear-gradient(135deg, #111827 0%, #335483 60%, #2a4566 100%)">
-
-                <div class="pointer-events-none absolute -start-10 -top-10 h-40 w-40 rounded-full bg-white opacity-5 sm:h-56 sm:w-56" aria-hidden="true"></div>
-                <div class="pointer-events-none absolute -bottom-16 end-1/4 h-48 w-48 rounded-full opacity-5 sm:h-72 sm:w-72" style="background:#335483" aria-hidden="true"></div>
+            <div class="annual-report-banner">
+                <div class="annual-report-banner__veil" aria-hidden="true"></div>
 
                 <div class="relative z-10 flex flex-col gap-7 px-5 py-9 sm:gap-9 sm:px-10 sm:py-12 md:flex-row md:items-center md:justify-between lg:gap-12 lg:px-16 lg:py-14">
 
