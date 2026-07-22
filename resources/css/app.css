@@ -89,18 +89,18 @@
 
 /*
  | طباعة الموقع العام / البوابة / المصادقة (وليس لوحة Filament .fi)
- | عناوين رئيسية → أزرق كفاءات | عناوين ثانوية → أخضر/تركواز | نص → رمادي محايد
+ | عناوين الصفحة والسكشنات (h1/h2) → أزرق كفاءات | عناوين فرعية (h3) → أخضر/تركواز | نص → رمادي محايد
  | قواعد خارج الطبقات حتى تطغى على أدوات Tailwind القديمة (text-gray-900 وغيرها).
  */
 html:not(.fi) {
     color: var(--brand-body);
 }
 
-html:not(.fi) h1 {
+html:not(.fi) h1,
+html:not(.fi) h2 {
     color: var(--brand-primary);
 }
 
-html:not(.fi) h2,
 html:not(.fi) h3 {
     color: var(--brand-secondary);
 }
