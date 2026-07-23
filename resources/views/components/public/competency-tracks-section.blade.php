@@ -25,11 +25,8 @@
 <section class="reveal-fade" aria-labelledby="competency-tracks-heading">
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="text-right">
-            <p class="mb-1 text-sm font-semibold" style="color:#1a9399">
-                {{ config('competency_tracks.intro.badge') }}
-            </p>
             <h2 id="competency-tracks-heading" class="text-2xl font-bold text-brand">
-                {{ config('competency_tracks.intro.title', 'ثلاثة مسارات للتمكين') }}
+                {{ config('competency_tracks.intro.title', 'مسارات البرامج') }}
             </h2>
         </div>
         <a
