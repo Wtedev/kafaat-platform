@@ -1,40 +1,45 @@
 # Railway Services Reference
 
-## Production (read-only inventory)
+## Production (target topology)
 
-| Service | Type | Branch | Status | Notes |
-|---------|------|--------|--------|-------|
-| kafaat-platform | Web | `main` | Online | `railpack.json` + serve on `$PORT` |
-| poetic-reprieve | Worker attempt | `main` | Deploy failed | queue:work only — not production-ready |
-| Postgres | PostgreSQL | — | Online | Shared by production web |
-| Bucket | — | — | **None** | CV on local/ephemeral disk |
-| Public media volume | Volume | — | **Must attach** | Mount `/app/storage/app/public` or news/Filament images vanish on redeploy |
+| Service | Type | Branch | Config-as-Code | Start | Notes |
+|---------|------|--------|----------------|-------|-------|
+| `kafaat-platform` | Web | `main` | root `railway.json` / `railway.toml` (or `railway/configs/web.railway.json`) | `start.sh` → web | Healthcheck `GET /up`; preDeploy migrations |
+| `kafaat-worker` | Worker | `main` | **`railway/configs/worker.railway.json`** | `start.sh` → worker | No public domain; `RAILWAY_START_MODE=worker` |
+| `kafaat-scheduler` | Scheduler | `main` | **`railway/configs/scheduler.railway.json`** | `start.sh` → scheduler | No public domain; `RAILWAY_START_MODE=scheduler` |
+| Postgres | PostgreSQL | — | — | — | Shared by all app services |
+| Public media volume | Volume | — | — | — | Mount `/app/storage/app/public` on **web** (+ `PUBLIC_STORAGE_PERSISTENT=1`) |
+| Private docs volume | Volume | — | — | — | Mount `/app/storage/app/private-documents` **or** S3 bucket |
 
-Production start (Web): migrate in legacy config; current repo branch uses `railway/run-web.sh` without inline migrate.
+Legacy failed worker attempt (`poetic-reprieve`) is still recognized by `railway/start.sh` as a worker name so it can be recovered without rename, but prefer `kafaat-worker`.
 
-**Public uploads:** see `docs/deployment/public-media-storage.md` (Railway volume at `/app/storage/app/public`, or `PUBLIC_DISK_DRIVER=s3`).
+**Public uploads:** see `docs/deployment/public-media-storage.md`.
 
-Production **does not** run a dedicated Scheduler service — scheduled tasks (`news:publish-scheduled`, retention, export purge) may not run reliably.
+Minute-level schedules require the dedicated scheduler service (`schedule:work`). Railway Cron (5-minute minimum) is **not** sufficient.
 
-## Staging (target)
+## Staging (parity)
 
 | Component | Decision |
 |-----------|----------|
-| Web | `bash railway/run-web.sh`, health `/up` (also in `railway.json` healthcheckPath), preDeploy `railway/predeploy.sh` |
-| Worker | `bash railway/run-worker.sh`, persistent, no domain |
-| Scheduler | `bash railway/run-scheduler.sh` (every-minute tasks) |
-| PostgreSQL | New instance in `staging` environment |
-| Private storage | Railway Bucket `kafaat-private-staging`, `PRIVATE_DOCUMENTS_DISK=s3` |
+| Web | `kafaat-web-staging`, health `/up`, preDeploy `railway/predeploy.sh` |
+| Worker | `kafaat-worker-staging`, `railway/configs/worker.railway.json` |
+| Scheduler | `kafaat-scheduler-staging`, `railway/configs/scheduler.railway.json` |
+| PostgreSQL | Staging instance |
+| Private storage | Railway Bucket / volume; `PRIVATE_DOCUMENTS_DISK=s3` or volume path |
 
 ## Scripts
 
 | File | Purpose |
 |------|---------|
-| `railway/predeploy.sh` | Migrations + permission seed (Web preDeploy only) |
-| `railway/run-web.sh` | HTTP server |
-| `railway/run-worker.sh` | Queue worker |
-| `railway/run-scheduler.sh` | `schedule:run` loop |
-| `railway/verify-staging.sh` | Post-deploy checks |
+| `railway/predeploy.sh` | Migrations + content seeders (**web preDeploy only**) |
+| `railway/start.sh` | Dispatch by `RAILWAY_START_MODE` or service name |
+| `railway/run-web.sh` | HTTP server + storage link |
+| `railway/run-worker.sh` | `queue:work` |
+| `railway/run-scheduler.sh` | `schedule:work` |
+| `railway/deploy-production.sh` | Redeploy web + worker + scheduler |
+| `railway/deploy-production-service.sh` | Redeploy one role |
+| `railway/verify-production.sh` | Post-deploy health / mail / `/up` checks |
+| `railway/verify-staging.sh` | Staging post-deploy checks |
 | `railway/smoke-test-staging.sh` | Public HTTP smoke |
 
 ## Scheduler tasks (require every-minute runner)
@@ -44,5 +49,8 @@ Production **does not** run a dedicated Scheduler service — scheduled tasks (`
 - `inbox:dispatch-training-milestones` — hourly
 - `privacy:purge-expired-exports` — 03:30 Asia/Riyadh
 - `privacy:apply-retention` — 04:00 Asia/Riyadh
+- `error-pages:prune` — 04:30 Asia/Riyadh
 
-Railway Cron (5-minute minimum) is **not** sufficient for the minute-level tasks.
+## Operator checklist (create services in Railway UI)
+
+See `docs/audits/railway-infra-implementation.md`.
