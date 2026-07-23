@@ -126,6 +126,11 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureProductionHttps(): void
     {
+        $root = rtrim((string) config('app.url'), '/');
+        if ($root !== '') {
+            \Illuminate\Support\Facades\URL::forceRootUrl($root);
+        }
+
         if (config('security.force_https', false)) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
