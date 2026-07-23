@@ -1,0 +1,13 @@
+# Web service (default). Worker/scheduler use railway/configs/*.railway.json
+# via Railway service setting "Config as Code" path — do not point them here.
+# Mirror of railway.json so either format works.
+
+[deploy]
+preDeployCommand = ["bash railway/predeploy.sh"]
+startCommand = "bash railway/start.sh"
+healthcheckPath = "/up"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+overlapSeconds = 60
+drainingSeconds = 15
