@@ -27,13 +27,20 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Trust Railway's reverse proxy so that:
+        // Trust the platform reverse proxy so that:
         //   - $request->isSecure() returns true (X-Forwarded-Proto: https)
         //   - asset()/url()/route() generate https:// URLs
         //   - SESSION_SECURE_COOKIE works correctly
         //   - Livewire CSRF tokens round-trip correctly over HTTPS
+        // Default TRUSTED_PROXIES=* is acceptable on Railway only while the
+        // container is not directly reachable; override with CIDRs when known.
+        // env() is intentional here — bootstrap runs before config is fully available.
+        $trustedProxiesRaw = (string) env('TRUSTED_PROXIES', '*');
+        $trustedProxies = $trustedProxiesRaw === '*' || $trustedProxiesRaw === ''
+            ? '*'
+            : array_values(array_filter(array_map('trim', explode(',', $trustedProxiesRaw))));
         $middleware->trustProxies(
-            at: '*',
+            at: $trustedProxies === [] ? '*' : $trustedProxies,
             headers: Request::HEADER_X_FORWARDED_FOR |
                      Request::HEADER_X_FORWARDED_HOST |
                      Request::HEADER_X_FORWARDED_PORT |
