@@ -22,7 +22,8 @@
 | `PRIVACY_RETENTION_*` | see `.env.example` | reviewed |
 | `TRUSTED_HOSTS` | empty | production hostname(s) |
 | `LOG_LEVEL` | `debug` | `warning` or `error` |
-| `MAIL_MAILER` | `resend` | production provider |
+| `LOG_STACK` | `single` | **`stderr`** (Railway log drains) preferred |
+| `MAIL_MAILER` | `resend` | production provider (**not** `log`) |
 
 Validation: `App\Services\Operations\ProductionEnvironmentValidator` (production only).
 
