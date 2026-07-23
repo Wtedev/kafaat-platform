@@ -126,6 +126,14 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureProductionHttps(): void
     {
+        // Local/testing: do not pin asset()/url() to APP_URL. Browsing
+        // http://127.0.0.1 while APP_URL is http://localhost (or the reverse)
+        // makes Vite CSS/JS cross-origin; CSP style-src/script-src 'self' then
+        // blocks them and the public site renders unstyled.
+        if ($this->app->environment(['local', 'testing'])) {
+            return;
+        }
+
         $root = rtrim((string) config('app.url'), '/');
         if ($root !== '') {
             \Illuminate\Support\Facades\URL::forceRootUrl($root);

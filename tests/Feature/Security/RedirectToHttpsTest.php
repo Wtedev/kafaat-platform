@@ -11,6 +11,7 @@ class RedirectToHttpsTest extends TestCase
 
     public function test_insecure_request_is_redirected_when_force_https_enabled(): void
     {
+        $this->app['env'] = 'production';
         config(['security.force_https' => true]);
 
         $response = $this->get('http://localhost/login');
@@ -21,6 +22,7 @@ class RedirectToHttpsTest extends TestCase
 
     public function test_secure_request_is_not_redirected_when_force_https_enabled(): void
     {
+        $this->app['env'] = 'production';
         config(['security.force_https' => true]);
 
         $response = $this->get('https://localhost/login');
@@ -30,10 +32,33 @@ class RedirectToHttpsTest extends TestCase
 
     public function test_http_is_allowed_when_force_https_disabled(): void
     {
+        $this->app['env'] = 'production';
         config(['security.force_https' => false]);
 
         $response = $this->get('http://localhost/login');
 
         $response->assertOk();
+    }
+
+    public function test_local_environment_never_redirects_to_https(): void
+    {
+        $this->app['env'] = 'local';
+        config(['security.force_https' => true]);
+
+        $response = $this->get('http://localhost/login');
+
+        $response->assertOk();
+        $this->assertFalse($response->isRedirection());
+    }
+
+    public function test_testing_environment_never_redirects_to_https(): void
+    {
+        $this->app['env'] = 'testing';
+        config(['security.force_https' => true]);
+
+        $response = $this->get('http://localhost/login');
+
+        $response->assertOk();
+        $this->assertFalse($response->isRedirection());
     }
 }

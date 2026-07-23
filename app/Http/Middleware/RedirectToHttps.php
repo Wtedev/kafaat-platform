@@ -15,6 +15,12 @@ class RedirectToHttps
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // Never force HTTPS on local/testing — even if FORCE_HTTPS or a
+        // missing APP_ENV left production-like defaults in config.
+        if (app()->environment(['local', 'testing'])) {
+            return $next($request);
+        }
+
         if (! config('security.force_https', false)) {
             return $next($request);
         }
