@@ -229,10 +229,13 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureRateLimiting(): void
     {
-        // تسجيل الدخول: 5 محاولات لكل IP كل دقيقة
+        // تسجيل الدخول: 5 محاولات لكل IP+بريد كل دقيقة (يقلل التشويه خلف NAT مع TrustProxies *)
         RateLimiter::for('login', function (Request $request): Limit {
+            $email = strtolower(trim((string) $request->input('email', '')));
+            $key = $email !== '' ? $email.'|'.$request->ip() : (string) $request->ip();
+
             return Limit::perMinute(5)
-                ->by($request->ip())
+                ->by($key)
                 ->response(function () {
                     return back()
                         ->withInput()
@@ -251,10 +254,13 @@ class AppServiceProvider extends ServiceProvider
                 });
         });
 
-        // نسيت كلمة المرور: 5 طلبات لكل IP كل 5 دقائق
+        // نسيت كلمة المرور: 5 طلبات لكل بريد+IP كل 5 دقائق
         RateLimiter::for('forgot-password', function (Request $request): Limit {
+            $email = strtolower(trim((string) $request->input('email', '')));
+            $key = $email !== '' ? $email.'|'.$request->ip() : (string) $request->ip();
+
             return Limit::perMinutes(5, 5)
-                ->by($request->ip())
+                ->by($key)
                 ->response(function () {
                     return back()
                         ->withInput()

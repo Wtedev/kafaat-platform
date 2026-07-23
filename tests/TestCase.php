@@ -58,9 +58,17 @@ abstract class TestCase extends BaseTestCase
             return;
         }
 
+        // Named limiters may key by IP alone or email|IP; the array cache driver
+        // persists for the PHPUnit process, so flush it between tests when used.
+        if (config('cache.default') === 'array') {
+            cache()->store('array')->flush();
+
+            return;
+        }
+
         $ip = '127.0.0.1';
 
-        foreach (['login', 'register', 'forgot-password'] as $limiterName) {
+        foreach (['login', 'register', 'forgot-password', 'certificate-verify'] as $limiterName) {
             RateLimiter::clear(md5($limiterName.$ip));
         }
     }
