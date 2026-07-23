@@ -35,6 +35,9 @@ return [
             'SECURITY_PERMISSIONS_POLICY',
             'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
         ),
+        // Same-origin defaults; safe for Blade/Livewire/Filament monolith.
+        'cross_origin_opener_policy' => env('SECURITY_COOP', 'same-origin'),
+        'cross_origin_resource_policy' => env('SECURITY_CORP', 'same-origin'),
         'content_security_policy' => env('SECURITY_CSP', implode('; ', [
             "default-src 'self'",
             "base-uri 'self'",

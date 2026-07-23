@@ -18,6 +18,8 @@ class SecurityHeadersTest extends TestCase
         $response->assertHeader('Referrer-Policy');
         $response->assertHeader('X-Frame-Options');
         $response->assertHeader('Permissions-Policy');
+        $response->assertHeader('Cross-Origin-Opener-Policy', 'same-origin');
+        $response->assertHeader('Cross-Origin-Resource-Policy', 'same-origin');
         $response->assertHeader('X-Request-ID');
     }
 

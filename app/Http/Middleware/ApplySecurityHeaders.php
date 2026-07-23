@@ -18,6 +18,16 @@ class ApplySecurityHeaders
         $response->headers->set('Permissions-Policy', (string) config('security.headers.permissions_policy'));
         $response->headers->set('X-Frame-Options', (string) config('security.headers.frame_options'));
 
+        $coop = (string) config('security.headers.cross_origin_opener_policy', '');
+        if ($coop !== '') {
+            $response->headers->set('Cross-Origin-Opener-Policy', $coop);
+        }
+
+        $corp = (string) config('security.headers.cross_origin_resource_policy', '');
+        if ($corp !== '') {
+            $response->headers->set('Cross-Origin-Resource-Policy', $corp);
+        }
+
         $csp = (string) config('security.headers.content_security_policy');
         if ($csp !== '') {
             $header = config('security.headers.content_security_policy_report_only', false)
