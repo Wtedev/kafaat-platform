@@ -28,4 +28,11 @@ class SessionHardeningTest extends TestCase
 
         $this->assertNotSame($before, session()->getId());
     }
+
+    public function test_session_cookie_flags_match_hardening_defaults(): void
+    {
+        $this->assertTrue((bool) config('session.http_only'));
+        $this->assertSame('lax', config('session.same_site'));
+        $this->assertSame('json', config('session.serialization'));
+    }
 }
