@@ -31,7 +31,7 @@
 @endphp
 
 <div class="oc-shell" dir="rtl" lang="ar-SA-u-nu-latn">
-    <p class="oc-shell__hint">مرّر أفقياً لاستكشاف الهيكل · {{ count($departments) }} إدارات ترتبط بالمدير التنفيذي</p>
+    <p class="oc-shell__hint">مرّر أفقياً لاستكشاف الهيكل</p>
 
     <div class="oc-scroll" tabindex="0" aria-label="منطقة تمرير الهيكل التنظيمي">
         <div class="oc-tree" aria-label="الهيكل التنظيمي لجمعية كفاءات">
