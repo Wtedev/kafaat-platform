@@ -1,0 +1,8 @@
+# Queue worker — no HTTP healthcheck, no preDeploy (migrations stay on web).
+# Railway UI: Settings → Config-as-Code → /railway/configs/worker.railway.toml
+# Also set RAILWAY_START_MODE=worker (or name service kafaat-worker).
+
+[deploy]
+startCommand = "bash railway/start.sh"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

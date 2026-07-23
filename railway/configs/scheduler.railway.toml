@@ -1,0 +1,8 @@
+# Scheduler — no HTTP healthcheck, no preDeploy.
+# Railway UI: Settings → Config-as-Code → /railway/configs/scheduler.railway.toml
+# Also set RAILWAY_START_MODE=scheduler (or name service kafaat-scheduler).
+
+[deploy]
+startCommand = "bash railway/start.sh"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
