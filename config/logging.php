@@ -101,6 +101,7 @@ return [
             'handler_with' => [
                 'stream' => 'php://stderr',
             ],
+            // Production tip: Monolog\Formatter\JsonFormatter for log drains.
             'formatter' => env('LOG_STDERR_FORMATTER'),
             'processors' => [PsrLogMessageProcessor::class],
         ],
