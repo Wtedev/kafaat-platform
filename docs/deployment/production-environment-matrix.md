@@ -9,10 +9,11 @@
 | `FORCE_HTTPS` | `false` | **`true`** |
 | `SESSION_DRIVER` | `file` | `database` or `redis` |
 | `SESSION_SECURE_COOKIE` | `false` | **`true`** |
+| `SESSION_ENCRYPT` | `false` | **`true`** |
 | `SESSION_HTTP_ONLY` | `true` | `true` |
 | `SESSION_SAME_SITE` | `lax` | `lax` (verify flows) |
 | `QUEUE_CONNECTION` | `database` | **`database`/`redis` + worker** |
-| `CACHE_STORE` | `file` | `redis` recommended |
+| `CACHE_STORE` | `file` | **`database` or `redis`** (file forbidden by production health) |
 | `PRIVATE_DOCUMENTS_DISK` | `private_documents` | persistent volume / S3 |
 | `PUBLIC_DISK_DRIVER` | `local` | `local` + Railway volume **or** `s3` |
 | `PUBLIC_STORAGE_PERSISTENT` | unset | `1` after volume attach (local driver) |

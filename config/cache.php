@@ -10,8 +10,9 @@ return [
     |--------------------------------------------------------------------------
     |
     | This option controls the default cache store that will be used by the
-    | framework. This connection is utilized if another isn't explicitly
-    | specified when running a cache operation inside the application.
+    | framework. Prefer "database" or "redis" in production so rate limiters
+    | and application cache are shared across web replicas. The "file" driver
+    | is acceptable for single-process local development only.
     |
     */
 
