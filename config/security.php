@@ -57,7 +57,11 @@ return [
         ],
         'forbidden_queue_connections' => ['sync'],
         'forbidden_session_drivers' => ['array'],
+        'forbidden_cache_stores' => ['file', 'array', 'null'],
         'forbidden_filesystem_defaults' => ['public'],
+        'require_trusted_hosts' => (bool) env('SECURITY_REQUIRE_TRUSTED_HOSTS', true),
+        'require_session_encrypt' => (bool) env('SECURITY_REQUIRE_SESSION_ENCRYPT', true),
+        'require_stderr_logging' => (bool) env('SECURITY_REQUIRE_STDERR_LOGGING', true),
     ],
 
 ];
