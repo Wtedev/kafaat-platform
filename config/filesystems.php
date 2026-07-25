@@ -70,6 +70,8 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
         ],
 
+        // Private object storage (CV / privacy exports via PRIVATE_DOCUMENTS_DISK=s3).
+        // Keep visibility private; do not point the public media disk here (Option B).
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
@@ -79,7 +81,8 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
-            'throw' => false,
+            'visibility' => 'private',
+            'throw' => true,
             'report' => false,
         ],
 
