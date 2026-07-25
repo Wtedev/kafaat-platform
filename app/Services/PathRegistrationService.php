@@ -10,11 +10,10 @@ use App\Exceptions\PathNotPublishedException;
 use App\Models\LearningPath;
 use App\Models\PathRegistration;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use App\Notifications\PathRegistrationApproved;
 use App\Notifications\PathRegistrationRejected;
 use App\Services\Inbox\InboxNotificationService;
-use App\Services\UserActivityLogger;
+use Illuminate\Support\Facades\DB;
 
 class PathRegistrationService
 {

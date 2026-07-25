@@ -3,8 +3,8 @@
 namespace App\Filament\Support;
 
 use App\Enums\ProfileGender;
-use App\Enums\RegistrationStatus;
 use App\Filament\Resources\UserResource;
+use App\Models\Profile;
 use App\Models\User;
 use App\Services\Portal\CompetencyProfilePresenter;
 use App\Support\UserAccountRoleForm;
@@ -122,7 +122,7 @@ final class UserViewPresenter
      * @param  list<string>  $editableSections
      * @return array{title: string, icon: string, rows: array<int, array<string, mixed>>, field?: string}|null
      */
-    private static function profileSection(?\App\Models\Profile $profile, array $editableSections): ?array
+    private static function profileSection(?Profile $profile, array $editableSections): ?array
     {
         $field = in_array('profile', $editableSections, true) ? 'profile' : null;
 
@@ -179,7 +179,7 @@ final class UserViewPresenter
      * @param  list<string>  $editableSections
      * @return array{title: string, icon: string, rows: array<int, array<string, mixed>>, field?: string}|null
      */
-    private static function competencySection(?\App\Models\Profile $profile, array $editableSections): ?array
+    private static function competencySection(?Profile $profile, array $editableSections): ?array
     {
         $field = in_array('competency', $editableSections, true) ? 'competency' : null;
 
@@ -231,7 +231,7 @@ final class UserViewPresenter
     /**
      * @return array{title: string, icon: string, rows: array<int, array<string, mixed>>, header_actions?: array<int, array<string, string>>}
      */
-    private static function cvSummarySection(User $user, ?\App\Models\Profile $profile): array
+    private static function cvSummarySection(User $user, ?Profile $profile): array
     {
         if ($profile === null) {
             $rows = [
@@ -281,7 +281,7 @@ final class UserViewPresenter
      * @param  list<string>  $editableSections
      * @return array{title: string, icon: string, prose: string, field?: string}|null
      */
-    private static function bioSection(?\App\Models\Profile $profile, array $editableSections): ?array
+    private static function bioSection(?Profile $profile, array $editableSections): ?array
     {
         $field = in_array('bio', $editableSections, true) ? 'bio' : null;
 

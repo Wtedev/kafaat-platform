@@ -4,12 +4,10 @@ namespace App\Services;
 
 use App\Enums\AttendanceStatus;
 use App\Models\AttendanceLiveSession;
-use App\Models\LearningPath;
 use App\Models\PathAttendance;
 use App\Models\PathRegistration;
 use App\Models\ProgramAttendance;
 use App\Models\ProgramRegistration;
-use App\Models\TrainingProgram;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;

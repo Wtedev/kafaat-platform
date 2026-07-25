@@ -166,7 +166,7 @@ class CertificateService
                 RegistrationStatus::Completed->value,
             ])
             ->with('user')
-            ->each(function (ProgramRegistration $registration) use ($program, $sentBy, &$count): void {
+            ->each(function (ProgramRegistration $registration) use ($sentBy, &$count): void {
                 if (! $registration->isEligibleForCertificate()) {
                     return;
                 }
@@ -192,7 +192,7 @@ class CertificateService
                 RegistrationStatus::Completed->value,
             ])
             ->with('user')
-            ->each(function (PathRegistration $registration) use ($path, $sentBy, &$count): void {
+            ->each(function (PathRegistration $registration) use ($sentBy, &$count): void {
                 if (! $registration->isEligibleForCertificate()) {
                     return;
                 }

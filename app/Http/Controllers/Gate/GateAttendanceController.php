@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Gate;
 
-use App\Enums\ProgramDeliveryMode;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\EnsureGateAttendanceAccess;
 use App\Models\ProgramAttendanceChecker;

@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Services\Privacy\PrivacyRequestService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 
 class PortalPrivacyExportRequestController extends Controller
 {

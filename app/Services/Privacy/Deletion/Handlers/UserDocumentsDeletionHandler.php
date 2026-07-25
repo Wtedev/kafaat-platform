@@ -7,7 +7,6 @@ use App\Enums\DeletionHandlerName;
 use App\Enums\UserDocumentStatus;
 use App\Models\Profile;
 use App\Models\UserDocument;
-use App\Services\Documents\PrivateDocumentsStorage;
 use App\Services\Privacy\Deletion\Contracts\DeletionHandlerInterface;
 use Illuminate\Support\Facades\Storage;
 

@@ -5,11 +5,10 @@ namespace App\Models;
 use App\Enums\CompetencyTrack;
 use App\Enums\LearningPathKind;
 use App\Enums\PathStatus;
-use App\Support\Casts\LenientEnumCast;
 use App\Enums\RegistrationStatus;
 use App\Jobs\SendLearningPathLaunchedNotifications;
 use App\Models\Concerns\HasEntityNotes;
-use App\Models\User;
+use App\Support\Casts\LenientEnumCast;
 use App\Support\PublicDiskPath;
 use App\Support\UniqueModelSlug;
 use Illuminate\Database\Eloquent\Builder;
@@ -24,6 +23,7 @@ use Illuminate\Support\Facades\Log;
 class LearningPath extends Model
 {
     use HasEntityNotes;
+
     protected $fillable = [
         'title',
         'slug',

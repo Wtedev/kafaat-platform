@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\Concerns;
 
 use App\Models\EntityNote;
+use App\Support\Format\LocaleFormat;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Textarea;
-use App\Support\Format\LocaleFormat;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;

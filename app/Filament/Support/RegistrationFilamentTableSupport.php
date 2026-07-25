@@ -2,6 +2,7 @@
 
 namespace App\Filament\Support;
 
+use App\Enums\AttendanceStatus;
 use App\Enums\RegistrationStatus;
 use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
@@ -119,7 +120,7 @@ class RegistrationFilamentTableSupport
         $record->loadMissing('trainingProgram');
         $expected = app(ProgramAttendanceService::class)->countExpectedTrainingDays($record->trainingProgram);
         $present = $record->attendanceRecords()
-            ->where('status', \App\Enums\AttendanceStatus::Present->value)
+            ->where('status', AttendanceStatus::Present->value)
             ->count();
 
         if ($expected === 0) {
@@ -134,7 +135,7 @@ class RegistrationFilamentTableSupport
         $record->loadMissing('learningPath.programs');
         $expected = app(PathAttendanceService::class)->countExpectedTrainingDays($record->learningPath);
         $present = $record->attendanceRecords()
-            ->where('status', \App\Enums\AttendanceStatus::Present->value)
+            ->where('status', AttendanceStatus::Present->value)
             ->count();
 
         if ($expected === 0) {

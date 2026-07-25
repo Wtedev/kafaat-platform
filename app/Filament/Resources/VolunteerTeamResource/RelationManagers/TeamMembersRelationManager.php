@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\VolunteerTeamResource\RelationManagers;
 
 use App\Models\TeamMember;
+use App\Models\User;
 use App\Models\VolunteerTeam;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\StaffFilamentRoles;
@@ -110,7 +111,7 @@ class TeamMembersRelationManager extends RelationManager
             ]);
     }
 
-    private static function actorMayManageMembership(?\App\Models\User $actor): bool
+    private static function actorMayManageMembership(?User $actor): bool
     {
         if ($actor === null) {
             return false;

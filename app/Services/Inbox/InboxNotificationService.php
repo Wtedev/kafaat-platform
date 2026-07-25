@@ -15,14 +15,12 @@ use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
-use App\Services\Rbac\RbacCatalog;
 use App\Models\VolunteerOpportunity;
-use App\Support\TrainingProgramExtrasSupport;
 use App\Models\VolunteerRegistration;
 use App\Notifications\InboxNotificationEmail;
 use App\Services\EmailLogService;
-use App\Services\Inbox\NotificationPreferenceCatalog;
-use App\Services\Inbox\UserNotificationPreferences;
+use App\Services\Rbac\RbacCatalog;
+use App\Support\TrainingProgramExtrasSupport;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 

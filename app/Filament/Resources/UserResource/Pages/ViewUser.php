@@ -12,6 +12,7 @@ use App\Filament\Support\UserViewPresenter;
 use App\Models\User;
 use App\Services\UserActivityLogger;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Support\Exceptions\Halt;
@@ -104,7 +105,7 @@ class ViewUser extends BaseViewRecord
             ]);
     }
 
-    protected function getUserViewPanel(): \Filament\Schemas\Components\Html
+    protected function getUserViewPanel(): Html
     {
         return $this->renderEntityViewPanel(
             fn (): array => UserViewPresenter::present(

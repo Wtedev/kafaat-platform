@@ -9,6 +9,7 @@ use App\Filament\Resources\TrainingProgramResource;
 use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
@@ -18,7 +19,6 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
-use Filament\Forms\Components\Select;
 
 class TrainingProgramsRelationManager extends RelationManager
 {

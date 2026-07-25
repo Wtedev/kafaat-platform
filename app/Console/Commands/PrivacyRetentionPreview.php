@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\RetentionPolicy;
 use App\Services\Privacy\Retention\RetentionPolicyEngine;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 
 class PrivacyRetentionPreview extends Command
 {
@@ -21,7 +22,7 @@ class PrivacyRetentionPreview extends Command
         $policy = $this->resolvePolicy();
         $resource = $this->option('resource');
         $batch = max(0, (int) $this->option('batch'));
-        $at = $this->option('at') ? \Illuminate\Support\Carbon::parse($this->option('at')) : null;
+        $at = $this->option('at') ? Carbon::parse($this->option('at')) : null;
 
         $run = $engine->preview($policy, is_string($resource) && $resource !== '' ? $resource : null, $at, $batch);
 

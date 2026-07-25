@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\IdentityType;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\Concerns\EntityNotesRelationManager;
@@ -12,9 +13,7 @@ use App\Filament\Resources\UserResource\RelationManagers\UserVolunteerRegistrati
 use App\Models\User;
 use App\Support\Privacy\SensitiveContactMasker;
 use App\Support\UserAccountRoleForm;
-use App\Enums\IdentityType;
 use App\Support\UserDirectoryTabs;
-use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;

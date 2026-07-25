@@ -4,7 +4,6 @@ namespace App\Filament\Resources\UserResource\Pages;
 
 use App\Filament\Resources\Pages\BaseCreateRecord;
 use App\Filament\Resources\UserResource;
-use App\Models\VolunteerTeam;
 use App\Support\UserAccountRoleForm;
 use App\Support\UserDirectoryTabs;
 use Illuminate\Validation\ValidationException;

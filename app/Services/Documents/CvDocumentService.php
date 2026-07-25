@@ -3,9 +3,9 @@
 namespace App\Services\Documents;
 
 use App\Enums\AuditLogResult;
+use App\Enums\UserActivityAction;
 use App\Enums\UserDocumentStatus;
 use App\Enums\UserDocumentType;
-use App\Enums\UserActivityAction;
 use App\Models\Profile;
 use App\Models\User;
 use App\Models\UserDocument;

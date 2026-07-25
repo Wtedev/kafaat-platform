@@ -19,6 +19,7 @@ use App\Support\ProgramAcceptanceConditions;
 use App\Support\RichContentSupport;
 use App\Support\TrainingProgramExtrasSupport;
 use Filament\Actions\DeleteAction;
+use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 
@@ -51,10 +52,10 @@ class ViewTrainingProgram extends BaseViewRecord
         return TrainingProgramResource::editForm($schema);
     }
 
-  /**
-   * @param  array<string, mixed>  $data
-   * @return array<string, mixed>
-   */
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
     protected function mutateFormDataBeforeFill(array $data): array
     {
         /** @var TrainingProgram $record */
@@ -80,10 +81,10 @@ class ViewTrainingProgram extends BaseViewRecord
         return $data;
     }
 
-  /**
-   * @param  array<string, mixed>  $data
-   * @return array<string, mixed>
-   */
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
     protected function mutateFormDataBeforeSave(array $data): array
     {
         /** @var TrainingProgram $program */
@@ -190,9 +191,9 @@ class ViewTrainingProgram extends BaseViewRecord
         return false;
     }
 
-  /**
-   * @return array<string, string>
-   */
+    /**
+     * @return array<string, string>
+     */
     protected function getSettingsFieldLabels(): array
     {
         return [
@@ -250,7 +251,7 @@ class ViewTrainingProgram extends BaseViewRecord
         $this->getRecord()->loadMissing(['learningPath', 'owner', 'creator', 'assignee', 'editors']);
     }
 
-    protected function getProgramViewPanel(): \Filament\Schemas\Components\Html
+    protected function getProgramViewPanel(): Html
     {
         return $this->renderEntityViewPanel(function (): array {
             /** @var TrainingProgram $program */

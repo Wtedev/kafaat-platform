@@ -7,6 +7,7 @@ use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
 use App\Filament\Resources\TrainingProgramResource\Pages\ViewTrainingProgram;
+use App\Filament\Support\TrainingProgramInlineEditSupport;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use Filament\Facades\Filament;
@@ -82,7 +83,7 @@ class TrainingProgramDescriptionInlineEditTest extends TestCase
     {
         $this->assertSame(
             ['overview', 'schedule', 'enrollment', 'team', 'description'],
-            \App\Filament\Support\TrainingProgramInlineEditSupport::fieldKeys(),
+            TrainingProgramInlineEditSupport::fieldKeys(),
         );
     }
 

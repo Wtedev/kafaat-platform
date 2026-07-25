@@ -7,10 +7,10 @@ use App\Enums\RegistrationStatus;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Exceptions\RegistrationNotApprovedException;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
-use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\ProgramRegistrationResource\Pages;
 use App\Filament\Resources\ProgramRegistrationResource\RelationManagers\AttendanceRelationManager;
+use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\Certificate;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
@@ -35,7 +35,6 @@ use Illuminate\Database\Eloquent\Builder;
 class ProgramRegistrationResource extends Resource
 {
     use ConfiguresEditOnlyResourceTable;
-
     use RegistersNavigationByPermission;
 
     protected static ?string $model = ProgramRegistration::class;

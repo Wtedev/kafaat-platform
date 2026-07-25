@@ -2,22 +2,27 @@
 
 namespace App\Services\Privacy;
 
+use App\Data\Privacy\PrivacyAccessResponseSnapshot;
 use App\Enums\AccountStatus;
 use App\Enums\AuditLogResult;
+use App\Enums\IdentityType;
+use App\Enums\PrivacyCorrectionFieldCode;
+use App\Enums\PrivacyExportFileStatus;
 use App\Enums\PrivacyRequestEventType;
 use App\Enums\PrivacyRequestStatus;
 use App\Enums\PrivacyRequestType;
+use App\Enums\SecurityLogResult;
+use App\Enums\SecurityLogSeverity;
+use App\Enums\UserActivityAction;
+use App\Models\PrivacyExportFile;
 use App\Models\PrivacyRequest;
 use App\Models\PrivacyRequestEvent;
-use App\Models\PrivacyCorrectionPayload;
 use App\Models\User;
-use App\Data\Privacy\PrivacyAccessResponseSnapshot;
-use App\Enums\PrivacyCorrectionFieldCode;
-use App\Enums\UserActivityAction;
-use App\Services\Identity\PersonNameService;
-use App\Services\Identity\IdentityNumberService;
 use App\Services\Access\SensitiveAccessVerification;
 use App\Services\Audit\AuditLogger;
+use App\Services\Identity\IdentityNumberService;
+use App\Services\Identity\PersonNameService;
+use App\Services\Security\SecurityLogService;
 use App\Services\UserActivityLogger;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -126,10 +131,10 @@ final class PrivacyRequestService
         }
 
         if (! Hash::check($password, (string) $user->password)) {
-            app(\App\Services\Security\SecurityLogService::class)->record(
+            app(SecurityLogService::class)->record(
                 'privacy_export.verification_failed',
-                \App\Enums\SecurityLogResult::Failed,
-                \App\Enums\SecurityLogSeverity::Warning,
+                SecurityLogResult::Failed,
+                SecurityLogSeverity::Warning,
                 $user,
                 request: $request,
             );
@@ -215,9 +220,9 @@ final class PrivacyRequestService
 
     public function hasDownloadableExportFile(User $user): bool
     {
-        return \App\Models\PrivacyExportFile::query()
+        return PrivacyExportFile::query()
             ->where('user_id', $user->id)
-            ->where('status', \App\Enums\PrivacyExportFileStatus::Ready->value)
+            ->where('status', PrivacyExportFileStatus::Ready->value)
             ->where('expires_at', '>', now())
             ->exists();
     }
@@ -247,10 +252,10 @@ final class PrivacyRequestService
 
         if ($field->requiresSensitiveVerification()) {
             if ($password === null || ! Hash::check($password, (string) $user->password)) {
-                app(\App\Services\Security\SecurityLogService::class)->record(
+                app(SecurityLogService::class)->record(
                     'privacy_correction.verification_failed',
-                    \App\Enums\SecurityLogResult::Failed,
-                    \App\Enums\SecurityLogSeverity::Warning,
+                    SecurityLogResult::Failed,
+                    SecurityLogSeverity::Warning,
                     $user,
                     request: $httpRequest,
                 );
@@ -272,7 +277,7 @@ final class PrivacyRequestService
             } elseif ($field === PrivacyCorrectionFieldCode::BirthDate) {
                 $details['new_value'] = (string) ($valuePayload['birth_date'] ?? '');
             } elseif ($field === PrivacyCorrectionFieldCode::IdentityNumber) {
-                $identityType = \App\Enums\IdentityType::from((string) ($valuePayload['identity_type'] ?? ''));
+                $identityType = IdentityType::from((string) ($valuePayload['identity_type'] ?? ''));
                 $details['identity_type'] = $identityType->value;
             }
 
@@ -285,7 +290,7 @@ final class PrivacyRequestService
             );
 
             if ($field === PrivacyCorrectionFieldCode::IdentityNumber) {
-                $identityType = \App\Enums\IdentityType::from((string) ($valuePayload['identity_type'] ?? ''));
+                $identityType = IdentityType::from((string) ($valuePayload['identity_type'] ?? ''));
                 try {
                     $this->correctionService->storeSensitivePayload(
                         $privacyRequest,
@@ -333,10 +338,10 @@ final class PrivacyRequestService
         }
 
         if (! Hash::check($password, (string) $user->password)) {
-            app(\App\Services\Security\SecurityLogService::class)->record(
+            app(SecurityLogService::class)->record(
                 'account_deletion.verification_failed',
-                \App\Enums\SecurityLogResult::Failed,
-                \App\Enums\SecurityLogSeverity::Warning,
+                SecurityLogResult::Failed,
+                SecurityLogSeverity::Warning,
                 $user,
                 metadata: ['privacy_request_uuid' => $privacyRequest->uuid],
                 request: $request,

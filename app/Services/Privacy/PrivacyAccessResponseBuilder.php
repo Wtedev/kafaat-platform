@@ -3,14 +3,12 @@
 namespace App\Services\Privacy;
 
 use App\Data\Privacy\PrivacyAccessResponseSnapshot;
-
 use App\Models\Certificate;
 use App\Models\PrivacyPolicyAcknowledgement;
 use App\Models\ProgramAttendance;
 use App\Models\ProgramRegistration;
 use App\Models\User;
 use App\Models\UserDocument;
-use App\Services\CandidatePool\CandidatePoolConsentVersionService;
 use App\Services\Documents\CvDocumentService;
 
 final class PrivacyAccessResponseBuilder

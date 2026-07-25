@@ -182,9 +182,9 @@ trait HasInlineEntityViewEditing
         return [];
     }
 
-  /**
-   * @param  array<string, mixed>  $data
-   */
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function commitInlineEntityFieldEdit(string $field, array $data): void
     {
         abort_unless($this->canInlineEditEntityView(), 403);

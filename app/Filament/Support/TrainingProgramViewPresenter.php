@@ -312,9 +312,9 @@ final class TrainingProgramViewPresenter
         return $label;
     }
 
-  /**
-   * @return array<int, string>
-   */
+    /**
+     * @return array<int, string>
+     */
     private static function weekdayLabels(): array
     {
         return ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];

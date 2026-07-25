@@ -65,7 +65,7 @@ class CompetencyTrackCatalog
     }
 
     /**
-     * @return Collection<string, \Illuminate\Support\Collection<int, TrainingProgram>>
+     * @return Collection<string, Collection<int, TrainingProgram>>
      */
     public static function featuredProgramsByTrack(int $limitPerTrack = 5): Collection
     {

@@ -13,7 +13,6 @@ use App\Models\VolunteerRegistration;
 use App\Notifications\VolunteerRegistrationApproved;
 use App\Notifications\VolunteerRegistrationRejected;
 use App\Services\Inbox\InboxNotificationService;
-use App\Services\UserActivityLogger;
 
 class VolunteerRegistrationService
 {

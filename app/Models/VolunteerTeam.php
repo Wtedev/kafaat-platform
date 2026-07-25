@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\TeamMember;
-use App\Models\User;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\StaffFilamentRoles;
 use Illuminate\Database\Eloquent\Builder;

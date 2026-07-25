@@ -6,9 +6,9 @@ use App\Models\TeamMember;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerTeam;
+use App\Services\Rbac\RbacCatalog;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\StaffFilamentRoles;
-use App\Services\Rbac\RbacCatalog;
 use Illuminate\Database\Eloquent\Builder;
 
 class SendInAppNotificationPolicy

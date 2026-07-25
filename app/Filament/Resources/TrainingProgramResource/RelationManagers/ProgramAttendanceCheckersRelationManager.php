@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\TrainingProgramResource\RelationManagers;
 
-use App\Enums\ProgramDeliveryMode;
 use App\Models\ProgramAttendanceChecker;
 use App\Models\TrainingProgram;
 use App\Services\ProgramAttendanceCheckerInviteService;

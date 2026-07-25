@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\UserResource\RelationManagers;
 
 use App\Filament\Support\UserTechnicalLogService;
-use App\Models\User;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;

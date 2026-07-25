@@ -1,6 +1,7 @@
 <?php
 
 use App\Support\Format\LocaleFormat;
+use Carbon\CarbonInterface;
 
 if (! function_exists('en_digits')) {
     function en_digits(string $value): string
@@ -17,21 +18,21 @@ if (! function_exists('en_num')) {
 }
 
 if (! function_exists('ar_date')) {
-    function ar_date(\DateTimeInterface|\Carbon\CarbonInterface|string|null $value, string $pattern = 'd MMMM y'): string
+    function ar_date(DateTimeInterface|CarbonInterface|string|null $value, string $pattern = 'd MMMM y'): string
     {
         return LocaleFormat::date($value, $pattern);
     }
 }
 
 if (! function_exists('ar_date_time')) {
-    function ar_date_time(\DateTimeInterface|\Carbon\CarbonInterface|string|null $value): string
+    function ar_date_time(DateTimeInterface|CarbonInterface|string|null $value): string
     {
         return LocaleFormat::dateTime($value);
     }
 }
 
 if (! function_exists('ar_diff_for_humans')) {
-    function ar_diff_for_humans(\DateTimeInterface|\Carbon\CarbonInterface|string|null $value): string
+    function ar_diff_for_humans(DateTimeInterface|CarbonInterface|string|null $value): string
     {
         return LocaleFormat::diffForHumans($value);
     }

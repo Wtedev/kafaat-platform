@@ -3,6 +3,7 @@
 namespace Tests\Unit\Identity;
 
 use App\Enums\IdentityType;
+use App\Models\User;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\Identity\PersonNameService;
 use App\Services\Identity\SaudiPhoneService;
@@ -76,7 +77,7 @@ class IdentityServicesTest extends TestCase
         $identity = $this->generateValidNationalId();
         $payload = IdentityNumberService::prepareStoragePayload($identity, IdentityType::NationalId);
 
-        $user = \App\Models\User::factory()->create([
+        $user = User::factory()->create([
             'identity_type' => $payload['identity_type']->value,
             'identity_number_ciphertext' => $payload['identity_number_ciphertext'],
             'identity_number_lookup_hash' => $payload['identity_number_lookup_hash'],

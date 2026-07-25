@@ -4,6 +4,7 @@ namespace App\Services\Privacy;
 
 use App\Enums\DeletionResourceAction;
 use App\Enums\RetentionPolicyAction;
+use App\Enums\RetentionPolicyStatus;
 use App\Models\RetentionException;
 use App\Models\RetentionPolicy;
 use App\Models\User;
@@ -18,7 +19,7 @@ final class RetentionPolicyResolver
     {
         return RetentionPolicy::query()
             ->where('resource_type', $resourceType)
-            ->where('status', \App\Enums\RetentionPolicyStatus::Active)
+            ->where('status', RetentionPolicyStatus::Active)
             ->orderByDesc('effective_at')
             ->get();
     }

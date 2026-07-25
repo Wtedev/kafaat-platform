@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Services\Auth\EmailVerificationCodeService;
 use App\Enums\SecurityLogResult;
 use App\Enums\SecurityLogSeverity;
+use App\Http\Controllers\Controller;
+use App\Services\Auth\EmailVerificationCodeService;
 use App\Services\Security\SecurityLogService;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\RedirectResponse;

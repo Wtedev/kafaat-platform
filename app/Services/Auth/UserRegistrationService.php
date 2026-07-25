@@ -10,6 +10,7 @@ use App\Services\Identity\IdentityNumberService;
 use App\Services\Identity\PersonNameService;
 use App\Services\Identity\SaudiPhoneService;
 use App\Services\Privacy\PrivacyPolicyAcknowledgementService;
+use App\Services\Rbac\RbacCatalog;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -61,7 +62,7 @@ class UserRegistrationService
 
             PersonNameService::syncCompatibilityName($userAttributes, $nameParts);
 
-            $user = new User();
+            $user = new User;
             $user->forceFill($userAttributes);
 
             try {
@@ -74,7 +75,7 @@ class UserRegistrationService
                 throw $exception;
             }
 
-            $user->assignRole(\App\Services\Rbac\RbacCatalog::ROLE_BENEFICIARY);
+            $user->assignRole(RbacCatalog::ROLE_BENEFICIARY);
 
             $user->profile()->create([
                 'birth_date' => $data['birth_date'],
