@@ -6,6 +6,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Canonical Host Redirect
+    |--------------------------------------------------------------------------
+    |
+    | When true in production, non-APP_URL hosts (e.g. *.up.railway.app) 301 to
+    | APP_URL so Vite CSS/JS stay same-origin under CSP style-src 'self'.
+    |
+    */
+    'redirect_to_canonical_host' => (bool) env('SECURITY_REDIRECT_CANONICAL_HOST', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Trusted Proxies
     |--------------------------------------------------------------------------
     |

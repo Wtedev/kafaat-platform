@@ -9,6 +9,7 @@ use App\Http\Middleware\EnsureGateAttendanceAccess;
 use App\Http\Middleware\EnsureOperationalAccount;
 use App\Http\Middleware\EnsureOtpVerified;
 use App\Http\Middleware\RecordErrorPageHit;
+use App\Http\Middleware\RedirectToCanonicalHost;
 use App\Http\Middleware\RedirectToHttps;
 use App\Services\Operations\ErrorPageVisitRecorder;
 use App\Support\Http\PrefersJsonErrorResponse;
@@ -50,6 +51,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             AssignRequestId::class,
             RedirectToHttps::class,
+            RedirectToCanonicalHost::class,
             ApplySecurityHeaders::class,
         ]);
 

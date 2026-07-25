@@ -2,12 +2,14 @@
 
 namespace App\Providers;
 
+use App\Enums\SecurityLogResult;
+use App\Enums\SecurityLogSeverity;
 use App\Models\AuditLog;
 use App\Models\BoardMember;
-use App\Models\InvestmentDecisionYear;
 use App\Models\GovernanceCommittee;
 use App\Models\GovernanceDocument;
 use App\Models\InboxNotification;
+use App\Models\InvestmentDecisionYear;
 use App\Models\MediaPhoto;
 use App\Models\News;
 use App\Models\PrivacyPolicyVersion;
@@ -23,8 +25,8 @@ use App\Policies\AuditLogPolicy;
 use App\Policies\BoardMemberPolicy;
 use App\Policies\GovernanceCommitteePolicy;
 use App\Policies\GovernanceDocumentPolicy;
-use App\Policies\InvestmentDecisionYearPolicy;
 use App\Policies\InboxNotificationPolicy;
+use App\Policies\InvestmentDecisionYearPolicy;
 use App\Policies\MediaPhotoPolicy;
 use App\Policies\NewsPolicy;
 use App\Policies\PrivacyPolicyVersionPolicy;
@@ -34,15 +36,17 @@ use App\Policies\RegulationPolicy;
 use App\Policies\RetentionExceptionPolicy;
 use App\Policies\RetentionPolicyPolicy;
 use App\Policies\RetentionRunPolicy;
-use App\Policies\SendInAppNotificationPolicy;
 use App\Policies\SecurityLogPolicy;
+use App\Policies\SendInAppNotificationPolicy;
 use App\Policies\UserPolicy;
-use App\Enums\SecurityLogResult;
-use App\Enums\SecurityLogSeverity;
-use App\Services\Security\SecurityLogService;
+use App\Services\CandidatePool\CandidatePoolConsentService;
 use App\Services\Inbox\InboxNotificationService;
 use App\Services\News\NewsPublicationService;
+use App\Services\Privacy\Retention\RetentionHandlerRegistry;
+use App\Services\Privacy\Retention\RetentionPolicyEngine;
+use App\Services\Privacy\Retention\RetentionResourceCatalog;
 use App\Services\Rbac\RbacService;
+use App\Services\Security\SecurityLogService;
 use App\Services\UserActivityLogger;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
@@ -53,7 +57,9 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -65,9 +71,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(RbacService::class);
         $this->app->singleton(NewsPublicationService::class);
-        $this->app->singleton(\App\Services\Privacy\Retention\RetentionResourceCatalog::class);
-        $this->app->singleton(\App\Services\Privacy\Retention\RetentionHandlerRegistry::class);
-        $this->app->singleton(\App\Services\Privacy\Retention\RetentionPolicyEngine::class);
+        $this->app->singleton(RetentionResourceCatalog::class);
+        $this->app->singleton(RetentionHandlerRegistry::class);
+        $this->app->singleton(RetentionPolicyEngine::class);
     }
 
     /**
@@ -118,7 +124,7 @@ class AppServiceProvider extends ServiceProvider
                 app(InboxNotificationService::class)->unreadCount(auth()->user()),
             );
 
-            $consentService = app(\App\Services\CandidatePool\CandidatePoolConsentService::class);
+            $consentService = app(CandidatePoolConsentService::class);
             $view->with('showCandidatePoolPrompt', $consentService->shouldPrompt(auth()->user()));
             $view->with('candidatePoolConsentText', $consentService->consentText());
         });
@@ -126,21 +132,25 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureProductionHttps(): void
     {
+        // Always emit Vite build URLs as root-relative paths so CSS/JS stay
+        // same-origin under CSP even if the request host briefly differs from
+        // APP_URL (local localhost↔127.0.0.1, or Railway default hostname).
+        Vite::createAssetPathsUsing(fn (string $path, ?bool $secure = null) => '/'.ltrim($path, '/'));
+
         // Local/testing: do not pin asset()/url() to APP_URL. Browsing
         // http://127.0.0.1 while APP_URL is http://localhost (or the reverse)
-        // makes Vite CSS/JS cross-origin; CSP style-src/script-src 'self' then
-        // blocks them and the public site renders unstyled.
+        // makes Filament/public asset() URLs cross-origin; CSP then blocks them.
         if ($this->app->environment(['local', 'testing'])) {
             return;
         }
 
         $root = rtrim((string) config('app.url'), '/');
         if ($root !== '') {
-            \Illuminate\Support\Facades\URL::forceRootUrl($root);
+            URL::forceRootUrl($root);
         }
 
         if (config('security.force_https', false)) {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+            URL::forceScheme('https');
         }
     }
 
