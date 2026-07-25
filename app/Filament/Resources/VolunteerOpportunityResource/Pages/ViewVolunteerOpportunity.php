@@ -13,6 +13,7 @@ use App\Filament\Support\TrainingEntityFormSupport;
 use App\Filament\Support\VolunteerOpportunityViewPresenter;
 use App\Models\VolunteerOpportunity;
 use Filament\Actions\DeleteAction;
+use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 
@@ -140,7 +141,7 @@ class ViewVolunteerOpportunity extends BaseViewRecord
             ]);
     }
 
-    protected function getOpportunityViewPanel(): \Filament\Schemas\Components\Html
+    protected function getOpportunityViewPanel(): Html
     {
         return $this->renderEntityViewPanel(
             fn (): array => VolunteerOpportunityViewPresenter::present($this->getRecord()),

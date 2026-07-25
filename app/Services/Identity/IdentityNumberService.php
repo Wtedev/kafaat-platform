@@ -6,6 +6,7 @@ use App\Enums\IdentityType;
 use App\Models\User;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -133,7 +134,7 @@ class IdentityNumberService
      *     identity_number_ciphertext: string,
      *     identity_number_lookup_hash: string,
      *     identity_number_last4: string,
-     *     identity_confirmed_at: \Illuminate\Support\Carbon,
+     *     identity_confirmed_at: Carbon,
      * }
      */
     public static function prepareStoragePayload(string $rawNumber, IdentityType $type): array

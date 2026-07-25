@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\SecurityLogResource\Pages;
 
-use App\Filament\Resources\SecurityLogResource;
 use App\Filament\Resources\Pages\BaseListRecords;
+use App\Filament\Resources\SecurityLogResource;
 
 class ListSecurityLogs extends BaseListRecords
 {

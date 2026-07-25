@@ -11,6 +11,7 @@ use App\Services\Audit\AuditLogger;
 use App\Services\Identity\IdentityNumberService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 
 class BeneficiaryIdentityRevealController extends Controller
@@ -48,7 +49,7 @@ class BeneficiaryIdentityRevealController extends Controller
 
         try {
             SensitiveAccessVerification::assertPasswordConfirmed($actor, (string) $request->input('password'));
-        } catch (\Illuminate\Validation\ValidationException $exception) {
+        } catch (ValidationException $exception) {
             $this->auditLogger->record(
                 $actor,
                 'identity.full_view_denied',

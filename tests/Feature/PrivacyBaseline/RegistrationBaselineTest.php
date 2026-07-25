@@ -2,10 +2,8 @@
 
 namespace Tests\Feature\PrivacyBaseline;
 
-use App\Enums\IdentityType;
 use App\Models\User;
 use App\Notifications\VerifyEmailCode;
-use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;

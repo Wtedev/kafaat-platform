@@ -6,6 +6,7 @@ use App\Enums\CandidatePoolConsentSource;
 use App\Http\Controllers\Controller;
 use App\Services\CandidatePool\CandidatePoolConsentService;
 use App\Services\CandidatePool\CandidatePoolConsentVersionService;
+use App\Services\Documents\CvDocumentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -25,7 +26,7 @@ class PortalCandidatePoolSettingsController extends Controller
             'preference' => $user->candidatePoolPreference,
             'activeVersion' => CandidatePoolConsentVersionService::activeVersion(),
             'consentText' => $this->consentService->consentText(),
-            'hasCv' => app(\App\Services\Documents\CvDocumentService::class)->hasActiveCv($user),
+            'hasCv' => app(CvDocumentService::class)->hasActiveCv($user),
         ]);
     }
 

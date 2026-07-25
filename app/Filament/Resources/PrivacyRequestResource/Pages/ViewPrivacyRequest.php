@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\PrivacyRequestResource\Pages;
 
+use App\Enums\PrivacyCorrectionFieldCode;
+use App\Enums\PrivacyExportFileStatus;
 use App\Enums\PrivacyRequestStatus;
 use App\Enums\PrivacyRequestType;
 use App\Filament\Resources\Pages\BaseViewRecord;
@@ -9,8 +11,8 @@ use App\Filament\Resources\PrivacyRequestResource;
 use App\Models\DataDeletionPlan;
 use App\Services\Access\SensitiveAccessVerification;
 use App\Services\Privacy\DataDeletionPlanService;
-use App\Services\Privacy\PersonalDataDeletionService;
 use App\Services\Privacy\Export\PersonalDataExportService;
+use App\Services\Privacy\PersonalDataDeletionService;
 use App\Services\Privacy\PrivacyCorrectionService;
 use App\Services\Privacy\PrivacyRequestService;
 use Filament\Actions\Action;
@@ -50,7 +52,7 @@ class ViewPrivacyRequest extends BaseViewRecord
                 ->visible(fn (): bool => $this->getRecord()->request_type === PrivacyRequestType::DataExport)
                 ->schema([
                     TextEntry::make('exportFile.status')->label('حالة الملف')->formatStateUsing(
-                        fn ($state) => $state instanceof \App\Enums\PrivacyExportFileStatus ? $state->label() : ($state ?? '—'),
+                        fn ($state) => $state instanceof PrivacyExportFileStatus ? $state->label() : ($state ?? '—'),
                     ),
                     TextEntry::make('exportFile.generated_at')->label('تاريخ التوليد')->dateTime('Y-m-d H:i')->placeholder('—'),
                     TextEntry::make('exportFile.expires_at')->label('انتهاء التنزيل')->dateTime('Y-m-d H:i')->placeholder('—'),
@@ -61,7 +63,7 @@ class ViewPrivacyRequest extends BaseViewRecord
                 ->visible(fn (): bool => $this->getRecord()->request_type === PrivacyRequestType::DataCorrection)
                 ->schema([
                     TextEntry::make('correction_field_code')->label('الحقل')->formatStateUsing(
-                        fn (?string $state) => \App\Enums\PrivacyCorrectionFieldCode::tryFrom((string) $state)?->label() ?? '—',
+                        fn (?string $state) => PrivacyCorrectionFieldCode::tryFrom((string) $state)?->label() ?? '—',
                     ),
                     TextEntry::make('request_details.reason')->label('سبب المستخدم'),
                     TextEntry::make('correctionPayload.value_last4')
@@ -168,7 +170,7 @@ class ViewPrivacyRequest extends BaseViewRecord
                 ->color('warning')
                 ->visible(fn (): bool => auth()->user()?->can('privacy_requests.export.retry')
                     && $this->getRecord()->request_type === PrivacyRequestType::DataExport
-                    && $this->getRecord()->exportFile?->status === \App\Enums\PrivacyExportFileStatus::Failed)
+                    && $this->getRecord()->exportFile?->status === PrivacyExportFileStatus::Failed)
                 ->requiresConfirmation()
                 ->action(function (): void {
                     app(PersonalDataExportService::class)->retryGeneration($this->getRecord(), auth()->user());

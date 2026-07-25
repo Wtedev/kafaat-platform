@@ -8,8 +8,8 @@ use App\Support\PublicDiskPath;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use League\Flysystem\UnableToCheckFileExistence;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 /**
  * Persists news gallery files on the durable Laravel "public" disk.

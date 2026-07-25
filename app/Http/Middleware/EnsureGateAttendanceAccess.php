@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Enums\ProgramDeliveryMode;
 use App\Models\ProgramAttendanceChecker;
 use App\Models\TrainingProgram;
 use Closure;

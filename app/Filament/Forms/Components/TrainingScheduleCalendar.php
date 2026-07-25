@@ -9,13 +9,13 @@ class TrainingScheduleCalendar extends Field
 {
     protected string $view = 'filament.forms.components.training-schedule-calendar';
 
-    protected bool | Closure $showRegistrationRange = true;
+    protected bool|Closure $showRegistrationRange = true;
 
-    protected bool | Closure $programHasEndDate = true;
+    protected bool|Closure $programHasEndDate = true;
 
-    protected bool | Closure $showWeekdayPicker = true;
+    protected bool|Closure $showWeekdayPicker = true;
 
-    protected bool | Closure $showPublishSchedule = true;
+    protected bool|Closure $showPublishSchedule = true;
 
     protected function setUp(): void
     {
@@ -28,7 +28,7 @@ class TrainingScheduleCalendar extends Field
         $this->extraFieldWrapperAttributes(['class' => 'fi-training-schedule-field']);
     }
 
-    public function showWeekdayPicker(bool | Closure $condition = true): static
+    public function showWeekdayPicker(bool|Closure $condition = true): static
     {
         $this->showWeekdayPicker = $condition;
 
@@ -40,14 +40,14 @@ class TrainingScheduleCalendar extends Field
         return (bool) $this->evaluate($this->showWeekdayPicker);
     }
 
-    public function showRegistrationRange(bool | Closure $condition = true): static
+    public function showRegistrationRange(bool|Closure $condition = true): static
     {
         $this->showRegistrationRange = $condition;
 
         return $this;
     }
 
-    public function programHasEndDate(bool | Closure $condition = true): static
+    public function programHasEndDate(bool|Closure $condition = true): static
     {
         $this->programHasEndDate = $condition;
 
@@ -89,7 +89,7 @@ class TrainingScheduleCalendar extends Field
         return $this->resolveRelativeStatePath('weekdays');
     }
 
-    public function showPublishSchedule(bool | Closure $condition = true): static
+    public function showPublishSchedule(bool|Closure $condition = true): static
     {
         $this->showPublishSchedule = $condition;
 

@@ -22,6 +22,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class GovernanceDocumentResource extends Resource
 {
@@ -189,7 +190,7 @@ class GovernanceDocumentResource extends Resource
                         '1' => 'منشور',
                         '0' => 'غير منشور',
                     ])
-                    ->query(function (\Illuminate\Database\Eloquent\Builder $query, array $data): void {
+                    ->query(function (Builder $query, array $data): void {
                         $v = $data['value'] ?? null;
                         if ($v === null || $v === '') {
                             return;
@@ -216,9 +217,9 @@ class GovernanceDocumentResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListGovernanceDocuments::route('/'),
+            'index' => Pages\ListGovernanceDocuments::route('/'),
             'create' => Pages\CreateGovernanceDocument::route('/create'),
-            'edit'   => Pages\EditGovernanceDocument::route('/{record}/edit'),
+            'edit' => Pages\EditGovernanceDocument::route('/{record}/edit'),
         ];
     }
 }

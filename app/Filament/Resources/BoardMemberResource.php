@@ -179,9 +179,9 @@ class BoardMemberResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListBoardMembers::route('/'),
+            'index' => Pages\ListBoardMembers::route('/'),
             'create' => Pages\CreateBoardMember::route('/create'),
-            'edit'   => Pages\EditBoardMember::route('/{record}/edit'),
+            'edit' => Pages\EditBoardMember::route('/{record}/edit'),
         ];
     }
 }

@@ -3,9 +3,9 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
-use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\CertificateResource\Pages;
+use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\Certificate;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;

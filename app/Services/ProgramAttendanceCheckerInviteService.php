@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\ProgramDeliveryMode;
 use App\Models\ProgramAttendanceChecker;
 use App\Models\TrainingProgram;
 use App\Notifications\AttendanceCheckerInviteCode;

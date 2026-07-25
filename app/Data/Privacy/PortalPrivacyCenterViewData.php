@@ -5,19 +5,19 @@ namespace App\Data\Privacy;
 use App\Enums\AccountStatus;
 use App\Enums\CandidatePoolPreferenceStatus;
 use App\Enums\IdentityType;
+use App\Enums\PrivacyExportFileStatus;
+use App\Enums\PrivacyRequestStatus;
+use App\Enums\PrivacyRequestType;
+use App\Models\PrivacyExportFile;
 use App\Models\PrivacyPolicyAcknowledgement;
 use App\Models\PrivacyPolicyVersion;
-use App\Models\PrivacyExportFile;
 use App\Models\PrivacyRequest;
-use App\Enums\PrivacyExportFileStatus;
-use App\Enums\PrivacyRequestType;
 use App\Models\User;
 use App\Services\CandidatePool\CandidatePoolConsentService;
 use App\Services\CandidatePool\CandidatePoolConsentVersionService;
 use App\Services\Documents\CvDocumentService;
 use App\Services\Privacy\PrivacyPolicyAcknowledgementService;
 use App\Services\Privacy\PrivacyPolicyService;
-use Illuminate\Support\Collection;
 
 final class PortalPrivacyCenterViewData
 {
@@ -69,10 +69,10 @@ final class PortalPrivacyCenterViewData
             ->where('user_id', $user->id)
             ->where('request_type', PrivacyRequestType::DataExport)
             ->whereIn('status', [
-                \App\Enums\PrivacyRequestStatus::Submitted,
-                \App\Enums\PrivacyRequestStatus::UnderReview,
-                \App\Enums\PrivacyRequestStatus::Approved,
-                \App\Enums\PrivacyRequestStatus::Processing,
+                PrivacyRequestStatus::Submitted,
+                PrivacyRequestStatus::UnderReview,
+                PrivacyRequestStatus::Approved,
+                PrivacyRequestStatus::Processing,
             ])
             ->latest('created_at')
             ->first();
@@ -102,7 +102,7 @@ final class PortalPrivacyCenterViewData
                 'download_url' => route('portal.privacy.exports.download', $downloadableExport),
             ],
             'processing' => $activeExportRequest !== null
-                && $activeExportRequest->status === \App\Enums\PrivacyRequestStatus::Processing,
+                && $activeExportRequest->status === PrivacyRequestStatus::Processing,
         ];
 
         return new self(

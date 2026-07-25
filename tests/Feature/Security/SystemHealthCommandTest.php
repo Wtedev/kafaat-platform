@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Security;
 
+use App\Services\Operations\SystemHealthService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -22,7 +23,7 @@ class SystemHealthCommandTest extends TestCase
             ->assertSuccessful();
 
         // Output is captured internally; re-run service for assertion
-        $report = app(\App\Services\Operations\SystemHealthService::class)->check();
+        $report = app(SystemHealthService::class)->check();
         $json = json_encode($report);
 
         $this->assertStringNotContainsString('@example.com', $json);

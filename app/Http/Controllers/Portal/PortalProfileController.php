@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Portal\CompletePortalProfileRequest;
 use App\Http\Requests\Portal\UpdatePortalProfileRequest;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\Identity\UserProfileCompletionService;

@@ -16,8 +16,6 @@ use App\Models\User;
 use App\Notifications\ProgramRegistrationApproved;
 use App\Notifications\ProgramRegistrationRejected;
 use App\Services\Inbox\InboxNotificationService;
-use App\Services\ProgramAttendanceService;
-use App\Services\UserActivityLogger;
 
 class ProgramRegistrationService
 {

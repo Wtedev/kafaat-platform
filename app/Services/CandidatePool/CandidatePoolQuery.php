@@ -3,7 +3,6 @@
 namespace App\Services\CandidatePool;
 
 use App\Enums\CandidatePoolPreferenceStatus;
-use App\Enums\PrivacyPolicyVersionStatus;
 use App\Enums\UserDocumentStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;

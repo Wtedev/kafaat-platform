@@ -2,6 +2,7 @@
 
 namespace App\Services\Privacy\Retention\Handlers;
 
+use App\Data\Privacy\Retention\RetentionActionResult;
 use App\Enums\RetentionPolicyAction;
 use App\Enums\RetentionTriggerEvent;
 use App\Models\RetentionPolicy;
@@ -46,14 +47,14 @@ final class ExpiredSessionRetentionHandler extends AbstractRetentionHandler
         return $this->hashOpaque('session', $id);
     }
 
-    public function deleteRecord(object $record, bool $dryRun): \App\Data\Privacy\Retention\RetentionActionResult
+    public function deleteRecord(object $record, bool $dryRun): RetentionActionResult
     {
         if ($dryRun) {
-            return \App\Data\Privacy\Retention\RetentionActionResult::succeeded();
+            return RetentionActionResult::succeeded();
         }
 
         DB::table('sessions')->where('id', $record->id)->delete();
 
-        return \App\Data\Privacy\Retention\RetentionActionResult::succeeded();
+        return RetentionActionResult::succeeded();
     }
 }

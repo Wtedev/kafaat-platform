@@ -4,7 +4,6 @@ namespace App\Services\Privacy\Deletion\Handlers;
 
 use App\Data\Privacy\DeletionExecutionContext;
 use App\Enums\DeletionHandlerName;
-use App\Models\SecurityLog;
 use App\Services\Privacy\Deletion\Contracts\DeletionHandlerInterface;
 use Illuminate\Support\Facades\DB;
 

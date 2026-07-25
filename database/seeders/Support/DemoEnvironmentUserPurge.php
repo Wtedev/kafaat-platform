@@ -4,6 +4,7 @@ namespace Database\Seeders\Support;
 
 use App\Exceptions\UserDeletionNotAllowedException;
 use App\Models\User;
+use App\Support\Privacy\UserDeletionGuard;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -34,7 +35,7 @@ final class DemoEnvironmentUserPurge
         }
 
         DB::transaction(function () use ($user): void {
-            \App\Support\Privacy\UserDeletionGuard::runAuthorized(function () use ($user): void {
+            UserDeletionGuard::runAuthorized(function () use ($user): void {
                 $user->syncRoles([]);
                 $user->delete();
             });

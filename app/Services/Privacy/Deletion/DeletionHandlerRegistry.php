@@ -2,7 +2,6 @@
 
 namespace App\Services\Privacy\Deletion;
 
-use App\Data\Privacy\DeletionExecutionContext;
 use App\Enums\DeletionHandlerName;
 use App\Services\Privacy\Deletion\Contracts\DeletionHandlerInterface;
 use App\Services\Privacy\Deletion\Handlers\AccountAnonymizationHandler;

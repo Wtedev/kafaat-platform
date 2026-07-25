@@ -117,9 +117,6 @@ jobs:
       - name: Check code style (Pint)
         run: vendor/bin/pint --test
 
-      - name: Run tests (PostgreSQL)
-        run: php artisan test
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -130,3 +127,6 @@ jobs:
         run: |
           npm ci --ignore-scripts
           npm run build
+
+      - name: Run tests (PostgreSQL)
+        run: php artisan test

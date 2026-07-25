@@ -11,6 +11,7 @@ use App\Models\News;
 use Closure;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Schemas\Components\Html;
 use Filament\Schemas\Schema;
 
 class ViewNews extends BaseViewRecord
@@ -33,7 +34,7 @@ class ViewNews extends BaseViewRecord
         ]);
     }
 
-    protected function getNewsViewPanel(): \Filament\Schemas\Components\Html
+    protected function getNewsViewPanel(): Html
     {
         return $this->renderEntityViewPanel(
             fn (): array => NewsViewPresenter::present($this->getRecord()),

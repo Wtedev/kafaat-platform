@@ -7,6 +7,7 @@ use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\Certificate;
 use App\Models\LearningPath;
 use Filament\Actions\Action;
+use Filament\Actions\EditAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -72,7 +73,7 @@ class PathCertificatesRelationManager extends RelationManager
                     ->color(fn (?string $state): string => $state ? 'success' : 'gray'),
             ])
             ->actions([
-                \Filament\Actions\EditAction::make()
+                EditAction::make()
                     ->url(fn (Certificate $record): string => CertificateResource::getUrl('view', ['record' => $record]))
                     ->visible(fn (Certificate $record): bool => auth()->user()?->can('view', $record) ?? false),
 

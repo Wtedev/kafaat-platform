@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\PrivacyPolicyVersionResource\Pages;
 
+use App\Enums\PrivacyPolicyVersionStatus;
 use App\Filament\Resources\Pages\BaseCreateRecord;
 use App\Filament\Resources\PrivacyPolicyVersionResource;
-use App\Enums\PrivacyPolicyVersionStatus;
 
 class CreatePrivacyPolicyVersion extends BaseCreateRecord
 {

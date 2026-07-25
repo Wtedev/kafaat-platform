@@ -4,6 +4,7 @@ namespace App\Filament\Resources\VolunteerOpportunityResource\RelationManagers;
 
 use App\Enums\RegistrationStatus;
 use App\Exceptions\OpportunityCapacityExceededException;
+use App\Filament\Resources\VolunteerRegistrationResource;
 use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Filament\Support\UserFilamentTableSupport;
 use App\Models\Certificate;
@@ -118,7 +119,7 @@ class RegistrationsRelationManager extends RelationManager
             ])
             ->actions([
                 EditAction::make()
-                    ->url(fn ($record): string => \App\Filament\Resources\VolunteerRegistrationResource::getUrl('view', ['record' => $record])),
+                    ->url(fn ($record): string => VolunteerRegistrationResource::getUrl('view', ['record' => $record])),
 
                 Action::make('approve')
                     ->label('قبول الطلب')

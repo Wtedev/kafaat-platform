@@ -5,9 +5,9 @@ namespace App\Filament\Resources;
 use App\Enums\RegistrationStatus;
 use App\Exceptions\PathCapacityExceededException;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
-use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\PathRegistrationResource\Pages;
+use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\PathRegistration;
 use App\Services\PathRegistrationService;
 use Filament\Actions\Action;
@@ -28,7 +28,6 @@ use Illuminate\Database\Eloquent\Builder;
 class PathRegistrationResource extends Resource
 {
     use ConfiguresEditOnlyResourceTable;
-
     use RegistersNavigationByPermission;
 
     protected static ?string $model = PathRegistration::class;

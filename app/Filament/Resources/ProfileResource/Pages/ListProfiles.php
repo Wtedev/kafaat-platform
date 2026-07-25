@@ -2,13 +2,14 @@
 
 namespace App\Filament\Resources\ProfileResource\Pages;
 
+use App\Enums\AuditLogResult;
 use App\Exports\BeneficiaryProfilesExport;
 use App\Filament\Resources\Pages\BaseListRecords;
 use App\Filament\Resources\ProfileResource;
+use App\Models\Profile;
 use App\Services\Audit\AuditLogger;
 use App\Services\Exports\BeneficiaryExportAuthorization;
 use App\Support\Exports\BeneficiaryProfileExportColumns;
-use App\Enums\AuditLogResult;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\CheckboxList;
@@ -34,7 +35,7 @@ class ListProfiles extends BaseListRecords
             ->label('تصدير Excel')
             ->icon('heroicon-o-arrow-down-tray')
             ->color('gray')
-            ->visible(fn (): bool => auth()->user()?->can('export', \App\Models\Profile::class) ?? false)
+            ->visible(fn (): bool => auth()->user()?->can('export', Profile::class) ?? false)
             ->modalHeading('تصدير ملفات المستفيدين')
             ->modalDescription('يُصدَّر المستفيدون فقط (مستفيد / متدرب / متطوع). تُطبَّق فلاتر وبحث الجدول الحالي على النتائج.')
             ->modalSubmitActionLabel('تصدير')

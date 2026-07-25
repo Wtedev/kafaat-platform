@@ -12,7 +12,6 @@ use App\Models\CandidatePoolConsentVersion;
 use App\Models\CandidatePoolPreference;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
-use App\Services\Privacy\PrivacyPolicyContentHasher;
 use App\Services\UserActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

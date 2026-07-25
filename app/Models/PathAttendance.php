@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AttendanceStatus;
+use App\Services\PathAttendanceService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +39,7 @@ class PathAttendance extends Model
                 return;
             }
 
-            $expectedDays = app(\App\Services\PathAttendanceService::class)
+            $expectedDays = app(PathAttendanceService::class)
                 ->countExpectedTrainingDays($registration->learningPath);
             $present = static::where('path_registration_id', $regId)
                 ->where('status', AttendanceStatus::Present->value)

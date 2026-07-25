@@ -2,7 +2,6 @@
 
 namespace App\Filament\Support;
 
-use App\Enums\LearningPathKind;
 use App\Enums\PathStatus;
 use App\Models\LearningPath;
 use App\Models\User;

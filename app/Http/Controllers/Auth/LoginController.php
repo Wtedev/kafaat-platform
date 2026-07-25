@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
 use App\Enums\SecurityLogResult;
 use App\Enums\SecurityLogSeverity;
+use App\Http\Controllers\Controller;
 use App\Services\Security\SecurityLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

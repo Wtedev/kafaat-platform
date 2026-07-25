@@ -111,6 +111,7 @@ class NewsCoverAssetsSeeder extends Seeder
 
             if (! $this->ensureCoverPublished($cover['file'], $relativePath)) {
                 $missing++;
+
                 continue;
             }
 

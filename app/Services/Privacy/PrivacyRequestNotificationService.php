@@ -5,7 +5,6 @@ namespace App\Services\Privacy;
 use App\Enums\InboxNotificationType;
 use App\Enums\NotificationTargetType;
 use App\Enums\PrivacyRequestStatus;
-use App\Enums\PrivacyRequestType;
 use App\Inbox\NotificationMessage;
 use App\Models\PrivacyRequest;
 use App\Models\User;

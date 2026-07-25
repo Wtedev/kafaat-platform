@@ -2,26 +2,24 @@
 
 namespace App\Filament\Resources;
 
-use App\Enums\ProgramStatus;
 use App\Enums\CompetencyTrack;
-use App\Enums\ProgramDeliveryMode;
+use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\ConfiguresViewFirstTrainingResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
-use App\Filament\Resources\LearningPathResource;
+use App\Filament\Resources\Concerns\EntityNotesRelationManager;
 use App\Filament\Resources\LearningPathResource\RelationManagers\TrainingProgramsRelationManager;
 use App\Filament\Resources\TrainingProgramResource\Pages;
-use App\Filament\Resources\Concerns\EntityNotesRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramAttendanceCheckersRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramAttendanceRegistrationsRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramGradesRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationCertificatesRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationsRelationManager;
-use App\Models\LearningPath;
-use App\Models\TrainingProgram;
 use App\Filament\Support\EntityTwoColumnFormLayout;
 use App\Filament\Support\TrainingEntityFormSupport;
+use App\Models\LearningPath;
+use App\Models\TrainingProgram;
 use App\Support\Format\LocaleFormat;
 use App\Support\PublicDiskPath;
 use Carbon\Carbon;

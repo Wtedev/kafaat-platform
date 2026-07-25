@@ -22,8 +22,8 @@ use Illuminate\Contracts\Cache\Lock;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -249,14 +249,14 @@ final class RetentionPolicyEngine
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, RetentionPolicy>
+     * @return Collection<int, RetentionPolicy>
      */
     private function resolvePolicies(
         ?RetentionPolicy $policy,
         ?string $resourceType,
         RetentionRunMode $mode,
         bool $dryRun,
-    ): \Illuminate\Support\Collection {
+    ): Collection {
         if ($policy !== null) {
             if ($mode === RetentionRunMode::Execute && ! $dryRun && ! $this->isPolicyExecutable($policy)) {
                 throw new InvalidArgumentException('Policy is not executable.');

@@ -356,9 +356,9 @@ class TrainingEntityFormChangeSummarizer
         }
     }
 
-  /**
-   * @return array<int, mixed>|string|null
-   */
+    /**
+     * @return array<int, mixed>|string|null
+     */
     private static function normalizeComparable(mixed $value): array|string|null
     {
         if (! is_array($value)) {

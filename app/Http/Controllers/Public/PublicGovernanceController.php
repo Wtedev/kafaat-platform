@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\BoardMember;
-use App\Models\InvestmentDecisionYear;
 use App\Models\GovernanceCommittee;
 use App\Models\GovernanceDocument;
+use App\Models\InvestmentDecisionYear;
 
 class PublicGovernanceController extends Controller
 {
