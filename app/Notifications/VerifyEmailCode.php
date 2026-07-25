@@ -13,8 +13,7 @@ class VerifyEmailCode extends Notification
     public function __construct(
         public readonly string $code,
         public readonly int $expiresMinutes,
-    ) {
-    }
+    ) {}
 
     /**
      * @return array<int, string>

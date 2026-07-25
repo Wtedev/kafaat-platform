@@ -4,7 +4,6 @@ namespace App\Data\Privacy\Export;
 
 use App\Models\PrivacyPolicyAcknowledgement;
 use App\Models\User;
-use Illuminate\Support\Collection;
 
 final readonly class PolicyAcknowledgementExportData
 {

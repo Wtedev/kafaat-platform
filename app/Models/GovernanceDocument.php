@@ -9,12 +9,12 @@ use Illuminate\Database\Eloquent\Model;
 class GovernanceDocument extends Model
 {
     public const TYPES = [
-        'organizational_structure'   => 'الهيكل التنظيمي',
-        'investment_decisions'        => 'القرارات الاستثمارية',
-        'general_assembly_minutes'    => 'محاضر اجتماعات الجمعية العمومية',
-        'surveys'                     => 'استطلاعات',
-        'executive_reports'           => 'التقارير التنفيذية',
-        'financial_reports'           => 'التقارير المالية',
+        'organizational_structure' => 'الهيكل التنظيمي',
+        'investment_decisions' => 'القرارات الاستثمارية',
+        'general_assembly_minutes' => 'محاضر اجتماعات الجمعية العمومية',
+        'surveys' => 'استطلاعات',
+        'executive_reports' => 'التقارير التنفيذية',
+        'financial_reports' => 'التقارير المالية',
     ];
 
     protected $fillable = [
@@ -32,8 +32,8 @@ class GovernanceDocument extends Model
     protected function casts(): array
     {
         return [
-            'is_active'     => 'boolean',
-            'sort_order'    => 'integer',
+            'is_active' => 'boolean',
+            'sort_order' => 'integer',
             'document_date' => 'date',
         ];
     }

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\PrivacyPhase03;
 
+use App\Enums\PrivacyPolicyVersionStatus;
 use App\Models\PrivacyPolicyVersion;
 use App\Services\Privacy\PrivacyPolicyService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -46,7 +47,7 @@ class PublicPrivacyPageTest extends TestCase
     {
         PrivacyPolicyVersion::factory()->create([
             'version' => 'draft-only',
-            'status' => \App\Enums\PrivacyPolicyVersionStatus::Draft,
+            'status' => PrivacyPolicyVersionStatus::Draft,
         ]);
 
         $this->get(route('public.privacy.version', ['version' => 'draft-only']))

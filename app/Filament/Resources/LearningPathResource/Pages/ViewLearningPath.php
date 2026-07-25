@@ -17,6 +17,7 @@ use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\LearningPath;
 use App\Support\RichContentSupport;
 use Filament\Actions\DeleteAction;
+use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 
@@ -182,7 +183,7 @@ class ViewLearningPath extends BaseViewRecord
             ]);
     }
 
-    protected function getPathViewPanel(): \Filament\Schemas\Components\Html
+    protected function getPathViewPanel(): Html
     {
         return $this->renderEntityViewPanel(
             fn (): array => LearningPathViewPresenter::present($this->getRecord()),

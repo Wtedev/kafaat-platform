@@ -9,6 +9,13 @@ class RedirectToHttpsTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config(['security.redirect_to_canonical_host' => false]);
+    }
+
     public function test_insecure_request_is_redirected_when_force_https_enabled(): void
     {
         $this->app['env'] = 'production';
@@ -16,8 +23,7 @@ class RedirectToHttpsTest extends TestCase
 
         $response = $this->get('http://localhost/login');
 
-        $response->assertRedirect();
-        $this->assertStringStartsWith('https://', $response->headers->get('Location') ?? '');
+        $response->assertRedirect('https://localhost/login');
     }
 
     public function test_secure_request_is_not_redirected_when_force_https_enabled(): void

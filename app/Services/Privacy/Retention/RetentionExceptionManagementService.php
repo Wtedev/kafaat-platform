@@ -3,6 +3,7 @@
 namespace App\Services\Privacy\Retention;
 
 use App\Enums\AuditLogResult;
+use App\Enums\RetentionExceptionReasonCode;
 use App\Enums\RetentionExceptionScope;
 use App\Enums\RetentionExceptionStatus;
 use App\Models\RetentionException;
@@ -55,7 +56,7 @@ final class RetentionExceptionManagementService
         $exception = RetentionException::query()->create([
             ...$validated,
             'scope' => $scope,
-            'reason_code' => \App\Enums\RetentionExceptionReasonCode::from($validated['reason_code']),
+            'reason_code' => RetentionExceptionReasonCode::from($validated['reason_code']),
             'status' => RetentionExceptionStatus::Active,
             'approved_by' => $actor->id,
         ]);

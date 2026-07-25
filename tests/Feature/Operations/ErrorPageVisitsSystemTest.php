@@ -10,8 +10,8 @@ use Filament\Facades\Filament;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\SeedsRbacRoles;
@@ -135,16 +135,27 @@ class ErrorPageVisitsSystemTest extends TestCase
 
     public function test_error_page_still_renders_when_database_insert_fails(): void
     {
-        Schema::drop('error_page_visits');
+        // Simulate a recorder insert failure without dropping the table.
+        // Dropping the table inside the RefreshDatabase transaction and then
+        // letting the INSERT fail poisons the PostgreSQL transaction (SQLSTATE
+        // 25P02), which is a test-only artifact. Throwing from the model's
+        // "creating" event fails the real ErrorPageVisit::create() call in PHP
+        // (exercising the recorder's try/catch) without sending a failing
+        // statement to the database, so it is portable across SQLite/PostgreSQL.
+        ErrorPageVisit::creating(function (): void {
+            throw new RuntimeException('simulated error_page_visits insert failure');
+        });
 
-        $response = $this->get('/missing-when-db-down-'.uniqid());
-        $response->assertNotFound();
-        $response->assertSee('الصفحة غير موجودة', false);
+        try {
+            $response = $this->get('/missing-when-db-down-'.uniqid());
+            $response->assertNotFound();
+            $response->assertSee('الصفحة غير موجودة', false);
 
-        $this->artisan('migrate', [
-            '--path' => 'database/migrations/2026_07_14_090000_create_error_page_visits_table.php',
-            '--force' => true,
-        ])->assertSuccessful();
+            // The fallback must render the page AND persist nothing on failure.
+            $this->assertSame(0, ErrorPageVisit::query()->count());
+        } finally {
+            ErrorPageVisit::flushEventListeners();
+        }
     }
 
     public function test_beneficiary_cannot_access_error_stats_page(): void

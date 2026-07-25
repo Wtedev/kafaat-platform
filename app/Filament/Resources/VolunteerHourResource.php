@@ -4,9 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Enums\VolunteerHoursStatus;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
-use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerHourResource\Pages;
+use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\VolunteerHour;
 use App\Services\VolunteerHoursService;
 use Filament\Actions\Action;

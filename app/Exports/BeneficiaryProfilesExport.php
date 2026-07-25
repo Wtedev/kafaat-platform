@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Models\Profile;
 use App\Support\Exports\BeneficiaryProfileExportColumns;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -11,7 +12,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 class BeneficiaryProfilesExport implements FromCollection, ShouldAutoSize, WithHeadings
 {
     /**
-     * @param  Collection<int, \App\Models\Profile>  $profiles
+     * @param  Collection<int, Profile>  $profiles
      * @param  list<string>  $columnKeys
      */
     public function __construct(

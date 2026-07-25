@@ -34,7 +34,6 @@ final readonly class ProfileExportData
     }
 
     /**
-     * @param  mixed  $sections
      * @return array<string, mixed>|null
      */
     private static function sanitizeCvSections(mixed $sections): ?array

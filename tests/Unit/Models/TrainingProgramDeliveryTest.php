@@ -43,7 +43,7 @@ class TrainingProgramDeliveryTest extends TestCase
 
     public function test_delivery_mode_description_is_null_when_unset(): void
     {
-        $program = new TrainingProgram();
+        $program = new TrainingProgram;
 
         $this->assertNull($program->deliveryModeDescription());
     }

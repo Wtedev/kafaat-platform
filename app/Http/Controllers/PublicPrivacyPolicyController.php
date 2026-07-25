@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PrivacyPolicyVersion;
 use App\Services\Privacy\PrivacyPolicyHtmlSanitizer;
 use App\Services\Privacy\PrivacyPolicyService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 

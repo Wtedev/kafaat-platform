@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Public;
 
 use App\Enums\CompetencyTrack;
-use App\Enums\ProgramDeliveryMode;
 use App\Exceptions\ProgramBelongsToLearningPathException;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Exceptions\RegistrationNotEligibleException;

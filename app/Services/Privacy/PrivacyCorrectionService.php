@@ -14,7 +14,7 @@ use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\Identity\PersonNameService;
-use App\Services\Identity\SaudiPhoneService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -92,7 +92,7 @@ final class PrivacyCorrectionService
         }
 
         if (! $actor->can('privacy_requests.correction.execute')) {
-            throw new \Illuminate\Auth\Access\AuthorizationException('You cannot apply corrections.');
+            throw new AuthorizationException('You cannot apply corrections.');
         }
 
         $field = PrivacyCorrectionFieldCode::tryFrom((string) $privacyRequest->correction_field_code);

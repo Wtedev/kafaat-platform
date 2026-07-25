@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Services\Privacy\PrivacyRequestService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class PortalAccountDeletionController extends Controller
 {
@@ -22,8 +24,8 @@ class PortalAccountDeletionController extends Controller
 
         $user = $request->user();
 
-        if (! \Illuminate\Support\Facades\Hash::check($validated['password'], (string) $user->password)) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+        if (! Hash::check($validated['password'], (string) $user->password)) {
+            throw ValidationException::withMessages([
                 'password' => 'كلمة المرور غير صحيحة.',
             ]);
         }

@@ -6,7 +6,6 @@ use App\Data\Privacy\Export\PersonalDataExportBundle;
 use App\Enums\AccountStatus;
 use App\Enums\AuditLogResult;
 use App\Enums\PrivacyExportFileStatus;
-use App\Enums\PrivacyRequestEventType;
 use App\Enums\PrivacyRequestStatus;
 use App\Enums\PrivacyRequestType;
 use App\Enums\UserActivityAction;
@@ -22,6 +21,7 @@ use App\Services\UserActivityLogger;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Throwable;
@@ -204,7 +204,7 @@ final class PersonalDataExportService
         DB::transaction(function () use ($privacyRequest, $failureCode): void {
             $exportFile = $privacyRequest->exportFile;
             if ($exportFile !== null && filled($exportFile->path) && filled($exportFile->disk)) {
-                $disk = \Illuminate\Support\Facades\Storage::disk($exportFile->disk);
+                $disk = Storage::disk($exportFile->disk);
                 if ($disk->exists($exportFile->path)) {
                     $disk->delete($exportFile->path);
                 }
@@ -248,7 +248,7 @@ final class PersonalDataExportService
         }
 
         if (filled($exportFile->path) && filled($exportFile->disk)) {
-            $disk = \Illuminate\Support\Facades\Storage::disk($exportFile->disk);
+            $disk = Storage::disk($exportFile->disk);
             if ($disk->exists($exportFile->path)) {
                 $disk->delete($exportFile->path);
             }

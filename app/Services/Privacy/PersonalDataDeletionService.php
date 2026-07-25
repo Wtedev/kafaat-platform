@@ -9,7 +9,6 @@ use App\Enums\AuditLogResult;
 use App\Enums\DataDeletionPlanStatus;
 use App\Enums\DataDeletionPlanStepStatus;
 use App\Enums\DeletionHandlerName;
-use App\Enums\PrivacyRequestEventType;
 use App\Models\DataDeletionPlan;
 use App\Models\DataDeletionPlanStep;
 use App\Models\PrivacyRequest;
@@ -19,7 +18,6 @@ use App\Services\Privacy\Deletion\DeletionHandlerRegistry;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Throwable;
 

@@ -3,6 +3,7 @@
 namespace App\Services\Operations;
 
 use Illuminate\Support\Facades\File;
+use Laravel\Telescope\TelescopeServiceProvider;
 
 final class ProductionEnvironmentValidator
 {
@@ -107,7 +108,7 @@ final class ProductionEnvironmentValidator
             $issues[] = 'MAIL_MAILER should not be log in production.';
         }
 
-        if (class_exists(\Laravel\Telescope\TelescopeServiceProvider::class)) {
+        if (class_exists(TelescopeServiceProvider::class)) {
             $issues[] = 'Laravel Telescope must not be enabled in production.';
         }
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\MembershipType;
 use App\Enums\ProfileGender;
+use App\Enums\UserDocumentStatus;
 use App\Services\Portal\CvFormOptions;
 use App\Services\Portal\CvLanguagePresets;
 use App\Support\PublicDiskPath;
@@ -647,7 +648,7 @@ class Profile extends Model
         $this->loadMissing('currentCvDocument');
 
         return $this->currentCvDocument !== null
-            && $this->currentCvDocument->status === \App\Enums\UserDocumentStatus::Active;
+            && $this->currentCvDocument->status === UserDocumentStatus::Active;
     }
 
     /**

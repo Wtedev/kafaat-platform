@@ -74,12 +74,12 @@ class RegulationResource extends Resource
     protected static function categoryOptions(): array
     {
         return [
-            'لوائح تنظيمية'       => 'لوائح تنظيمية',
-            'سياسات'              => 'سياسات',
-            'الامتثال والحوكمة'  => 'الامتثال والحوكمة',
-            'أنظمة داخلية'        => 'أنظمة داخلية',
-            'إجراءات'             => 'إجراءات',
-            'أخرى'                => 'أخرى',
+            'لوائح تنظيمية' => 'لوائح تنظيمية',
+            'سياسات' => 'سياسات',
+            'الامتثال والحوكمة' => 'الامتثال والحوكمة',
+            'أنظمة داخلية' => 'أنظمة داخلية',
+            'إجراءات' => 'إجراءات',
+            'أخرى' => 'أخرى',
         ];
     }
 
@@ -215,9 +215,9 @@ class RegulationResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListRegulations::route('/'),
+            'index' => Pages\ListRegulations::route('/'),
             'create' => Pages\CreateRegulation::route('/create'),
-            'edit'   => Pages\EditRegulation::route('/{record}/edit'),
+            'edit' => Pages\EditRegulation::route('/{record}/edit'),
         ];
     }
 }

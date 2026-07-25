@@ -2,7 +2,6 @@
 
 namespace App\Support;
 
-use App\Enums\ProgramDeliveryMode;
 use App\Enums\RegistrationStatus;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;

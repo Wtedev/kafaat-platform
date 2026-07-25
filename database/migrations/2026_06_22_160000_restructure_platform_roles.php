@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use App\Services\Rbac\RbacCatalog;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Artisan;
@@ -21,7 +22,7 @@ return new class extends Migration
         }
 
         $map = RbacCatalog::legacyRoleMigrationMap();
-        $userModel = app(\App\Models\User::class)->getMorphClass();
+        $userModel = app(User::class)->getMorphClass();
 
         foreach ($map as $legacy => $replacement) {
             $legacyRole = Role::query()

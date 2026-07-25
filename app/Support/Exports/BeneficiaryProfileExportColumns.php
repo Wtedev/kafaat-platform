@@ -5,9 +5,9 @@ namespace App\Support\Exports;
 use App\Enums\MembershipType;
 use App\Enums\ProfileGender;
 use App\Models\Profile;
-use App\Support\Privacy\SensitiveContactMasker;
 use App\Services\Portal\CvFormOptions;
 use App\Services\Rbac\RbacCatalog;
+use App\Support\Privacy\SensitiveContactMasker;
 
 /**
  * Column catalog for beneficiary profile Excel export.

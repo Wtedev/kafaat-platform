@@ -7,15 +7,15 @@ use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
-use App\Support\Casts\LenientEnumCast;
 use App\Jobs\SendTrainingProgramLaunchedNotifications;
 use App\Models\Concerns\HasEntityNotes;
-use App\Models\User;
+use App\Support\Casts\LenientEnumCast;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\PublicDiskPath;
+use App\Support\RichContentSupport;
 use App\Support\StaffFilamentRoles;
+use App\Support\TrainingProgramExtrasSupport;
 use App\Support\UniqueModelSlug;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class TrainingProgram extends Model
 {
@@ -490,12 +491,12 @@ class TrainingProgram extends Model
 
     public function publicDescription(): string
     {
-        return \App\Support\TrainingProgramExtrasSupport::publicDescription($this);
+        return TrainingProgramExtrasSupport::publicDescription($this);
     }
 
     public function descriptionExcerpt(int $limit = 140): string
     {
-        return \App\Support\RichContentSupport::excerpt($this->description, $limit);
+        return RichContentSupport::excerpt($this->description, $limit);
     }
 
     // ─── Relationships ────────────────────────────────────────────────────────

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\AttendanceStatus;
+use App\Enums\RegistrationStatus;
 use App\Models\LearningPath;
 use App\Models\PathAttendance;
 use App\Models\PathRegistration;
@@ -116,8 +117,8 @@ class PathAttendanceService
 
         $path->registrations()
             ->whereIn('status', [
-                \App\Enums\RegistrationStatus::Approved->value,
-                \App\Enums\RegistrationStatus::Completed->value,
+                RegistrationStatus::Approved->value,
+                RegistrationStatus::Completed->value,
             ])
             ->each(function (PathRegistration $registration) use (&$total): void {
                 $total += $this->generateSessions($registration);

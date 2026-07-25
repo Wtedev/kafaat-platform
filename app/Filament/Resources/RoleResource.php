@@ -6,7 +6,6 @@ use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\RoleResource\Pages;
 use App\Services\Rbac\RbacCatalog;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;

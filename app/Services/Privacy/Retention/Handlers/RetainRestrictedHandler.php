@@ -4,7 +4,6 @@ namespace App\Services\Privacy\Retention\Handlers;
 
 use App\Data\Privacy\Retention\RetentionActionResult;
 use App\Enums\RetentionPolicyAction;
-use App\Enums\RetentionTriggerEvent;
 use App\Models\RetentionPolicy;
 use App\Models\RetentionRun;
 use App\Models\RetentionRunItem;

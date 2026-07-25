@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Enums\AttendanceStatus;
-use App\Enums\ProgramDeliveryMode;
 use App\Enums\RegistrationStatus;
 use App\Models\ProgramAttendance;
 use App\Models\ProgramAttendanceChecker;

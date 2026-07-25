@@ -2,11 +2,13 @@
 
 namespace App\Services\Privacy\Retention;
 
+use App\Enums\AuditLogResult;
+use App\Enums\RetentionPolicyAction;
 use App\Enums\RetentionPolicyStatus;
+use App\Enums\RetentionTriggerEvent;
 use App\Models\RetentionPolicy;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
-use App\Enums\AuditLogResult;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -95,8 +97,8 @@ final class RetentionPolicyManagementService
         ])->validate();
 
         $definition = $this->catalog->get($validated['resource_type']);
-        $trigger = \App\Enums\RetentionTriggerEvent::tryFrom($validated['trigger_type']);
-        $action = \App\Enums\RetentionPolicyAction::tryFrom($validated['action']);
+        $trigger = RetentionTriggerEvent::tryFrom($validated['trigger_type']);
+        $action = RetentionPolicyAction::tryFrom($validated['action']);
 
         if ($trigger === null || ! $definition->supportsTrigger($trigger)) {
             throw ValidationException::withMessages(['trigger_type' => 'Unsupported trigger for resource.']);

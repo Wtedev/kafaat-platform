@@ -6,9 +6,9 @@ use App\Enums\OpportunityStatus;
 use App\Enums\RegistrationStatus;
 use App\Exceptions\OpportunityCapacityExceededException;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
-use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerRegistrationResource\Pages;
+use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\Certificate;
 use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
@@ -32,7 +32,6 @@ use Illuminate\Database\Eloquent\Builder;
 class VolunteerRegistrationResource extends Resource
 {
     use ConfiguresEditOnlyResourceTable;
-
     use RegistersNavigationByPermission;
 
     protected static ?string $model = VolunteerRegistration::class;

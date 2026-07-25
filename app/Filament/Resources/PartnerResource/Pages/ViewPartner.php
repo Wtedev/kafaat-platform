@@ -8,6 +8,7 @@ use App\Filament\Resources\PartnerResource;
 use App\Filament\Support\PartnerViewPresenter;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Schemas\Components\Html;
 use Filament\Schemas\Schema;
 
 class ViewPartner extends BaseViewRecord
@@ -30,7 +31,7 @@ class ViewPartner extends BaseViewRecord
         ]);
     }
 
-    protected function getPartnerViewPanel(): \Filament\Schemas\Components\Html
+    protected function getPartnerViewPanel(): Html
     {
         return $this->renderEntityViewPanel(
             fn (): array => PartnerViewPresenter::present($this->getRecord()),

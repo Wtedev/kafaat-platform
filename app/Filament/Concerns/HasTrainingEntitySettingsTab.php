@@ -539,9 +539,7 @@ trait HasTrainingEntitySettingsTab
         return false;
     }
 
-    protected function afterTrainingEntitySettingsSaved(): void
-    {
-    }
+    protected function afterTrainingEntitySettingsSaved(): void {}
 
     /**
      * @param  array<int, int|string>|null  $editorIds

@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Models\PrivacyExportFile;
 use App\Services\Privacy\Export\PrivacyExportDownloadService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PortalPrivacyExportDownloadController extends Controller
@@ -26,9 +28,9 @@ class PortalPrivacyExportDownloadController extends Controller
                 $request,
                 is_string($password) ? $password : null,
             );
-        } catch (\Illuminate\Auth\Access\AuthorizationException) {
+        } catch (AuthorizationException) {
             abort(403);
-        } catch (\Illuminate\Validation\ValidationException $exception) {
+        } catch (ValidationException $exception) {
             return redirect()
                 ->route('portal.privacy')
                 ->withErrors($exception->errors());

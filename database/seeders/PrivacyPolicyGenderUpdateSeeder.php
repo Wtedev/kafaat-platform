@@ -7,7 +7,6 @@ use App\Models\PrivacyPolicyVersion;
 use App\Services\Privacy\PrivacyPolicyContentHasher;
 use App\Services\Privacy\PrivacyPolicyHtmlSanitizer;
 use App\Services\Privacy\PrivacyPolicyPublisher;
-use App\Services\Privacy\PrivacyPolicyService;
 use Illuminate\Database\Seeder;
 
 class PrivacyPolicyGenderUpdateSeeder extends Seeder

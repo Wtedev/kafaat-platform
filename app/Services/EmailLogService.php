@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\EmailLog;
 use App\Models\User;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -25,7 +26,7 @@ class EmailLogService
         ?User $sentBy = null,
     ): void {
         try {
-            if ($notification instanceof \Illuminate\Contracts\Queue\ShouldQueue) {
+            if ($notification instanceof ShouldQueue) {
                 $recipient->notifyNow($notification);
             } else {
                 $recipient->notify($notification);

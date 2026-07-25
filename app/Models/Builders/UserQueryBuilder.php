@@ -3,10 +3,11 @@
 namespace App\Models\Builders;
 
 use App\Exceptions\UserDeletionNotAllowedException;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * @extends Builder<\App\Models\User>
+ * @extends Builder<User>
  */
 class UserQueryBuilder extends Builder
 {

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AttendanceStatus;
+use App\Services\ProgramAttendanceService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
@@ -44,7 +45,7 @@ class ProgramAttendance extends Model
                 return;
             }
 
-            $percentage = app(\App\Services\ProgramAttendanceService::class)->calculatePercentage($registration);
+            $percentage = app(ProgramAttendanceService::class)->calculatePercentage($registration);
 
             if ($percentage === null) {
                 $total = static::where('program_registration_id', $registration->id)->count();

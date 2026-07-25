@@ -8,7 +8,6 @@ use App\Models\EmailVerificationCode;
 use App\Services\Privacy\AccountDeactivationService;
 use App\Services\Privacy\Deletion\Contracts\DeletionHandlerInterface;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 final class AuthenticationDataDeletionHandler implements DeletionHandlerInterface
 {

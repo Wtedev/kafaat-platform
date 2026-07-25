@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Filament;
 
-use App\Filament\Support\TrainingEntitySettingsState;
 use App\Filament\Support\TrainingEntityFormChangeSummarizer;
+use App\Filament\Support\TrainingEntitySettingsState;
 use PHPUnit\Framework\TestCase;
 
 class TrainingEntitySettingsTabStateTest extends TestCase

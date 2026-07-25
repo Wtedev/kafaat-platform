@@ -8,6 +8,7 @@ use App\Filament\Resources\Pages\BaseCreateRecord;
 use App\Filament\Resources\TrainingProgramResource;
 use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\LearningPath;
+use App\Models\TrainingProgram;
 use App\Support\TrainingProgramExtrasSupport;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
@@ -127,7 +128,7 @@ class CreateTrainingProgram extends BaseCreateRecord
 
     protected function getCreatedNotification(): ?Notification
     {
-        /** @var \App\Models\TrainingProgram $record */
+        /** @var TrainingProgram $record */
         $record = $this->getRecord();
 
         if ($record->status === ProgramStatus::Published && $record->notify_on_publish) {

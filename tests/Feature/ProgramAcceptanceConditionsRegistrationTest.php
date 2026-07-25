@@ -8,7 +8,6 @@ use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Exceptions\RegistrationNotEligibleException;
 use App\Models\Profile;
-use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Identity\IdentityNumberService;

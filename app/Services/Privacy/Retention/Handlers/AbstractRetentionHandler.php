@@ -4,7 +4,6 @@ namespace App\Services\Privacy\Retention\Handlers;
 
 use App\Data\Privacy\Retention\RetentionActionResult;
 use App\Enums\RetentionPolicyAction;
-use App\Enums\RetentionTriggerEvent;
 use App\Models\RetentionPolicy;
 use App\Models\RetentionRun;
 use App\Models\RetentionRunItem;
@@ -12,7 +11,7 @@ use App\Services\Privacy\Retention\Contracts\RetentionResourceHandler;
 use App\Services\Privacy\Retention\RetentionExceptionChecker;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 abstract class AbstractRetentionHandler implements RetentionResourceHandler
 {
@@ -83,7 +82,7 @@ abstract class AbstractRetentionHandler implements RetentionResourceHandler
             return RetentionActionResult::succeeded();
         }
 
-        \Illuminate\Support\Facades\DB::table($table)->where('id', $id)->delete();
+        DB::table($table)->where('id', $id)->delete();
 
         return RetentionActionResult::succeeded();
     }
