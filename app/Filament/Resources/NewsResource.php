@@ -135,7 +135,7 @@ class NewsResource extends Resource
     }
 
     /**
-     * حقل صور الخبر — رفع متعدد مع قص بنسبة بطاقة الخبر.
+     * حقل صور الخبر — رفع متعدد مع معاينة (بدون محرّر قص في المتصفح).
      */
     public static function newsImagesRepeaterField(): Repeater
     {
@@ -150,7 +150,7 @@ class NewsResource extends Resource
         return NewsFormSupport::newsImageUploadField('image')
             ->label('صورة الخبر')
             ->nullable()
-            ->helperText('JPEG أو PNG أو WebP — حتى 4 ميجابايت. تُحفظ في التخزين العام ويُعرض معاينة تلقائياً.');
+            ->helperText('JPEG أو PNG أو WebP — حتى 5 ميجابايت. تُحفظ في التخزين العام ويُعرض معاينة تلقائياً.');
     }
 
     /**
@@ -249,7 +249,7 @@ class NewsResource extends Resource
             ->columnSpanFull();
 
         $footer = Flex::make([
-            Text::make('JPEG أو PNG أو WebP — حتى 4 ميجابايت. قص ٥:٣ لبطاقة الخبر.')
+            Text::make('JPEG أو PNG أو WebP — حتى 5 ميجابايت. نسبة البطاقة الموصى بها ٥:٣.')
                 ->size(TextSize::ExtraSmall)
                 ->color('gray')
                 ->extraAttributes(['class' => 'news-edit-image-card__hint min-w-0 flex-1 text-zinc-500 dark:text-zinc-400']),

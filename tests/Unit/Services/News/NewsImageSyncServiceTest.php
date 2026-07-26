@@ -5,7 +5,9 @@ namespace Tests\Unit\Services\News;
 use App\Models\News;
 use App\Services\News\NewsImageSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Tests\TestCase;
 
 class NewsImageSyncServiceTest extends TestCase
@@ -22,6 +24,43 @@ class NewsImageSyncServiceTest extends TestCase
     private function seedFile(string $path): void
     {
         Storage::disk('public')->put($path, 'image-bytes');
+    }
+
+    public function test_sync_persists_temporary_upload_only_on_save_not_as_orphan_preview(): void
+    {
+        Storage::fake('tmp-for-tests');
+        config([
+            'livewire.temporary_file_upload.disk' => 'tmp-for-tests',
+            'livewire.temporary_file_upload.directory' => 'livewire-tmp',
+        ]);
+
+        $news = News::create([
+            'title' => 'خبر رفع مؤقت',
+            'slug' => 'test-news-temp-upload',
+            'content' => '<p>محتوى</p>',
+        ]);
+
+        $fake = UploadedFile::fake()->image('card.jpg', 320, 192);
+        $filename = $fake->hashName();
+        Storage::disk('tmp-for-tests')->put(
+            'livewire-tmp/'.$filename,
+            (string) file_get_contents($fake->getRealPath()),
+        );
+
+        $temporary = TemporaryUploadedFile::createFromLivewire($filename);
+
+        // Before sync: nothing durable under news/images yet.
+        $this->assertSame([], Storage::disk('public')->allFiles('news/images'));
+
+        app(NewsImageSyncService::class)->sync($news, [
+            ['path' => $temporary, 'is_primary' => true],
+        ], allowEmpty: true);
+
+        $news->refresh();
+        $this->assertNotNull($news->image);
+        $this->assertStringStartsWith('news/images/', $news->image);
+        Storage::disk('public')->assertExists($news->image);
+        $this->assertCount(1, Storage::disk('public')->allFiles('news/images'));
     }
 
     public function test_sync_creates_images_and_sets_single_primary(): void
