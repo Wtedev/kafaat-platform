@@ -28,13 +28,6 @@ final class NewsFormSupport
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
             ->imagePreviewHeight('10rem')
             ->panelAspectRatio(self::CARD_ASPECT_RATIO)
-            ->imageEditor()
-            ->imageAspectRatio(self::CARD_ASPECT_RATIO)
-            ->automaticallyCropImagesToAspectRatio()
-            ->imageEditorAspectRatioOptions([
-                self::CARD_ASPECT_RATIO => 'بطاقة الخبر (٥:٣)',
-            ])
-            ->automaticallyResizeImagesMode('cover')
             ->getUploadedFileNameForStorageUsing(
                 static function (TemporaryUploadedFile $file): string {
                     $ext = strtolower($file->getClientOriginalExtension() ?: 'jpg');
@@ -59,13 +52,11 @@ final class NewsFormSupport
                 'max' => 'حجم الصورة يجب ألا يتجاوز 5 ميجابايت.',
                 'dimensions' => 'أبعاد الصورة كبيرة جداً. الحد الأقصى 4000×4000 بكسل.',
             ])
-            ->afterStateUpdated(function (FileUpload $component): void {
-                // Persist to the public disk as soon as FilePond finishes uploading,
-                // so modal/create saves never keep a Livewire temporary preview URL.
-                $component->saveUploadedFiles();
-            })
+            // Keep Livewire temporary uploads until Submit/Save. Early
+            // saveUploadedFiles() created durable orphans when the modal was cancelled.
+            // NewsImageSyncService persists TemporaryUploadedFile / livewire paths on save.
             ->required()
-            ->helperText('JPEG أو PNG أو WebP — حتى 5 ميجابايت. قص بنسبة ٥:٣ لبطاقة الخبر.')
+            ->helperText('JPEG أو PNG أو WebP — حتى 5 ميجابايت. نسبة البطاقة الموصى بها ٥:٣.')
             ->columnSpanFull();
     }
 
@@ -93,7 +84,7 @@ final class NewsFormSupport
             })
             ->default([])
             ->columnSpanFull()
-            ->helperText('قص الصور بنسبة ٥:٣ لتطابق بطاقة الخبر. يمكن رفع أكثر من صورة.');
+            ->helperText('يمكن رفع أكثر من صورة. نسبة البطاقة الموصى بها ٥:٣.');
     }
 
     /**

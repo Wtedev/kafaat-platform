@@ -60,8 +60,8 @@ final class TrainingEntityFormSupport
             ->maxSize(5120)
             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
             ->imagePreviewHeight($previewHeight)
-            ->imageResizeMode('cover')
-            ->imageEditor()
+            // No imageEditor / client-side crop: Filament 5.6 Cropper hangs FilePond
+            // at PROCESSING (getCroppedCanvas missing). Preview + validation remain.
             ->nullable()
             ->getUploadedFileNameForStorageUsing(
                 static function (TemporaryUploadedFile $file): string {
