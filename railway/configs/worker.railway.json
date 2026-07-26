@@ -2,7 +2,7 @@
   "$schema": "https://railway.com/railway.schema.json",
   "deploy": {
     "startCommand": "bash railway/start.sh",
-    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyType": "ALWAYS",
     "restartPolicyMaxRetries": 10
   }
 }
