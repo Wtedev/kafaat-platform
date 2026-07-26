@@ -47,7 +47,7 @@ class TrainingProgramViewPresenterTest extends TestCase
         $this->assertSame('16', $presented['stats'][0]['value']);
         $this->assertArrayHasKey('cover', $presented);
         $this->assertSame('صورة البرنامج', $presented['cover']['title']);
-        $this->assertNull($presented['cover']['field']);
+        $this->assertSame('image', $presented['cover']['field']);
         $this->assertFalse($presented['cover']['has_custom']);
         $this->assertSame(
             'دورة تدريبية',

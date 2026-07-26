@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Services\Media\PublicMediaLifecycleService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
@@ -19,6 +20,7 @@ use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Throwable;
 
 /**
  * @property-read Schema $form
@@ -114,11 +116,24 @@ class StaffProfilePage extends Page
                         ->label('الصورة الشخصية')
                         ->image()
                         ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                        ->maxSize(2048)
+                        ->maxSize(5120)
                         ->disk('public')
                         ->directory('staff-photos')
                         ->visibility('public')
                         ->nullable()
+                        ->rules([
+                            'nullable',
+                            'image',
+                            'mimes:jpeg,jpg,png,webp',
+                            'max:5120',
+                            'dimensions:max_width=4000,max_height=4000',
+                        ])
+                        ->validationMessages([
+                            'image' => 'يجب أن يكون الملف صورة حقيقية (JPEG أو PNG أو WebP).',
+                            'mimes' => 'الصيغ المسموحة فقط: JPEG و PNG و WebP. لا يُسمح بـ SVG أو GIF.',
+                            'max' => 'حجم الصورة يجب ألا يتجاوز 5 ميجابايت.',
+                            'dimensions' => 'أبعاد الصورة كبيرة جداً. الحد الأقصى 4000×4000 بكسل.',
+                        ])
                         ->columnSpanFull(),
                 ])
                 ->columns(2),
@@ -183,16 +198,30 @@ class StaffProfilePage extends Page
         $user->phone = isset($state['phone']) && $state['phone'] !== '' && $state['phone'] !== null
             ? (string) $state['phone']
             : null;
-        $user->staff_photo = isset($state['staff_photo']) && $state['staff_photo'] !== ''
+
+        $previousStaffPhoto = $user->staff_photo;
+        $newStaffPhoto = isset($state['staff_photo']) && $state['staff_photo'] !== ''
             ? (string) $state['staff_photo']
             : null;
+        $user->staff_photo = $newStaffPhoto;
         $user->notify_email = (bool) ($state['notify_email'] ?? false);
 
         if ($password !== '') {
             $user->password = $password;
         }
 
-        $user->save();
+        $lifecycle = app(PublicMediaLifecycleService::class);
+
+        try {
+            $user->save();
+        } catch (Throwable $e) {
+            if (is_string($newStaffPhoto) && $newStaffPhoto !== $previousStaffPhoto) {
+                $lifecycle->discardFailedUpload($newStaffPhoto);
+            }
+            throw $e;
+        }
+
+        $lifecycle->deleteOwnedIfReplaced($previousStaffPhoto, $user->staff_photo);
 
         Notification::make()
             ->title('تم حفظ الملف الشخصي')

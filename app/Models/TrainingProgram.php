@@ -9,6 +9,7 @@ use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
 use App\Jobs\SendTrainingProgramLaunchedNotifications;
 use App\Models\Concerns\HasEntityNotes;
+use App\Services\Media\PublicMediaLifecycleService;
 use App\Support\Casts\LenientEnumCast;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\PublicDiskPath;
@@ -31,8 +32,9 @@ class TrainingProgram extends Model
     use HasEntityNotes;
 
     /**
-     * When true, {@see $fillable} updates to `image` are allowed (seeders / ops only).
-     * Admin Filament saves must never flip this — covers are git-backed durable assets.
+     * When true, {@see $fillable} updates to `image` are allowed.
+     * Seeders/ops and Filament staff cover uploads set this for a single save;
+     * accidental mass-assignment without the flag still cannot wipe covers.
      */
     public bool $allowCoverUpdate = false;
 
@@ -151,7 +153,7 @@ class TrainingProgram extends Model
                 $program->updated_by = Auth::id();
             }
 
-            // Permanently lock cover changes from admin/mass assignment unless opted in.
+            // Guard cover changes from accidental mass assignment unless opted in.
             if ($program->isDirty('image') && ! $program->allowCoverUpdate) {
                 $program->image = $program->getOriginal('image');
             }
@@ -188,6 +190,10 @@ class TrainingProgram extends Model
             if ($program->wasChanged('status') && $program->status === ProgramStatus::Published && $program->notify_on_publish) {
                 self::dispatchProgramLaunchedNotification($program);
             }
+        });
+
+        static::deleting(function (self $program): void {
+            app(PublicMediaLifecycleService::class)->deleteOwnedPath($program->image);
         });
     }
 

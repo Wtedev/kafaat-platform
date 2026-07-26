@@ -118,12 +118,22 @@ class CreateTrainingProgram extends BaseCreateRecord
             $ownerId,
         );
 
-        // Covers are seeder/ops-managed only — ignore any accidental form value.
-        unset($data['image']);
-
         return $this->dropEmptyTrainingSlug(
             $this->stampTrainingEntityAuditFields($data),
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function handleRecordCreation(array $data): TrainingProgram
+    {
+        $program = new TrainingProgram;
+        $program->allowCoverUpdate = true;
+        $program->fill($data);
+        $program->save();
+
+        return $program;
     }
 
     protected function getCreatedNotification(): ?Notification

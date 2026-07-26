@@ -76,13 +76,13 @@ class TrainingProgramDescriptionInlineEditTest extends TestCase
      */
     private static function inlineEditableSectionProvider(): array
     {
-        return ['overview', 'schedule', 'enrollment', 'team', 'description'];
+        return ['overview', 'schedule', 'enrollment', 'team', 'description', 'image'];
     }
 
-    public function test_inline_edit_support_has_no_removed_cover_section(): void
+    public function test_inline_edit_support_includes_cover_image_section(): void
     {
         $this->assertSame(
-            ['overview', 'schedule', 'enrollment', 'team', 'description'],
+            ['overview', 'schedule', 'enrollment', 'team', 'description', 'image'],
             TrainingProgramInlineEditSupport::fieldKeys(),
         );
     }

@@ -12,10 +12,13 @@ use App\Filament\Support\EntityPublicationFormData;
 use App\Filament\Support\TrainingEntityFormSupport;
 use App\Filament\Support\VolunteerOpportunityViewPresenter;
 use App\Models\VolunteerOpportunity;
+use App\Services\Media\PublicMediaLifecycleService;
 use Filament\Actions\DeleteAction;
 use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Model;
+use Throwable;
 
 class ViewVolunteerOpportunity extends BaseViewRecord
 {
@@ -80,6 +83,36 @@ class ViewVolunteerOpportunity extends BaseViewRecord
         return $this->dropEmptyTrainingSlug(
             $this->stampTrainingEntityAuditFields($data),
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function handleRecordUpdate(Model $record, array $data): Model
+    {
+        /** @var VolunteerOpportunity $record */
+        $previousImage = $record->image;
+        $touchesImage = array_key_exists('image', $data);
+        $newImage = $touchesImage ? ($data['image'] ?? null) : $previousImage;
+
+        try {
+            $record->update($data);
+        } catch (Throwable $e) {
+            if ($touchesImage && is_string($newImage) && $newImage !== $previousImage) {
+                app(PublicMediaLifecycleService::class)->discardFailedUpload($newImage);
+            }
+
+            throw $e;
+        }
+
+        if ($touchesImage) {
+            app(PublicMediaLifecycleService::class)->deleteOwnedIfReplaced(
+                $previousImage,
+                $record->fresh()?->image,
+            );
+        }
+
+        return $record;
     }
 
     protected function getSettingsTabLabel(): string

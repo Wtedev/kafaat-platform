@@ -6,6 +6,7 @@ use App\Enums\OpportunityStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\VolunteerHoursStatus;
 use App\Services\Inbox\InboxNotificationService;
+use App\Services\Media\PublicMediaLifecycleService;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\PublicDiskPath;
 use App\Support\StaffFilamentRoles;
@@ -109,6 +110,10 @@ class VolunteerOpportunity extends Model
                 $opportunity,
                 $editor instanceof User ? $editor : null,
             );
+        });
+
+        static::deleting(function (self $opportunity): void {
+            app(PublicMediaLifecycleService::class)->deleteOwnedPath($opportunity->image);
         });
     }
 

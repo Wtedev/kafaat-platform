@@ -4,6 +4,7 @@ namespace App\Filament\Support;
 
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
+use App\Filament\Resources\TrainingProgramResource;
 use App\Models\TrainingProgram;
 use App\Support\TrainingProgramExtrasSupport;
 use Filament\Forms\Components\Hidden;
@@ -36,6 +37,9 @@ final class TrainingProgramInlineEditSupport
             'team' => TrainingEntityFormSupport::programStaffFieldsForEdit(),
             'description' => [
                 TrainingEntityFormSupport::programDescriptionInlineRichEditorField(),
+            ],
+            'image' => [
+                TrainingProgramResource::trainingProgramCoverUploadField(),
             ],
             default => [],
         };
@@ -149,6 +153,7 @@ final class TrainingProgramInlineEditSupport
             'enrollment' => 'التسجيل والسعة',
             'team' => 'الفريق',
             'description' => 'نبذة عن البرنامج',
+            'image' => 'صورة الغلاف',
         ];
     }
 }
