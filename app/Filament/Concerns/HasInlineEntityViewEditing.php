@@ -297,6 +297,9 @@ trait HasInlineEntityViewEditing
             'description' => [
                 'description',
             ],
+            'image' => [
+                'image',
+            ],
             'account' => [
                 'name',
                 'email',

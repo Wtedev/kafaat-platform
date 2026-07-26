@@ -39,7 +39,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 final class TrainingEntityFormSupport
 {
@@ -55,12 +57,37 @@ final class TrainingEntityFormSupport
             ->disk('public')
             ->directory($directory)
             ->visibility('public')
-            ->maxSize(4096)
-            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+            ->maxSize(5120)
+            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
             ->imagePreviewHeight($previewHeight)
             ->imageResizeMode('cover')
+            ->imageEditor()
             ->nullable()
-            ->helperText($helperText ?? 'JPEG أو PNG أو WebP — حتى 4 ميجابايت.')
+            ->getUploadedFileNameForStorageUsing(
+                static function (TemporaryUploadedFile $file): string {
+                    $ext = strtolower($file->getClientOriginalExtension() ?: 'jpg');
+                    if (! in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+                        $ext = 'jpg';
+                    }
+
+                    return (string) Str::uuid().'.'.$ext;
+                },
+            )
+            ->rules([
+                'nullable',
+                'file',
+                'image',
+                'mimes:jpeg,jpg,png,webp',
+                'max:5120',
+                'dimensions:max_width=4000,max_height=4000',
+            ])
+            ->validationMessages([
+                'image' => 'يجب أن يكون الملف صورة حقيقية (JPEG أو PNG أو WebP).',
+                'mimes' => 'الصيغ المسموحة فقط: JPEG و PNG و WebP. لا يُسمح بـ SVG أو GIF.',
+                'max' => 'حجم الصورة يجب ألا يتجاوز 5 ميجابايت.',
+                'dimensions' => 'أبعاد الصورة كبيرة جداً. الحد الأقصى 4000×4000 بكسل.',
+            ])
+            ->helperText($helperText ?? 'JPEG أو PNG أو WebP — حتى 5 ميجابايت. اسم الملف يُولَّد تلقائياً.')
             ->columnSpanFull();
     }
 

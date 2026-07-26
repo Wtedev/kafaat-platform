@@ -73,7 +73,27 @@ class UpdatePortalProfileRequest extends FormRequest
             'phone' => ['required', 'string', new ValidSaudiMobile],
             'city' => ['nullable', 'string', 'max:100'],
             'job_title' => ['nullable', 'string', 'max:160'],
-            'avatar' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
+            'avatar' => [
+                'nullable',
+                'image',
+                'mimes:jpeg,jpg,png,webp',
+                'max:5120',
+                'dimensions:max_width=4000,max_height=4000',
+            ],
+            'remove_avatar' => ['sometimes', 'boolean'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'avatar.image' => 'يجب أن يكون الملف صورة حقيقية (JPEG أو PNG أو WebP).',
+            'avatar.mimes' => 'الصيغ المسموحة فقط: JPEG و PNG و WebP. لا يُسمح بـ SVG أو GIF.',
+            'avatar.max' => 'حجم الصورة يجب ألا يتجاوز 5 ميجابايت.',
+            'avatar.dimensions' => 'أبعاد الصورة كبيرة جداً. الحد الأقصى 4000×4000 بكسل.',
         ];
     }
 }

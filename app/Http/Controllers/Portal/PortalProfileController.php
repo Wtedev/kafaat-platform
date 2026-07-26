@@ -6,16 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Portal\UpdatePortalProfileRequest;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\Identity\UserProfileCompletionService;
+use App\Services\Media\PublicMediaLifecycleService;
 use App\Services\UserActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
+use Throwable;
 
 class PortalProfileController extends Controller
 {
     public function __construct(
         private readonly UserProfileCompletionService $profileCompletionService,
+        private readonly PublicMediaLifecycleService $publicMedia,
     ) {}
 
     public function show(Request $request): RedirectResponse
@@ -42,16 +44,24 @@ class PortalProfileController extends Controller
             throw $exception;
         }
 
-        if ($request->hasFile('avatar')) {
-            $existing = $user->profile?->avatar;
-            if ($existing && Storage::disk('public')->exists($existing)) {
-                Storage::disk('public')->delete($existing);
-            }
+        $profile = $user->profile()->firstOrCreate(['user_id' => $user->id]);
+        $previousAvatar = $profile->avatar;
 
-            $user->profile()->updateOrCreate(
-                ['user_id' => $user->id],
-                ['avatar' => $request->file('avatar')->store('avatars', 'public')],
-            );
+        if ($request->boolean('remove_avatar') && ! $request->hasFile('avatar')) {
+            $profile->update(['avatar' => null]);
+            $this->publicMedia->deleteOwnedPath($previousAvatar);
+        } elseif ($request->hasFile('avatar')) {
+            $storedPath = null;
+
+            try {
+                $storedPath = $this->publicMedia->storeUpload($request->file('avatar'), 'avatars');
+                $profile->update(['avatar' => $storedPath]);
+                $this->publicMedia->deleteOwnedIfReplaced($previousAvatar, $storedPath);
+            } catch (Throwable $e) {
+                $this->publicMedia->discardFailedUpload($storedPath);
+
+                throw $e;
+            }
         }
 
         UserActivityLogger::logProfileUpdated($user, ['الملف الشخصي']);

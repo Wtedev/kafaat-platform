@@ -15,6 +15,7 @@ use App\Filament\Support\TrainingEntityFormSupport;
 use App\Filament\Support\TrainingProgramInlineEditSupport;
 use App\Filament\Support\TrainingProgramViewPresenter;
 use App\Models\TrainingProgram;
+use App\Services\Media\PublicMediaLifecycleService;
 use App\Support\ProgramAcceptanceConditions;
 use App\Support\RichContentSupport;
 use App\Support\TrainingProgramExtrasSupport;
@@ -22,6 +23,8 @@ use Filament\Actions\DeleteAction;
 use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Model;
+use Throwable;
 
 class ViewTrainingProgram extends BaseViewRecord
 {
@@ -97,6 +100,13 @@ class ViewTrainingProgram extends BaseViewRecord
                     ?? $program->description,
             ]);
         }
+
+        if ($this->pendingInlineEditField === 'image') {
+            return $this->stampTrainingEntityAuditFields([
+                'image' => array_key_exists('image', $data) ? $data['image'] : $program->image,
+            ]);
+        }
+
         $wantPublished = TrainingEntityFormSupport::wantsPublishedStatus($data);
 
         $data = TrainingEntityFormSupport::mergeNonDehydratedFormFlags($data, $this->data ?? []);
@@ -126,12 +136,43 @@ class ViewTrainingProgram extends BaseViewRecord
             );
         }
 
-        // Never clear/replace durable covers from admin save (FileUpload empty state).
-        unset($data['image']);
-
         return $this->dropEmptyTrainingSlug(
             $this->stampTrainingEntityAuditFields($data),
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function handleRecordUpdate(Model $record, array $data): Model
+    {
+        /** @var TrainingProgram $record */
+        $previousImage = $record->image;
+        $touchesImage = array_key_exists('image', $data);
+        $newImage = $touchesImage ? ($data['image'] ?? null) : $previousImage;
+
+        if ($touchesImage) {
+            $record->allowCoverUpdate = true;
+        }
+
+        try {
+            $record->update($data);
+        } catch (Throwable $e) {
+            if ($touchesImage && is_string($newImage) && $newImage !== $previousImage) {
+                app(PublicMediaLifecycleService::class)->discardFailedUpload($newImage);
+            }
+
+            throw $e;
+        }
+
+        if ($touchesImage) {
+            app(PublicMediaLifecycleService::class)->deleteOwnedIfReplaced(
+                $previousImage,
+                $record->fresh()?->image,
+            );
+        }
+
+        return $record;
     }
 
     protected function getSettingsTabLabel(): string

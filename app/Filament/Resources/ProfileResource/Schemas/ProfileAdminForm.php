@@ -101,11 +101,25 @@ final class ProfileAdminForm
                         ->label('الصورة الشخصية')
                         ->image()
                         ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                        ->maxSize(2048)
+                        ->maxSize(5120)
                         ->disk('public')
                         ->directory('avatars')
                         ->visibility('public')
-                        ->nullable(),
+                        ->nullable()
+                        ->rules([
+                            'nullable',
+                            'image',
+                            'mimes:jpeg,jpg,png,webp',
+                            'max:5120',
+                            'dimensions:max_width=4000,max_height=4000',
+                        ])
+                        ->validationMessages([
+                            'image' => 'يجب أن يكون الملف صورة حقيقية (JPEG أو PNG أو WebP).',
+                            'mimes' => 'الصيغ المسموحة فقط: JPEG و PNG و WebP. لا يُسمح بـ SVG أو GIF.',
+                            'max' => 'حجم الصورة يجب ألا يتجاوز 5 ميجابايت.',
+                            'dimensions' => 'أبعاد الصورة كبيرة جداً. الحد الأقصى 4000×4000 بكسل.',
+                        ])
+                        ->helperText('تُحفظ على القرص العام. JPEG أو PNG أو WebP — حتى 5 ميجابايت.'),
 
                     Textarea::make('bio')
                         ->label('نبذة تعريفية')

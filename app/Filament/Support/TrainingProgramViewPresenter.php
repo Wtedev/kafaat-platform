@@ -30,8 +30,6 @@ final class TrainingProgramViewPresenter
     }
 
     /**
-     * Cover is display-only in admin — no inline edit field (git-backed / seeder-managed).
-     *
      * @return array{title: string, field: string|null, url: string, has_custom: bool, empty_label: string}
      */
     private static function cover(TrainingProgram $program): array
@@ -40,10 +38,10 @@ final class TrainingProgramViewPresenter
 
         return [
             'title' => 'صورة البرنامج',
-            'field' => null,
+            'field' => 'image',
             'url' => $program->imagePublicUrl(),
             'has_custom' => $hasCustom,
-            'empty_label' => 'لا توجد صورة غلاف — تُدار الصور خارج لوحة الإدارة (ملفات مستودعة/بذور)',
+            'empty_label' => 'لا توجد صورة غلاف — اضغط للتعديل لرفع صورة',
         ];
     }
 

@@ -4,6 +4,7 @@ namespace App\Services\News;
 
 use App\Models\News;
 use App\Models\NewsImage;
+use App\Services\Media\PublicMediaLifecycleService;
 use App\Support\PublicDiskPath;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -29,7 +30,9 @@ final class NewsImageSyncService
             $paths = [$news->image];
         }
 
-        $this->deletePaths($paths);
+        // Ignore this news' own rows so owned files are deleted while shared
+        // paths still referenced by other articles are preserved.
+        $this->deletePaths($paths, ignoreNewsId: $news->getKey() !== null ? (int) $news->getKey() : null);
     }
 
     /**
@@ -89,9 +92,11 @@ final class NewsImageSyncService
                 }
             }
 
-            $this->deletePaths($pathsToDelete);
+            // Update the denormalized primary column before file deletion so
+            // reference checks do not treat the outgoing path as still in use.
             $this->ensurePrimary($news);
             $news->syncPrimaryImageColumn();
+            $this->deletePaths($pathsToDelete);
         });
     }
 
@@ -325,8 +330,10 @@ final class NewsImageSyncService
     /**
      * @param  array<int, string|null>  $paths
      */
-    private function deletePaths(array $paths): void
+    private function deletePaths(array $paths, ?int $ignoreNewsId = null): void
     {
+        $lifecycle = app(PublicMediaLifecycleService::class);
+
         foreach ($paths as $path) {
             if (! is_string($path) || blank($path)) {
                 continue;
@@ -336,17 +343,23 @@ final class NewsImageSyncService
                 continue;
             }
 
-            if (NewsImage::query()->where('path', $path)->exists()) {
+            $imageQuery = NewsImage::query()->where('path', $path);
+            if ($ignoreNewsId !== null) {
+                $imageQuery->where('news_id', '!=', $ignoreNewsId);
+            }
+            if ($imageQuery->exists()) {
                 continue;
             }
 
-            if (News::query()->where('image', $path)->exists()) {
+            $newsQuery = News::query()->where('image', $path);
+            if ($ignoreNewsId !== null) {
+                $newsQuery->whereKeyNot($ignoreNewsId);
+            }
+            if ($newsQuery->exists()) {
                 continue;
             }
 
-            if (Storage::disk(self::DISK)->exists($path)) {
-                Storage::disk(self::DISK)->delete($path);
-            }
+            $lifecycle->deleteOwnedPath($path);
         }
     }
 }

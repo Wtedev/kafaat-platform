@@ -32,12 +32,18 @@ $p = $user->profile;
             <div class="min-w-0 flex-1 text-center sm:text-right">
                 <p class="text-sm font-medium text-slate-800">صورتك في المنصة</p>
                 <p class="mt-1 text-xs leading-relaxed text-slate-500">
-                    تُعرض في ملفك الشخصي وقائمة حسابك. الصيغ المدعومة: JPG، PNG، WebP — بحد أقصى 2 م.ب.
+                    تُعرض في ملفك الشخصي وقائمة حسابك. الصيغ المدعومة: JPG، PNG، WebP — بحد أقصى 5 م.ب.
                 </p>
                 <div class="mt-3 flex flex-col items-center gap-2 sm:flex-row sm:items-center">
                     <label for="avatar-input" class="inline-flex cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-[#335483] shadow-sm transition hover:border-[#335483]/20 hover:bg-slate-50">
                         {{ $p?->avatarUrl() ? 'استبدال الصورة' : 'رفع صورة' }}
                     </label>
+                    @if ($p?->avatarUrl())
+                    <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+                        <input type="checkbox" name="remove_avatar" value="1" class="rounded border-slate-300 text-[#335483] focus:ring-[#335483]" />
+                        إزالة الصورة
+                    </label>
+                    @endif
                     <span id="avatar-file-name" class="hidden truncate text-xs text-slate-500"></span>
                 </div>
                 <input id="avatar-input" type="file" name="avatar" accept="image/jpeg,image/png,image/webp" class="sr-only" />
