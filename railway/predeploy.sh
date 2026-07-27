@@ -11,8 +11,9 @@
 # VolunteerLeadersProgramCoverSeeder only sets image=images/programs/... for «قادة التطوع».
 # VolunteerLeadersProgramDatesSeeder sets start/end + registration window for «قادة التطوع»
 #   (program 2026-08-03 → 2026-09-01; registration 2026-07-22 → 2026-08-03).
-# VolunteerLeadersProgramDescriptionSeeder sets hybrid (هايبرد) public description for «قادة التطوع».
-# VolunteerLeadersProgramDeliverySeeder sets delivery_mode=hybrid + venue «بريدة - بيت الثقافة».
+# VolunteerLeadersProgramDescriptionSeeder sets canonical public description for «قادة التطوع» (مالك/شركاء + أسلوب التنفيذ).
+# VolunteerLeadersProgramDeliverySeeder sets delivery_mode=in_person (حضوري) + venue «بريدة - بيت الثقافة».
+
 # VolunteerLeadersProgramPresentersSeeder clears program_presenters for «قادة التطوع» (public section removed).
 # NewsCoverAssetsSeeder only sets image=images/news/... for named articles (git-backed covers).
 set -euo pipefail

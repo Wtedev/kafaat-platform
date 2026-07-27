@@ -248,7 +248,7 @@ class TrainingProgramCreationFlowTest extends TestCase
             'title' => 'برنامج قادة التطوع',
             'slug' => 'kad-alttoaa-venue-map',
             'competency_track' => CompetencyTrack::Community,
-            'delivery_mode' => ProgramDeliveryMode::Hybrid,
+            'delivery_mode' => ProgramDeliveryMode::InPerson,
             'venue' => 'بريدة - بيت الثقافة',
             'start_date' => Carbon::parse('2026-08-03'),
             'end_date' => Carbon::parse('2026-09-01'),

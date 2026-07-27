@@ -7,7 +7,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Sets the durable public description for «قادة التطوع» (hybrid delivery). Safe to re-run.
+ * Sets the durable public description for «قادة التطوع». Safe to re-run.
  */
 class VolunteerLeadersProgramDescriptionSeeder extends Seeder
 {
@@ -16,10 +16,10 @@ class VolunteerLeadersProgramDescriptionSeeder extends Seeder
     /**
      * Marker used for idempotency checks (must appear in DESCRIPTION).
      */
-    public const HYBRID_MARKER = '6 أيام حضورية';
+    public const DESCRIPTION_MARKER = 'صندوق دعم الجمعيات';
 
     /**
-     * Canonical public description — hybrid delivery details at the end (no التوازن sentence).
+     * Canonical public description.
      */
     public const DESCRIPTION = <<<'HTML'
 <p>برنامج تأهيلي لإعداد وتطوير قادة العمل التطوعي، من خلال تنمية المهارات القيادية والإدارية والتطبيق العملي، بما يسهم في بناء قيادات قادرة على قيادة المبادرات وإحداث أثر مجتمعي مستدام.</p>
@@ -29,16 +29,21 @@ class VolunteerLeadersProgramDescriptionSeeder extends Seeder
 <p></p>
 <p><strong>مميزات البرنامج:</strong></p>
 <p>شهادة معتمدة</p>
+<p></p>
+<p><strong>مالك البرنامج:</strong></p>
+<p>جمعية عضيد للخدمات التطوعية</p>
+<p></p>
 <p><strong>شركاء البرنامج:</strong></p>
 <ul>
-<li><p>جمعية عضيد للخدمات التطوعية</p></li>
 <li><p>مركز مسارات رائدة للتدريب والتطوير</p></li>
 <li><p>الموارد البشرية والتنمية الإجتماعية</p></li>
 <li><p>المركز الوطني لتنمية القطاع غير الربحي</p></li>
+<li><p>بيت الثقافة</p></li>
+<li><p>صندوق دعم الجمعيات</p></li>
 </ul>
 <p></p>
-<p><strong>أسلوب التنفيذ — هايبرد (حضوري وعن بعد):</strong></p>
-<p>يُقدَّم البرنامج بنمط هايبرد يجمع بوضوح بين الحضوري وعن بعد: يتضمن 6 أيام حضورية للتدريب التفاعلي والتطبيق العملي المباشر، فيما تُنفَّذ بقية أيام البرنامج وجلساته عن بعد عبر المنصات الرقمية.</p>
+<p><strong>أسلوب التنفيذ:</strong></p>
+<p>يتضمن البرنامج 6 أيام حضورية في مدينة بريدة - بيت الثقافة، للتدريب التفاعلي والتطبيق العملي المباشر، فيما تُنفَّذ بقية أيام البرنامج وجلساته عن بعد عبر المنصات الرقمية.</p>
 HTML;
 
     public function run(): void
