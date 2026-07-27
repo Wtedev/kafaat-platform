@@ -7,11 +7,9 @@ $viaPathOnly = $trainingProgram->learning_path_id !== null;
 $remaining = $trainingProgram->remainingCapacity();
 $approved = $trainingProgram->approvedRegistrationsCount();
 
+$isVolunteerLeaders = VolunteerLeadersProgramPeriod::applies($trainingProgram);
 $programDateRange = null;
-$programPeriodValue = null;
-if (VolunteerLeadersProgramPeriod::applies($trainingProgram)) {
-    $programPeriodValue = VolunteerLeadersProgramPeriod::sidebarHtml($trainingProgram);
-} elseif ($trainingProgram->start_date && $trainingProgram->end_date) {
+if ($trainingProgram->start_date && $trainingProgram->end_date) {
     $programDateRange = ar_date($trainingProgram->start_date, 'd MMM y').' – '.ar_date($trainingProgram->end_date, 'd MMM y');
 } elseif ($trainingProgram->start_date) {
     $programDateRange = ar_date($trainingProgram->start_date, 'd MMM y');
@@ -52,16 +50,23 @@ $venueMapUrl = filled($trainingProgram->venue)
         </x-slot:icon>
     </x-public.info-sidebar-item>
 
-    @if ($programPeriodValue)
-    <x-public.info-sidebar-item dense label="فترة البرنامج" :value="$programPeriodValue">
+    @if ($programDateRange)
+    <x-public.info-sidebar-item dense label="فترة البرنامج" :value="en_digits($programDateRange)">
         <x-slot:icon>
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         </x-slot:icon>
     </x-public.info-sidebar-item>
-    @elseif ($programDateRange)
-    <x-public.info-sidebar-item dense label="فترة البرنامج" :value="$programDateRange">
+    @endif
+
+    @if ($isVolunteerLeaders)
+    <x-public.info-sidebar-item dense label="الأيام الحضورية" :value="VolunteerLeadersProgramPeriod::inPersonDaysLabel()">
         <x-slot:icon>
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </x-slot:icon>
+    </x-public.info-sidebar-item>
+    <x-public.info-sidebar-item dense label="الأيام عن بعد" :value="VolunteerLeadersProgramPeriod::remoteDaysLabel()">
+        <x-slot:icon>
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/></svg>
         </x-slot:icon>
     </x-public.info-sidebar-item>
     @endif

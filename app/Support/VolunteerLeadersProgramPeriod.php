@@ -4,7 +4,6 @@ namespace App\Support;
 
 use App\Models\TrainingProgram;
 use Carbon\Carbon;
-use Illuminate\Support\HtmlString;
 
 /**
  * Public sidebar period breakdown for «قادة التطوع».
@@ -36,27 +35,17 @@ final class VolunteerLeadersProgramPeriod
         return str_contains((string) $program->title, self::TITLE_NEEDLE);
     }
 
-    public static function sidebarHtml(TrainingProgram $program): ?HtmlString
+    /**
+     * Display label for in-person days: «3–8 أغسطس، 16–18 أغسطس».
+     */
+    public static function inPersonDaysLabel(): string
     {
-        if (! self::applies($program) || $program->start_date === null || $program->end_date === null) {
-            return null;
-        }
+        return en_digits('3–8 أغسطس، 16–18 أغسطس');
+    }
 
-        $range = en_digits(
-            ar_date($program->start_date, 'd MMM y').' – '.ar_date($program->end_date, 'd MMM y')
-        );
-
-        $dates = self::sortedInPersonDates();
-        $monthLabel = $dates === [] ? '' : ar_date($dates[0], 'MMM y');
-
-        return new HtmlString(
-            view('components.public.volunteer-leaders-period', [
-                'range' => $range,
-                'dayGroups' => self::inPersonDayGroups(),
-                'monthLabel' => $monthLabel,
-                'inPersonDaysCount' => count(self::IN_PERSON_DATES),
-            ])->render()
-        );
+    public static function remoteDaysLabel(): string
+    {
+        return 'المتبقي من أيام الفترة';
     }
 
     /**
