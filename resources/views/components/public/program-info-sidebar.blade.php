@@ -1,12 +1,17 @@
 @props(['trainingProgram'])
 
 @php
+use App\Support\VolunteerLeadersProgramPeriod;
+
 $viaPathOnly = $trainingProgram->learning_path_id !== null;
 $remaining = $trainingProgram->remainingCapacity();
 $approved = $trainingProgram->approvedRegistrationsCount();
 
 $programDateRange = null;
-if ($trainingProgram->start_date && $trainingProgram->end_date) {
+$programPeriodValue = null;
+if (VolunteerLeadersProgramPeriod::applies($trainingProgram)) {
+    $programPeriodValue = VolunteerLeadersProgramPeriod::sidebarHtml($trainingProgram);
+} elseif ($trainingProgram->start_date && $trainingProgram->end_date) {
     $programDateRange = ar_date($trainingProgram->start_date, 'd MMM y').' – '.ar_date($trainingProgram->end_date, 'd MMM y');
 } elseif ($trainingProgram->start_date) {
     $programDateRange = ar_date($trainingProgram->start_date, 'd MMM y');
@@ -47,7 +52,13 @@ $venueMapUrl = filled($trainingProgram->venue)
         </x-slot:icon>
     </x-public.info-sidebar-item>
 
-    @if ($programDateRange)
+    @if ($programPeriodValue)
+    <x-public.info-sidebar-item dense label="فترة البرنامج" :value="$programPeriodValue">
+        <x-slot:icon>
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </x-slot:icon>
+    </x-public.info-sidebar-item>
+    @elseif ($programDateRange)
     <x-public.info-sidebar-item dense label="فترة البرنامج" :value="$programDateRange">
         <x-slot:icon>
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
