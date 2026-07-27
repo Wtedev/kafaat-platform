@@ -86,7 +86,7 @@ $ackLabel = $inPerson
                 </x-public.register-cta-button>
                 @endif
                 @else
-                <x-public.register-cta-button :href="route('login')" class="hidden md:inline-flex">
+                <x-public.register-cta-button :href="route('login', ['return' => request()->getRequestUri()])" class="hidden md:inline-flex">
                     سجّل الدخول للانضمام للمسار
                 </x-public.register-cta-button>
                 @endauth
@@ -126,7 +126,7 @@ $ackLabel = $inPerson
             @elseif (! auth()->check())
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p class="text-sm leading-relaxed text-gray-500 sm:max-w-md">يجب تسجيل الدخول للتسجيل في البرنامج.</p>
-                <x-public.register-cta-button :href="route('login')" class="hidden md:inline-flex">سجّل الدخول للتسجيل</x-public.register-cta-button>
+                <x-public.register-cta-button :href="route('login', ['return' => request()->getRequestUri()])" class="hidden md:inline-flex">سجّل الدخول للتسجيل</x-public.register-cta-button>
             </div>
             @else
             <p class="text-sm text-gray-400">لا يمكن التسجيل بهذا الحساب حالياً.</p>
@@ -143,10 +143,10 @@ $ackLabel = $inPerson
                     <x-public.register-cta-button :href="route('portal.paths')" class="w-full">الانتقال إلى مساراتي</x-public.register-cta-button>
                 @endif
             @else
-                <x-public.register-cta-button :href="route('login')" class="w-full">سجّل الدخول للانضمام للمسار</x-public.register-cta-button>
+                <x-public.register-cta-button :href="route('login', ['return' => request()->getRequestUri()])" class="w-full">سجّل الدخول للانضمام للمسار</x-public.register-cta-button>
             @endauth
         @elseif (! auth()->check() && $trainingProgram->isRegistrationOpen() && ! $viaPathOnly)
-            <x-public.register-cta-button :href="route('login')" class="w-full">سجّل الدخول للتسجيل</x-public.register-cta-button>
+            <x-public.register-cta-button :href="route('login', ['return' => request()->getRequestUri()])" class="w-full">سجّل الدخول للتسجيل</x-public.register-cta-button>
         @endif
     </x-slot:mobileStickyAction>
 </x-public.entity-show-layout>

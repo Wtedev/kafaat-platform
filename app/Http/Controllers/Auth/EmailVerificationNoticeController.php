@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\EmailVerificationCode;
+use App\Support\Auth\SafeLoginReturnUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -42,12 +43,6 @@ class EmailVerificationNoticeController extends Controller
 
     private function redirectVerifiedUser(Request $request): RedirectResponse
     {
-        $user = $request->user();
-
-        if ($user->isAdminOrStaff()) {
-            return redirect('/admin');
-        }
-
-        return redirect()->route('portal.dashboard');
+        return SafeLoginReturnUrl::redirectAfterVerification($request);
     }
 }
