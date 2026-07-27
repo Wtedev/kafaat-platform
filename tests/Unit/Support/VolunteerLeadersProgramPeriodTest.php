@@ -17,6 +17,11 @@ class VolunteerLeadersProgramPeriodTest extends TestCase
     public function test_formats_grouped_in_person_dates(): void
     {
         $this->assertSame(
+            ['3–4', '8', '16–18'],
+            VolunteerLeadersProgramPeriod::inPersonDayGroups(),
+        );
+
+        $this->assertSame(
             '3–4، 8، 16–18 أغسطس 2026',
             VolunteerLeadersProgramPeriod::formatInPersonDatesLabel(),
         );
@@ -37,10 +42,14 @@ class VolunteerLeadersProgramPeriodTest extends TestCase
         $html = VolunteerLeadersProgramPeriod::sidebarHtml($program);
 
         $this->assertInstanceOf(HtmlString::class, $html);
-        $this->assertStringContainsString('حضوري:', $html->toHtml());
-        $this->assertStringContainsString('عن بعد:', $html->toHtml());
-        $this->assertStringContainsString('3–4، 8، 16–18', $html->toHtml());
-        $this->assertStringContainsString('المتبقي من أيام الفترة', $html->toHtml());
+        $markup = $html->toHtml();
+        $this->assertStringContainsString('حضوري', $markup);
+        $this->assertStringContainsString('عن بعد', $markup);
+        $this->assertStringContainsString('3–4', $markup);
+        $this->assertStringContainsString('16–18', $markup);
+        $this->assertStringContainsString('6 أيام', $markup);
+        $this->assertStringContainsString('باقي أيام الفترة', $markup);
+        $this->assertStringContainsString('rounded-xl', $markup);
     }
 
     public function test_does_not_apply_to_other_programs(): void
