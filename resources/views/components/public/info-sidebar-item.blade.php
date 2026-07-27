@@ -1,6 +1,6 @@
 @props([
     'label',
-    'value',
+    'value' => null,
     'dense' => false,
     'href' => null,
     'separated' => false,
@@ -39,6 +39,10 @@
                 </svg>
                 <span class="sr-only"> (يفتح الخريطة في تبويب جديد)</span>
             </a>
+        @elseif ($value instanceof \Illuminate\Support\HtmlString)
+            <div @class([$dense ? 'mt-0.5' : 'mt-1', 'text-sm font-medium text-gray-900'])>
+                {!! $value !!}
+            </div>
         @else
             <p @class([
                 $dense ? 'mt-0.5' : 'mt-1',
