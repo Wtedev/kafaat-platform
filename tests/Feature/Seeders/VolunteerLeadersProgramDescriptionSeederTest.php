@@ -14,7 +14,7 @@ class VolunteerLeadersProgramDescriptionSeederTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_sets_hybrid_description_for_matching_title(): void
+    public function test_sets_description_for_matching_title(): void
     {
         $program = TrainingProgram::query()->create([
             'title' => 'برنامج قادة التطوع',
@@ -32,21 +32,10 @@ class VolunteerLeadersProgramDescriptionSeederTest extends TestCase
             trim(VolunteerLeadersProgramDescriptionSeeder::DESCRIPTION),
             trim((string) $program->description),
         );
-        $this->assertStringContainsString('هايبرد (حضوري وعن بعد)', (string) $program->description);
-        $this->assertStringContainsString(VolunteerLeadersProgramDescriptionSeeder::HYBRID_MARKER, (string) $program->description);
-        $this->assertStringContainsString('عن بعد', (string) $program->description);
-        $this->assertStringNotContainsString('بهذا التوازن', (string) $program->description);
-        $this->assertStringContainsString(
-            '<strong>أسلوب التنفيذ — هايبرد (حضوري وعن بعد):</strong>',
-            (string) $program->description,
-        );
-        $this->assertStringNotContainsString('<strong>هايبرد</strong>', (string) $program->description);
-        $this->assertStringNotContainsString('<strong>6 أيام حضورية</strong>', (string) $program->description);
-        $this->assertStringNotContainsString('<strong>بقية أيام البرنامج وجلساته عن بعد</strong>', (string) $program->description);
-        $this->assertStringEndsWith(
-            'عبر المنصات الرقمية.</p>',
-            trim((string) $program->description),
-        );
+        $this->assertStringContainsString(VolunteerLeadersProgramDescriptionSeeder::DESCRIPTION_MARKER, (string) $program->description);
+        $this->assertStringContainsString('بيت الثقافة', (string) $program->description);
+        $this->assertStringContainsString('جمعية عضيد للخدمات التطوعية', (string) $program->description);
+        $this->assertStringContainsString('6 أيام حضورية في مدينة بريدة - بيت الثقافة', (string) $program->description);
     }
 
     public function test_re_run_is_idempotent_when_description_already_set(): void

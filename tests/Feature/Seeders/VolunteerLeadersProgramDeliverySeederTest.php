@@ -15,7 +15,7 @@ class VolunteerLeadersProgramDeliverySeederTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_sets_hybrid_delivery_and_venue_for_matching_title(): void
+    public function test_sets_in_person_delivery_and_venue_for_matching_title(): void
     {
         $program = TrainingProgram::query()->create([
             'title' => 'برنامج قادة التطوع',
@@ -30,9 +30,9 @@ class VolunteerLeadersProgramDeliverySeederTest extends TestCase
 
         $program->refresh();
 
-        $this->assertSame(ProgramDeliveryMode::Hybrid, $program->delivery_mode);
+        $this->assertSame(ProgramDeliveryMode::InPerson, $program->delivery_mode);
         $this->assertSame(VolunteerLeadersProgramDeliverySeeder::VENUE, $program->venue);
-        $this->assertSame('هايبرد (حضوري وعن بعد)', $program->delivery_mode->label());
+        $this->assertSame('حضوري', $program->delivery_mode->label());
     }
 
     public function test_re_run_is_idempotent_when_delivery_already_set(): void
@@ -42,7 +42,7 @@ class VolunteerLeadersProgramDeliverySeederTest extends TestCase
             'program_kind' => TrainingProgramKind::Course,
             'competency_track' => CompetencyTrack::Community,
             'status' => ProgramStatus::Published,
-            'delivery_mode' => ProgramDeliveryMode::Hybrid,
+            'delivery_mode' => ProgramDeliveryMode::InPerson,
             'venue' => VolunteerLeadersProgramDeliverySeeder::VENUE,
         ]);
 
@@ -51,7 +51,7 @@ class VolunteerLeadersProgramDeliverySeederTest extends TestCase
 
         $program->refresh();
 
-        $this->assertSame(ProgramDeliveryMode::Hybrid, $program->delivery_mode);
+        $this->assertSame(ProgramDeliveryMode::InPerson, $program->delivery_mode);
         $this->assertSame(VolunteerLeadersProgramDeliverySeeder::VENUE, $program->venue);
     }
 }

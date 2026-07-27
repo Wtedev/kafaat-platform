@@ -8,13 +8,13 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Sets durable hybrid delivery + venue for «قادة التطوع». Safe to re-run.
+ * Sets durable in-person delivery + venue for «قادة التطوع». Safe to re-run.
  */
 class VolunteerLeadersProgramDeliverySeeder extends Seeder
 {
     public const TITLE_NEEDLE = 'قادة التطوع';
 
-    public const DELIVERY_MODE = ProgramDeliveryMode::Hybrid;
+    public const DELIVERY_MODE = ProgramDeliveryMode::InPerson;
 
     public const VENUE = 'بريدة - بيت الثقافة';
 
