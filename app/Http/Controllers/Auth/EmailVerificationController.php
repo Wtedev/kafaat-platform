@@ -7,6 +7,7 @@ use App\Enums\SecurityLogSeverity;
 use App\Http\Controllers\Controller;
 use App\Services\Auth\EmailVerificationCodeService;
 use App\Services\Security\SecurityLogService;
+use App\Support\Auth\SafeLoginReturnUrl;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -76,12 +77,6 @@ class EmailVerificationController extends Controller
 
     private function redirectVerifiedUser(Request $request): RedirectResponse
     {
-        $user = $request->user();
-
-        if ($user->isAdminOrStaff()) {
-            return redirect('/admin');
-        }
-
-        return redirect()->route('portal.dashboard');
+        return SafeLoginReturnUrl::redirectAfterVerification($request);
     }
 }

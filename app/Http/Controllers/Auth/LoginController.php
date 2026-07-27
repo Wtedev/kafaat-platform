@@ -6,6 +6,7 @@ use App\Enums\SecurityLogResult;
 use App\Enums\SecurityLogSeverity;
 use App\Http\Controllers\Controller;
 use App\Services\Security\SecurityLogService;
+use App\Support\Auth\SafeLoginReturnUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,8 +14,10 @@ use Illuminate\View\View;
 
 class LoginController extends Controller
 {
-    public function show(): View
+    public function show(Request $request): View
     {
+        SafeLoginReturnUrl::captureFromRequest($request);
+
         return view('auth.login');
     }
 
@@ -83,9 +86,8 @@ class LoginController extends Controller
         // Update last login timestamp
         $user->updateQuietly(['last_login_at' => now()]);
 
-        // Clear any url.intended that Filament may have stored pointing to /admin.
-        // Using redirect()->intended() here would allow a poisoned session (from a
-        // prior unauthenticated visit to /admin) to redirect a beneficiary → 403.
+        // Clear Filament's url.intended (/admin poison). Beneficiary program return
+        // uses SafeLoginReturnUrl session key and must survive through OTP.
         $request->session()->forget('url.intended');
 
         // رمز التحقق إلزامي في كل دخول لجميع الأنواع (مستفيد/موظف/أدمن).
