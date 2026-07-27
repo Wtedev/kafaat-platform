@@ -382,6 +382,19 @@ class TrainingProgram extends Model
     }
 
     /**
+     * بطاقة مواعيد البرنامج: تسمية حالة التسجيل بسطر واحد (نفس تنسيق بقية الصفوف).
+     */
+    public function scheduleCardRegistrationStatusLabel(): string
+    {
+        return match ($this->registrationWindowStatusLabel()) {
+            'التسجيل عبر المسار' => 'التسجيل عبر المسار',
+            'لم يبدأ' => 'لم يبدأ التسجيل',
+            'مفتوح' => 'متاح التسجيل',
+            default => 'انتهى التسجيل',
+        };
+    }
+
+    /**
      * مدة البرنامج من تاريخ البداية والنهاية (لا يُعرض تاريخ النهاية في واجهة العرض).
      */
     public function programDurationDescription(): string

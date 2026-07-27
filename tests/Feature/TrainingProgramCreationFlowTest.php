@@ -306,6 +306,60 @@ class TrainingProgramCreationFlowTest extends TestCase
             ->assertDontSee('موعد التسجيل');
     }
 
+    public function test_volunteer_leaders_show_page_renders_attendance_schedule_card_above_program_details(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-27')->startOfDay());
+
+        $program = $this->createPublishedProgram([
+            'title' => 'قادة التطوع',
+            'slug' => 'volunteer-leaders-schedule-card',
+            'competency_track' => CompetencyTrack::Community,
+            'delivery_mode' => ProgramDeliveryMode::InPerson,
+            'venue' => 'بريدة - بيت الثقافة',
+            'start_date' => Carbon::parse('2026-08-03'),
+            'end_date' => Carbon::parse('2026-09-01'),
+            'registration_start' => Carbon::parse('2026-07-22'),
+            'registration_end' => Carbon::parse('2026-08-03'),
+        ]);
+
+        $html = $this->get(route('public.programs.show', $program->slug))
+            ->assertOk()
+            ->assertSee('مواعيد البرنامج')
+            ->assertSee('أسلوب التنفيذ')
+            ->assertSee('فترة البرنامج')
+            ->assertSee('الأيام الحضورية')
+            ->assertSee('الأيام عن بعد')
+            ->assertSee('حالة التسجيل')
+            ->assertSee('متاح التسجيل')
+            ->assertDontSee('ينتهي التسجيل خلال')
+            ->assertDontSee('>مفتوح<', false)
+            ->assertSee('معلومات البرنامج')
+            ->assertSee('3 أغسطس – 1 سبتمبر')
+            ->assertSee('3–8 أغسطس، 16–18 أغسطس')
+            ->assertDontSee('السعة الاستيعابية')
+            ->assertDontSee('فترة التسجيل')
+            ->getContent();
+
+        $schedulePos = strpos($html, 'مواعيد البرنامج');
+        $detailsPos = strpos($html, 'معلومات البرنامج');
+        $this->assertNotFalse($schedulePos);
+        $this->assertNotFalse($detailsPos);
+        $this->assertLessThan($detailsPos, $schedulePos);
+
+        // Order within the schedule card block only (avoid earlier page noise).
+        $scheduleBlock = substr($html, $schedulePos, $detailsPos - $schedulePos);
+        $this->assertStringContainsString('متاح التسجيل', $scheduleBlock);
+        $this->assertStringNotContainsString('ينتهي التسجيل', $scheduleBlock);
+        $this->assertStringNotContainsString('background-color:#1a9399', $scheduleBlock);
+        $this->assertStringNotContainsString('rounded-full', $scheduleBlock);
+        $this->assertStringNotContainsString('>مفتوح<', $scheduleBlock);
+        $deliveryPos = strpos($scheduleBlock, 'أسلوب التنفيذ');
+        $periodPos = strpos($scheduleBlock, 'فترة البرنامج');
+        $this->assertNotFalse($deliveryPos);
+        $this->assertNotFalse($periodPos);
+        $this->assertLessThan($periodPos, $deliveryPos);
+    }
+
     public function test_public_show_page_does_not_render_program_presenters_section(): void
     {
         $program = $this->createPublishedProgram([
