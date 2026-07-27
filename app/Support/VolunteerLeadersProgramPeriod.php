@@ -45,23 +45,18 @@ final class VolunteerLeadersProgramPeriod
         $range = en_digits(
             ar_date($program->start_date, 'd MMM y').' – '.ar_date($program->end_date, 'd MMM y')
         );
-        $inPerson = en_digits(self::formatInPersonDatesLabel());
 
-        $html = <<<HTML
-<span class="block leading-relaxed">{$range}</span>
-<span class="mt-2 block space-y-1.5 text-[13px] leading-relaxed">
-  <span class="block">
-    <span class="font-semibold text-[#335483]">حضوري:</span>
-    <span class="text-gray-800"> {$inPerson}</span>
-  </span>
-  <span class="block">
-    <span class="font-semibold text-[#335483]">عن بعد:</span>
-    <span class="text-gray-800"> المتبقي من أيام الفترة</span>
-  </span>
-</span>
-HTML;
+        $dates = self::sortedInPersonDates();
+        $monthLabel = $dates === [] ? '' : ar_date($dates[0], 'MMM y');
 
-        return new HtmlString($html);
+        return new HtmlString(
+            view('components.public.volunteer-leaders-period', [
+                'range' => $range,
+                'dayGroups' => self::inPersonDayGroups(),
+                'monthLabel' => $monthLabel,
+                'inPersonDaysCount' => count(self::IN_PERSON_DATES),
+            ])->render()
+        );
     }
 
     /**
@@ -69,20 +64,34 @@ HTML;
      */
     public static function formatInPersonDatesLabel(): string
     {
-        $dates = collect(self::IN_PERSON_DATES)
-            ->map(fn (string $d): Carbon => Carbon::parse($d)->startOfDay())
-            ->sortBy(fn (Carbon $d): int => $d->timestamp)
-            ->values();
+        $groups = self::inPersonDayGroups();
+        $dates = self::sortedInPersonDates();
 
-        if ($dates->isEmpty()) {
+        if ($groups === [] || $dates === []) {
             return '';
+        }
+
+        $monthYear = ar_date($dates[0], 'MMM y');
+
+        return implode('، ', $groups).' '.$monthYear;
+    }
+
+    /**
+     * @return list<string> e.g. ['3–4', '8', '16–18']
+     */
+    public static function inPersonDayGroups(): array
+    {
+        $dates = self::sortedInPersonDates();
+
+        if ($dates === []) {
+            return [];
         }
 
         $groups = [];
         $groupStart = $dates[0];
         $groupEnd = $dates[0];
 
-        for ($i = 1; $i < $dates->count(); $i++) {
+        for ($i = 1; $i < count($dates); $i++) {
             $current = $dates[$i];
             if ($groupEnd->copy()->addDay()->equalTo($current)) {
                 $groupEnd = $current;
@@ -97,9 +106,19 @@ HTML;
 
         $groups[] = self::formatDayGroup($groupStart, $groupEnd);
 
-        $monthYear = ar_date($dates[0], 'MMM y');
+        return $groups;
+    }
 
-        return implode('، ', $groups).' '.$monthYear;
+    /**
+     * @return list<Carbon>
+     */
+    private static function sortedInPersonDates(): array
+    {
+        return collect(self::IN_PERSON_DATES)
+            ->map(fn (string $d): Carbon => Carbon::parse($d)->startOfDay())
+            ->sortBy(fn (Carbon $d): int => $d->timestamp)
+            ->values()
+            ->all();
     }
 
     private static function formatDayGroup(Carbon $start, Carbon $end): string
