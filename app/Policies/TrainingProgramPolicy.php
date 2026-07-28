@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Services\Exports\ProgramRegistrationExportAuthorization;
 use App\Support\TrainingEntityAuthorization;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -40,6 +41,14 @@ class TrainingProgramPolicy
     public function viewOperational(User $user, TrainingProgram $program): bool
     {
         return TrainingEntityAuthorization::canViewOperationalProgram($user, $program);
+    }
+
+    /**
+     * Export program registrants to Excel — requires exports.training (not registrations.view).
+     */
+    public function exportRegistrants(User $user, TrainingProgram $program): bool
+    {
+        return ProgramRegistrationExportAuthorization::canExport($user, $program);
     }
 
     public function create(User $user): bool

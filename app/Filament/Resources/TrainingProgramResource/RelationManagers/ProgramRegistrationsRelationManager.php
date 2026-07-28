@@ -4,6 +4,7 @@ namespace App\Filament\Resources\TrainingProgramResource\RelationManagers;
 
 use App\Enums\RegistrationStatus;
 use App\Exceptions\ProgramCapacityExceededException;
+use App\Filament\Actions\ExportProgramRegistrantsAction;
 use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
@@ -56,6 +57,13 @@ class ProgramRegistrationsRelationManager extends RelationManager
                     ->label('حالة القبول')
                     ->options(RegistrationStatus::class),
             ])
+            ->headerActions([
+                ExportProgramRegistrantsAction::make(
+                    fn (): TrainingProgram => $this->getOwnerRecord(),
+                    $this,
+                ),
+            ])
+            ->selectable()
             ->actions([
                 Action::make('approve')
                     ->label('قبول')
