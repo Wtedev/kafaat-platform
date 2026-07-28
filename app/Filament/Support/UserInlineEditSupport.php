@@ -5,6 +5,7 @@ namespace App\Filament\Support;
 use App\Enums\ProfileGender;
 use App\Models\Profile;
 use App\Models\User;
+use App\Models\VolunteerTeam;
 use App\Support\UserAccountRoleForm;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
@@ -13,9 +14,12 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Utilities\Get;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 final class UserInlineEditSupport
 {
@@ -110,6 +114,213 @@ final class UserInlineEditSupport
     }
 
     /**
+     * Allowlisted account modal keys persisted by {@see persistAccountSection()}.
+     *
+     * @return list<string>
+     */
+    public static function accountPersistAllowlist(): array
+    {
+        return [
+            'name',
+            'email',
+            'phone',
+            'password',
+            'is_active',
+            'notify_email',
+            'platform_role',
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public static function accountFormState(User $user): array
+    {
+        $state = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'password' => null,
+            'is_active' => (bool) $user->is_active,
+            'notify_email' => (bool) $user->notify_email,
+        ];
+
+        if (UserAccountRoleForm::canActorEditRoleSection(auth()->user(), $user)) {
+            $state['platform_role'] = UserAccountRoleForm::platformRoleFromUser($user);
+        }
+
+        return $state;
+    }
+
+    /**
+     * Persist only allowlisted account fields. Does not touch profile / identity / registrations.
+     *
+     * Email policy: trim; store lowercase (login rate-limit keys already lowercase; Auth::attempt
+     * remains exact-match so canonical lowercase storage avoids case-mismatch lockouts).
+     * Uniqueness is case-insensitive against other users; self ignored.
+     *
+     * email_verified_at: cleared when the normalized email actually changes; otherwise preserved.
+     * OTP gate uses session (`otp_verified`), not email_verified_at.
+     *
+     * @param  array<string, mixed>  $submitted
+     */
+    public static function persistAccountSection(User $target, array $submitted, User $actor): void
+    {
+        $allowlisted = array_intersect_key(
+            $submitted,
+            array_flip(self::accountPersistAllowlist()),
+        );
+
+        $name = trim((string) ($allowlisted['name'] ?? ''));
+        $email = self::normalizeAccountEmail((string) ($allowlisted['email'] ?? ''));
+        $phone = array_key_exists('phone', $allowlisted)
+            ? (filled($allowlisted['phone'] ?? null) ? trim((string) $allowlisted['phone']) : null)
+            : $target->phone;
+        $password = is_string($allowlisted['password'] ?? null) ? (string) $allowlisted['password'] : '';
+        $isActive = array_key_exists('is_active', $allowlisted)
+            ? (bool) $allowlisted['is_active']
+            : (bool) $target->is_active;
+        $notifyEmail = array_key_exists('notify_email', $allowlisted)
+            ? (bool) $allowlisted['notify_email']
+            : (bool) $target->notify_email;
+
+        $messages = [
+            'name.required' => 'الاسم الكامل مطلوب.',
+            'name.max' => 'الاسم الكامل طويل جداً.',
+            'email.required' => 'البريد الإلكتروني مطلوب.',
+            'email.email' => 'صيغة البريد الإلكتروني غير صحيحة.',
+            'email.max' => 'البريد الإلكتروني طويل جداً.',
+            'phone.max' => 'رقم الجوال طويل جداً.',
+            'password.max' => 'كلمة المرور طويلة جداً.',
+        ];
+
+        validator(
+            [
+                'name' => $name,
+                'email' => $email,
+                'phone' => $phone,
+                'password' => $password !== '' ? $password : null,
+                'is_active' => $isActive,
+                'notify_email' => $notifyEmail,
+            ],
+            [
+                'name' => ['required', 'string', 'max:255'],
+                'email' => [
+                    'required',
+                    'string',
+                    'email',
+                    'max:255',
+                    function (string $attribute, mixed $value, \Closure $fail) use ($target): void {
+                        $normalized = self::normalizeAccountEmail((string) $value);
+                        if ($normalized === '') {
+                            return;
+                        }
+
+                        $duplicate = User::query()
+                            ->whereRaw('lower(email) = ?', [$normalized])
+                            ->whereKeyNot($target->getKey())
+                            ->exists();
+
+                        if ($duplicate) {
+                            $fail('البريد الإلكتروني مستخدم بالفعل.');
+                        }
+                    },
+                ],
+                'phone' => ['nullable', 'string', 'max:20'],
+                'password' => ['nullable', 'string', 'max:255'],
+                'is_active' => ['boolean'],
+                'notify_email' => ['boolean'],
+            ],
+            $messages,
+        )->validate();
+
+        $emailChanged = strcasecmp((string) $target->email, $email) !== 0;
+
+        $canEditRole = UserAccountRoleForm::canActorEditRoleSection($actor, $target)
+            && ! $target->isProtectedAdminUser();
+        $requestedPlatformRole = array_key_exists('platform_role', $allowlisted)
+            ? (string) ($allowlisted['platform_role'] ?? '')
+            : null;
+
+        $roleChanged = false;
+        $resolvedRole = null;
+
+        if ($canEditRole && $requestedPlatformRole !== null && $requestedPlatformRole !== '') {
+            UserAccountRoleForm::assertActorMayAssign($actor, $requestedPlatformRole);
+            $resolvedRole = UserAccountRoleForm::resolvePlatformRole($requestedPlatformRole);
+            $currentPlatformRole = UserAccountRoleForm::platformRoleFromUser($target);
+            $roleChanged = $resolvedRole['spatie'] !== $currentPlatformRole
+                || (string) $target->role_type !== $resolvedRole['role_type'];
+        }
+
+        try {
+            DB::transaction(function () use (
+                $target,
+                $name,
+                $email,
+                $phone,
+                $password,
+                $isActive,
+                $notifyEmail,
+                $emailChanged,
+                $roleChanged,
+                $resolvedRole,
+            ): void {
+                $attributes = [
+                    'name' => $name,
+                    'email' => $email,
+                    'phone' => $phone,
+                    'is_active' => $isActive,
+                    'notify_email' => $notifyEmail,
+                ];
+
+                if ($password !== '') {
+                    // Plain password — User::$casts['password'] = 'hashed' hashes once.
+                    $attributes['password'] = $password;
+                }
+
+                if ($roleChanged && $resolvedRole !== null) {
+                    $attributes['role_type'] = $resolvedRole['role_type'];
+                }
+
+                $target->fill($attributes);
+
+                if ($emailChanged) {
+                    $target->email_verified_at = null;
+                }
+
+                $target->save();
+
+                if ($roleChanged && $resolvedRole !== null) {
+                    $target->syncRoles([$resolvedRole['spatie']]);
+                    UserAccountRoleForm::applyRoleSideEffects($target, $resolvedRole['spatie']);
+
+                    if ($resolvedRole['spatie'] === UserAccountRoleForm::TYPE_VOLUNTEER) {
+                        VolunteerTeam::ensureMember($target);
+                    }
+                }
+            });
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (UniqueConstraintViolationException $exception) {
+            throw ValidationException::withMessages([
+                'email' => 'البريد الإلكتروني مستخدم بالفعل.',
+            ]);
+        } catch (Throwable $exception) {
+            Log::warning('filament.user_account_inline_edit_failed', [
+                'exception' => $exception::class,
+            ]);
+
+            throw $exception;
+        }
+    }
+
+    public static function normalizeAccountEmail(string $email): string
+    {
+        return strtolower(trim($email));
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public static function profileFormState(?Profile $profile): array
@@ -183,23 +394,38 @@ final class UserInlineEditSupport
             TextInput::make('name')
                 ->label('الاسم الكامل')
                 ->required()
-                ->maxLength(255),
+                ->maxLength(255)
+                ->validationMessages([
+                    'required' => 'الاسم الكامل مطلوب.',
+                    'max' => 'الاسم الكامل طويل جداً.',
+                ]),
             TextInput::make('email')
                 ->label('البريد الإلكتروني')
                 ->email()
                 ->required()
-                ->maxLength(255),
+                ->maxLength(255)
+                ->dehydrateStateUsing(fn ($state) => self::normalizeAccountEmail((string) ($state ?? '')))
+                ->validationMessages([
+                    'required' => 'البريد الإلكتروني مطلوب.',
+                    'email' => 'صيغة البريد الإلكتروني غير صحيحة.',
+                    'max' => 'البريد الإلكتروني طويل جداً.',
+                ]),
             TextInput::make('phone')
                 ->label('رقم الجوال')
                 ->tel()
-                ->maxLength(20),
+                ->maxLength(20)
+                ->validationMessages([
+                    'max' => 'رقم الجوال طويل جداً.',
+                ]),
             TextInput::make('password')
                 ->label('كلمة المرور')
                 ->password()
                 ->helperText('اتركها فارغة إن لم تُرد تغييرها')
-                ->dehydrateStateUsing(fn ($state) => filled($state) ? Hash::make($state) : null)
                 ->dehydrated(fn ($state) => filled($state))
-                ->maxLength(255),
+                ->maxLength(255)
+                ->validationMessages([
+                    'max' => 'كلمة المرور طويلة جداً.',
+                ]),
             Toggle::make('is_active')
                 ->label('نشط'),
             Toggle::make('notify_email')
