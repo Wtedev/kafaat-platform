@@ -16,6 +16,7 @@ use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Support\Exceptions\Halt;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
@@ -172,6 +173,7 @@ class ViewUser extends BaseViewRecord
         $profile = $user->profile;
 
         return match ($field) {
+            'account' => UserInlineEditSupport::accountFormState($user),
             'profile' => UserInlineEditSupport::profileFormState($profile),
             'competency' => UserInlineEditSupport::competencyFormState($profile),
             'bio' => [
@@ -189,13 +191,63 @@ class ViewUser extends BaseViewRecord
         abort_unless($this->canInlineEditEntityViewSection($field), 403);
         abort_if(! in_array($field, $this->getInlineEditableFieldKeys(), true), 404);
 
+        if ($field === 'account') {
+            $this->commitInlineAccountFieldEdit($data);
+
+            return;
+        }
+
         if (in_array($field, ['profile', 'competency', 'bio'], true)) {
             $this->commitInlineBeneficiaryProfileFieldEdit($field, $data);
 
             return;
         }
 
-        parent::commitInlineEntityFieldEdit($field, $data);
+        // Do not call parent::commitInlineEntityFieldEdit — the method lives on a trait,
+        // and parent:: resolves to BaseViewRecord (missing), which caused Livewire page errors.
+        abort(404);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function commitInlineAccountFieldEdit(array $data): void
+    {
+        try {
+            /** @var User $user */
+            $user = $this->getRecord();
+            $actor = auth()->user();
+
+            if (! $actor instanceof User) {
+                abort(403);
+            }
+
+            UserInlineEditSupport::persistAccountSection($user, $data, $actor);
+
+            $this->afterInlineEntityFieldEdited('account');
+            $this->forceRender();
+
+            Notification::make()
+                ->success()
+                ->title('تم تحديث معلومات الحساب بنجاح')
+                ->send();
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (Halt) {
+            Notification::make()
+                ->warning()
+                ->title('لم يتم حفظ الإعدادات')
+                ->send();
+        } catch (Throwable $exception) {
+            Log::warning('filament.user_account_inline_edit_unexpected', [
+                'exception' => $exception::class,
+            ]);
+
+            Notification::make()
+                ->title('تعذّر حفظ معلومات الحساب. لم تُجرَ أي تغييرات، يرجى المحاولة مرة أخرى.')
+                ->danger()
+                ->send();
+        }
     }
 
     /**
