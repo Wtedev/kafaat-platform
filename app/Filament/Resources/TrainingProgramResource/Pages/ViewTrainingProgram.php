@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\TrainingProgramResource\Pages;
 
 use App\Enums\ProgramStatus;
+use App\Filament\Actions\ExportProgramRegistrantsAction;
 use App\Filament\Actions\TransferTrainingEntityOwnershipAction;
 use App\Filament\Concerns\HasInlineEntityViewEditing;
 use App\Filament\Concerns\HasTrainingEntityPublicationActions;
@@ -335,6 +336,9 @@ class ViewTrainingProgram extends BaseViewRecord
     protected function getViewPageToolbarActions(): array
     {
         return [
+            ExportProgramRegistrantsAction::make(
+                fn (): TrainingProgram => $this->getRecord(),
+            ),
             TransferTrainingEntityOwnershipAction::make($this),
             DeleteAction::make()
                 ->visible(fn (): bool => auth()->user()?->can('delete', $this->getRecord()) ?? false),
