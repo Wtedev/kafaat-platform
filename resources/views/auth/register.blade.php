@@ -3,12 +3,9 @@
 @section('container_width', 'max-w-2xl')
 @section('content')
 
-<x-auth.signup-steps :current="$signupStep ?? 1" />
-
 <div class="mb-6 text-center">
     <h1 class="text-2xl font-bold text-gray-900">إنشاء حساب جديد</h1>
     <p class="mt-2 text-sm text-gray-500">أدخل بياناتك الرسمية لإنشاء حساب مستفيد في منصة كفاءات.</p>
-    <p class="mt-2 text-sm font-medium text-brand">لن يتم إنشاء حسابك حتى يتم التحقق من بريدك الإلكتروني.</p>
 </div>
 
 <form method="POST" action="{{ route('register') }}" novalidate class="space-y-5" data-signup-form>

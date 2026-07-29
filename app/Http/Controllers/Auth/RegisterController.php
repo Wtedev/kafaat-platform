@@ -93,6 +93,6 @@ class RegisterController extends Controller
         }
 
         return redirect()->route('register.verify.show')
-            ->with('status', 'أرسلنا رمز تحقق إلى بريدك الإلكتروني. لن يتم إنشاء حسابك حتى يتم التحقق من بريدك الإلكتروني.');
+            ->with('status', 'أرسلنا رمز تحقق إلى بريدك الإلكتروني.');
     }
 }
