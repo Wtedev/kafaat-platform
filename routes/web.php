@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\SignupVerificationController;
 use App\Http\Controllers\CertificateDownloadController;
 use App\Http\Controllers\Gate\GateAttendanceController;
 use App\Http\Controllers\NotificationPreferenceController;
@@ -58,6 +59,13 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:login');
     Route::get('/register', [RegisterController::class, 'show'])->name('register');
     Route::post('/register', [RegisterController::class, 'store'])->middleware('throttle:register');
+    Route::get('/register/verify', [SignupVerificationController::class, 'show'])->name('register.verify.show');
+    Route::post('/register/verify', [SignupVerificationController::class, 'verify'])
+        ->middleware('throttle:signup-verify')
+        ->name('register.verify');
+    Route::post('/register/verify/resend', [SignupVerificationController::class, 'resend'])
+        ->middleware('throttle:signup-resend')
+        ->name('register.verify.resend');
 
     // Password Reset
     Route::get('/forgot-password', [ForgotPasswordController::class, 'show'])->name('password.request');

@@ -3,12 +3,15 @@
 @section('container_width', 'max-w-2xl')
 @section('content')
 
+<x-auth.signup-steps :current="$signupStep ?? 1" />
+
 <div class="mb-6 text-center">
     <h1 class="text-2xl font-bold text-gray-900">إنشاء حساب جديد</h1>
     <p class="mt-2 text-sm text-gray-500">أدخل بياناتك الرسمية لإنشاء حساب مستفيد في منصة كفاءات.</p>
+    <p class="mt-2 text-sm font-medium text-brand">لن يتم إنشاء حسابك حتى يتم التحقق من بريدك الإلكتروني.</p>
 </div>
 
-<form method="POST" action="{{ route('register') }}" novalidate class="space-y-5">
+<form method="POST" action="{{ route('register') }}" novalidate class="space-y-5" data-signup-form>
     @csrf
 
     @if ($errors->any())
@@ -19,6 +22,11 @@
             <li>{{ $error }}</li>
             @endforeach
         </ul>
+        @if ($errors->has('email') && str_contains($errors->first('email'), 'تسجيل الدخول'))
+            <p class="mt-3">
+                <a href="{{ route('login') }}" class="font-medium text-brand hover:underline">الانتقال إلى تسجيل الدخول</a>
+            </p>
+        @endif
     </div>
     @endif
 
@@ -57,11 +65,17 @@
             </div>
         </div>
         <div class="grid gap-4 sm:grid-cols-2">
-            <div class="sm:col-span-2">
+            <div>
                 <label class="mb-1.5 block text-sm font-medium text-gray-700">البريد الإلكتروني <span class="text-brand-danger">*</span></label>
                 <input type="email" name="email" value="{{ old('email') }}" required dir="ltr" autocomplete="email"
                     class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/25 @error('email') border-brand-danger @enderror" />
                 @error('email') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label class="mb-1.5 block text-sm font-medium text-gray-700">تأكيد البريد الإلكتروني <span class="text-brand-danger">*</span></label>
+                <input type="email" name="email_confirmation" value="{{ old('email_confirmation') }}" required dir="ltr" autocomplete="email"
+                    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/25 @error('email_confirmation') border-brand-danger @enderror" />
+                @error('email_confirmation') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label class="mb-1.5 block text-sm font-medium text-gray-700">كلمة المرور <span class="text-brand-danger">*</span></label>
@@ -92,8 +106,8 @@
     </section>
     @endisset
 
-    <button type="submit" class="w-full rounded-xl bg-brand py-3.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95">
-        إنشاء الحساب
+    <button type="submit" data-signup-submit class="w-full rounded-xl bg-brand py-3.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60">
+        متابعة للتحقق من البريد
     </button>
 </form>
 
@@ -101,5 +115,19 @@
     لديك حساب بالفعل؟
     <a href="{{ route('login') }}" class="font-medium text-brand hover:underline">تسجيل الدخول</a>
 </p>
+
+<script>
+(function () {
+    var form = document.querySelector('[data-signup-form]');
+    if (!form) return;
+    form.addEventListener('submit', function () {
+        var button = form.querySelector('[data-signup-submit]');
+        if (button) {
+            button.disabled = true;
+            button.textContent = 'جاري الإرسال...';
+        }
+    });
+})();
+</script>
 
 @endsection

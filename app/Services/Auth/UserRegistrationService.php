@@ -45,9 +45,13 @@ class UserRegistrationService
                 throw new InvalidArgumentException('invalid_phone');
             }
 
+            $password = isset($data['password_hash']) && is_string($data['password_hash']) && $data['password_hash'] !== ''
+                ? $data['password_hash']
+                : Hash::make((string) $data['password']);
+
             $userAttributes = [
                 'email' => $data['email'],
-                'password' => Hash::make((string) $data['password']),
+                'password' => $password,
                 'role_type' => 'beneficiary',
                 'is_active' => true,
                 'phone' => $phone,
@@ -59,6 +63,10 @@ class UserRegistrationService
                 'identity_confirmed_at' => $identityPayload['identity_confirmed_at'],
                 'profile_completed_at' => now(),
             ];
+
+            if (array_key_exists('email_verified_at', $data) && $data['email_verified_at'] !== null) {
+                $userAttributes['email_verified_at'] = $data['email_verified_at'];
+            }
 
             PersonNameService::syncCompatibilityName($userAttributes, $nameParts);
 
