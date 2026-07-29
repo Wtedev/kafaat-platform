@@ -8,6 +8,7 @@ enum UserActivityAction: string
     case Login = 'login';
     case Logout = 'logout';
     case EmailVerified = 'email_verified';
+    case EmailChanged = 'email_changed';
     case EmailNotificationsEnabled = 'email_notifications_enabled';
     case EmailNotificationsDisabled = 'email_notifications_disabled';
     case ProfileUpdated = 'profile_updated';
@@ -41,7 +42,7 @@ enum UserActivityAction: string
     public function category(): string
     {
         return match ($this) {
-            self::AccountCreated, self::EmailVerified => 'الحساب',
+            self::AccountCreated, self::EmailVerified, self::EmailChanged => 'الحساب',
             self::Login, self::Logout => 'الجلسة',
             self::EmailNotificationsEnabled, self::EmailNotificationsDisabled => 'الإعدادات',
             self::ProfileUpdated => 'الملف الشخصي',
@@ -66,6 +67,7 @@ enum UserActivityAction: string
             self::Login => 'تسجيل دخول',
             self::Logout => 'تسجيل خروج',
             self::EmailVerified => 'تأكيد البريد الإلكتروني',
+            self::EmailChanged => 'تغيير البريد الإلكتروني',
             self::EmailNotificationsEnabled => 'تفعيل إشعارات البريد',
             self::EmailNotificationsDisabled => 'تعطيل إشعارات البريد',
             self::ProfileUpdated => 'تحديث بيانات',

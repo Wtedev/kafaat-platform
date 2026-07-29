@@ -344,5 +344,41 @@ class AppServiceProvider extends ServiceProvider
                         ->withErrors(['body' => 'لقد تجاوزت عدد التذاكر المسموح بها مؤقتاً. حاول مجدداً بعد قليل.']);
                 });
         });
+
+        RateLimiter::for('email-change-send', function (Request $request): Limit {
+            $key = $request->user()?->id ?? $request->ip();
+
+            return Limit::perMinutes(10, 5)
+                ->by('email-change-send:'.$key)
+                ->response(function () {
+                    return back()
+                        ->with('email_change_open', true)
+                        ->withErrors(['email' => 'تم تجاوز عدد المحاولات المسموح بها، يرجى المحاولة لاحقًا.']);
+                });
+        });
+
+        RateLimiter::for('email-change-resend', function (Request $request): Limit {
+            $key = $request->user()?->id ?? $request->ip();
+
+            return Limit::perMinutes(10, 5)
+                ->by('email-change-resend:'.$key)
+                ->response(function () {
+                    return back()
+                        ->with('email_change_step', 'otp')
+                        ->withErrors(['code' => 'تم تجاوز عدد المحاولات المسموح بها، يرجى المحاولة لاحقًا.']);
+                });
+        });
+
+        RateLimiter::for('email-change-verify', function (Request $request): Limit {
+            $key = $request->user()?->id ?? $request->ip();
+
+            return Limit::perMinutes(10, 20)
+                ->by('email-change-verify:'.$key)
+                ->response(function () {
+                    return back()
+                        ->with('email_change_step', 'otp')
+                        ->withErrors(['code' => 'تم تجاوز عدد المحاولات المسموح بها، يرجى المحاولة لاحقًا.']);
+                });
+        });
     }
 }

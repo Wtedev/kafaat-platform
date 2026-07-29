@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
+use App\Services\Auth\EmailChangeService;
 use App\Services\Privacy\PrivacyPolicyHtmlSanitizer;
 use App\Services\Privacy\PrivacyPolicyService;
+use App\Support\Privacy\SensitiveContactMasker;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -17,10 +19,18 @@ class PortalSettingsController extends Controller
         ]);
     }
 
-    public function account(Request $request): View
+    public function account(Request $request, EmailChangeService $emailChangeService): View
     {
+        $user = $request->user();
+        $pending = $emailChangeService->pendingFor($user);
+
         return view('portal.settings.account', [
-            'user' => $request->user(),
+            'user' => $user,
+            'pendingEmailChange' => $pending,
+            'pendingEmailMasked' => $pending !== null
+                ? SensitiveContactMasker::maskEmail($pending->pending_email)
+                : null,
+            'resendCooldownSeconds' => $emailChangeService->resendCooldownRemaining($pending),
         ]);
     }
 

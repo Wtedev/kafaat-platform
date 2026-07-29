@@ -27,6 +27,7 @@ use App\Http\Controllers\Portal\PortalCompetencyEmploymentConsentController;
 use App\Http\Controllers\Portal\PortalCompetencyExportController;
 use App\Http\Controllers\Portal\PortalCvDocumentController;
 use App\Http\Controllers\Portal\PortalDashboardController;
+use App\Http\Controllers\Portal\PortalEmailChangeController;
 use App\Http\Controllers\Portal\PortalInboxController;
 use App\Http\Controllers\Portal\PortalPasswordController;
 use App\Http\Controllers\Portal\PortalPathController;
@@ -220,6 +221,17 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'beneficiary', 'privac
         Route::get('/settings/legal', [PortalSettingsController::class, 'legal'])->name('settings.legal');
         Route::get('/settings/password', [PortalPasswordController::class, 'show'])->name('settings.password');
         Route::patch('/settings/password', [PortalPasswordController::class, 'update'])->name('settings.password.update');
+        Route::post('/settings/email/change', [PortalEmailChangeController::class, 'start'])
+            ->middleware('throttle:email-change-send')
+            ->name('settings.email.change');
+        Route::post('/settings/email/change/resend', [PortalEmailChangeController::class, 'resend'])
+            ->middleware('throttle:email-change-resend')
+            ->name('settings.email.change.resend');
+        Route::post('/settings/email/change/verify', [PortalEmailChangeController::class, 'verify'])
+            ->middleware('throttle:email-change-verify')
+            ->name('settings.email.change.verify');
+        Route::post('/settings/email/change/cancel', [PortalEmailChangeController::class, 'cancel'])
+            ->name('settings.email.change.cancel');
 
         Route::get('/privacy-policy/acknowledge', [PortalPrivacyPolicyAcknowledgeController::class, 'show'])
             ->name('privacy-policy.acknowledge')
