@@ -35,3 +35,7 @@ Schedule::command('error-pages:prune --days=90')
     ->dailyAt('04:30')
     ->timezone(config('app.timezone', 'Asia/Riyadh'))
     ->withoutOverlapping();
+
+Schedule::command('auth:purge-expired-pending-registrations')
+    ->hourly()
+    ->withoutOverlapping();

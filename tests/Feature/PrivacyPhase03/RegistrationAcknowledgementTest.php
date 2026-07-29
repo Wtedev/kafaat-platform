@@ -6,18 +6,18 @@ use App\Enums\PrivacyPolicyAcknowledgementSource;
 use App\Models\PrivacyPolicyAcknowledgement;
 use App\Models\PrivacyPolicyVersion;
 use App\Models\User;
-use App\Notifications\VerifyEmailCode;
 use App\Services\Privacy\PrivacyPolicyPublisher;
 use App\Services\Privacy\PrivacyPolicyService;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Notification;
+use Tests\Concerns\CompletesSignupViaOtp;
 use Tests\Concerns\GeneratesTestIdentityData;
 use Tests\Concerns\SeedsActivePrivacyPolicy;
 use Tests\TestCase;
 
 class RegistrationAcknowledgementTest extends TestCase
 {
+    use CompletesSignupViaOtp;
     use GeneratesTestIdentityData;
     use RefreshDatabase;
     use SeedsActivePrivacyPolicy;
@@ -52,14 +52,10 @@ class RegistrationAcknowledgementTest extends TestCase
 
     public function test_registration_creates_acknowledgement_record(): void
     {
-        Notification::fake();
-
         $policy = PrivacyPolicyService::activeOrFail();
         $payload = $this->validRegistrationPayload(['email' => 'ack-user@example.com']);
 
-        $this->post(route('register'), $payload)->assertRedirect(route('verification.notice'));
-
-        $user = User::query()->where('email', 'ack-user@example.com')->firstOrFail();
+        $user = $this->registerAndVerifyOtp($payload);
 
         $this->assertDatabaseHas('privacy_policy_acknowledgements', [
             'user_id' => $user->id,
@@ -70,13 +66,10 @@ class RegistrationAcknowledgementTest extends TestCase
 
         $ack = PrivacyPolicyAcknowledgement::query()->where('user_id', $user->id)->firstOrFail();
         $this->assertSame('أقر بأنني اطلعت على سياسة الخصوصية.', $ack->acknowledgement_text_snapshot);
-
-        Notification::assertSentTo($user, VerifyEmailCode::class);
     }
 
     public function test_registration_rejects_stale_policy_version(): void
     {
-        $policy = PrivacyPolicyService::activeOrFail();
         $payload = $this->validRegistrationPayload([
             'privacy_policy_version' => '0.9',
             'privacy_policy_acknowledged' => '1',

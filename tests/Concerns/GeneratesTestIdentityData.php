@@ -39,7 +39,9 @@ trait GeneratesTestIdentityData
      */
     protected function validRegistrationPayload(array $overrides = []): array
     {
-        return array_merge([
+        $email = $overrides['email'] ?? ('user'.uniqid('', true).'@example.com');
+
+        $payload = array_merge([
             'first_name' => 'أحمد',
             'father_name' => 'محمد',
             'grandfather_name' => 'عبدالله',
@@ -48,12 +50,19 @@ trait GeneratesTestIdentityData
             'identity_number' => $this->generateValidNationalId(),
             'birth_date' => '1995-05-15',
             'gender' => 'male',
-            'email' => 'user'.uniqid('', true).'@example.com',
+            'email' => $email,
+            'email_confirmation' => $email,
             'phone' => '0501234567',
             'password' => 'SecurePass1!',
             'password_confirmation' => 'SecurePass1!',
             'privacy_policy_version' => PrivacyPolicyService::active()?->version ?? '1.0',
             'privacy_policy_acknowledged' => '1',
         ], $overrides);
+
+        if (! array_key_exists('email_confirmation', $overrides)) {
+            $payload['email_confirmation'] = $payload['email'];
+        }
+
+        return $payload;
     }
 }

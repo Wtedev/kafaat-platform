@@ -165,6 +165,13 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
 
+            // Signup OTP already verified ownership; skip a second login OTP for this session only.
+            if (session()->pull('auth.skip_login_otp') === true) {
+                session()->put('otp_verified', true);
+
+                return;
+            }
+
             session()->put('otp_verified', false);
 
             if (method_exists($user, 'sendEmailVerificationNotification')) {
@@ -269,6 +276,22 @@ class AppServiceProvider extends ServiceProvider
                     return back()
                         ->withInput()
                         ->withErrors(['email' => 'لقد تجاوزت عدد طلبات إنشاء الحساب. حاول مجدداً بعد دقيقة.']);
+                });
+        });
+
+        RateLimiter::for('signup-verify', function (Request $request): Limit {
+            return Limit::perMinute(6)
+                ->by((string) $request->ip())
+                ->response(function () {
+                    return back()->withErrors(['code' => 'لقد تجاوزت عدد محاولات التحقق. حاول مجدداً بعد دقيقة.']);
+                });
+        });
+
+        RateLimiter::for('signup-resend', function (Request $request): Limit {
+            return Limit::perMinutes(10, 5)
+                ->by((string) $request->ip())
+                ->response(function () {
+                    return back()->withErrors(['code' => 'لقد تجاوزت عدد طلبات إعادة الإرسال. حاول مجدداً لاحقاً.']);
                 });
         });
 
