@@ -16,7 +16,7 @@ class VolunteerLeadersProgramWhatsappSeeder extends Seeder
     public const TITLE_NEEDLE = 'قادة التطوع';
 
     /** Canonical women invite («بناء قادة التطوع - نساء»). */
-    public const FEMALE_URL = 'https://chat.whatsapp.com/IZDC1ak9uue9GUhAUAeiQQ?s=cl&p=i&mlu=4';
+    public const FEMALE_URL = 'https://chat.whatsapp.com/IBurUinsNL3I7MQGPglgaM?s=cl&p=i&mlu=4';
 
     public function run(): void
     {
