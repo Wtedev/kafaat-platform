@@ -3,8 +3,6 @@
 @section('container_width', 'max-w-md')
 @section('content')
 
-<x-auth.signup-steps :current="$signupStep ?? 2" />
-
 <div class="mb-6 text-center">
     <div class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl" style="background:#e9eff6">
         <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="#335483">
@@ -16,7 +14,6 @@
         أرسلنا رمز تحقق مكوّناً من 6 أرقام إلى
         <span class="font-semibold text-gray-900" dir="ltr">{{ $maskedEmail }}</span>
     </p>
-    <p class="mt-2 text-sm font-medium text-brand">لن يتم إنشاء حسابك حتى يتم التحقق من بريدك الإلكتروني.</p>
 </div>
 
 @if (session('status'))

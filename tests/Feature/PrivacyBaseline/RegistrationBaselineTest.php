@@ -34,7 +34,8 @@ class RegistrationBaselineTest extends TestCase
     {
         $this->get(route('register'))
             ->assertOk()
-            ->assertSee('لن يتم إنشاء حسابك حتى يتم التحقق من بريدك الإلكتروني.');
+            ->assertSee('إنشاء حساب جديد')
+            ->assertDontSee('لن يتم إنشاء حسابك حتى يتم التحقق من بريدك الإلكتروني.');
     }
 
     public function test_user_can_register_with_current_fields_and_profile_is_created(): void

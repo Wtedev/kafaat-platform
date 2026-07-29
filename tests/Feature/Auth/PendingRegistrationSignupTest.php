@@ -38,15 +38,15 @@ class PendingRegistrationSignupTest extends TestCase
         $this->seedActivePrivacyPolicy();
     }
 
-    public function test_register_page_shows_steps_and_ux_copy(): void
+    public function test_register_page_shows_account_form_without_steps_chrome(): void
     {
         $this->get(route('register'))
             ->assertOk()
-            ->assertSee('بيانات الحساب')
-            ->assertSee('التحقق من البريد')
-            ->assertSee('تم إنشاء الحساب')
+            ->assertSee('إنشاء حساب جديد')
             ->assertSee('تأكيد البريد الإلكتروني')
-            ->assertSee('لن يتم إنشاء حسابك حتى يتم التحقق من بريدك الإلكتروني.');
+            ->assertDontSee('تم إنشاء الحساب')
+            ->assertDontSee('خطوات إنشاء الحساب')
+            ->assertDontSee('لن يتم إنشاء حسابك حتى يتم التحقق من بريدك الإلكتروني.');
     }
 
     public function test_email_confirmation_mismatch_returns_exact_arabic_message(): void
@@ -148,7 +148,7 @@ class PendingRegistrationSignupTest extends TestCase
         $this->assertArrayNotHasKey('password', $pending->payload);
     }
 
-    public function test_otp_screen_masks_email_and_shows_steps(): void
+    public function test_otp_screen_masks_email_without_steps_chrome(): void
     {
         Notification::fake();
 
@@ -159,8 +159,10 @@ class PendingRegistrationSignupTest extends TestCase
             ->assertOk()
             ->assertSee('m***@example.com', false)
             ->assertDontSee('maskme@example.com', false)
-            ->assertSee('التحقق من البريد')
-            ->assertSee('لن يتم إنشاء حسابك حتى يتم التحقق من بريدك الإلكتروني.');
+            ->assertSee('التحقق من البريد الإلكتروني')
+            ->assertDontSee('تم إنشاء الحساب')
+            ->assertDontSee('خطوات إنشاء الحساب')
+            ->assertDontSee('لن يتم إنشاء حسابك حتى يتم التحقق من بريدك الإلكتروني.');
     }
 
     public function test_wrong_otp_returns_exact_arabic_message_and_increments_attempts(): void
