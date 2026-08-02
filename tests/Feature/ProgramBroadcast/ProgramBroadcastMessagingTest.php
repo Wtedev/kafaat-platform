@@ -19,11 +19,13 @@ use App\Jobs\DispatchProgramBroadcastChunksJob;
 use App\Jobs\SendProgramBroadcastChunkJob;
 use App\Mail\ProgramBroadcastMail;
 use App\Models\AuditLog;
+use App\Models\ProgramBroadcast;
 use App\Models\ProgramBroadcastRecipient;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\ProgramBroadcasts\ProgramBroadcastService;
+use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -833,6 +835,116 @@ class ProgramBroadcastMessagingTest extends TestCase
         $this->assertTrue(
             ProgramBroadcastsRelationManager::canViewForRecord($program, ViewTrainingProgram::class),
         );
+    }
+
+    public function test_create_modal_with_subject_saves_draft_without_subject_required_toast(): void
+    {
+        Queue::fake();
+        [$program, $staff] = $this->programWithEditorStaff();
+        $this->registerBeneficiary($program, RegistrationStatus::Approved, 'recv@example.com');
+
+        $this->withSession(['otp_verified' => true]);
+        $this->actingAs($staff);
+
+        Livewire::actingAs($staff)
+            ->test(ProgramBroadcastsRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->mountAction(TestAction::make('create')->table())
+            ->fillForm([
+                'subject' => 'تذكير بحضور البرنامج',
+                'content' => json_decode(self::TIPTAP, true),
+                'audience_mode' => ProgramBroadcastAudienceMode::Statuses->value,
+                'audience_statuses' => ['approved', 'completed'],
+            ])
+            ->callMountedAction()
+            ->assertHasNoFormErrors()
+            ->assertNotified('تم حفظ المسودة');
+
+        $broadcast = ProgramBroadcast::query()
+            ->where('training_program_id', $program->id)
+            ->first();
+
+        $this->assertNotNull($broadcast);
+        $this->assertSame('تذكير بحضور البرنامج', $broadcast->subject);
+        $this->assertTrue($broadcast->isDraft());
+    }
+
+    public function test_create_modal_send_now_passes_filled_subject_to_service(): void
+    {
+        Queue::fake();
+        [$program, $staff] = $this->programWithEditorStaff();
+        $this->registerBeneficiary($program, RegistrationStatus::Approved, 'recv@example.com');
+
+        $this->withSession(['otp_verified' => true]);
+        $this->actingAs($staff);
+
+        Livewire::actingAs($staff)
+            ->test(ProgramBroadcastsRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->mountAction(TestAction::make('create')->table())
+            ->fillForm([
+                'subject' => 'تذكير بحضور البرنامج',
+                'content' => json_decode(self::TIPTAP, true),
+                'audience_mode' => ProgramBroadcastAudienceMode::Statuses->value,
+                'audience_statuses' => ['approved', 'completed'],
+            ])
+            ->callMountedAction(['sendNow' => true])
+            ->assertHasNoFormErrors()
+            ->assertNotified('بدأ الإرسال في الخلفية');
+
+        $broadcast = ProgramBroadcast::query()
+            ->where('training_program_id', $program->id)
+            ->first();
+
+        $this->assertNotNull($broadcast);
+        $this->assertSame('تذكير بحضور البرنامج', $broadcast->subject);
+        $this->assertNotSame(ProgramBroadcastStatus::Draft, $broadcast->status);
+        Queue::assertPushed(DispatchProgramBroadcastChunksJob::class);
+    }
+
+    public function test_create_modal_empty_subject_still_fails_validation(): void
+    {
+        [$program, $staff] = $this->programWithEditorStaff();
+
+        $this->withSession(['otp_verified' => true]);
+        $this->actingAs($staff);
+
+        Livewire::actingAs($staff)
+            ->test(ProgramBroadcastsRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->mountAction(TestAction::make('create')->table())
+            ->fillForm([
+                'subject' => '',
+                'content' => json_decode(self::TIPTAP, true),
+                'audience_mode' => ProgramBroadcastAudienceMode::Statuses->value,
+                'audience_statuses' => ['approved', 'completed'],
+            ])
+            ->callMountedAction()
+            ->assertHasFormErrors(['subject']);
+
+        $this->assertSame(0, ProgramBroadcast::query()->where('training_program_id', $program->id)->count());
+    }
+
+    public function test_create_draft_blank_subject_throws_arabic_required_message(): void
+    {
+        $service = app(ProgramBroadcastService::class);
+        [$program, $staff] = $this->programWithEditorStaff();
+
+        try {
+            $service->createDraft($program, $staff, [
+                'subject' => '   ',
+                'content' => self::TIPTAP,
+            ]);
+            $this->fail('Expected ProgramBroadcastException for blank subject.');
+        } catch (ProgramBroadcastException $exception) {
+            $this->assertSame('موضوع الرسالة مطلوب.', $exception->getMessage());
+        }
     }
 
     public function test_all_recipients_mode_includes_pending_and_rejected(): void
