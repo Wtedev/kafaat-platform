@@ -103,10 +103,7 @@ final class VolunteerLeadersProgramPeriod
     public const IN_PERSON_DATES = [
         '2026-08-03',
         '2026-08-04',
-        '2026-08-08',
-        '2026-08-16',
-        '2026-08-17',
-        '2026-08-18',
+        '2026-08-05',
     ];
 
     public static function applies(?TrainingProgram $program): bool
@@ -119,11 +116,11 @@ final class VolunteerLeadersProgramPeriod
     }
 
     /**
-     * Display label for in-person days: «3–8 أغسطس، 16–18 أغسطس».
+     * Display label for in-person days: «3–5 أغسطس».
      */
     public static function inPersonDaysLabel(): string
     {
-        return en_digits('3–8 أغسطس، 16–18 أغسطس');
+        return en_digits('3–5 أغسطس');
     }
 
     public static function remoteDaysLabel(): string
@@ -132,7 +129,7 @@ final class VolunteerLeadersProgramPeriod
     }
 
     /**
-     * Groups consecutive August days: «3–4، 8، 16–18 أغسطس 2026».
+     * Groups consecutive August days: «3–5 أغسطس 2026».
      */
     public static function formatInPersonDatesLabel(): string
     {
@@ -149,7 +146,7 @@ final class VolunteerLeadersProgramPeriod
     }
 
     /**
-     * @return list<string> e.g. ['3–4', '8', '16–18']
+     * @return list<string> e.g. ['3–5']
      */
     public static function inPersonDayGroups(): array
     {

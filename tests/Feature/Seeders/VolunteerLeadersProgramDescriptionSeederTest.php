@@ -33,9 +33,11 @@ class VolunteerLeadersProgramDescriptionSeederTest extends TestCase
             trim((string) $program->description),
         );
         $this->assertStringContainsString(VolunteerLeadersProgramDescriptionSeeder::DESCRIPTION_MARKER, (string) $program->description);
-        $this->assertStringContainsString('بيت الثقافة', (string) $program->description);
-        $this->assertStringContainsString('جمعية عضيد للخدمات التطوعية', (string) $program->description);
-        $this->assertStringContainsString('6 أيام حضورية في مدينة بريدة - بيت الثقافة', (string) $program->description);
+        $this->assertStringContainsString('يتضمن عددًا من الأيام الحضورية وعن بعد، موضحة في تفاصيل البرنامج.', (string) $program->description);
+        $this->assertStringNotContainsString('مالك البرنامج', (string) $program->description);
+        $this->assertStringNotContainsString('شركاء البرنامج', (string) $program->description);
+        $this->assertStringNotContainsString('جمعية عضيد للخدمات التطوعية', (string) $program->description);
+        $this->assertStringNotContainsString('6 أيام حضورية', (string) $program->description);
     }
 
     public function test_re_run_is_idempotent_when_description_already_set(): void

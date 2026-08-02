@@ -359,7 +359,7 @@ class TrainingProgramCreationFlowTest extends TestCase
             ->assertSee('images/programs/partner-masarat-raeda.png', false)
             ->assertSee('images/programs/partner-bayt-al-thaqafa.png', false)
             ->assertSee('3 أغسطس – 1 سبتمبر')
-            ->assertSee('3–8 أغسطس، 16–18 أغسطس')
+            ->assertSee('3–5 أغسطس')
             ->assertDontSee('السعة الاستيعابية')
             ->assertDontSee('فترة التسجيل')
             ->getContent();
