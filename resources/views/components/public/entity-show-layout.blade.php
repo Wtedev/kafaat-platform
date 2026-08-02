@@ -78,7 +78,7 @@ $hasMobileStickyAction = isset($mobileStickyAction) && ! $mobileStickyAction->is
                 @endif
             </div>
 
-            @if ($hasAction)
+            @if ($hasAction && ! $hasAfterArticle)
             <div class="px-6 pb-6 sm:px-8 sm:pb-8">
                 {{ $action }}
             </div>
@@ -88,6 +88,12 @@ $hasMobileStickyAction = isset($mobileStickyAction) && ! $mobileStickyAction->is
         @if ($hasAfterArticle)
         <div class="mt-6">
             {{ $afterArticle }}
+        </div>
+        @endif
+
+        @if ($hasAction && $hasAfterArticle)
+        <div class="mt-6 overflow-hidden rounded-2xl bg-white px-6 py-6 sm:px-8 sm:py-8">
+            {{ $action }}
         </div>
         @endif
     </div>

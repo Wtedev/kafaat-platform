@@ -60,9 +60,11 @@ $ackLabel = $inPerson
         />
     </x-slot:afterDescription>
 
+    @if (\App\Support\VolunteerLeadersProgramPeriod::applies($trainingProgram))
     <x-slot:afterArticle>
         <x-public.program-partners-card :trainingProgram="$trainingProgram" />
     </x-slot:afterArticle>
+    @endif
 
     <x-slot:sidebar>
         <x-public.program-info-sidebar :trainingProgram="$trainingProgram" />

@@ -60,6 +60,31 @@ class ProgramLoginReturnRedirectTest extends TestCase
         $this->assertStringContainsString('ltr:rotate-180', $html);
     }
 
+    public function test_guest_login_cta_renders_after_partners_on_volunteer_leaders(): void
+    {
+        $program = $this->makeOpenProgram('cta-below-partners');
+        $program->update(['title' => 'قادة التطوع — اختبار ترتيب التسجيل']);
+
+        $html = $this->get(route('public.programs.show', $program))
+            ->assertOk()
+            ->assertSee('شركاء البرنامج', false)
+            ->assertSee('يجب تسجيل الدخول للتسجيل في البرنامج.', false)
+            ->assertSee('سجّل الدخول للتسجيل', false)
+            ->getContent();
+
+        $partnersPos = strpos($html, 'id="program-partners-heading"');
+        $ctaPos = strpos($html, 'يجب تسجيل الدخول للتسجيل في البرنامج.');
+        $this->assertNotFalse($partnersPos);
+        $this->assertNotFalse($ctaPos);
+        // PHPUnit: assertLessThan($expected, $actual) ⇒ $actual < $expected
+        $this->assertLessThan($ctaPos, $partnersPos);
+
+        $this->assertMatchesRegularExpression(
+            '/items-start gap-3 sm:flex-row sm:items-center[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
+            $html,
+        );
+    }
+
     public function test_beneficiary_returns_to_program_after_login_and_otp(): void
     {
         Notification::fake();
