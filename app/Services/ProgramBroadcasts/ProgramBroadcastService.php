@@ -31,6 +31,14 @@ class ProgramBroadcastService
 {
     public const CHUNK_SIZE = 25;
 
+    /**
+     * Stuck `processing` rows older than this are reclaimable.
+     * Must exceed SendProgramBroadcastChunkJob::$timeout (180s).
+     */
+    public const PROCESSING_STUCK_AFTER_SECONDS = 240;
+
+    public const ATTEMPTS_EXHAUSTED_REASON = 'استُنفدت محاولات الإرسال.';
+
     /** @var list<string> */
     public const DEFAULT_AUDIENCE_STATUSES = [
         'approved',
@@ -342,7 +350,8 @@ class ProgramBroadcastService
     }
 
     /**
-     * Process a chunk of pending recipient IDs. Idempotent: skips non-pending rows.
+     * Process a chunk of recipient IDs. Idempotent via atomic pending→processing claim.
+     * Also reclaims stuck `processing` rows older than PROCESSING_STUCK_AFTER_SECONDS.
      *
      * @param  list<int>  $recipientIds
      */
@@ -360,12 +369,41 @@ class ProgramBroadcastService
         $recipients = ProgramBroadcastRecipient::query()
             ->where('program_broadcast_id', $broadcastId)
             ->whereIn('id', $recipientIds)
-            ->where('status', ProgramBroadcastRecipientStatus::Pending)
+            ->where(function ($query): void {
+                $this->scopeClaimableRecipients($query);
+            })
             ->get();
 
         foreach ($recipients as $recipient) {
             $this->sendToRecipient($broadcast, $recipient, $programTitle);
         }
+
+        $this->refreshAggregateCounts($broadcastId);
+    }
+
+    /**
+     * Mark remaining incomplete recipients for this chunk as failed after job tries are exhausted.
+     * Never touches `sent` (or skipped) rows. Then settles aggregate/final broadcast status.
+     *
+     * @param  list<int>  $recipientIds
+     */
+    public function markChunkAttemptsExhausted(int $broadcastId, array $recipientIds): void
+    {
+        if ($recipientIds === []) {
+            $this->refreshAggregateCounts($broadcastId);
+
+            return;
+        }
+
+        ProgramBroadcastRecipient::query()
+            ->where('program_broadcast_id', $broadcastId)
+            ->whereIn('id', $recipientIds)
+            ->whereIn('status', ProgramBroadcastRecipientStatus::incompleteValues())
+            ->update([
+                'status' => ProgramBroadcastRecipientStatus::Failed->value,
+                'failure_reason' => self::ATTEMPTS_EXHAUSTED_REASON,
+                'updated_at' => now(),
+            ]);
 
         $this->refreshAggregateCounts($broadcastId);
     }
@@ -378,8 +416,8 @@ class ProgramBroadcastService
             return;
         }
 
-        $pending = $broadcast->recipients()
-            ->where('status', ProgramBroadcastRecipientStatus::Pending)
+        $incomplete = $broadcast->recipients()
+            ->whereIn('status', ProgramBroadcastRecipientStatus::incompleteValues())
             ->count();
         $sent = $broadcast->recipients()
             ->where('status', ProgramBroadcastRecipientStatus::Sent)
@@ -397,7 +435,7 @@ class ProgramBroadcastService
             'skipped_count' => $skipped,
         ];
 
-        if ($pending === 0 && $broadcast->recipients_count > 0) {
+        if ($incomplete === 0 && $broadcast->recipients_count > 0) {
             $payload['sending_completed_at'] = now();
             $payload['status'] = $this->resolveTerminalStatus($sent, $failed, $skipped, (int) $broadcast->recipients_count);
 
@@ -424,6 +462,24 @@ class ProgramBroadcastService
         }
 
         $broadcast->update($payload);
+    }
+
+    /**
+     * IDs still claimable for dispatch: pending, or stuck processing past the reclaim window.
+     *
+     * @return list<int>
+     */
+    public function claimableRecipientIds(int $broadcastId): array
+    {
+        return ProgramBroadcastRecipient::query()
+            ->where('program_broadcast_id', $broadcastId)
+            ->where(function ($query): void {
+                $this->scopeClaimableRecipients($query);
+            })
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(static fn ($id): int => (int) $id)
+            ->all();
     }
 
     /**
@@ -541,12 +597,7 @@ class ProgramBroadcastService
         ProgramBroadcastRecipient $recipient,
         string $programTitle,
     ): void {
-        $claimed = ProgramBroadcastRecipient::query()
-            ->whereKey($recipient->id)
-            ->where('status', ProgramBroadcastRecipientStatus::Pending)
-            ->update(['updated_at' => now()]);
-
-        if ($claimed === 0) {
+        if (! $this->claimRecipientForSend($recipient->id)) {
             return;
         }
 
@@ -562,7 +613,7 @@ class ProgramBroadcastService
 
             ProgramBroadcastRecipient::query()
                 ->whereKey($recipient->id)
-                ->where('status', ProgramBroadcastRecipientStatus::Pending)
+                ->where('status', ProgramBroadcastRecipientStatus::Processing)
                 ->update([
                     'status' => ProgramBroadcastRecipientStatus::Sent->value,
                     'provider_message_id' => is_string($messageId) ? $messageId : null,
@@ -572,7 +623,9 @@ class ProgramBroadcastService
                 ]);
         } catch (TransportExceptionInterface $e) {
             if ($this->isRateLimited($e)) {
-                Log::warning('Program broadcast rate-limited; leaving recipient pending for retry.', [
+                $this->releaseRecipientToPending($recipient->id);
+
+                Log::warning('Program broadcast rate-limited; returned recipient to pending for retry.', [
                     'broadcast_id' => $broadcast->id,
                     'recipient_id' => $recipient->id,
                     'exception_class' => $e::class,
@@ -597,6 +650,53 @@ class ProgramBroadcastService
         }
     }
 
+    /**
+     * Atomically claim a recipient before calling the mail provider.
+     * Wins only for pending, or stuck processing past PROCESSING_STUCK_AFTER_SECONDS.
+     * Fresh processing / sent / failed / skipped → no claim, no send.
+     */
+    public function claimRecipientForSend(int $recipientId): bool
+    {
+        $claimed = ProgramBroadcastRecipient::query()
+            ->whereKey($recipientId)
+            ->where(function ($query): void {
+                $this->scopeClaimableRecipients($query);
+            })
+            ->update([
+                'status' => ProgramBroadcastRecipientStatus::Processing->value,
+                'updated_at' => now(),
+            ]);
+
+        return $claimed > 0;
+    }
+
+    /**
+     * @param  Builder<ProgramBroadcastRecipient>|\Illuminate\Database\Query\Builder  $query
+     */
+    private function scopeClaimableRecipients($query): void
+    {
+        $stuckBefore = now()->subSeconds(self::PROCESSING_STUCK_AFTER_SECONDS);
+
+        $query
+            ->where('status', ProgramBroadcastRecipientStatus::Pending->value)
+            ->orWhere(function ($stuck) use ($stuckBefore): void {
+                $stuck
+                    ->where('status', ProgramBroadcastRecipientStatus::Processing->value)
+                    ->where('updated_at', '<', $stuckBefore);
+            });
+    }
+
+    private function releaseRecipientToPending(int $recipientId): void
+    {
+        ProgramBroadcastRecipient::query()
+            ->whereKey($recipientId)
+            ->where('status', ProgramBroadcastRecipientStatus::Processing)
+            ->update([
+                'status' => ProgramBroadcastRecipientStatus::Pending->value,
+                'updated_at' => now(),
+            ]);
+    }
+
     private function isRateLimited(Throwable $e): bool
     {
         $haystack = strtolower($e->getMessage().' '.(string) $e->getCode());
@@ -610,7 +710,7 @@ class ProgramBroadcastService
     {
         ProgramBroadcastRecipient::query()
             ->whereKey($recipient->id)
-            ->where('status', ProgramBroadcastRecipientStatus::Pending)
+            ->where('status', ProgramBroadcastRecipientStatus::Processing)
             ->update([
                 'status' => ProgramBroadcastRecipientStatus::Failed->value,
                 'failure_reason' => mb_substr($reason, 0, 500),

@@ -11,7 +11,7 @@ use Throwable;
 
 /**
  * Sends one chunk of program broadcast recipients (one email each).
- * Idempotent: only pending recipients are sent; retries skip already-sent rows.
+ * Idempotent: atomic pending→processing claim; retries skip processing/sent rows.
  */
 class SendProgramBroadcastChunkJob implements ShouldQueue
 {
@@ -55,9 +55,11 @@ class SendProgramBroadcastChunkJob implements ShouldQueue
             'exception_class' => $exception !== null ? $exception::class : null,
         ]);
 
-        // Ensure aggregates settle even if the last attempt threw.
         try {
-            app(ProgramBroadcastService::class)->refreshAggregateCounts($this->broadcastId);
+            app(ProgramBroadcastService::class)->markChunkAttemptsExhausted(
+                $this->broadcastId,
+                $this->recipientIds,
+            );
         } catch (Throwable) {
             // ignore
         }

@@ -2,10 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Enums\ProgramBroadcastRecipientStatus;
 use App\Enums\ProgramBroadcastStatus;
 use App\Models\ProgramBroadcast;
-use App\Models\ProgramBroadcastRecipient;
 use App\Services\ProgramBroadcasts\ProgramBroadcastService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -55,12 +53,7 @@ class DispatchProgramBroadcastChunksJob implements ShouldQueue
                 'sending_started_at' => $broadcast->sending_started_at ?? now(),
             ]);
 
-        $pendingIds = ProgramBroadcastRecipient::query()
-            ->where('program_broadcast_id', $broadcast->id)
-            ->where('status', ProgramBroadcastRecipientStatus::Pending)
-            ->orderBy('id')
-            ->pluck('id')
-            ->all();
+        $pendingIds = $service->claimableRecipientIds($broadcast->id);
 
         if ($pendingIds === []) {
             $service->refreshAggregateCounts($broadcast->id);
@@ -69,7 +62,7 @@ class DispatchProgramBroadcastChunksJob implements ShouldQueue
         }
 
         foreach (array_chunk($pendingIds, ProgramBroadcastService::CHUNK_SIZE) as $chunk) {
-            SendProgramBroadcastChunkJob::dispatch($broadcast->id, array_map('intval', $chunk));
+            SendProgramBroadcastChunkJob::dispatch($broadcast->id, $chunk);
         }
     }
 

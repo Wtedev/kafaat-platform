@@ -51,6 +51,11 @@ class ProgramBroadcastRecipient extends Model
         return $this->status === ProgramBroadcastRecipientStatus::Pending;
     }
 
+    public function isProcessing(): bool
+    {
+        return $this->status === ProgramBroadcastRecipientStatus::Processing;
+    }
+
     public function isFailed(): bool
     {
         return $this->status === ProgramBroadcastRecipientStatus::Failed;

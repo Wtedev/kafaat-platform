@@ -19,6 +19,7 @@ use App\Jobs\DispatchProgramBroadcastChunksJob;
 use App\Jobs\SendProgramBroadcastChunkJob;
 use App\Mail\ProgramBroadcastMail;
 use App\Models\AuditLog;
+use App\Models\ProgramBroadcastRecipient;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
@@ -29,6 +30,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
+use Symfony\Component\Mailer\Exception\TransportException;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
 
@@ -360,6 +363,248 @@ class ProgramBroadcastMessagingTest extends TestCase
         $this->assertSame(ProgramBroadcastStatus::Completed, $queued->fresh()->status);
     }
 
+    public function test_atomic_claim_only_one_worker_sends_mail(): void
+    {
+        Mail::fake();
+
+        $service = app(ProgramBroadcastService::class);
+        [$program, $staff] = $this->programWithEditorStaff();
+        $this->registerBeneficiary($program, RegistrationStatus::Approved, 'race@example.com');
+
+        Queue::fake();
+        $queued = $service->sendNow($service->createDraft($program, $staff, [
+            'subject' => 'سباق',
+            'content' => self::TIPTAP,
+        ]), $staff);
+
+        $recipientId = (int) $queued->recipients()->value('id');
+
+        $this->assertTrue($service->claimRecipientForSend($recipientId));
+        $this->assertFalse($service->claimRecipientForSend($recipientId));
+        $this->assertSame(
+            ProgramBroadcastRecipientStatus::Processing,
+            $queued->recipients()->findOrFail($recipientId)->status,
+        );
+
+        // Active processing claim: second worker must not send.
+        (new SendProgramBroadcastChunkJob($queued->id, [$recipientId]))->handle($service);
+        Mail::assertNothingSent();
+
+        // Release back to pending and complete exactly once.
+        ProgramBroadcastRecipient::query()->whereKey($recipientId)->update([
+            'status' => ProgramBroadcastRecipientStatus::Pending->value,
+            'updated_at' => now(),
+        ]);
+
+        (new SendProgramBroadcastChunkJob($queued->id, [$recipientId]))->handle($service);
+        (new SendProgramBroadcastChunkJob($queued->id, [$recipientId]))->handle($service);
+
+        Mail::assertSent(ProgramBroadcastMail::class, 1);
+        $this->assertSame(
+            ProgramBroadcastRecipientStatus::Sent,
+            $queued->recipients()->findOrFail($recipientId)->status,
+        );
+    }
+
+    public function test_second_job_cannot_claim_processing_or_sent_recipients(): void
+    {
+        Mail::fake();
+        $service = app(ProgramBroadcastService::class);
+        [$program, $staff] = $this->programWithEditorStaff();
+        $this->registerBeneficiary($program, RegistrationStatus::Approved, 'locked@example.com');
+
+        Queue::fake();
+        $queued = $service->sendNow($service->createDraft($program, $staff, [
+            'subject' => 'قفل',
+            'content' => self::TIPTAP,
+        ]), $staff);
+
+        $recipientId = (int) $queued->recipients()->value('id');
+
+        ProgramBroadcastRecipient::query()->whereKey($recipientId)->update([
+            'status' => ProgramBroadcastRecipientStatus::Processing->value,
+            'updated_at' => now(),
+        ]);
+        $this->assertFalse($service->claimRecipientForSend($recipientId));
+        (new SendProgramBroadcastChunkJob($queued->id, [$recipientId]))->handle($service);
+        Mail::assertNothingSent();
+
+        ProgramBroadcastRecipient::query()->whereKey($recipientId)->update([
+            'status' => ProgramBroadcastRecipientStatus::Sent->value,
+            'sent_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $this->assertFalse($service->claimRecipientForSend($recipientId));
+        (new SendProgramBroadcastChunkJob($queued->id, [$recipientId]))->handle($service);
+        Mail::assertNothingSent();
+    }
+
+    public function test_rate_limit_429_returns_recipient_to_pending_then_succeeds_once(): void
+    {
+        $service = app(ProgramBroadcastService::class);
+        [$program, $staff] = $this->programWithEditorStaff();
+        $this->registerBeneficiary($program, RegistrationStatus::Approved, 'retry429@example.com');
+
+        Queue::fake();
+        $queued = $service->sendNow($service->createDraft($program, $staff, [
+            'subject' => 'حد المعدل',
+            'content' => self::TIPTAP,
+        ]), $staff);
+
+        $recipientId = (int) $queued->recipients()->value('id');
+        $ids = [$recipientId];
+
+        $mailer = new class
+        {
+            public int $attempts = 0;
+
+            public function to(mixed $users, mixed $name = null): object
+            {
+                $attempts = &$this->attempts;
+
+                return new class($attempts)
+                {
+                    public function __construct(private int &$attempts) {}
+
+                    public function send(mixed $mailable): mixed
+                    {
+                        $this->attempts++;
+
+                        if ($this->attempts === 1) {
+                            throw new TransportException('HTTP 429 Too Many Requests');
+                        }
+
+                        return null;
+                    }
+                };
+            }
+        };
+
+        Mail::swap($mailer);
+
+        try {
+            (new SendProgramBroadcastChunkJob($queued->id, $ids))->handle($service);
+            $this->fail('Expected TransportException for 429');
+        } catch (TransportExceptionInterface) {
+            // expected — job will retry
+        }
+
+        $this->assertSame(
+            ProgramBroadcastRecipientStatus::Pending,
+            $queued->recipients()->findOrFail($recipientId)->status,
+        );
+        $this->assertSame(1, $mailer->attempts);
+
+        (new SendProgramBroadcastChunkJob($queued->id, $ids))->handle($service);
+
+        $this->assertSame(2, $mailer->attempts);
+        $this->assertSame(
+            ProgramBroadcastRecipientStatus::Sent,
+            $queued->recipients()->findOrFail($recipientId)->status,
+        );
+        $this->assertSame(ProgramBroadcastStatus::Completed, $queued->fresh()->status);
+    }
+
+    public function test_chunk_failed_marks_remaining_failed_without_touching_sent(): void
+    {
+        Mail::fake();
+        $service = app(ProgramBroadcastService::class);
+        [$program, $staff] = $this->programWithEditorStaff();
+        $this->registerBeneficiary($program, RegistrationStatus::Approved, 'kept-sent@example.com');
+        $this->registerBeneficiary($program, RegistrationStatus::Approved, 'still-pending@example.com');
+        $this->registerBeneficiary($program, RegistrationStatus::Approved, 'still-processing@example.com');
+
+        Queue::fake();
+        $queued = $service->sendNow($service->createDraft($program, $staff, [
+            'subject' => 'استنفاد',
+            'content' => self::TIPTAP,
+        ]), $staff);
+
+        $sent = $queued->recipients()->where('email', 'kept-sent@example.com')->firstOrFail();
+        $pending = $queued->recipients()->where('email', 'still-pending@example.com')->firstOrFail();
+        $processing = $queued->recipients()->where('email', 'still-processing@example.com')->firstOrFail();
+
+        ProgramBroadcastRecipient::query()->whereKey($sent->id)->update([
+            'status' => ProgramBroadcastRecipientStatus::Sent->value,
+            'sent_at' => now(),
+            'updated_at' => now(),
+        ]);
+        ProgramBroadcastRecipient::query()->whereKey($processing->id)->update([
+            'status' => ProgramBroadcastRecipientStatus::Processing->value,
+            'updated_at' => now(),
+        ]);
+        $queued->update(['status' => ProgramBroadcastStatus::Sending]);
+
+        $job = new SendProgramBroadcastChunkJob($queued->id, [
+            $sent->id,
+            $pending->id,
+            $processing->id,
+        ]);
+        $job->failed(new \RuntimeException('exhausted'));
+
+        $this->assertSame(ProgramBroadcastRecipientStatus::Sent, $sent->fresh()->status);
+        $this->assertSame(ProgramBroadcastRecipientStatus::Failed, $pending->fresh()->status);
+        $this->assertSame(ProgramBroadcastRecipientStatus::Failed, $processing->fresh()->status);
+        $this->assertSame(
+            ProgramBroadcastService::ATTEMPTS_EXHAUSTED_REASON,
+            $pending->fresh()->failure_reason,
+        );
+
+        $fresh = $queued->fresh();
+        $this->assertSame(ProgramBroadcastStatus::CompletedWithErrors, $fresh->status);
+        $this->assertNotContains($fresh->status, [
+            ProgramBroadcastStatus::Sending,
+            ProgramBroadcastStatus::Queued,
+        ]);
+        $this->assertSame(1, $fresh->sent_count);
+        $this->assertSame(2, $fresh->failed_count);
+    }
+
+    public function test_stuck_processing_recipient_is_reclaimable_after_timeout(): void
+    {
+        Mail::fake();
+        $service = app(ProgramBroadcastService::class);
+        [$program, $staff] = $this->programWithEditorStaff();
+        $this->registerBeneficiary($program, RegistrationStatus::Approved, 'stuck@example.com');
+
+        Queue::fake();
+        $queued = $service->sendNow($service->createDraft($program, $staff, [
+            'subject' => 'عالق',
+            'content' => self::TIPTAP,
+        ]), $staff);
+
+        $recipientId = (int) $queued->recipients()->value('id');
+        $stuckAt = now()->subSeconds(ProgramBroadcastService::PROCESSING_STUCK_AFTER_SECONDS + 30);
+
+        // Fresh processing must NOT be reclaimable (active claim).
+        ProgramBroadcastRecipient::query()->whereKey($recipientId)->update([
+            'status' => ProgramBroadcastRecipientStatus::Processing->value,
+            'updated_at' => now(),
+        ]);
+        $this->assertFalse($service->claimRecipientForSend($recipientId));
+
+        // Stuck past job timeout window is reclaimable via status=processing + age.
+        ProgramBroadcastRecipient::query()->whereKey($recipientId)->update([
+            'status' => ProgramBroadcastRecipientStatus::Processing->value,
+            'updated_at' => $stuckAt,
+        ]);
+        $this->assertTrue($service->claimRecipientForSend($recipientId));
+
+        // Reset to stuck processing and send via chunk — exactly one mail.
+        ProgramBroadcastRecipient::query()->whereKey($recipientId)->update([
+            'status' => ProgramBroadcastRecipientStatus::Processing->value,
+            'updated_at' => $stuckAt,
+        ]);
+        (new SendProgramBroadcastChunkJob($queued->id, [$recipientId]))->handle($service);
+
+        Mail::assertSent(ProgramBroadcastMail::class, 1);
+        $this->assertSame(
+            ProgramBroadcastRecipientStatus::Sent,
+            $queued->recipients()->findOrFail($recipientId)->status,
+        );
+        $this->assertSame(ProgramBroadcastStatus::Completed, $queued->fresh()->status);
+    }
+
     public function test_content_immutable_after_send_started(): void
     {
         Queue::fake();
@@ -566,6 +811,7 @@ class ProgramBroadcastMessagingTest extends TestCase
         $this->assertSame('مكتمل', ProgramBroadcastStatus::Completed->label());
         $this->assertSame('مكتمل مع أخطاء', ProgramBroadcastStatus::CompletedWithErrors->label());
         $this->assertSame('فشل', ProgramBroadcastStatus::Failed->label());
+        $this->assertSame('جارٍ الإرسال', ProgramBroadcastRecipientStatus::Processing->label());
     }
 
     public function test_filament_view_page_loads_broadcasts_tab_for_admin(): void
