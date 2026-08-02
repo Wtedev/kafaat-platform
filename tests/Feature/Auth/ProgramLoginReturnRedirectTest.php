@@ -50,11 +50,15 @@ class ProgramLoginReturnRedirectTest extends TestCase
             ->getContent();
 
         $this->assertMatchesRegularExpression(
-            '/items-start gap-3 sm:flex-row sm:items-center[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
+            '/items-end gap-3 sm:flex-row sm:items-center sm:justify-end[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
             $html,
         );
         $this->assertDoesNotMatchRegularExpression(
             '/sm:justify-between[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
+            $html,
+        );
+        $this->assertDoesNotMatchRegularExpression(
+            '/justify-center[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
             $html,
         );
         $this->assertStringContainsString('ltr:rotate-180', $html);
@@ -80,7 +84,7 @@ class ProgramLoginReturnRedirectTest extends TestCase
         $this->assertLessThan($ctaPos, $partnersPos);
 
         $this->assertMatchesRegularExpression(
-            '/items-start gap-3 sm:flex-row sm:items-center[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
+            '/items-end gap-3 sm:flex-row sm:items-center sm:justify-end[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
             $html,
         );
     }
