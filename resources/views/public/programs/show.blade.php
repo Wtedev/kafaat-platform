@@ -130,7 +130,7 @@ $ackLabel = $inPerson
                 </div>
             </form>
             @elseif (! auth()->check())
-            <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+            <div class="flex flex-col items-end gap-3 sm:flex-row sm:items-center sm:justify-end">
                 <p class="text-sm leading-relaxed text-gray-500">يجب تسجيل الدخول للتسجيل في البرنامج.</p>
                 <x-public.register-cta-button :href="route('login', ['return' => request()->getRequestUri()])" class="hidden md:inline-flex">سجّل الدخول للتسجيل</x-public.register-cta-button>
             </div>
