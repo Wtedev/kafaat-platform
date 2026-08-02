@@ -60,6 +60,10 @@ $ackLabel = $inPerson
         />
     </x-slot:afterDescription>
 
+    <x-slot:afterArticle>
+        <x-public.program-partners-card :trainingProgram="$trainingProgram" />
+    </x-slot:afterArticle>
+
     <x-slot:sidebar>
         <x-public.program-info-sidebar :trainingProgram="$trainingProgram" />
     </x-slot:sidebar>

@@ -30,6 +30,24 @@ class VolunteerLeadersProgramPeriodTest extends TestCase
     {
         $this->assertSame('3–8 أغسطس، 16–18 أغسطس', VolunteerLeadersProgramPeriod::inPersonDaysLabel());
         $this->assertSame('المتبقي من أيام الفترة', VolunteerLeadersProgramPeriod::remoteDaysLabel());
+        $this->assertSame('images/programs/adeed-logo.png', VolunteerLeadersProgramPeriod::PARTNER_ADEED_LOGO);
+        $this->assertSame('images/programs/partner-kafaat.svg', VolunteerLeadersProgramPeriod::PARTNER_KAFAAT_LOGO);
+        $this->assertSame('images/programs/partner-associations-support-fund.png', VolunteerLeadersProgramPeriod::PARTNER_ASSOCIATIONS_SUPPORT_FUND_LOGO);
+        $this->assertSame('images/programs/partner-hr-ministry.png', VolunteerLeadersProgramPeriod::PARTNER_HR_MINISTRY_LOGO);
+        $this->assertSame('images/programs/partner-nonprofit-center.png', VolunteerLeadersProgramPeriod::PARTNER_NONPROFIT_CENTER_LOGO);
+        $this->assertSame('images/programs/partner-masarat-raeda.png', VolunteerLeadersProgramPeriod::PARTNER_MASARAT_RAEDA_LOGO);
+        $this->assertSame('images/programs/partner-bayt-al-thaqafa.png', VolunteerLeadersProgramPeriod::PARTNER_BAYT_AL_THAQAFA_LOGO);
+
+        $groups = VolunteerLeadersProgramPeriod::programPartnerGroups();
+        $this->assertSame(['مالك البرنامج', 'الشريك المنفذ', 'الشريك الداعم', 'الشريك الاستراتيجي', 'شركاء النجاح'], array_column($groups, 'heading'));
+        $this->assertSame('جمعية عضيد للخدمات التطوعية', $groups[0]['partners'][0]['name']);
+        $this->assertSame(VolunteerLeadersProgramPeriod::PARTNER_ADEED_LOGO, $groups[0]['partners'][0]['logo']);
+        $this->assertSame('جمعية كفاءات', $groups[1]['partners'][0]['name']);
+        $this->assertSame(VolunteerLeadersProgramPeriod::PARTNER_KAFAAT_LOGO, $groups[1]['partners'][0]['logo']);
+        $this->assertSame('صندوق دعم الجمعيات', $groups[2]['partners'][0]['name']);
+        $this->assertCount(2, $groups[3]['partners']);
+        $this->assertCount(2, $groups[4]['partners']);
+        $this->assertSame(7, array_sum(array_map(fn (array $g): int => count($g['partners']), $groups)));
 
         $program = TrainingProgram::query()->create([
             'title' => 'قادة التطوع',
