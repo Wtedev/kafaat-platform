@@ -26,7 +26,7 @@ class MobilePrimaryCtaVisibilityTest extends TestCase
         $this->seedRbacRoles();
     }
 
-    public function test_program_show_renders_mobile_sticky_registration_cta(): void
+    public function test_program_show_renders_in_flow_registration_cta_without_mobile_sticky(): void
     {
         $user = $this->makePortalUser();
         $program = TrainingProgram::query()->create([
@@ -41,7 +41,8 @@ class MobilePrimaryCtaVisibilityTest extends TestCase
             ->get(route('public.programs.show', $program))
             ->assertOk()
             ->assertSee('program-register-form', false)
-            ->assertSee('form="program-register-form"', false)
+            ->assertDontSee('form="program-register-form"', false)
+            ->assertDontSee('shadow-[0_-8px_32px_-12px_rgba(51,84,131,0.18)]', false)
             ->assertSee('سجّل في البرنامج', false);
     }
 
