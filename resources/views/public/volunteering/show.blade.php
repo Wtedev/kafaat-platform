@@ -52,8 +52,10 @@ $alreadyRegistered = $userRegistration !== null;
                     <x-public.register-cta-button type="submit" class="hidden md:inline-flex">قدّم طلبك</x-public.register-cta-button>
                 </form>
             @elseif (! auth()->check())
-                <p class="text-sm leading-relaxed text-gray-500 sm:max-w-md">يجب تسجيل الدخول كمستفيد لتقديم طلب التطوع.</p>
-                <x-public.register-cta-button :href="route('login')" class="hidden md:inline-flex">سجّل الدخول للتسجيل</x-public.register-cta-button>
+                <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                    <p class="text-sm leading-relaxed text-gray-500">يجب تسجيل الدخول كمستفيد لتقديم طلب التطوع.</p>
+                    <x-public.register-cta-button :href="route('login')" class="hidden md:inline-flex">سجّل الدخول للتسجيل</x-public.register-cta-button>
+                </div>
             @else
                 <p class="text-sm text-gray-400">التسجيل متاح للمستفيدين فقط.</p>
             @endif

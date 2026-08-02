@@ -39,6 +39,27 @@ class ProgramLoginReturnRedirectTest extends TestCase
             );
     }
 
+    public function test_guest_program_login_cta_is_grouped_with_prompt_not_space_between(): void
+    {
+        $program = $this->makeOpenProgram('cta-layout');
+
+        $html = $this->get(route('public.programs.show', $program))
+            ->assertOk()
+            ->assertSee('يجب تسجيل الدخول للتسجيل في البرنامج.', false)
+            ->assertSee('سجّل الدخول للتسجيل', false)
+            ->getContent();
+
+        $this->assertMatchesRegularExpression(
+            '/items-start gap-3 sm:flex-row sm:items-center[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
+            $html,
+        );
+        $this->assertDoesNotMatchRegularExpression(
+            '/sm:justify-between[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
+            $html,
+        );
+        $this->assertStringContainsString('ltr:rotate-180', $html);
+    }
+
     public function test_beneficiary_returns_to_program_after_login_and_otp(): void
     {
         Notification::fake();
