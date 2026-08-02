@@ -16,19 +16,19 @@ class VolunteerLeadersProgramPeriodTest extends TestCase
     public function test_formats_grouped_in_person_dates(): void
     {
         $this->assertSame(
-            ['3–5'],
+            ['3–5', '16–18'],
             VolunteerLeadersProgramPeriod::inPersonDayGroups(),
         );
 
         $this->assertSame(
-            '3–5 أغسطس 2026',
+            '3–5، 16–18 أغسطس 2026',
             VolunteerLeadersProgramPeriod::formatInPersonDatesLabel(),
         );
     }
 
     public function test_sidebar_labels_for_volunteer_leaders_program(): void
     {
-        $this->assertSame('3–5 أغسطس', VolunteerLeadersProgramPeriod::inPersonDaysLabel());
+        $this->assertSame('3–5 أغسطس، 16–18 أغسطس', VolunteerLeadersProgramPeriod::inPersonDaysLabel());
         $this->assertSame('المتبقي من أيام الفترة', VolunteerLeadersProgramPeriod::remoteDaysLabel());
         $this->assertSame('images/programs/adeed-logo.png', VolunteerLeadersProgramPeriod::PARTNER_ADEED_LOGO);
         $this->assertSame('images/programs/partner-kafaat.svg', VolunteerLeadersProgramPeriod::PARTNER_KAFAAT_LOGO);
