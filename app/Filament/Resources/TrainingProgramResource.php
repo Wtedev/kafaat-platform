@@ -13,6 +13,7 @@ use App\Filament\Resources\LearningPathResource\RelationManagers\TrainingProgram
 use App\Filament\Resources\TrainingProgramResource\Pages;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramAttendanceCheckersRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramAttendanceRegistrationsRelationManager;
+use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramBroadcastsRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramGradesRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationCertificatesRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationsRelationManager;
@@ -496,6 +497,7 @@ class TrainingProgramResource extends Resource
     {
         return [
             ProgramRegistrationsRelationManager::class,
+            ProgramBroadcastsRelationManager::class,
             ProgramAttendanceRegistrationsRelationManager::class,
             ProgramAttendanceCheckersRelationManager::class,
             ProgramGradesRelationManager::class,

@@ -525,6 +525,11 @@ class TrainingProgram extends Model
         return $this->hasMany(ProgramRegistration::class);
     }
 
+    public function broadcasts(): HasMany
+    {
+        return $this->hasMany(ProgramBroadcast::class);
+    }
+
     public function attendanceCheckers(): HasMany
     {
         return $this->hasMany(ProgramAttendanceChecker::class);
