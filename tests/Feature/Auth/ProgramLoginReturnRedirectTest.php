@@ -50,7 +50,7 @@ class ProgramLoginReturnRedirectTest extends TestCase
             ->getContent();
 
         $this->assertMatchesRegularExpression(
-            '/items-center gap-3 text-center sm:flex-row sm:items-center sm:justify-center[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
+            '/items-center gap-3 text-center sm:flex-row sm:items-center sm:justify-end[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
             $html,
         );
         $this->assertDoesNotMatchRegularExpression(
@@ -59,6 +59,10 @@ class ProgramLoginReturnRedirectTest extends TestCase
         );
         $this->assertDoesNotMatchRegularExpression(
             '/items-end gap-3 sm:flex-row sm:items-center sm:justify-end[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
+            $html,
+        );
+        $this->assertDoesNotMatchRegularExpression(
+            '/sm:justify-center[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
             $html,
         );
         $this->assertSame(1, substr_count($html, 'سجّل الدخول للتسجيل'));
@@ -86,7 +90,7 @@ class ProgramLoginReturnRedirectTest extends TestCase
         $this->assertLessThan($ctaPos, $partnersPos);
 
         $this->assertMatchesRegularExpression(
-            '/items-center gap-3 text-center sm:flex-row sm:items-center sm:justify-center[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
+            '/items-center gap-3 text-center sm:flex-row sm:items-center sm:justify-end[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
             $html,
         );
 
