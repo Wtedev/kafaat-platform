@@ -367,10 +367,14 @@ class TrainingProgramCreationFlowTest extends TestCase
         $schedulePos = strpos($html, 'مواعيد البرنامج');
         $detailsPos = strpos($html, 'معلومات البرنامج');
         $partnersHeadingPos = strpos($html, 'id="program-partners-heading"');
+        $registerCtaPos = strpos($html, 'يجب تسجيل الدخول للتسجيل في البرنامج.');
         $this->assertNotFalse($schedulePos);
         $this->assertNotFalse($detailsPos);
         $this->assertNotFalse($partnersHeadingPos);
+        $this->assertNotFalse($registerCtaPos);
         $this->assertLessThan($detailsPos, $schedulePos);
+        // PHPUnit: assertLessThan($expected, $actual) ⇒ $actual < $expected
+        $this->assertLessThan($registerCtaPos, $partnersHeadingPos);
 
         // Order / layout within the partners card only (avoid earlier page noise).
         $asideStart = strrpos(substr($html, 0, $partnersHeadingPos + 1), '<aside');
