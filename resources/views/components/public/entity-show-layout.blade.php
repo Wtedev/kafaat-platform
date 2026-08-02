@@ -15,6 +15,7 @@
 $hasSidebar = isset($sidebar) && ! $sidebar->isEmpty();
 $hasAction = isset($action) && ! $action->isEmpty();
 $hasExtra = isset($extra) && ! $extra->isEmpty();
+$hasAfterArticle = isset($afterArticle) && ! $afterArticle->isEmpty();
 $hasMediaBadges = isset($mediaBadges) && ! $mediaBadges->isEmpty();
 $hasMobileStickyAction = isset($mobileStickyAction) && ! $mobileStickyAction->isEmpty();
 @endphp
@@ -83,6 +84,12 @@ $hasMobileStickyAction = isset($mobileStickyAction) && ! $mobileStickyAction->is
             </div>
             @endif
         </article>
+
+        @if ($hasAfterArticle)
+        <div class="mt-6">
+            {{ $afterArticle }}
+        </div>
+        @endif
     </div>
 </div>
 

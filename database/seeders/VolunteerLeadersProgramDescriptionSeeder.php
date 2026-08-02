@@ -16,7 +16,7 @@ class VolunteerLeadersProgramDescriptionSeeder extends Seeder
     /**
      * Marker used for idempotency checks (must appear in DESCRIPTION).
      */
-    public const DESCRIPTION_MARKER = 'صندوق دعم الجمعيات';
+    public const DESCRIPTION_MARKER = 'موضحة في تفاصيل البرنامج';
 
     /**
      * Canonical public description.
@@ -30,20 +30,8 @@ class VolunteerLeadersProgramDescriptionSeeder extends Seeder
 <p><strong>مميزات البرنامج:</strong></p>
 <p>شهادة معتمدة</p>
 <p></p>
-<p><strong>مالك البرنامج:</strong></p>
-<p>جمعية عضيد للخدمات التطوعية</p>
-<p></p>
-<p><strong>شركاء البرنامج:</strong></p>
-<ul>
-<li><p>مركز مسارات رائدة للتدريب والتطوير</p></li>
-<li><p>الموارد البشرية والتنمية الإجتماعية</p></li>
-<li><p>المركز الوطني لتنمية القطاع غير الربحي</p></li>
-<li><p>بيت الثقافة</p></li>
-<li><p>صندوق دعم الجمعيات</p></li>
-</ul>
-<p></p>
 <p><strong>أسلوب التنفيذ:</strong></p>
-<p>يتضمن البرنامج 6 أيام حضورية في مدينة بريدة - بيت الثقافة، للتدريب التفاعلي والتطبيق العملي المباشر، فيما تُنفَّذ بقية أيام البرنامج وجلساته عن بعد عبر المنصات الرقمية.</p>
+<p>يتضمن عددًا من الأيام الحضورية وعن بعد، موضحة في تفاصيل البرنامج.</p>
 HTML;
 
     public function run(): void

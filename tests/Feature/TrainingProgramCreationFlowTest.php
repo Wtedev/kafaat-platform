@@ -303,7 +303,10 @@ class TrainingProgramCreationFlowTest extends TestCase
             ->assertSee('حالة التسجيل')
             ->assertSee($program->registrationWindowStatusLabel())
             ->assertDontSee('فترة التسجيل')
-            ->assertDontSee('موعد التسجيل');
+            ->assertDontSee('موعد التسجيل')
+            ->assertDontSee('شركاء البرنامج')
+            ->assertDontSee('مالك البرنامج')
+            ->assertDontSee('الشريك المنفذ');
     }
 
     public function test_volunteer_leaders_show_page_renders_attendance_schedule_card_above_program_details(): void
@@ -334,17 +337,68 @@ class TrainingProgramCreationFlowTest extends TestCase
             ->assertDontSee('ينتهي التسجيل خلال')
             ->assertDontSee('>مفتوح<', false)
             ->assertSee('معلومات البرنامج')
+            ->assertDontSee('برنامج تابع لـ')
+            ->assertSee('شركاء البرنامج')
+            ->assertSee('مالك البرنامج')
+            ->assertSee('images/programs/adeed-logo.png', false)
+            ->assertSee('شعار جمعية عضيد للخدمات التطوعية', false)
+            ->assertSee('الشريك المنفذ')
+            ->assertSee('images/programs/partner-kafaat.svg', false)
+            ->assertSee('شعار جمعية كفاءات', false)
+            ->assertSee('الشريك الداعم')
+            ->assertSee('الشريك الاستراتيجي')
+            ->assertSee('شركاء النجاح')
+            ->assertSee('شعار صندوق دعم الجمعيات', false)
+            ->assertSee('شعار وزارة الموارد البشرية', false)
+            ->assertSee('شعار المركز الوطني لتنمية القطاع غير الربحي', false)
+            ->assertSee('شعار مسارات رائدة', false)
+            ->assertSee('شعار بيت الثقافة', false)
+            ->assertSee('images/programs/partner-associations-support-fund.png', false)
+            ->assertSee('images/programs/partner-hr-ministry.png', false)
+            ->assertSee('images/programs/partner-nonprofit-center.png', false)
+            ->assertSee('images/programs/partner-masarat-raeda.png', false)
+            ->assertSee('images/programs/partner-bayt-al-thaqafa.png', false)
             ->assertSee('3 أغسطس – 1 سبتمبر')
-            ->assertSee('3–8 أغسطس، 16–18 أغسطس')
+            ->assertSee('3–5 أغسطس')
             ->assertDontSee('السعة الاستيعابية')
             ->assertDontSee('فترة التسجيل')
             ->getContent();
 
         $schedulePos = strpos($html, 'مواعيد البرنامج');
         $detailsPos = strpos($html, 'معلومات البرنامج');
+        $partnersHeadingPos = strpos($html, 'id="program-partners-heading"');
         $this->assertNotFalse($schedulePos);
         $this->assertNotFalse($detailsPos);
+        $this->assertNotFalse($partnersHeadingPos);
         $this->assertLessThan($detailsPos, $schedulePos);
+
+        // Order / layout within the partners card only (avoid earlier page noise).
+        $asideStart = strrpos(substr($html, 0, $partnersHeadingPos + 1), '<aside');
+        $this->assertNotFalse($asideStart);
+        $asideEnd = strpos($html, '</aside>', $partnersHeadingPos);
+        $this->assertNotFalse($asideEnd);
+        $partnersBlock = substr($html, $asideStart, $asideEnd - $asideStart);
+        $this->assertStringContainsString('flex-nowrap', $partnersBlock);
+        $this->assertStringContainsString('overflow-x-auto', $partnersBlock);
+        $this->assertStringNotContainsString('grid-cols-', $partnersBlock);
+        $this->assertStringNotContainsString('flex-wrap', $partnersBlock);
+
+        $adeedRolePos = strpos($partnersBlock, 'مالك البرنامج');
+        $adeedLogoPos = strpos($partnersBlock, 'images/programs/adeed-logo.png');
+        $kafaatRolePos = strpos($partnersBlock, 'الشريك المنفذ');
+        $kafaatLogoPos = strpos($partnersBlock, 'images/programs/partner-kafaat.svg');
+        $supporterRolePos = strpos($partnersBlock, 'الشريك الداعم');
+        $this->assertNotFalse($adeedRolePos);
+        $this->assertNotFalse($adeedLogoPos);
+        $this->assertNotFalse($kafaatRolePos);
+        $this->assertNotFalse($kafaatLogoPos);
+        $this->assertNotFalse($supporterRolePos);
+        // PHPUnit: assertLessThan($expected, $actual) ⇒ $actual < $expected
+        $this->assertLessThan($adeedLogoPos, $adeedRolePos);
+        $this->assertLessThan($kafaatRolePos, $adeedRolePos);
+        $this->assertLessThan($kafaatLogoPos, $kafaatRolePos);
+        $this->assertLessThan($supporterRolePos, $kafaatRolePos);
+        $this->assertLessThan($kafaatLogoPos, $adeedLogoPos);
 
         // Order within the schedule card block only (avoid earlier page noise).
         $scheduleBlock = substr($html, $schedulePos, $detailsPos - $schedulePos);
