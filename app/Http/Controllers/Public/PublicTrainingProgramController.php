@@ -107,7 +107,7 @@ class PublicTrainingProgramController extends Controller
         } catch (ProgramBelongsToLearningPathException) {
             return back()->with('error', 'هذا البرنامج ضمن مسار تعليمي؛ التسجيل يكون من صفحة المسار فقط.');
         } catch (RegistrationWindowClosedException) {
-            return back()->with('error', 'باب التسجيل في هذا البرنامج مغلق حالياً.');
+            return back()->with('error', 'انتهى التسجيل في هذا البرنامج.');
         } catch (ProgramCapacityExceededException) {
             return back()->with('error', 'البرنامج وصل إلى الحد الأقصى للمشتركين.');
         } catch (RegistrationNotEligibleException $e) {

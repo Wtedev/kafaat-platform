@@ -10,7 +10,7 @@
 # delete storage/app/public/news/images (staff news uploads). See docs/deployment/public-media-storage.md
 # VolunteerLeadersProgramCoverSeeder only sets image=images/programs/... for «قادة التطوع».
 # VolunteerLeadersProgramDatesSeeder sets start/end + registration window for «قادة التطوع»
-#   (program 2026-08-03 → 2026-09-01; registration 2026-07-22 → 2026-08-03).
+#   (program 2026-08-03 → 2026-09-01; registration 2026-07-22 → 2026-08-01, locked closed).
 # VolunteerLeadersProgramDescriptionSeeder sets canonical public description for «قادة التطوع» (نبذة + أسلوب التنفيذ؛ الشركاء في بطاقة الواجهة).
 # VolunteerLeadersProgramDeliverySeeder sets delivery_mode=in_person (حضوري) + venue «بريدة - بيت الثقافة».
 

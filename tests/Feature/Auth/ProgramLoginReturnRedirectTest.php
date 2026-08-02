@@ -240,6 +240,30 @@ class ProgramLoginReturnRedirectTest extends TestCase
             ->assertDontSee('سجّل الدخول للتسجيل', false);
     }
 
+    public function test_guest_sees_closed_registration_message_not_login_cta_on_volunteer_leaders(): void
+    {
+        $program = TrainingProgram::query()->create([
+            'title' => 'قادة التطوع',
+            'slug' => 'vl-registration-closed',
+            'status' => ProgramStatus::Published,
+            'published_at' => now(),
+            'learning_path_id' => null,
+            'registration_start' => now()->subDays(10)->toDateString(),
+            'registration_end' => now()->subDay()->toDateString(),
+        ]);
+
+        $this->assertFalse($program->isRegistrationOpen());
+
+        $this->get(route('public.programs.show', $program))
+            ->assertOk()
+            ->assertSee('انتهى التسجيل في هذا البرنامج.', false)
+            ->assertSee('باب التسجيل مغلق حالياً ولا يمكن تقديم طلبات جديدة.', false)
+            ->assertSee('انتهى التسجيل', false)
+            ->assertDontSee('سجّل الدخول للتسجيل', false)
+            ->assertDontSee('يجب تسجيل الدخول للتسجيل في البرنامج.', false)
+            ->assertDontSee('سجّل في البرنامج', false);
+    }
+
     public function test_staff_still_goes_to_admin_even_with_program_return(): void
     {
         Notification::fake();
