@@ -98,7 +98,10 @@ $ackLabel = $inPerson
                 @endauth
             </div>
             @elseif (! $trainingProgram->isRegistrationOpen())
-            <p class="text-sm text-gray-400">باب التسجيل في هذا البرنامج مغلق حالياً.</p>
+            <div class="space-y-1 sm:max-w-xl">
+                <p class="text-sm font-medium text-gray-800">انتهى التسجيل في هذا البرنامج.</p>
+                <p class="text-sm leading-relaxed text-gray-500">باب التسجيل مغلق حالياً ولا يمكن تقديم طلبات جديدة.</p>
+            </div>
             @elseif ($ineligible)
             <div class="space-y-3 rounded-2xl border border-amber-200/80 bg-amber-50/80 p-4 sm:max-w-xl">
                 <p class="text-sm font-medium text-amber-900">غير مؤهل للتسجيل في هذا البرنامج</p>
