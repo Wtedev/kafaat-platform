@@ -87,12 +87,12 @@ $ackLabel = $inPerson
                 </p>
                 @auth
                 @if (auth()->user()->canRegisterForPublicOfferings())
-                <x-public.register-cta-button :href="route('portal.paths')" class="hidden md:inline-flex">
+                <x-public.register-cta-button :href="route('portal.paths')">
                     الانتقال إلى مساراتي
                 </x-public.register-cta-button>
                 @endif
                 @else
-                <x-public.register-cta-button :href="route('login', ['return' => request()->getRequestUri()])" class="hidden md:inline-flex">
+                <x-public.register-cta-button :href="route('login', ['return' => request()->getRequestUri()])">
                     سجّل الدخول للانضمام للمسار
                 </x-public.register-cta-button>
                 @endauth
@@ -129,35 +129,19 @@ $ackLabel = $inPerson
 
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p class="text-xs text-gray-400">لن يكتمل التسجيل دون هذا الإقرار.</p>
-                    <x-public.register-cta-button type="submit" class="hidden md:inline-flex">سجّل في البرنامج</x-public.register-cta-button>
+                    <x-public.register-cta-button type="submit">سجّل في البرنامج</x-public.register-cta-button>
                 </div>
             </form>
             @elseif (! auth()->check())
-            <div class="flex flex-col items-end gap-3 sm:flex-row sm:items-center sm:justify-end">
+            <div class="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-center sm:justify-center">
                 <p class="text-sm leading-relaxed text-gray-500">يجب تسجيل الدخول للتسجيل في البرنامج.</p>
-                <x-public.register-cta-button :href="route('login', ['return' => request()->getRequestUri()])" class="hidden md:inline-flex">سجّل الدخول للتسجيل</x-public.register-cta-button>
+                <x-public.register-cta-button :href="route('login', ['return' => request()->getRequestUri()])">سجّل الدخول للتسجيل</x-public.register-cta-button>
             </div>
             @else
             <p class="text-sm text-gray-400">لا يمكن التسجيل بهذا الحساب حالياً.</p>
             @endif
         </div>
     </x-slot:action>
-
-    <x-slot:mobileStickyAction>
-        @if ($canRegister)
-            <x-public.register-cta-button type="submit" form="program-register-form" class="w-full">سجّل في البرنامج</x-public.register-cta-button>
-        @elseif ($viaPathOnly)
-            @auth
-                @if (auth()->user()->canRegisterForPublicOfferings())
-                    <x-public.register-cta-button :href="route('portal.paths')" class="w-full">الانتقال إلى مساراتي</x-public.register-cta-button>
-                @endif
-            @else
-                <x-public.register-cta-button :href="route('login', ['return' => request()->getRequestUri()])" class="w-full">سجّل الدخول للانضمام للمسار</x-public.register-cta-button>
-            @endauth
-        @elseif (! auth()->check() && $trainingProgram->isRegistrationOpen() && ! $viaPathOnly)
-            <x-public.register-cta-button :href="route('login', ['return' => request()->getRequestUri()])" class="w-full">سجّل الدخول للتسجيل</x-public.register-cta-button>
-        @endif
-    </x-slot:mobileStickyAction>
 </x-public.entity-show-layout>
 
 @endsection

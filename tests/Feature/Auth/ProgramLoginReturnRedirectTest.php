@@ -50,7 +50,7 @@ class ProgramLoginReturnRedirectTest extends TestCase
             ->getContent();
 
         $this->assertMatchesRegularExpression(
-            '/items-end gap-3 sm:flex-row sm:items-center sm:justify-end[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
+            '/items-center gap-3 text-center sm:flex-row sm:items-center sm:justify-center[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
             $html,
         );
         $this->assertDoesNotMatchRegularExpression(
@@ -58,9 +58,11 @@ class ProgramLoginReturnRedirectTest extends TestCase
             $html,
         );
         $this->assertDoesNotMatchRegularExpression(
-            '/justify-center[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
+            '/items-end gap-3 sm:flex-row sm:items-center sm:justify-end[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
             $html,
         );
+        $this->assertSame(1, substr_count($html, 'سجّل الدخول للتسجيل'));
+        $this->assertStringNotContainsString('shadow-[0_-8px_32px_-12px_rgba(51,84,131,0.18)]', $html);
         $this->assertStringContainsString('ltr:rotate-180', $html);
     }
 
@@ -84,13 +86,13 @@ class ProgramLoginReturnRedirectTest extends TestCase
         $this->assertLessThan($ctaPos, $partnersPos);
 
         $this->assertMatchesRegularExpression(
-            '/items-end gap-3 sm:flex-row sm:items-center sm:justify-end[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
+            '/items-center gap-3 text-center sm:flex-row sm:items-center sm:justify-center[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
             $html,
         );
 
         // Below partners: action slot must not sit in a white rounded card wrapper.
         $this->assertDoesNotMatchRegularExpression(
-            '/rounded-2xl bg-white[^>]*>\s*<div class="flex flex-col gap-4">\s*<div class="flex flex-col items-end/u',
+            '/rounded-2xl bg-white[^>]*>\s*<div class="flex flex-col gap-4">\s*<div class="flex flex-col items-center/u',
             $html,
         );
         $this->assertDoesNotMatchRegularExpression(
