@@ -24,6 +24,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Filament\Support\Exceptions\Halt;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -119,36 +120,32 @@ class ProgramBroadcastsRelationManager extends RelationManager
                     ->createAnother(false)
                     ->authorize(fn (): bool => $this->canManage())
                     ->form($this->broadcastFormSchema())
-                    ->mutateFormDataUsing(function (array $data): array {
-                        $data['content'] = RichContentSupport::normalizeForStorage($data['content'] ?? null);
-                        $data['audience_mode'] = $data['audience_mode'] ?? ProgramBroadcastAudienceMode::Statuses->value;
-                        if (($data['audience_mode'] ?? null) === ProgramBroadcastAudienceMode::All->value) {
-                            $data['audience_statuses'] = null;
+                    ->mutateFormDataUsing(fn (array $data): array => $this->normalizeBroadcastFormData($data))
+                    ->using(function (array $data, array $arguments, CreateAction $action): ProgramBroadcast {
+                        return $this->persistCreatedBroadcast($data, $arguments, $action);
+                    })
+                    ->successNotification(function (array $arguments): Notification {
+                        if ($arguments['sendNow'] ?? false) {
+                            return Notification::make()
+                                ->title('بدأ الإرسال في الخلفية')
+                                ->body('تتم معالجة الرسائل عبر الطابور. يمكنك متابعة التقدم من الجدول.')
+                                ->success();
                         }
 
-                        return $data;
+                        return Notification::make()
+                            ->title('تم حفظ المسودة')
+                            ->success();
                     })
-                    ->using(function (array $data): ProgramBroadcast {
-                        /** @var TrainingProgram $program */
-                        $program = $this->getOwnerRecord();
-                        /** @var User $actor */
-                        $actor = auth()->user();
-
-                        return app(ProgramBroadcastService::class)->createDraft($program, $actor, $data);
-                    })
-                    ->successNotificationTitle('تم حفظ المسودة')
                     ->extraModalFooterActions(fn (CreateAction $action): array => [
-                        Action::make('sendNowFromCreate')
+                        // Must submit the parent create form (makeModalSubmitAction) so Livewire
+                        // dehydrates subject/content. A nested Action + getFormData() stays empty.
+                        $action->makeModalSubmitAction('sendNowFromCreate', arguments: ['sendNow' => true])
                             ->label('إرسال الآن')
                             ->color('success')
                             ->icon('heroicon-o-paper-airplane')
-                            ->requiresConfirmation()
-                            ->modalHeading('تأكيد إرسال الرسالة الجماعية')
-                            ->modalDescription('سيتم حفظ المسودة ثم إرسالها فوراً في الخلفية لمسجّلي هذا البرنامج فقط. لا يمكن التراجع بعد التأكيد.')
-                            ->modalSubmitActionLabel('تأكيد الإرسال')
-                            ->action(function () use ($action): void {
-                                $this->createAndSend($action);
-                            }),
+                            ->extraAttributes([
+                                'title' => 'سيتم حفظ المسودة ثم إرسالها فوراً في الخلفية. لا يمكن التراجع بعد الإرسال.',
+                            ]),
                     ]),
             ])
             ->actions([
@@ -175,7 +172,11 @@ class ProgramBroadcastsRelationManager extends RelationManager
                         try {
                             /** @var User $actor */
                             $actor = auth()->user();
-                            app(ProgramBroadcastService::class)->updateDraft($record, $actor, $data);
+                            app(ProgramBroadcastService::class)->updateDraft(
+                                $record,
+                                $actor,
+                                $this->normalizeBroadcastFormData($data),
+                            );
                             Notification::make()->title('تم تحديث المسودة')->success()->send();
                         } catch (ProgramBroadcastException $e) {
                             Notification::make()->title($e->getMessage())->danger()->send();
@@ -421,55 +422,70 @@ class ProgramBroadcastsRelationManager extends RelationManager
         );
     }
 
-    private function createAndSend(CreateAction $action): void
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array<string, mixed>  $arguments
+     */
+    private function persistCreatedBroadcast(array $data, array $arguments, CreateAction $action): ProgramBroadcast
     {
+        /** @var TrainingProgram $program */
+        $program = $this->getOwnerRecord();
+        /** @var User $actor */
+        $actor = auth()->user();
+        $service = app(ProgramBroadcastService::class);
+        $sendNow = (bool) ($arguments['sendNow'] ?? false);
+
         try {
-            $data = method_exists($action, 'getFormData')
-                ? $action->getFormData()
-                : (method_exists($action, 'getData') ? $action->getData() : []);
+            if ($sendNow) {
+                $count = $service->countEligibleRecipients(
+                    $program,
+                    $data['audience_mode'] ?? null,
+                    is_array($data['audience_statuses'] ?? null) ? $data['audience_statuses'] : null,
+                );
 
-            if (! is_array($data) || $data === []) {
-                // Fallback: mounted form state on the relation manager create action.
-                $data = $this->mountedTableActionsData[0] ?? $this->mountedActionsData[0] ?? [];
-            }
-
-            /** @var TrainingProgram $program */
-            $program = $this->getOwnerRecord();
-            /** @var User $actor */
-            $actor = auth()->user();
-            $service = app(ProgramBroadcastService::class);
-
-            $count = $service->countEligibleRecipients(
-                $program,
-                $data['audience_mode'] ?? null,
-                is_array($data['audience_statuses'] ?? null) ? $data['audience_statuses'] : null,
-            );
-
-            if ($count === 0) {
-                Notification::make()->title('لا يوجد مستلمون — تم إيقاف الإرسال')->danger()->send();
-
-                return;
+                if ($count === 0) {
+                    Notification::make()->title('لا يوجد مستلمون — تم إيقاف الإرسال')->danger()->send();
+                    $action->halt(shouldRollBackDatabaseTransaction: true);
+                }
             }
 
             $draft = $service->createDraft($program, $actor, $data);
-            $service->sendNow($draft, $actor);
 
-            Notification::make()
-                ->title('بدأ الإرسال في الخلفية')
-                ->body('تتم معالجة الرسائل عبر الطابور. يمكنك متابعة التقدم من الجدول.')
-                ->success()
-                ->send();
-
-            if (method_exists($action, 'cancelParentActions')) {
-                $action->cancelParentActions();
+            if ($sendNow) {
+                $service->sendNow($draft, $actor);
             }
 
-            $this->dispatch('$refresh');
-        } catch (ProgramBroadcastException $e) {
-            Notification::make()->title($e->getMessage())->danger()->send();
+            return $draft;
+        } catch (Halt $exception) {
+            throw $exception;
+        } catch (ProgramBroadcastException $exception) {
+            Notification::make()->title($exception->getMessage())->danger()->send();
+            $action->halt(shouldRollBackDatabaseTransaction: true);
         } catch (Throwable) {
-            Notification::make()->title('تعذّر بدء الإرسال. حاول مرة أخرى.')->danger()->send();
+            Notification::make()
+                ->title($sendNow ? 'تعذّر بدء الإرسال. حاول مرة أخرى.' : 'تعذّر حفظ المسودة. حاول مرة أخرى.')
+                ->danger()
+                ->send();
+            $action->halt(shouldRollBackDatabaseTransaction: true);
         }
+
+        // Unreachable: halt() always throws.
+        throw new Halt;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function normalizeBroadcastFormData(array $data): array
+    {
+        $data['content'] = RichContentSupport::normalizeForStorage($data['content'] ?? null);
+        $data['audience_mode'] = $data['audience_mode'] ?? ProgramBroadcastAudienceMode::Statuses->value;
+        if (($data['audience_mode'] ?? null) === ProgramBroadcastAudienceMode::All->value) {
+            $data['audience_statuses'] = null;
+        }
+
+        return $data;
     }
 
     private function sendBroadcast(ProgramBroadcast $record): void
