@@ -87,6 +87,16 @@ class ProgramLoginReturnRedirectTest extends TestCase
             '/items-end gap-3 sm:flex-row sm:items-center sm:justify-end[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
             $html,
         );
+
+        // Below partners: action slot must not sit in a white rounded card wrapper.
+        $this->assertDoesNotMatchRegularExpression(
+            '/rounded-2xl bg-white[^>]*>\s*<div class="flex flex-col gap-4">\s*<div class="flex flex-col items-end/u',
+            $html,
+        );
+        $this->assertDoesNotMatchRegularExpression(
+            '/overflow-hidden rounded-2xl bg-white px-6 py-6/u',
+            $html,
+        );
     }
 
     public function test_beneficiary_returns_to_program_after_login_and_otp(): void
