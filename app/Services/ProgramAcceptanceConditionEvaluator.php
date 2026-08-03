@@ -48,14 +48,10 @@ final class ProgramAcceptanceConditionEvaluator
             $reasons[] = ProgramAcceptanceConditions::genderCapacityFullMessage($genderValue);
         } elseif ($conditions['genders'] !== []) {
             if ($genderValue === null || ! in_array($genderValue, $conditions['genders'], true)) {
-                if ($this->isVolunteerLeadersFemaleSeatsFull($program, $genderValue, $conditions['genders'])) {
-                    $reasons[] = VolunteerLeadersProgramPeriod::FEMALE_SEATS_FULL_MESSAGE;
-                } else {
-                    $labels = collect($conditions['genders'])
-                        ->map(static fn (string $v): string => ProfileGender::tryFrom($v)?->label() ?? $v)
-                        ->implode(' / ');
-                    $reasons[] = 'هذا البرنامج مخصص لـ: '.$labels.'.';
-                }
+                $labels = collect($conditions['genders'])
+                    ->map(static fn (string $v): string => ProfileGender::tryFrom($v)?->label() ?? $v)
+                    ->implode(' / ');
+                $reasons[] = 'هذا البرنامج مخصص لـ: '.$labels.'.';
             }
         }
 

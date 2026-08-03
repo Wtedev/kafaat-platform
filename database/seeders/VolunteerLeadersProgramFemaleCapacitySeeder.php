@@ -13,9 +13,8 @@ use Illuminate\Support\Facades\Schema;
  * Marks female seats full for «قادة التطوع» while males remain eligible.
  *
  * Ops previously closed female registration by setting acceptance genders to male-only,
- * which showed «مخصص لـ: ذكر» to women. This seeder keeps males open and stores an
- * explicit gender_capacity_full flag so the public message is capacity-accurate.
- * Safe to re-run.
+ * which showed «مخصص لـ: ذكر» to women. This seeder clears that gate and stores
+ * gender_capacity_full so the public message is capacity-accurate. Safe to re-run.
  */
 class VolunteerLeadersProgramFemaleCapacitySeeder extends Seeder
 {
@@ -56,7 +55,6 @@ class VolunteerLeadersProgramFemaleCapacitySeeder extends Seeder
                 'require_complete_profile' => false,
             ];
 
-            // Mixed program: do not keep a male-only genders gate. Block females via capacity flag.
             $desiredGenders = [];
             $desiredCapacityFull = [ProfileGender::Female->value];
 
@@ -70,7 +68,6 @@ class VolunteerLeadersProgramFemaleCapacitySeeder extends Seeder
             $normalized['genders'] = $desiredGenders;
             $normalized['gender_capacity_full'] = $desiredCapacityFull;
 
-            // Ensure conditions stay visible/active under auto-accept or manual review.
             $packed = ProgramAcceptanceConditions::applyFormData([
                 'auto_accept_registrations' => (bool) $program->auto_accept_registrations,
                 'acceptance_manual_review' => true,

@@ -38,7 +38,7 @@ class VolunteerLeadersProgramFemaleCapacitySeederTest extends TestCase
         $program->refresh();
         $conditions = $program->acceptance_conditions;
 
-        $this->assertSame([ProfileGender::Male->value], $conditions['genders']);
+        $this->assertSame([], $conditions['genders']);
         $this->assertSame([ProfileGender::Female->value], $conditions['gender_capacity_full']);
 
         $female = User::factory()->create();
@@ -56,7 +56,10 @@ class VolunteerLeadersProgramFemaleCapacitySeederTest extends TestCase
 
         $femaleResult = $evaluator->evaluate($program, $female->fresh('profile'));
         $this->assertFalse($femaleResult['eligible']);
-        $this->assertSame(['السعة الاستيعابية للإناث ممتلئة'], $femaleResult['reasons']);
+        $this->assertSame(
+            ['نأسف بإبلاغكم انتهت مقاعد التسجيل للإناث'],
+            $femaleResult['reasons'],
+        );
 
         $this->assertTrue($evaluator->evaluate($program, $male->fresh('profile'))['eligible']);
     }
@@ -81,7 +84,7 @@ class VolunteerLeadersProgramFemaleCapacitySeederTest extends TestCase
 
         $program->refresh();
 
-        $this->assertSame([ProfileGender::Male->value], $program->acceptance_conditions['genders']);
+        $this->assertSame([], $program->acceptance_conditions['genders']);
         $this->assertSame(
             [ProfileGender::Female->value],
             $program->acceptance_conditions['gender_capacity_full'],
