@@ -196,6 +196,10 @@ class OperationalAccountAccessTest extends TestCase
 
         $this->actingAsOtpVerified($admin)
             ->get(route('gate.scan', $program))
+            ->assertRedirect(route('gate.portal', ['program' => $program, 'tab' => 'qr']));
+
+        $this->actingAsOtpVerified($admin)
+            ->get(route('gate.portal', $program))
             ->assertOk();
     }
 

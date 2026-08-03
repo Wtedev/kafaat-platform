@@ -4,24 +4,27 @@ namespace App\Filament\Resources\TrainingProgramResource\RelationManagers;
 
 use App\Models\ProgramAttendanceChecker;
 use App\Models\TrainingProgram;
-use App\Services\ProgramAttendanceCheckerInviteService;
+use App\Services\ProgramAttendanceCheckerAccessService;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\HtmlString;
 use Illuminate\Validation\ValidationException;
 
 class ProgramAttendanceCheckersRelationManager extends RelationManager
 {
     protected static string $relationship = 'attendanceCheckers';
 
-    protected static ?string $title = 'عضوات التحضير';
+    protected static ?string $title = 'مسؤولو التحضير';
+
+    public ?string $revealedAccessUrl = null;
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
@@ -31,7 +34,7 @@ class ProgramAttendanceCheckersRelationManager extends RelationManager
             return false;
         }
 
-        if ($ownerRecord->delivery_mode?->hasPhysicalComponent() !== true) {
+        if (! $ownerRecord->prepDays()->exists()) {
             return false;
         }
 
@@ -42,15 +45,9 @@ class ProgramAttendanceCheckersRelationManager extends RelationManager
     {
         return $schema->components([
             TextInput::make('name')
-                ->label('الاسم')
+                ->label('اسم مسؤول التحضير')
                 ->required()
                 ->maxLength(120),
-
-            TextInput::make('email')
-                ->label('البريد الإلكتروني')
-                ->email()
-                ->required()
-                ->maxLength(255),
         ]);
     }
 
@@ -63,45 +60,47 @@ class ProgramAttendanceCheckersRelationManager extends RelationManager
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('email')
-                    ->label('البريد')
-                    ->searchable()
-                    ->sortable(),
-
-                IconColumn::make('is_active')
-                    ->label('نشطة')
-                    ->boolean(),
-
-                TextColumn::make('verified_at')
-                    ->label('آخر تحقق')
-                    ->dateTime('Y/m/d H:i')
-                    ->placeholder('—'),
+                TextColumn::make('is_active')
+                    ->label('الحالة')
+                    ->formatStateUsing(fn (bool $state): string => $state ? 'نشط' : 'معطل')
+                    ->badge()
+                    ->color(fn (bool $state): string => $state ? 'success' : 'danger'),
 
                 TextColumn::make('created_at')
-                    ->label('تاريخ الدعوة')
+                    ->label('تاريخ الإنشاء')
                     ->dateTime('Y/m/d')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
+
+                TextColumn::make('last_used_at')
+                    ->label('آخر استخدام')
+                    ->dateTime('Y/m/d H:i')
+                    ->placeholder('—')
+                    ->sortable(),
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->label('دعوة متحضّرة')
+                    ->label('إضافة مسؤول تحضير')
                     ->icon('heroicon-o-user-plus')
-                    ->modalHeading('دعوة متحضّرة للتحضير')
-                    ->modalSubmitActionLabel('إرسال الدعوة')
-                    ->authorize(fn (): bool => auth()->user()?->can('viewOperational', $this->getOwnerRecord()) ?? false)
+                    ->modalHeading('إضافة مسؤول تحضير')
+                    ->modalSubmitActionLabel('إنشاء الرابط')
+                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
+                    ->createAnother(false)
                     ->using(function (array $data): ProgramAttendanceChecker {
                         /** @var TrainingProgram $program */
                         $program = $this->getOwnerRecord();
 
                         try {
-                            return app(ProgramAttendanceCheckerInviteService::class)->invite(
+                            $result = app(ProgramAttendanceCheckerAccessService::class)->create(
                                 $program,
                                 (string) $data['name'],
-                                (string) $data['email'],
+                                auth()->user(),
                             );
+                            $this->revealedAccessUrl = $result['url'];
+
+                            return $result['checker'];
                         } catch (ValidationException $exception) {
                             Notification::make()
-                                ->title('تعذّرت الدعوة')
+                                ->title('تعذّرت الإضافة')
                                 ->body(collect($exception->errors())->flatten()->first() ?? 'حدث خطأ.')
                                 ->danger()
                                 ->send();
@@ -109,23 +108,74 @@ class ProgramAttendanceCheckersRelationManager extends RelationManager
                             throw $exception;
                         }
                     })
-                    ->successNotificationTitle('تم إرسال رمز الدخول إلى البريد'),
+                    ->successNotification(null)
+                    ->after(function (): void {
+                        if (filled($this->revealedAccessUrl)) {
+                            $this->mountAction('revealAccessLink');
+                        }
+                    }),
+
+                Action::make('revealAccessLink')
+                    ->label('رابط التحضير')
+                    ->visible(fn (): bool => filled($this->revealedAccessUrl))
+                    ->modalHeading('رابط التحضير')
+                    ->modalDescription('انسخ الرابط الآن. لن يظهر مرة أخرى لأسباب أمنية.')
+                    ->modalContent(fn (): HtmlString => new HtmlString(
+                        Blade::render(
+                            <<<'BLADE'
+                            <div class="space-y-3" x-data="{ copied: false }">
+                                <input
+                                    type="text"
+                                    readonly
+                                    value="{{ $url }}"
+                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm font-mono"
+                                    x-ref="link"
+                                    onclick="this.select()"
+                                />
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center justify-center rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white"
+                                    x-on:click="navigator.clipboard.writeText($refs.link.value); copied = true; setTimeout(() => copied = false, 2000)"
+                                >
+                                    <span x-text="copied ? 'تم النسخ' : 'نسخ رابط التحضير'"></span>
+                                </button>
+                            </div>
+                            BLADE,
+                            ['url' => $this->revealedAccessUrl],
+                        )
+                    ))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('إغلاق')
+                    ->extraModalFooterActions([])
+                    ->action(fn () => null),
             ])
             ->actions([
-                Action::make('resendCode')
-                    ->label('إعادة إرسال الرمز')
-                    ->icon('heroicon-o-envelope')
+                Action::make('regenerateLink')
+                    ->label(fn (ProgramAttendanceChecker $record): string => $record->hasAccessLink()
+                        ? 'إنشاء رابط جديد'
+                        : 'إنشاء رابط')
+                    ->icon('heroicon-o-link')
                     ->color('info')
                     ->requiresConfirmation()
-                    ->authorize(fn (): bool => auth()->user()?->can('viewOperational', $this->getOwnerRecord()) ?? false)
+                    ->modalHeading(fn (ProgramAttendanceChecker $record): string => $record->hasAccessLink()
+                        ? 'إنشاء رابط جديد؟'
+                        : 'إنشاء رابط التحضير')
+                    ->modalDescription(fn (ProgramAttendanceChecker $record): string => $record->hasAccessLink()
+                        ? 'سيُبطَل الرابط السابق وجميع الجلسات المرتبطة به فوراً.'
+                        : 'سيُنشأ رابط تحضير آمن لهذا المسؤول.')
+                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
                     ->visible(fn (ProgramAttendanceChecker $record): bool => $record->is_active)
                     ->action(function (ProgramAttendanceChecker $record): void {
                         try {
-                            app(ProgramAttendanceCheckerInviteService::class)->sendCode($record);
-                            Notification::make()->title('تم إرسال رمز جديد')->success()->send();
+                            $result = app(ProgramAttendanceCheckerAccessService::class)->regenerateLink(
+                                $record,
+                                auth()->user(),
+                            );
+                            $this->revealedAccessUrl = $result['url'];
+                            $this->mountAction('revealAccessLink');
                         } catch (ValidationException $exception) {
                             Notification::make()
-                                ->title('تعذّر الإرسال')
+                                ->title('تعذّر إنشاء الرابط')
                                 ->body(collect($exception->errors())->flatten()->first() ?? 'حدث خطأ.')
                                 ->danger()
                                 ->send();
@@ -137,17 +187,21 @@ class ProgramAttendanceCheckersRelationManager extends RelationManager
                     ->icon(fn (ProgramAttendanceChecker $record): string => $record->is_active ? 'heroicon-o-no-symbol' : 'heroicon-o-check-circle')
                     ->color(fn (ProgramAttendanceChecker $record): string => $record->is_active ? 'danger' : 'success')
                     ->requiresConfirmation()
-                    ->authorize(fn (): bool => auth()->user()?->can('viewOperational', $this->getOwnerRecord()) ?? false)
+                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
                     ->action(function (ProgramAttendanceChecker $record): void {
-                        $record->update(['is_active' => ! $record->is_active]);
+                        app(ProgramAttendanceCheckerAccessService::class)->setActive(
+                            $record,
+                            ! $record->is_active,
+                            auth()->user(),
+                        );
                         Notification::make()
-                            ->title($record->is_active ? 'تم تفعيل العضوية' : 'تم تعطيل العضوية')
+                            ->title($record->fresh()?->is_active ? 'تم تفعيل مسؤول التحضير' : 'تم تعطيل مسؤول التحضير')
                             ->success()
                             ->send();
                     }),
             ])
             ->defaultSort('created_at', 'desc')
-            ->emptyStateHeading('لا توجد عضوات تحضير بعد')
-            ->emptyStateDescription('ادعُ متطوعة بالاسم والبريد لإرسال رمز دخول بوابة التحضير.');
+            ->emptyStateHeading('لا يوجد مسؤولو تحضير بعد')
+            ->emptyStateDescription('أضف مسؤولاً وأنشئ له رابطاً للوصول إلى بوابة التحضير.');
     }
 }

@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers\Gate;
 
+use App\Enums\ProgramPrepDayType;
+use App\Enums\RegistrationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\EnsureGateAttendanceAccess;
 use App\Models\ProgramAttendanceChecker;
+use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
-use App\Services\ProgramAttendanceCheckerInviteService;
+use App\Services\ProgramAttendanceCheckerAccessService;
 use App\Services\ProgramAttendanceService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +26,7 @@ class GateAttendanceController extends Controller
         $this->assertGateAvailable($program);
 
         if ($this->alreadyAuthorized($request, $program)) {
-            return redirect()->route('gate.scan', ['program' => $program->slug]);
+            return redirect()->route('gate.portal', ['program' => $program->slug]);
         }
 
         return view('gate.login', [
@@ -30,53 +34,39 @@ class GateAttendanceController extends Controller
         ]);
     }
 
-    public function authenticate(
+    /**
+     * Token exchange: verify hash → secure session → redirect to clean URL.
+     */
+    public function access(
         Request $request,
         TrainingProgram $program,
-        ProgramAttendanceCheckerInviteService $inviteService,
+        string $token,
+        ProgramAttendanceCheckerAccessService $accessService,
     ): RedirectResponse {
         $this->assertGateAvailable($program);
 
-        $data = $request->validate([
-            'email' => ['required', 'email', 'max:255'],
-            'code' => ['required', 'string', 'size:6'],
-        ], [
-            'email.required' => 'البريد الإلكتروني مطلوب.',
-            'code.required' => 'رمز التحقق مطلوب.',
-            'code.size' => 'رمز التحقق مكوّن من 6 أرقام.',
-        ]);
-
-        $result = $inviteService->verify($program, $data['email'], $data['code']);
-
-        $errorMessages = [
-            'not_found' => 'لا توجد دعوة تحضير لهذا البريد في هذا البرنامج.',
-            'inactive' => 'عضوية التحضير معطّلة. راجعي الإدارة.',
-            'expired' => 'انتهت صلاحية الرمز. اطلبي إرسال رمز جديد من الإدارة.',
-            'too_many_attempts' => 'تجاوزتِ عدد المحاولات. اطلبي رمزاً جديداً من الإدارة.',
-            'invalid' => 'رمز التحقق غير صحيح.',
-        ];
-
-        if ($result !== 'success') {
-            return back()
-                ->withInput($request->only('email'))
-                ->withErrors(['code' => $errorMessages[$result] ?? 'تعذّر التحقق من الرمز.']);
-        }
-
-        $checker = $inviteService->findActiveChecker($program, $data['email']);
+        $checker = $accessService->findByPlainToken($program, $token);
 
         if ($checker === null) {
-            return back()
-                ->withInput($request->only('email'))
-                ->withErrors(['email' => 'تعذّر إكمال تسجيل الدخول.']);
+            return redirect()
+                ->route('gate.login', ['program' => $program->slug])
+                ->withErrors(['token' => 'رابط التحضير غير صالح أو منتهي. اطلب رابطاً جديداً من الإدارة.']);
         }
 
+        $request->session()->regenerate();
         $request->session()->put(EnsureGateAttendanceAccess::SESSION_CHECKER_ID, $checker->id);
         $request->session()->put(EnsureGateAttendanceAccess::SESSION_PROGRAM_ID, $program->id);
+        $request->session()->put(
+            EnsureGateAttendanceAccess::SESSION_ACCESS_VERSION,
+            (int) $checker->access_version,
+        );
 
-        return redirect()->route('gate.scan', ['program' => $program->slug]);
+        $accessService->touchLastUsed($checker);
+
+        return redirect()->route('gate.portal', ['program' => $program->slug]);
     }
 
-    public function scan(
+    public function portal(
         Request $request,
         TrainingProgram $program,
         ProgramAttendanceService $attendanceService,
@@ -86,15 +76,54 @@ class GateAttendanceController extends Controller
         $today = Carbon::today(config('app.timezone'))->toDateString();
         $prepDay = $attendanceService->todayPrepDay($program);
         $isInPersonToday = $attendanceService->isTodayInPersonPrepDay($program);
+        $isPrepDayToday = $prepDay !== null;
+        $tab = $request->query('tab', $isInPersonToday ? 'qr' : 'manual');
+        if (! in_array($tab, ['qr', 'manual'], true)) {
+            $tab = 'manual';
+        }
+        if ($tab === 'qr' && ! $isInPersonToday) {
+            $tab = 'manual';
+        }
 
-        return view('gate.scan', [
+        $search = trim((string) $request->query('q', ''));
+        $registrations = null;
+
+        if ($tab === 'manual') {
+            $registrations = $this->eligibleRegistrationsQuery($program, $search, $today)
+                ->paginate(20)
+                ->withQueryString();
+        }
+
+        $dayTypeLabel = match (true) {
+            $prepDay?->delivery_type === ProgramPrepDayType::InPerson => 'حضوري',
+            $prepDay?->delivery_type === ProgramPrepDayType::Remote => 'عن بُعد',
+            default => null,
+        };
+
+        return view('gate.portal', [
             'program' => $program,
             'prepDate' => $today,
             'prepDateLabel' => $prepDay?->displayLabel() ?? $today,
             'isInPersonToday' => $isInPersonToday,
+            'isPrepDayToday' => $isPrepDayToday,
             'prepDay' => $prepDay,
-            'operatorName' => (string) $request->attributes->get('gate_operator_name', 'مشغّلة البوابة'),
+            'dayTypeLabel' => $dayTypeLabel,
+            'operatorName' => (string) $request->attributes->get('gate_operator_name', 'مسؤول التحضير'),
             'operatorType' => (string) $request->attributes->get('gate_operator_type', 'checker'),
+            'tab' => $tab,
+            'search' => $search,
+            'registrations' => $registrations,
+        ]);
+    }
+
+    /** @deprecated Prefer portal; kept as alias for bookmarks/admin links. */
+    public function scan(
+        Request $request,
+        TrainingProgram $program,
+    ): RedirectResponse {
+        return redirect()->route('gate.portal', [
+            'program' => $program->slug,
+            'tab' => 'qr',
         ]);
     }
 
@@ -108,10 +137,8 @@ class GateAttendanceController extends Controller
         $data = $request->validate([
             'pass' => ['required', 'string', 'max:500'],
         ], [
-            'pass.required' => 'أدخلي أو امسحي رمز المرور.',
+            'pass.required' => 'امسح رمز المرور.',
         ]);
-
-        // Intentionally ignore any date query/body/session — server TODAY only.
 
         /** @var ProgramAttendanceChecker|null $checker */
         $checker = $request->attributes->get('gate_checker');
@@ -144,28 +171,99 @@ class GateAttendanceController extends Controller
         return back()->with('gate_error', $result['message']);
     }
 
+    public function toggleAttendance(
+        Request $request,
+        TrainingProgram $program,
+        ProgramRegistration $registration,
+        ProgramAttendanceService $attendanceService,
+    ): JsonResponse {
+        $this->assertGateAvailable($program);
+
+        if ((int) $registration->training_program_id !== (int) $program->id) {
+            abort(404);
+        }
+
+        $data = $request->validate([
+            'present' => ['required', 'boolean'],
+            'date' => ['sometimes', 'nullable', 'date'], // ignored — forged-date protection
+        ]);
+
+        /** @var ProgramAttendanceChecker|null $checker */
+        $checker = $request->attributes->get('gate_checker');
+        $today = Carbon::today(config('app.timezone'))->toDateString();
+
+        if ($request->attributes->get('gate_operator_type') === 'admin') {
+            $admin = $request->user();
+            if (! $admin instanceof User) {
+                abort(403);
+            }
+
+            if (! $attendanceService->isValidAttendancePrepDate($program, $today)) {
+                return response()->json([
+                    'ok' => false,
+                    'reason' => 'invalid_day',
+                    'message' => 'اليوم ليس من أيام البرنامج، ولا يتوفر تحضير اليوم.',
+                    'present' => false,
+                    'beneficiary_name' => null,
+                ], 422);
+            }
+
+            $registration->loadMissing('user');
+            $beneficiaryName = $registration->user?->fullName()
+                ?: ($registration->user?->name ?? 'مستفيد');
+
+            $attendanceService->setPresentState(
+                $registration,
+                $today,
+                (bool) $data['present'],
+                $admin,
+            );
+
+            return response()->json([
+                'ok' => true,
+                'reason' => $data['present'] ? 'marked' : 'cleared',
+                'message' => $data['present'] ? 'تم تسجيل الحضور.' : 'تم إلغاء الحضور.',
+                'present' => (bool) $data['present'],
+                'beneficiary_name' => $beneficiaryName,
+            ]);
+        }
+
+        if (! $checker instanceof ProgramAttendanceChecker) {
+            abort(403);
+        }
+
+        $result = $attendanceService->setPresentStateByChecker(
+            $program,
+            $registration,
+            (bool) $data['present'],
+            $checker,
+            $data['date'] ?? null,
+        );
+
+        return response()->json([
+            'ok' => $result['ok'],
+            'reason' => $result['reason'],
+            'message' => $result['message'],
+            'present' => $result['present'],
+            'beneficiary_name' => $result['beneficiary_name'],
+        ], $result['ok'] ? 200 : 422);
+    }
+
     public function logout(Request $request, TrainingProgram $program): RedirectResponse
     {
         $request->session()->forget([
             EnsureGateAttendanceAccess::SESSION_CHECKER_ID,
             EnsureGateAttendanceAccess::SESSION_PROGRAM_ID,
+            EnsureGateAttendanceAccess::SESSION_ACCESS_VERSION,
         ]);
 
         return redirect()->route('gate.login', ['program' => $program->slug])
             ->with('success', 'تم تسجيل الخروج من بوابة التحضير.');
     }
 
-    /**
-     * Gate is available when the program has at least one in-person prep day,
-     * or historically an in-person/hybrid delivery mode (published VL programs).
-     */
     private function assertGateAvailable(TrainingProgram $program): void
     {
-        $hasInPersonDay = $program->prepDays()
-            ->where('delivery_type', 'in_person')
-            ->exists();
-
-        if ($hasInPersonDay || $program->delivery_mode?->hasPhysicalComponent() === true) {
+        if (EnsureGateAttendanceAccess::gateAvailable($program)) {
             return;
         }
 
@@ -175,22 +273,62 @@ class GateAttendanceController extends Controller
     private function alreadyAuthorized(Request $request, TrainingProgram $program): bool
     {
         $user = $request->user();
-        if ($user !== null && $user->can('viewOperational', $program)) {
+        if (
+            $user !== null
+            && $user->allowsOperationalAccess()
+            && $user->is_active
+            && $user->can('viewOperational', $program)
+        ) {
             return true;
         }
 
         $checkerId = $request->session()->get(EnsureGateAttendanceAccess::SESSION_CHECKER_ID);
         $programId = $request->session()->get(EnsureGateAttendanceAccess::SESSION_PROGRAM_ID);
+        $accessVersion = $request->session()->get(EnsureGateAttendanceAccess::SESSION_ACCESS_VERSION);
 
         if (! $checkerId || (int) $programId !== (int) $program->id) {
             return false;
         }
 
-        return ProgramAttendanceChecker::query()
+        $checker = ProgramAttendanceChecker::query()
             ->whereKey($checkerId)
             ->where('training_program_id', $program->id)
             ->where('is_active', true)
-            ->whereNotNull('verified_at')
-            ->exists();
+            ->whereNotNull('access_token_hash')
+            ->first();
+
+        return $checker !== null
+            && (int) $accessVersion === (int) $checker->access_version;
+    }
+
+    /**
+     * @return Builder<ProgramRegistration>
+     */
+    private function eligibleRegistrationsQuery(TrainingProgram $program, string $search, string $today)
+    {
+        $query = ProgramRegistration::query()
+            ->with([
+                'user',
+                'attendanceRecords' => fn ($q) => $q->whereDate('training_date', $today),
+            ])
+            ->where('training_program_id', $program->id)
+            ->whereIn('status', [
+                RegistrationStatus::Approved->value,
+                RegistrationStatus::Completed->value,
+            ])
+            ->orderBy('id');
+
+        if ($search !== '') {
+            $like = '%'.addcslashes(mb_strtolower($search), '%_\\').'%';
+            $query->whereHas('user', function ($userQuery) use ($like): void {
+                $userQuery->where(function ($inner) use ($like): void {
+                    foreach (['name', 'first_name', 'father_name', 'grandfather_name', 'family_name'] as $column) {
+                        $inner->orWhereRaw('LOWER(COALESCE('.$column.", '')) LIKE ?", [$like]);
+                    }
+                });
+            });
+        }
+
+        return $query;
     }
 }

@@ -120,19 +120,25 @@ Route::get('/certificates/verify/{code}', CertificateVerificationController::cla
     ->middleware('throttle:certificate-verify')
     ->name('certificates.verify');
 
-// ─── Gate QR attendance (in-person programs) ──────────────────────────────────
+// ─── Gate QR / prep-officer attendance ───────────────────────────────────────
 
 Route::prefix('gate/{program:slug}')->name('gate.')->group(function () {
     Route::get('/', [GateAttendanceController::class, 'login'])->name('login');
-    Route::post('/login', [GateAttendanceController::class, 'authenticate'])
-        ->middleware('throttle:12,1')
-        ->name('login.store');
+
+    Route::get('/access/{token}', [GateAttendanceController::class, 'access'])
+        ->middleware('throttle:20,1')
+        ->where('token', '[A-Fa-f0-9]{64}')
+        ->name('access');
 
     Route::middleware('gate.attendance')->group(function () {
+        Route::get('/portal', [GateAttendanceController::class, 'portal'])->name('portal');
         Route::get('/scan', [GateAttendanceController::class, 'scan'])->name('scan');
         Route::post('/scan', [GateAttendanceController::class, 'mark'])
             ->middleware('throttle:60,1')
             ->name('scan.store');
+        Route::post('/registrations/{registration}/attendance', [GateAttendanceController::class, 'toggleAttendance'])
+            ->middleware('throttle:60,1')
+            ->name('attendance.toggle');
         Route::post('/logout', [GateAttendanceController::class, 'logout'])->name('logout');
     });
 });

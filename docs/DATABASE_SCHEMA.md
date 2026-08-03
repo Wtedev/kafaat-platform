@@ -129,7 +129,7 @@ erDiagram
 `id` · **morph** `attendable_type`/`attendable_id` · `created_by` FK→users · `started_at` · `expires_at`. (جلسة رمز حضور حي مؤقتة لبرنامج/مسار).
 
 #### `program_attendance_checkers`
-`id` · `training_program_id` FK(cascade) · `name` · `email` · `invite_code_hash` · `invite_code_expires_at` · `invite_attempts` · `verified_at` · `is_active`. **U**(`training_program_id`,`email`). (مسؤولو تحضير مدعوّون عبر بوابة `/gate`).
+`id` · `training_program_id` FK(cascade) · `name` · `email` (legacy, nullable) · `invite_code_*` / `verified_at` (legacy, unused) · `access_token_hash` · `access_version` · `last_used_at` · `is_active`. (مسؤولو تحضير عبر رابط آمن `/gate/{slug}/access/{token}`).
 
 #### جداول محرِّرين (Pivot، بلا نموذج مستقل)
 - `training_program_editors` (`training_program_id`,`user_id`) **U**.

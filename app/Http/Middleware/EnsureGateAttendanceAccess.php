@@ -14,6 +14,8 @@ class EnsureGateAttendanceAccess
 
     public const SESSION_PROGRAM_ID = 'gate_attendance_program_id';
 
+    public const SESSION_ACCESS_VERSION = 'gate_attendance_access_version';
+
     public function handle(Request $request, Closure $next): Response
     {
         $program = $request->route('program');
@@ -22,11 +24,7 @@ class EnsureGateAttendanceAccess
             abort(404);
         }
 
-        $hasInPersonDay = $program->prepDays()
-            ->where('delivery_type', 'in_person')
-            ->exists();
-
-        if (! $hasInPersonDay && $program->delivery_mode?->hasPhysicalComponent() !== true) {
+        if (! $this->gateAvailable($program)) {
             abort(404);
         }
 
@@ -46,24 +44,44 @@ class EnsureGateAttendanceAccess
 
         $checkerId = $request->session()->get(self::SESSION_CHECKER_ID);
         $programId = $request->session()->get(self::SESSION_PROGRAM_ID);
+        $accessVersion = $request->session()->get(self::SESSION_ACCESS_VERSION);
 
         if ($checkerId && (int) $programId === (int) $program->id) {
             $checker = ProgramAttendanceChecker::query()
                 ->whereKey($checkerId)
                 ->where('training_program_id', $program->id)
                 ->where('is_active', true)
-                ->whereNotNull('verified_at')
+                ->whereNotNull('access_token_hash')
                 ->first();
 
-            if ($checker !== null) {
+            if (
+                $checker !== null
+                && (int) $accessVersion === (int) $checker->access_version
+            ) {
                 $request->attributes->set('gate_operator_type', 'checker');
                 $request->attributes->set('gate_operator_name', $checker->name);
                 $request->attributes->set('gate_checker', $checker);
 
                 return $next($request);
             }
+
+            // Stale/invalidated session — clear gate keys only.
+            $request->session()->forget([
+                self::SESSION_CHECKER_ID,
+                self::SESSION_PROGRAM_ID,
+                self::SESSION_ACCESS_VERSION,
+            ]);
         }
 
         return redirect()->route('gate.login', ['program' => $program->slug]);
+    }
+
+    public static function gateAvailable(TrainingProgram $program): bool
+    {
+        if ($program->prepDays()->exists()) {
+            return true;
+        }
+
+        return $program->delivery_mode?->hasPhysicalComponent() === true;
     }
 }

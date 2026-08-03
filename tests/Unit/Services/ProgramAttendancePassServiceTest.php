@@ -79,10 +79,11 @@ class ProgramAttendancePassServiceTest extends TestCase
 
         $checker = ProgramAttendanceChecker::query()->create([
             'training_program_id' => $program->id,
-            'name' => 'متحضّرة تجريبية',
-            'email' => 'checker@example.test',
+            'name' => 'مسؤول تحضير تجريبي',
+            'email' => null,
             'is_active' => true,
-            'verified_at' => now(),
+            'access_token_hash' => hash('sha256', 'unit-test-token'),
+            'access_version' => 1,
         ]);
 
         $service = app(ProgramAttendanceService::class);
