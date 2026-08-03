@@ -56,6 +56,11 @@ class VolunteerLeadersProgramDatesSeederTest extends TestCase
             VolunteerLeadersProgramDatesSeeder::REGISTRATION_END,
             $program->registration_end?->toDateString(),
         );
+        // Guard against Asia/Riyadh→UTC DATE truncation (must not persist as prior calendar day).
+        $this->assertStringStartsWith(
+            VolunteerLeadersProgramDatesSeeder::REGISTRATION_END,
+            (string) $program->getRawOriginal('registration_end'),
+        );
         $this->assertTrue($program->isRegistrationOpen());
         $this->assertSame('مفتوح', $program->registrationWindowStatusLabel());
         $this->assertSame('30 يوماً', $program->programDurationDescription());
