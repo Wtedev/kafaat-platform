@@ -194,6 +194,7 @@ class TrainingEntityFormChangeSummarizer
             'acceptance_require_saudi_national' => 'سعودي الجنسية',
             'acceptance_require_complete_profile' => 'اكتمال بيانات الملف الشخصي',
             'acceptance_genders' => 'الجنس',
+            'acceptance_gender_capacity_full' => 'امتلاء المقاعد حسب الجنس',
             'acceptance_min_age' => 'الحد الأدنى للعمر',
             'acceptance_max_age' => 'الحد الأقصى للعمر',
             'acceptance_cities' => 'مدن الإقامة',

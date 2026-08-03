@@ -119,6 +119,7 @@ class ProgramAcceptanceConditionsRegistrationTest extends TestCase
         $this->assertSame([
             'require_saudi_national' => true,
             'genders' => [ProfileGender::Female->value],
+            'gender_capacity_full' => [],
             'min_age' => 18,
             'max_age' => 40,
             'cities' => ['الرياض', 'جدة'],

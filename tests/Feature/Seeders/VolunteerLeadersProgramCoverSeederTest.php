@@ -38,6 +38,27 @@ class VolunteerLeadersProgramCoverSeederTest extends TestCase
         );
     }
 
+    public function test_restores_cover_by_stable_slug_when_title_renamed(): void
+    {
+        $program = TrainingProgram::query()->create([
+            'title' => 'برنامج مخصّص بدون إبرة العنوان',
+            'slug' => 'volunteer-leadership',
+            'program_kind' => TrainingProgramKind::Course,
+            'competency_track' => CompetencyTrack::Community,
+            'status' => ProgramStatus::Published,
+            'image' => null,
+        ]);
+
+        $this->seed(VolunteerLeadersProgramCoverSeeder::class);
+
+        $program->refresh();
+
+        $this->assertSame(
+            VolunteerLeadersProgramCoverSeeder::COVER_RELATIVE_PATH,
+            $program->image,
+        );
+    }
+
     public function test_re_run_is_idempotent_when_cover_already_set(): void
     {
         $program = TrainingProgram::query()->create([

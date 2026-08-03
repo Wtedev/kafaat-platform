@@ -12,6 +12,7 @@ use App\Enums\ProfileGender;
  * {
  *   "require_saudi_national": bool,
  *   "genders": ["male"|"female", ...],
+ *   "gender_capacity_full": ["male"|"female", ...],
  *   "min_age": int|null,
  *   "max_age": int|null,
  *   "cities": ["الرياض", ...],
@@ -23,6 +24,7 @@ final class ProgramAcceptanceConditions
     public const FORM_KEYS = [
         'acceptance_require_saudi_national',
         'acceptance_genders',
+        'acceptance_gender_capacity_full',
         'acceptance_min_age',
         'acceptance_max_age',
         'acceptance_cities',
@@ -42,6 +44,7 @@ final class ProgramAcceptanceConditions
         return (bool) ($conditions['require_saudi_national'] ?? false)
             || (bool) ($conditions['require_complete_profile'] ?? false)
             || ((is_array($conditions['genders'] ?? null) ? $conditions['genders'] : []) !== [])
+            || ((is_array($conditions['gender_capacity_full'] ?? null) ? $conditions['gender_capacity_full'] : []) !== [])
             || self::nullablePositiveInt($conditions['min_age'] ?? null) !== null
             || self::nullablePositiveInt($conditions['max_age'] ?? null) !== null
             || ((is_array($conditions['cities'] ?? null) ? $conditions['cities'] : []) !== []);
@@ -52,6 +55,7 @@ final class ProgramAcceptanceConditions
      * @return array{
      *     require_saudi_national: bool,
      *     genders: list<string>,
+     *     gender_capacity_full: list<string>,
      *     min_age: int|null,
      *     max_age: int|null,
      *     cities: list<string>,
@@ -64,15 +68,8 @@ final class ProgramAcceptanceConditions
             return null;
         }
 
-        $genders = collect(is_array($conditions['genders'] ?? null) ? $conditions['genders'] : [])
-            ->map(static fn (mixed $v): string => (string) $v)
-            ->filter(static fn (string $v): bool => in_array($v, [
-                ProfileGender::Male->value,
-                ProfileGender::Female->value,
-            ], true))
-            ->unique()
-            ->values()
-            ->all();
+        $genders = self::normalizeGenderList($conditions['genders'] ?? null);
+        $genderCapacityFull = self::normalizeGenderList($conditions['gender_capacity_full'] ?? null);
 
         $cities = collect(is_array($conditions['cities'] ?? null) ? $conditions['cities'] : [])
             ->map(static fn (mixed $v): string => self::normalizeCity((string) $v))
@@ -91,6 +88,7 @@ final class ProgramAcceptanceConditions
         $normalized = [
             'require_saudi_national' => (bool) ($conditions['require_saudi_national'] ?? false),
             'genders' => $genders,
+            'gender_capacity_full' => $genderCapacityFull,
             'min_age' => $minAge,
             'max_age' => $maxAge,
             'cities' => $cities,
@@ -111,6 +109,7 @@ final class ProgramAcceptanceConditions
         $normalized = self::normalize($conditions) ?? [
             'require_saudi_national' => false,
             'genders' => [],
+            'gender_capacity_full' => [],
             'min_age' => null,
             'max_age' => null,
             'cities' => [],
@@ -120,6 +119,7 @@ final class ProgramAcceptanceConditions
         return [
             'acceptance_require_saudi_national' => (bool) $normalized['require_saudi_national'],
             'acceptance_genders' => $normalized['genders'],
+            'acceptance_gender_capacity_full' => $normalized['gender_capacity_full'],
             'acceptance_min_age' => $normalized['min_age'],
             'acceptance_max_age' => $normalized['max_age'],
             'acceptance_cities' => $normalized['cities'],
@@ -146,6 +146,9 @@ final class ProgramAcceptanceConditions
             $data['acceptance_conditions'] = self::normalize([
                 'require_saudi_national' => (bool) ($data['acceptance_require_saudi_national'] ?? false),
                 'genders' => is_array($data['acceptance_genders'] ?? null) ? $data['acceptance_genders'] : [],
+                'gender_capacity_full' => is_array($data['acceptance_gender_capacity_full'] ?? null)
+                    ? $data['acceptance_gender_capacity_full']
+                    : [],
                 'min_age' => $data['acceptance_min_age'] ?? null,
                 'max_age' => $data['acceptance_max_age'] ?? null,
                 'cities' => is_array($data['acceptance_cities'] ?? null) ? $data['acceptance_cities'] : [],
@@ -186,6 +189,12 @@ final class ProgramAcceptanceConditions
                 })
                 ->implode('، ');
             $lines[] = 'الجنس: '.$labels;
+        }
+
+        if ($normalized['gender_capacity_full'] !== []) {
+            foreach ($normalized['gender_capacity_full'] as $gender) {
+                $lines[] = self::genderCapacityFullMessage($gender);
+            }
         }
 
         if ($normalized['min_age'] !== null || $normalized['max_age'] !== null) {
@@ -239,6 +248,55 @@ final class ProgramAcceptanceConditions
     public static function identityTypeLabel(IdentityType $type): string
     {
         return $type->label();
+    }
+
+    public static function genderCapacityFullMessage(string $gender): string
+    {
+        return match ($gender) {
+            ProfileGender::Female->value => 'السعة الاستيعابية للإناث ممتلئة',
+            ProfileGender::Male->value => 'السعة الاستيعابية للذكور ممتلئة',
+            default => 'السعة الاستيعابية ممتلئة',
+        };
+    }
+
+    /**
+     * @param  list<string>  $reasons
+     */
+    public static function isGenderCapacityFullReasonsOnly(array $reasons): bool
+    {
+        if ($reasons === []) {
+            return false;
+        }
+
+        $capacityMessages = [
+            self::genderCapacityFullMessage(ProfileGender::Female->value),
+            self::genderCapacityFullMessage(ProfileGender::Male->value),
+            self::genderCapacityFullMessage(''),
+        ];
+
+        foreach ($reasons as $reason) {
+            if (! in_array($reason, $capacityMessages, true)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function normalizeGenderList(mixed $values): array
+    {
+        return collect(is_array($values) ? $values : [])
+            ->map(static fn (mixed $v): string => (string) $v)
+            ->filter(static fn (string $v): bool => in_array($v, [
+                ProfileGender::Male->value,
+                ProfileGender::Female->value,
+            ], true))
+            ->unique()
+            ->values()
+            ->all();
     }
 
     private static function nullablePositiveInt(mixed $value): ?int
