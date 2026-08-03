@@ -16,6 +16,7 @@
 
 # VolunteerLeadersProgramPresentersSeeder clears program_presenters for «قادة التطوع» (public section removed).
 # VolunteerLeadersProgramWhatsappSeeder sets women’s WhatsApp invite for «قادة التطوع» (male left unchanged).
+# VolunteerLeadersProgramFemaleCapacitySeeder marks female seats full with capacity messaging (males remain open).
 # FaeqoonProgramArchiveSeeder archives «فائقون وفائقات» (slug faykon-ofaykat) so redeploys do not republish it.
 # NewsCoverAssetsSeeder only sets image=images/news/... for named articles (git-backed covers).
 set -euo pipefail
@@ -46,6 +47,7 @@ php artisan db:seed --class=VolunteerLeadersProgramDescriptionSeeder --force
 php artisan db:seed --class=VolunteerLeadersProgramDeliverySeeder --force
 php artisan db:seed --class=VolunteerLeadersProgramPresentersSeeder --force
 php artisan db:seed --class=VolunteerLeadersProgramWhatsappSeeder --force
+php artisan db:seed --class=VolunteerLeadersProgramFemaleCapacitySeeder --force
 php artisan db:seed --class=FaeqoonProgramArchiveSeeder --force
 php artisan db:seed --class=NewsCoverAssetsSeeder --force
 php artisan permission:cache-reset

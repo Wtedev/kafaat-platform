@@ -37,7 +37,7 @@ $ackLabel = $inPerson
 @section('title', $trainingProgram->title)
 @section('content')
 
-<x-public.entity-show-layout :backHref="$trainingProgram->competency_track ? route('public.programs.track', $trainingProgram->competency_track) : route('public.tracks.index')" :backLabel="$trainingProgram->competency_track?->shortLabel() ?? 'مسارات الكفاءة'" :title="$trainingProgram->title" :description="$trainingProgram->description" descriptionHeading="نبذة عن البرنامج" mediaContext="program" :programKind="$trainingProgram->program_kind" :hasImage="filled($trainingProgram->image)" :imageUrl="$trainingProgram->imagePublicUrl()" objectFit="cover">
+<x-public.entity-show-layout :backHref="$trainingProgram->competency_track ? route('public.programs.track', $trainingProgram->competency_track) : route('public.tracks.index')" :backLabel="$trainingProgram->competency_track?->shortLabel() ?? 'مسارات الكفاءة'" :title="$trainingProgram->title" :description="$trainingProgram->description" descriptionHeading="نبذة عن البرنامج" mediaContext="program" :programKind="$trainingProgram->program_kind" :hasImage="filled($trainingProgram->image)" :imageUrl="$trainingProgram->imagePublicUrl()" :objectFit="$trainingProgram->imageUsesContainFit() ? 'contain' : 'cover'">
     <x-slot:mediaBadges>
         <span class="inline-flex items-center rounded-lg bg-white/95 px-2.5 py-1 text-xs font-medium text-[#335483] shadow-sm ring-1 ring-white/60 backdrop-blur-sm">
             {{ $trainingProgram->program_kind->label() }}
@@ -103,13 +103,22 @@ $ackLabel = $inPerson
                 <p class="text-sm leading-relaxed text-gray-500">باب التسجيل مغلق حالياً ولا يمكن تقديم طلبات جديدة.</p>
             </div>
             @elseif ($ineligible)
+            @php
+                $capacityFullOnly = \App\Support\ProgramAcceptanceConditions::isGenderCapacityFullReasonsOnly($ineligibilityReasons);
+            @endphp
             <div class="space-y-3 rounded-2xl border border-amber-200/80 bg-amber-50/80 p-4 sm:max-w-xl">
+                @if ($capacityFullOnly)
+                @foreach ($ineligibilityReasons as $reason)
+                <p class="text-sm font-medium text-amber-900">{{ $reason }}</p>
+                @endforeach
+                @else
                 <p class="text-sm font-medium text-amber-900">غير مؤهل للتسجيل في هذا البرنامج</p>
                 <ul class="list-disc space-y-1 pe-5 text-sm leading-relaxed text-amber-800">
                     @foreach ($ineligibilityReasons as $reason)
                     <li>{{ $reason }}</li>
                     @endforeach
                 </ul>
+                @endif
             </div>
             @elseif ($canRegister)
             <form method="POST" action="{{ route('public.programs.register', $trainingProgram->slug) }}" id="program-register-form" class="program-register-form space-y-4">

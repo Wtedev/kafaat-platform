@@ -274,6 +274,13 @@ final class TrainingEntityFormSupport
                         ->helperText('اتركه فارغاً لقبول الجميع.')
                         ->columnSpanFull(),
 
+                    CheckboxList::make('acceptance_gender_capacity_full')
+                        ->label('امتلاء المقاعد حسب الجنس')
+                        ->options(ProfileGender::options())
+                        ->columns(2)
+                        ->helperText('عندما تمتلئ مقاعد جنس معيّن مع بقاء التسجيل مفتوحاً للجنس الآخر — تُعرض رسالة امتلاء السعة بدل «مخصص لـ».')
+                        ->columnSpanFull(),
+
                     Grid::make(2)
                         ->schema([
                             TextInput::make('acceptance_min_age')

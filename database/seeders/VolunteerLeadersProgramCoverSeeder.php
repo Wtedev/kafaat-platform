@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\TrainingProgram;
+use App\Support\VolunteerLeadersProgramPeriod;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
@@ -32,12 +33,15 @@ class VolunteerLeadersProgramCoverSeeder extends Seeder
         }
 
         $matched = TrainingProgram::query()
-            ->where('title', 'like', '%'.self::TITLE_NEEDLE.'%')
+            ->where(function ($query): void {
+                $query->whereIn('slug', VolunteerLeadersProgramPeriod::stableSlugs())
+                    ->orWhere('title', 'like', '%'.self::TITLE_NEEDLE.'%');
+            })
             ->get(['id', 'title', 'image']);
 
         if ($matched->isEmpty()) {
             $this->command?->warn(
-                'VolunteerLeadersProgramCoverSeeder: no training program title matching «'.self::TITLE_NEEDLE.'». Cover file is published; set image manually if needed.'
+                'VolunteerLeadersProgramCoverSeeder: no Volunteer Leaders program matched. Cover file is published; set image manually if needed.'
             );
 
             return;

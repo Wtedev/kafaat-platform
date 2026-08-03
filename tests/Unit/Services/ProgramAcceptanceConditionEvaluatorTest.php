@@ -80,6 +80,53 @@ class ProgramAcceptanceConditionEvaluatorTest extends TestCase
         $this->assertFalse($evaluator->evaluate($program, $wrongCity)['eligible']);
     }
 
+    public function test_female_capacity_full_message_preferred_over_male_only_gender_label(): void
+    {
+        $program = $this->makeProgram([
+            'genders' => [ProfileGender::Male->value],
+            'gender_capacity_full' => [ProfileGender::Female->value],
+        ]);
+
+        $female = $this->makeUserWithIdentity(IdentityType::NationalId, [
+            'gender' => ProfileGender::Female,
+        ]);
+        $male = $this->makeUserWithIdentity(IdentityType::NationalId, [
+            'gender' => ProfileGender::Male,
+        ]);
+
+        $evaluator = app(ProgramAcceptanceConditionEvaluator::class);
+
+        $femaleResult = $evaluator->evaluate($program, $female);
+        $this->assertFalse($femaleResult['eligible']);
+        $this->assertSame(
+            ['السعة الاستيعابية للإناث ممتلئة'],
+            $femaleResult['reasons'],
+        );
+
+        $maleResult = $evaluator->evaluate($program, $male);
+        $this->assertTrue($maleResult['eligible']);
+        $this->assertSame([], $maleResult['reasons']);
+    }
+
+    public function test_true_male_only_program_keeps_gender_restriction_message(): void
+    {
+        $program = $this->makeProgram([
+            'genders' => [ProfileGender::Male->value],
+        ]);
+
+        $female = $this->makeUserWithIdentity(IdentityType::NationalId, [
+            'gender' => ProfileGender::Female,
+        ]);
+
+        $result = app(ProgramAcceptanceConditionEvaluator::class)->evaluate($program, $female);
+
+        $this->assertFalse($result['eligible']);
+        $this->assertSame(
+            ['هذا البرنامج مخصص لـ: ذكر.'],
+            $result['reasons'],
+        );
+    }
+
     /**
      * @param  array<string, mixed>  $conditions
      */
