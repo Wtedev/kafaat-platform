@@ -28,18 +28,9 @@ class ProgramPrepDay extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (self $day): void {
-            if ($day->requires_attendance !== null) {
-                return;
-            }
-
-            $day->requires_attendance = $day->delivery_type === ProgramPrepDayType::InPerson;
-        });
-
+        // All program days count toward attendance; column kept temporarily for published schema compat.
         static::saving(function (self $day): void {
-            if ($day->delivery_type === ProgramPrepDayType::InPerson && $day->requires_attendance === null) {
-                $day->requires_attendance = true;
-            }
+            $day->requires_attendance = true;
         });
     }
 

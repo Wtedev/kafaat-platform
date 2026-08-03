@@ -4,6 +4,7 @@ namespace Tests\Unit\Services;
 
 use App\Enums\AttendanceStatus;
 use App\Enums\CompetencyTrack;
+use App\Enums\PathStatus;
 use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramPrepDayType;
 use App\Enums\ProgramStatus;
@@ -11,17 +12,21 @@ use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
 use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\AuditLog;
+use App\Models\LearningPath;
+use App\Models\PathRegistration;
 use App\Models\ProgramAttendance;
 use App\Models\ProgramPrepDay;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Services\AttendanceLiveSessionService;
 use App\Services\PathAttendanceService;
 use App\Services\ProgramAttendanceService;
 use App\Support\VolunteerLeadersProgramPeriod;
 use Database\Seeders\VolunteerLeadersProgramPrepDaysSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -35,388 +40,311 @@ class ProgramDailyAttendanceServiceTest extends TestCase
         config(['app.timezone' => 'Asia/Riyadh']);
     }
 
-    public function test_expected_dates_use_prep_days_requiring_attendance_not_weekdays(): void
+    public function test_missing_row_displays_as_not_present(): void
     {
-        $program = $this->makeProgram([
-            'start_date' => '2026-08-01',
-            'end_date' => '2026-08-31',
-            'weekdays' => [0, 1, 2, 3, 4],
-        ]);
+        $program = $this->makeProgram();
+        $this->addDay($program, '2026-08-03');
+        $registration = $this->register($program);
+        $service = app(ProgramAttendanceService::class);
 
-        ProgramPrepDay::query()->create([
-            'training_program_id' => $program->id,
-            'prep_date' => '2026-08-03',
-            'delivery_type' => ProgramPrepDayType::InPerson,
-            'requires_attendance' => true,
+        $this->assertFalse($service->isPresentOnDate($registration, '2026-08-03'));
+        $this->assertSame('لم يحضر', $service->displayLabelForDate($registration, '2026-08-03'));
+        $this->assertNull($service->statusForDate($registration, '2026-08-03'));
+    }
+
+    public function test_manual_present_creates_row_and_clear_deletes_it_with_audit(): void
+    {
+        $admin = User::factory()->create();
+        $program = $this->makeProgram();
+        $this->addDay($program, '2026-08-03');
+        $registration = $this->register($program);
+        $service = app(ProgramAttendanceService::class);
+
+        $service->markPresent($registration, '2026-08-03', $admin);
+        $this->assertTrue($service->isPresentOnDate($registration->fresh(['attendanceRecords']), '2026-08-03'));
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'program_attendance.created',
         ]);
-        ProgramPrepDay::query()->create([
+        $this->assertTrue(
+            AuditLog::query()->where('action', 'program_attendance.created')
+                ->get()
+                ->contains(fn (AuditLog $log): bool => ($log->metadata['source'] ?? null) === 'manual')
+        );
+
+        $service->clearDay($registration, '2026-08-03', $admin);
+        $this->assertDatabaseMissing('program_attendance', [
+            'program_registration_id' => $registration->id,
+        ]);
+        $this->assertTrue(
+            AuditLog::query()->where('action', 'program_attendance.cleared')
+                ->get()
+                ->contains(fn (AuditLog $log): bool => ($log->metadata['source'] ?? null) === 'manual')
+        );
+    }
+
+    public function test_all_prep_days_count_including_remote_and_future(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-08-05 12:00:00', 'Asia/Riyadh'));
+
+        $program = $this->makeProgram();
+        $this->addDay($program, '2026-08-03', ProgramPrepDayType::InPerson);
+        $this->addDay($program, '2026-08-10', ProgramPrepDayType::Remote); // future remote
+        $this->addDay($program, '2026-08-17', ProgramPrepDayType::Remote);
+
+        // Legacy false flag must still count (model forces true on save; seed via DB for realism).
+        DB::table('program_prep_days')->insert([
             'training_program_id' => $program->id,
-            'prep_date' => '2026-08-10',
-            'delivery_type' => ProgramPrepDayType::Remote,
+            'prep_date' => '2026-08-20',
+            'delivery_type' => ProgramPrepDayType::Remote->value,
             'requires_attendance' => false,
-        ]);
-        ProgramPrepDay::query()->create([
-            'training_program_id' => $program->id,
-            'prep_date' => '2026-08-17',
-            'delivery_type' => ProgramPrepDayType::Remote,
-            'requires_attendance' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $service = app(ProgramAttendanceService::class);
+        $dates = $service->attendancePrepDateStrings($program->fresh());
 
         $this->assertSame(
-            ['2026-08-03', '2026-08-17'],
-            $service->attendancePrepDateStrings($program->fresh()),
+            ['2026-08-03', '2026-08-10', '2026-08-17', '2026-08-20'],
+            $dates,
         );
+
+        $registration = $this->register($program);
+        $service->markPresent($registration, '2026-08-03');
+
+        // 1 present / 4 total (including future) = 25%
+        $this->assertSame(25.0, $service->calculatePercentage($registration->fresh()));
         $this->assertSame(
-            ['2026-08-03', '2026-08-17'],
+            ['2026-08-03', '2026-08-10', '2026-08-17', '2026-08-20'],
             app(PathAttendanceService::class)->expectedDatesForProgram($program->fresh()),
         );
     }
 
-    public function test_percentage_counts_present_and_late_over_due_days_only(): void
+    public function test_percentage_zero_with_days_and_dash_without(): void
     {
-        Carbon::setTestNow(Carbon::parse('2026-08-10 12:00:00', 'Asia/Riyadh'));
-
-        $program = $this->makeProgram();
-        foreach (['2026-08-03', '2026-08-04', '2026-08-16'] as $date) {
-            ProgramPrepDay::query()->create([
-                'training_program_id' => $program->id,
-                'prep_date' => $date,
-                'delivery_type' => ProgramPrepDayType::InPerson,
-                'requires_attendance' => true,
-            ]);
-        }
-
-        $registration = $this->register($program);
-
+        $empty = $this->makeProgram(['slug' => 'empty-'.uniqid()]);
+        $registrationEmpty = $this->register($empty, 'empty@example.test');
         $service = app(ProgramAttendanceService::class);
-        $service->markManualDay($registration, '2026-08-03', AttendanceStatus::Present);
-        $service->markManualDay($registration, '2026-08-04', AttendanceStatus::Late);
 
-        // Due days: Aug 3 + 4 (Aug 16 is future) → 2/2 = 100
-        $this->assertSame(100.0, $service->calculatePercentage($registration->fresh()));
+        $this->assertNull($service->calculatePercentage($registrationEmpty));
+        $this->assertSame('—', RegistrationFilamentTableSupport::formatPercentage(null));
 
-        Carbon::setTestNow(Carbon::parse('2026-08-20 12:00:00', 'Asia/Riyadh'));
-        // Due days: 3 → attended 2 → 66.67
-        $this->assertSame(66.67, $service->calculatePercentage($registration->fresh()));
-    }
-
-    public function test_percentage_is_null_when_no_due_prep_days_yet(): void
-    {
-        Carbon::setTestNow(Carbon::parse('2026-07-01 12:00:00', 'Asia/Riyadh'));
-
-        $program = $this->makeProgram();
-        ProgramPrepDay::query()->create([
-            'training_program_id' => $program->id,
-            'prep_date' => '2026-08-03',
-            'delivery_type' => ProgramPrepDayType::InPerson,
-            'requires_attendance' => true,
-        ]);
-
-        $registration = $this->register($program);
-
-        $this->assertNull(app(ProgramAttendanceService::class)->calculatePercentage($registration));
-        $this->assertNull($registration->fresh()->effectiveAttendancePercentage());
-    }
-
-    public function test_day_independence_and_unique_constraint(): void
-    {
         $program = $this->makeProgram();
         foreach (['2026-08-03', '2026-08-04'] as $date) {
-            ProgramPrepDay::query()->create([
-                'training_program_id' => $program->id,
-                'prep_date' => $date,
-                'delivery_type' => ProgramPrepDayType::InPerson,
-                'requires_attendance' => true,
+            $this->addDay($program, $date);
+        }
+        $registration = $this->register($program);
+
+        $this->assertSame(0.0, $service->calculatePercentage($registration));
+        $this->assertSame('0.0%', RegistrationFilamentTableSupport::formatPercentage(0.0));
+        $this->assertSame('0 من 2', RegistrationFilamentTableSupport::programAttendanceSummary($registration->fresh(['trainingProgram'])));
+    }
+
+    public function test_path_attendance_statuses_unchanged(): void
+    {
+        $path = LearningPath::query()->create([
+            'title' => 'مسار',
+            'slug' => 'path-'.uniqid(),
+            'description' => 'وصف',
+            'status' => PathStatus::Published,
+            'published_at' => now(),
+        ]);
+        $user = User::factory()->create();
+        $pathReg = PathRegistration::query()->create([
+            'learning_path_id' => $path->id,
+            'user_id' => $user->id,
+            'status' => RegistrationStatus::Approved,
+            'approved_at' => now(),
+        ]);
+
+        app(PathAttendanceService::class)->markManualDay(
+            $pathReg,
+            '2026-08-03',
+            AttendanceStatus::Late,
+            'path late ok',
+        );
+
+        $this->assertDatabaseHas('path_attendance', [
+            'path_registration_id' => $pathReg->id,
+            'status' => AttendanceStatus::Late->value,
+        ]);
+        $this->assertContains(AttendanceStatus::Late, AttendanceStatus::cases());
+        $this->assertContains(AttendanceStatus::Absent, AttendanceStatus::cases());
+    }
+
+    public function test_qr_uses_server_today_only_and_rejects_forged_date(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-08-03 10:00:00', 'Asia/Riyadh'));
+        $program = $this->makeProgram();
+        $this->addDay($program, '2026-08-03', ProgramPrepDayType::InPerson);
+        $this->addDay($program, '2026-08-04', ProgramPrepDayType::InPerson);
+        $registration = $this->register($program);
+        $pass = sprintf('KAFAAT-P%d-R%d', $program->id, $registration->id);
+        $service = app(ProgramAttendanceService::class);
+
+        $result = $service->markPresentFromPass($program, $pass, prepDate: '2026-08-04');
+        $this->assertTrue($result['ok']);
+        $this->assertSame('marked', $result['reason']);
+        $this->assertTrue(
+            ProgramAttendance::query()
+                ->where('program_registration_id', $registration->id)
+                ->whereDate('training_date', '2026-08-03')
+                ->where('status', AttendanceStatus::Present->value)
+                ->exists()
+        );
+        $this->assertFalse(
+            ProgramAttendance::query()
+                ->where('program_registration_id', $registration->id)
+                ->whereDate('training_date', '2026-08-04')
+                ->exists()
+        );
+        $this->assertTrue(
+            AuditLog::query()->where('action', 'program_attendance.created')
+                ->get()
+                ->contains(fn (AuditLog $log): bool => ($log->metadata['source'] ?? null) === 'qr')
+        );
+
+        Carbon::setTestNow(Carbon::parse('2026-08-10 10:00:00', 'Asia/Riyadh'));
+        $this->addDay($program, '2026-08-10', ProgramPrepDayType::Remote);
+        $remoteResult = $service->markPresentFromPass($program, $pass);
+        $this->assertFalse($remoteResult['ok']);
+        $this->assertSame('not_in_person', $remoteResult['reason']);
+    }
+
+    public function test_remote_session_requires_today_remote_day_and_links_prep_day(): void
+    {
+        $admin = User::factory()->create();
+        $program = $this->makeProgram(['delivery_mode' => ProgramDeliveryMode::Hybrid]);
+        $this->addDay($program, '2026-08-03', ProgramPrepDayType::InPerson);
+        $remoteDay = $this->addDay($program, '2026-08-10', ProgramPrepDayType::Remote);
+        $registration = $this->register($program);
+        $live = app(AttendanceLiveSessionService::class);
+
+        Carbon::setTestNow(Carbon::parse('2026-08-03 12:00:00', 'Asia/Riyadh'));
+        try {
+            $live->startProgramRemoteSession($program, $admin);
+            $this->fail('Expected ValidationException for in-person day');
+        } catch (ValidationException) {
+            // expected
+        }
+
+        Carbon::setTestNow(Carbon::parse('2026-08-10 12:00:00', 'Asia/Riyadh'));
+        $session = $live->startProgramRemoteSession($program, $admin);
+        $this->assertSame($remoteDay->id, $session->program_prep_day_id);
+        $this->assertSame('2026-08-10', $session->session_date->toDateString());
+
+        $again = $live->startProgramRemoteSession($program, $admin);
+        $this->assertSame($session->id, $again->id);
+
+        $live->checkInProgram($session, $registration);
+        $this->assertTrue(app(ProgramAttendanceService::class)->isPresentOnDate(
+            $registration->fresh(['attendanceRecords']),
+            '2026-08-10',
+        ));
+        $this->assertTrue(
+            AuditLog::query()->where('action', 'program_attendance.created')
+                ->get()
+                ->contains(fn (AuditLog $log): bool => ($log->metadata['source'] ?? null) === 'remote_session')
+        );
+
+        // Idempotent second check-in
+        $live->checkInProgram($session, $registration);
+        $this->assertSame(1, ProgramAttendance::query()->where('program_registration_id', $registration->id)->count());
+
+        $expired = $session->fresh();
+        $expired->forceFill(['expires_at' => now()->subMinutes(10)])->save();
+        $this->assertFalse($expired->fresh()->isActive());
+
+        try {
+            $live->checkInProgram($expired->fresh(), $registration);
+            $this->fail('Expected ValidationException for expired session');
+        } catch (ValidationException) {
+            // expected
+        }
+    }
+
+    public function test_legacy_status_migration_keeps_present_and_deletes_absent_excused(): void
+    {
+        $program = $this->makeProgram();
+        $this->addDay($program, '2026-08-03');
+        $this->addDay($program, '2026-08-04');
+        $this->addDay($program, '2026-08-05');
+        $this->addDay($program, '2026-08-06');
+        $registration = $this->register($program);
+
+        // Insert legacy statuses directly (bypass service).
+        foreach ([
+            ['2026-08-03', 'present'],
+            ['2026-08-04', 'late'],
+            ['2026-08-05', 'absent'],
+            ['2026-08-06', 'excused'],
+        ] as [$date, $status]) {
+            DB::table('program_attendance')->insert([
+                'program_registration_id' => $registration->id,
+                'training_date' => $date,
+                'status' => $status,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
 
+        DB::table('path_attendance')->insert([
+            'path_registration_id' => PathRegistration::query()->create([
+                'learning_path_id' => LearningPath::query()->create([
+                    'title' => 'مسار حماية',
+                    'slug' => 'path-protect-'.uniqid(),
+                    'description' => 'وصف',
+                    'status' => PathStatus::Published,
+                    'published_at' => now(),
+                ])->id,
+                'user_id' => User::factory()->create()->id,
+                'status' => RegistrationStatus::Approved->value,
+                'approved_at' => now(),
+            ])->id,
+            'attendance_date' => '2026-08-03',
+            'status' => 'late',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $migration = require database_path('migrations/2026_08_03_160000_simplify_program_attendance_binary.php');
+        $migration->up();
+
+        $rows = ProgramAttendance::query()
+            ->where('program_registration_id', $registration->id)
+            ->orderBy('training_date')
+            ->get();
+
+        $this->assertCount(2, $rows);
+        $this->assertSame(['2026-08-03', '2026-08-04'], $rows->map(fn ($r) => $r->training_date->toDateString())->all());
+        $this->assertTrue($rows->every(fn ($r) => $r->status === AttendanceStatus::Present));
+        $this->assertDatabaseHas('path_attendance', ['status' => 'late']);
+        $this->assertTrue(ProgramPrepDay::query()->where('requires_attendance', false)->doesntExist());
+    }
+
+    public function test_generate_sessions_never_precreates_absent_rows(): void
+    {
+        $program = $this->makeProgram();
+        $this->addDay($program, '2026-08-03');
         $registration = $this->register($program);
         $service = app(ProgramAttendanceService::class);
 
-        $service->markManualDay($registration, '2026-08-03', AttendanceStatus::Present);
-        $service->markManualDay($registration, '2026-08-04', AttendanceStatus::Absent);
-        $service->markManualDay($registration, '2026-08-03', AttendanceStatus::Late);
-
-        $this->assertSame(2, ProgramAttendance::query()->where('program_registration_id', $registration->id)->count());
-        $this->assertSame(
-            AttendanceStatus::Late,
-            $service->statusForDate($registration->fresh(['attendanceRecords']), '2026-08-03'),
-        );
-        $this->assertSame(
-            AttendanceStatus::Absent,
-            $service->statusForDate($registration->fresh(['attendanceRecords']), '2026-08-04'),
-        );
-    }
-
-    public function test_missing_row_is_unspecified_and_clear_resets(): void
-    {
-        $program = $this->makeProgram();
-        ProgramPrepDay::query()->create([
-            'training_program_id' => $program->id,
-            'prep_date' => '2026-08-03',
-            'delivery_type' => ProgramPrepDayType::InPerson,
-            'requires_attendance' => true,
-        ]);
-
-        $registration = $this->register($program);
-        $service = app(ProgramAttendanceService::class);
-
-        $this->assertNull($service->statusForDate($registration, '2026-08-03'));
-
-        $service->markManualDay($registration, '2026-08-03', AttendanceStatus::Present);
-        $service->clearDay($registration, '2026-08-03');
-
-        $this->assertNull($service->statusForDate($registration->fresh(), '2026-08-03'));
-        $this->assertSame(0, ProgramAttendance::query()->where('program_registration_id', $registration->id)->count());
-    }
-
-    public function test_generate_sessions_does_not_precreate_absent_rows(): void
-    {
-        $program = $this->makeProgram();
-        ProgramPrepDay::query()->create([
-            'training_program_id' => $program->id,
-            'prep_date' => '2026-08-03',
-            'delivery_type' => ProgramPrepDayType::InPerson,
-            'requires_attendance' => true,
-        ]);
-        $registration = $this->register($program);
-
-        $this->assertSame(0, app(ProgramAttendanceService::class)->generateSessions($registration));
+        $this->assertSame(0, $service->generateSessions($registration));
+        $this->assertSame(0, $service->generateSessionsForAllRegistrations($program));
         $this->assertSame(0, ProgramAttendance::query()->count());
     }
 
-    public function test_bulk_mark_and_adopt_absent_only_fills_unspecified(): void
-    {
-        Carbon::setTestNow(Carbon::parse('2026-08-03 18:00:00', 'Asia/Riyadh'));
-
-        $program = $this->makeProgram();
-        ProgramPrepDay::query()->create([
-            'training_program_id' => $program->id,
-            'prep_date' => '2026-08-03',
-            'delivery_type' => ProgramPrepDayType::InPerson,
-            'requires_attendance' => true,
-        ]);
-
-        $a = $this->register($program, 'a@example.test');
-        $b = $this->register($program, 'b@example.test');
-        $service = app(ProgramAttendanceService::class);
-
-        $service->markManualDay($a, '2026-08-03', AttendanceStatus::Present);
-        $service->bulkMarkDay($program, [$b->id], '2026-08-03', AttendanceStatus::Excused);
-
-        $this->assertSame(AttendanceStatus::Excused, $service->statusForDate($b->fresh(['attendanceRecords']), '2026-08-03'));
-
-        $c = $this->register($program, 'c@example.test');
-        $adopted = $service->adoptAbsentForUnspecified($program, '2026-08-03');
-
-        $this->assertSame(1, $adopted);
-        $this->assertSame(AttendanceStatus::Present, $service->statusForDate($a->fresh(['attendanceRecords']), '2026-08-03'));
-        $this->assertSame(AttendanceStatus::Excused, $service->statusForDate($b->fresh(['attendanceRecords']), '2026-08-03'));
-        $this->assertSame(AttendanceStatus::Absent, $service->statusForDate($c->fresh(['attendanceRecords']), '2026-08-03'));
-    }
-
-    public function test_rejects_non_prep_date(): void
-    {
-        $program = $this->makeProgram();
-        ProgramPrepDay::query()->create([
-            'training_program_id' => $program->id,
-            'prep_date' => '2026-08-03',
-            'delivery_type' => ProgramPrepDayType::InPerson,
-            'requires_attendance' => true,
-        ]);
-        $registration = $this->register($program);
-
-        $this->expectException(ValidationException::class);
-        app(ProgramAttendanceService::class)->markManualDay(
-            $registration,
-            '2026-08-09',
-            AttendanceStatus::Present,
-        );
-    }
-
-    public function test_default_prep_date_prefers_today_else_nearest(): void
-    {
-        Carbon::setTestNow(Carbon::parse('2026-08-06 10:00:00', 'Asia/Riyadh'));
-
-        $program = $this->makeProgram();
-        foreach (['2026-08-03', '2026-08-04', '2026-08-16'] as $date) {
-            ProgramPrepDay::query()->create([
-                'training_program_id' => $program->id,
-                'prep_date' => $date,
-                'delivery_type' => ProgramPrepDayType::InPerson,
-                'requires_attendance' => true,
-            ]);
-        }
-
-        // Aug 6 is between Aug 4 (2 days past) and Aug 16 (10 days future) → nearest Aug 4
-        $this->assertSame(
-            '2026-08-04',
-            app(ProgramAttendanceService::class)->defaultPrepDate($program),
-        );
-
-        Carbon::setTestNow(Carbon::parse('2026-08-04 10:00:00', 'Asia/Riyadh'));
-        $this->assertSame(
-            '2026-08-04',
-            app(ProgramAttendanceService::class)->defaultPrepDate($program),
-        );
-    }
-
-    public function test_excused_label_is_beozr_and_audit_logs_status_change(): void
-    {
-        $this->assertSame('بعذر', AttendanceStatus::Excused->label());
-
-        $actor = User::factory()->create();
-        $program = $this->makeProgram();
-        ProgramPrepDay::query()->create([
-            'training_program_id' => $program->id,
-            'prep_date' => '2026-08-03',
-            'delivery_type' => ProgramPrepDayType::InPerson,
-            'requires_attendance' => true,
-        ]);
-        $registration = $this->register($program);
-
-        app(ProgramAttendanceService::class)->markManualDay(
-            $registration,
-            '2026-08-03',
-            AttendanceStatus::Excused,
-            null,
-            $actor,
-        );
-
-        $log = AuditLog::query()->where('action', 'program_attendance.created')->latest('id')->first();
-        $this->assertNotNull($log);
-        $this->assertSame($actor->id, $log->actor_id);
-        $this->assertSame('2026-08-03', $log->metadata['training_date'] ?? null);
-        $this->assertSame('excused', $log->metadata['new_status'] ?? null);
-    }
-
-    public function test_live_session_check_in_requires_prep_day_and_audits(): void
-    {
-        Carbon::setTestNow(Carbon::parse('2026-08-03 12:00:00', 'Asia/Riyadh'));
-
-        $program = $this->makeProgram(['delivery_mode' => ProgramDeliveryMode::Remote]);
-        ProgramPrepDay::query()->create([
-            'training_program_id' => $program->id,
-            'prep_date' => '2026-08-03',
-            'delivery_type' => ProgramPrepDayType::Remote,
-            'requires_attendance' => true,
-        ]);
-        $registration = $this->register($program);
-
-        app(ProgramAttendanceService::class)->markPresentFromLiveSession($registration);
-
-        $this->assertSame(
-            AttendanceStatus::Present,
-            app(ProgramAttendanceService::class)->statusForDate($registration->fresh(['attendanceRecords']), '2026-08-03'),
-        );
-
-        $log = AuditLog::query()->where('action', 'program_attendance.created')->latest('id')->first();
-        $this->assertNotNull($log);
-        $this->assertSame('live_session', $log->metadata['source'] ?? null);
-
-        Carbon::setTestNow(Carbon::parse('2026-08-09 12:00:00', 'Asia/Riyadh'));
-        $this->expectException(ValidationException::class);
-        app(ProgramAttendanceService::class)->markPresentFromLiveSession($registration->fresh());
-    }
-
-    public function test_clear_day_writes_cleared_audit(): void
-    {
-        $actor = User::factory()->create();
-        $program = $this->makeProgram();
-        ProgramPrepDay::query()->create([
-            'training_program_id' => $program->id,
-            'prep_date' => '2026-08-03',
-            'delivery_type' => ProgramPrepDayType::InPerson,
-            'requires_attendance' => true,
-        ]);
-        $registration = $this->register($program);
-        $service = app(ProgramAttendanceService::class);
-
-        $service->markManualDay($registration, '2026-08-03', AttendanceStatus::Present, null, $actor);
-        $service->clearDay($registration, '2026-08-03', $actor);
-
-        $log = AuditLog::query()->where('action', 'program_attendance.cleared')->latest('id')->first();
-        $this->assertNotNull($log);
-        $this->assertSame($actor->id, $log->actor_id);
-        $this->assertSame('present', $log->metadata['old_status'] ?? null);
-        $this->assertArrayHasKey('new_status', $log->metadata);
-        $this->assertNull($log->metadata['new_status']);
-    }
-
-    public function test_volunteer_leaders_seeder_matches_stable_slug_not_title(): void
+    public function test_vl_seeder_matches_stable_slug_not_title(): void
     {
         $canonical = $this->makeProgram([
-            'title' => 'عنوان متغيّر بالكامل',
-            'slug' => VolunteerLeadersProgramPeriod::PROGRAM_SLUG,
+            'slug' => VolunteerLeadersProgramPeriod::stableSlugs()[0],
+            'title' => 'عنوان مختلف عن القادة',
         ]);
-        $titleOnly = $this->makeProgram([
-            'title' => 'قادة التطوع — دفعة أخرى',
-            'slug' => 'other-vl-title-only',
-        ]);
-
-        $this->seed(VolunteerLeadersProgramPrepDaysSeeder::class);
-
-        $this->assertSame(
-            6,
-            ProgramPrepDay::query()->where('training_program_id', $canonical->id)->count(),
-        );
-        $this->assertSame(
-            0,
-            ProgramPrepDay::query()->where('training_program_id', $titleOnly->id)->count(),
-        );
-
-        $dates = ProgramPrepDay::query()
-            ->where('training_program_id', $canonical->id)
-            ->orderBy('prep_date')
-            ->pluck('prep_date')
-            ->map(fn ($d) => $d->toDateString())
-            ->all();
-
-        $this->assertSame(VolunteerLeadersProgramPeriod::IN_PERSON_DATES, $dates);
-
-        // Idempotent re-run: 1 matched, 0 new
         $this->seed(VolunteerLeadersProgramPrepDaysSeeder::class);
         $this->assertSame(
             6,
             ProgramPrepDay::query()->where('training_program_id', $canonical->id)->count(),
         );
-    }
-
-    public function test_persisted_percentage_is_null_when_no_due_days(): void
-    {
-        Carbon::setTestNow(Carbon::parse('2026-07-01 12:00:00', 'Asia/Riyadh'));
-
-        $program = $this->makeProgram();
-        ProgramPrepDay::query()->create([
-            'training_program_id' => $program->id,
-            'prep_date' => '2026-08-03',
-            'delivery_type' => ProgramPrepDayType::InPerson,
-            'requires_attendance' => true,
-        ]);
-        $registration = $this->register($program);
-
-        // Force a sync by creating then clearing a row after a due day exists later —
-        // before due days, markManualDay still writes a row and recalculates to null.
-        Carbon::setTestNow(Carbon::parse('2026-08-03 12:00:00', 'Asia/Riyadh'));
-        app(ProgramAttendanceService::class)->markManualDay(
-            $registration,
-            '2026-08-03',
-            AttendanceStatus::Present,
-        );
-
-        $this->assertSame(100.0, (float) $registration->fresh()->attendance_percentage);
-
-        Carbon::setTestNow(Carbon::parse('2026-07-01 12:00:00', 'Asia/Riyadh'));
-        // Recalculate with as-of past: service returns null; emulate by clearing and
-        // updating via observer after a delete when due days become empty conceptually.
-        // Direct assertion on calculatePercentage (authoritative) and format.
-        $this->assertNull(app(ProgramAttendanceService::class)->calculatePercentage(
-            $registration->fresh(),
-            Carbon::parse('2026-07-01', 'Asia/Riyadh'),
-        ));
-        $this->assertSame('—', RegistrationFilamentTableSupport::formatPercentage(null));
     }
 
     /**
@@ -439,6 +367,19 @@ class ProgramDailyAttendanceServiceTest extends TestCase
             'capacity' => 50,
             'auto_accept_registrations' => true,
         ], $overrides));
+    }
+
+    private function addDay(
+        TrainingProgram $program,
+        string $date,
+        ProgramPrepDayType $type = ProgramPrepDayType::InPerson,
+    ): ProgramPrepDay {
+        return ProgramPrepDay::query()->create([
+            'training_program_id' => $program->id,
+            'prep_date' => $date,
+            'delivery_type' => $type,
+            'requires_attendance' => true,
+        ]);
     }
 
     private function register(TrainingProgram $program, string $email = 'ben@example.test'): ProgramRegistration

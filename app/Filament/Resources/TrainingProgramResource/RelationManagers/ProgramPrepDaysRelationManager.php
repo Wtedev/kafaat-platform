@@ -10,11 +10,8 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -23,7 +20,7 @@ class ProgramPrepDaysRelationManager extends RelationManager
 {
     protected static string $relationship = 'prepDays';
 
-    protected static ?string $title = 'أيام التحضير';
+    protected static ?string $title = 'أيام البرنامج';
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
@@ -48,14 +45,7 @@ class ProgramPrepDaysRelationManager extends RelationManager
                 ->label('نوع اليوم')
                 ->options(ProgramPrepDayType::options())
                 ->required()
-                ->live()
                 ->default(ProgramPrepDayType::InPerson->value),
-
-            Toggle::make('requires_attendance')
-                ->label('يتطلب تحضير')
-                ->helperText('أيام عن بُعد لا تُحسب في نسبة الحضور إلا عند تفعيل هذا الخيار.')
-                ->default(fn (Get $get): bool => $get('delivery_type') === ProgramPrepDayType::InPerson->value)
-                ->dehydrated(),
         ]);
     }
 
@@ -83,26 +73,25 @@ class ProgramPrepDaysRelationManager extends RelationManager
                         $state === ProgramPrepDayType::InPerson->value => 'success',
                         default => 'gray',
                     }),
-
-                IconColumn::make('requires_attendance')
-                    ->label('يتطلب تحضير')
-                    ->boolean(),
             ])
             ->headerActions([
                 CreateAction::make()
                     ->label('إضافة يوم')
                     ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
                     ->mutateFormDataUsing(function (array $data): array {
-                        if (! array_key_exists('requires_attendance', $data) || $data['requires_attendance'] === null) {
-                            $data['requires_attendance'] = ($data['delivery_type'] ?? null) === ProgramPrepDayType::InPerson->value;
-                        }
+                        $data['requires_attendance'] = true;
 
                         return $data;
                     }),
             ])
             ->actions([
                 EditAction::make()
-                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false),
+                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['requires_attendance'] = true;
+
+                        return $data;
+                    }),
                 DeleteAction::make()
                     ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false),
             ])

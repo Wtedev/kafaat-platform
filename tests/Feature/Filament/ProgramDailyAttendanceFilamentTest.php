@@ -13,7 +13,6 @@ use App\Filament\Resources\TrainingProgramResource;
 use App\Filament\Resources\TrainingProgramResource\Pages\ViewTrainingProgram;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramAttendanceRegistrationsRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramPrepDaysRelationManager;
-use App\Models\ProgramAttendance;
 use App\Models\ProgramPrepDay;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
@@ -59,6 +58,7 @@ class ProgramDailyAttendanceFilamentTest extends TestCase
         $this->assertTrue(
             ProgramAttendanceRegistrationsRelationManager::canViewForRecord($program, ViewTrainingProgram::class),
         );
+        $this->assertSame('أيام البرنامج', (new \ReflectionClass(ProgramPrepDaysRelationManager::class))->getStaticPropertyValue('title'));
 
         $outsider = User::factory()->create([
             'role_type' => 'staff',
@@ -74,7 +74,7 @@ class ProgramDailyAttendanceFilamentTest extends TestCase
         );
     }
 
-    public function test_daily_mode_marks_status_for_selected_prep_day(): void
+    public function test_daily_toggle_marks_present_and_unmarks(): void
     {
         $admin = $this->admin();
         $program = $this->program($admin);
@@ -93,33 +93,40 @@ class ProgramDailyAttendanceFilamentTest extends TestCase
             ->set('selectedPrepDate', '2026-08-03')
             ->set('attendanceMode', 'daily')
             ->assertCanSeeTableRecords([$registration])
-            ->callTableAction('manualAttendance', $registration, [
-                'status' => AttendanceStatus::Late->value,
-                'notes' => 'وصلت متأخرة',
-            ])
-            ->assertNotified('تم تحديث الحضور');
+            ->assertDontSee('تغيير سريع')
+            ->assertDontSee('اعتماد غياب')
+            ->assertDontSee('غير محدد');
+
+        app(ProgramAttendanceService::class)->setPresentState($registration, '2026-08-03', true, $admin);
 
         $this->assertDatabaseHas('program_attendance', [
             'program_registration_id' => $registration->id,
-            'status' => AttendanceStatus::Late->value,
+            'status' => AttendanceStatus::Present->value,
         ]);
 
-        $this->assertSame(
-            AttendanceStatus::Late,
-            app(ProgramAttendanceService::class)->statusForDate($registration->fresh(['attendanceRecords']), '2026-08-03'),
-        );
-        $this->assertNull(
-            app(ProgramAttendanceService::class)->statusForDate($registration->fresh(['attendanceRecords']), '2026-08-04'),
-        );
+        Livewire::actingAs($admin)
+            ->test(ProgramAttendanceRegistrationsRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->set('selectedPrepDate', '2026-08-03')
+            ->assertSee('حاضر');
+
+        app(ProgramAttendanceService::class)->setPresentState($registration, '2026-08-03', false, $admin);
+        $this->assertDatabaseMissing('program_attendance', [
+            'program_registration_id' => $registration->id,
+        ]);
     }
 
-    public function test_bulk_present_and_matrix_mode_render(): void
+    public function test_matrix_mode_is_view_only_and_shows_binary_labels(): void
     {
         $admin = $this->admin();
         $program = $this->program($admin);
         $this->addPrepDay($program, '2026-08-03');
         $a = $this->register($program, 'أ');
         $b = $this->register($program, 'ب');
+
+        app(ProgramAttendanceService::class)->markPresent($a, '2026-08-03', $admin);
 
         $this->withSession(['otp_verified' => true]);
         $this->actingAs($admin);
@@ -129,24 +136,16 @@ class ProgramDailyAttendanceFilamentTest extends TestCase
                 'ownerRecord' => $program,
                 'pageClass' => ViewTrainingProgram::class,
             ])
-            ->set('selectedPrepDate', '2026-08-03')
-            ->callTableBulkAction('bulkPresent', [$a, $b])
-            ->assertNotified();
-
-        $this->assertSame(2, ProgramAttendance::query()->where('status', AttendanceStatus::Present->value)->count());
-
-        Livewire::actingAs($admin)
-            ->test(ProgramAttendanceRegistrationsRelationManager::class, [
-                'ownerRecord' => $program,
-                'pageClass' => ViewTrainingProgram::class,
-            ])
             ->call('setAttendanceMode', 'matrix')
             ->assertSet('attendanceMode', 'matrix')
-            ->assertSee('أغسطس')
+            ->assertSee('حاضر')
+            ->assertSee('لم يحضر')
+            ->assertDontSee('تحضير يدوي')
+            ->assertDontSee('دليل الحالات')
             ->assertCanSeeTableRecords([$a, $b]);
     }
 
-    public function test_prep_day_create_via_relation_manager(): void
+    public function test_prep_day_create_forces_requires_attendance_and_hides_toggle(): void
     {
         $admin = $this->admin();
         $program = $this->program($admin);
@@ -159,19 +158,60 @@ class ProgramDailyAttendanceFilamentTest extends TestCase
                 'ownerRecord' => $program,
                 'pageClass' => ViewTrainingProgram::class,
             ])
+            ->assertDontSee('يتطلب تحضير')
             ->callAction(TestAction::make('create')->table(), [
                 'prep_date' => '2026-08-05',
-                'delivery_type' => ProgramPrepDayType::InPerson->value,
-                'requires_attendance' => true,
+                'delivery_type' => ProgramPrepDayType::Remote->value,
             ]);
 
-        $this->assertTrue(
-            ProgramPrepDay::query()
-                ->where('training_program_id', $program->id)
-                ->whereDate('prep_date', '2026-08-05')
-                ->where('requires_attendance', true)
-                ->exists()
-        );
+        $day = ProgramPrepDay::query()
+            ->where('training_program_id', $program->id)
+            ->whereDate('prep_date', '2026-08-05')
+            ->first();
+
+        $this->assertNotNull($day);
+        $this->assertTrue($day->requires_attendance);
+        $this->assertSame(ProgramPrepDayType::Remote, $day->delivery_type);
+    }
+
+    public function test_qr_and_open_prep_visibility_only_for_selected_today(): void
+    {
+        $admin = $this->admin();
+        $program = $this->program($admin);
+        $this->addPrepDay($program, '2026-08-03', ProgramPrepDayType::InPerson);
+        $this->addPrepDay($program, '2026-08-10', ProgramPrepDayType::Remote);
+
+        $this->withSession(['otp_verified' => true]);
+        $this->actingAs($admin);
+
+        Livewire::actingAs($admin)
+            ->test(ProgramAttendanceRegistrationsRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->set('selectedPrepDate', '2026-08-03')
+            ->assertActionVisible(TestAction::make('openGateScan')->table())
+            ->assertActionHidden(TestAction::make('startLiveSession')->table());
+
+        Livewire::actingAs($admin)
+            ->test(ProgramAttendanceRegistrationsRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->set('selectedPrepDate', '2026-08-10')
+            ->assertActionHidden(TestAction::make('openGateScan')->table())
+            ->assertActionHidden(TestAction::make('startLiveSession')->table()); // not TODAY
+
+        Carbon::setTestNow(Carbon::parse('2026-08-10 12:00:00', 'Asia/Riyadh'));
+
+        Livewire::actingAs($admin)
+            ->test(ProgramAttendanceRegistrationsRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->set('selectedPrepDate', '2026-08-10')
+            ->assertActionVisible(TestAction::make('startLiveSession')->table())
+            ->assertActionHidden(TestAction::make('openGateScan')->table());
     }
 
     private function admin(): User
@@ -194,7 +234,7 @@ class ProgramDailyAttendanceFilamentTest extends TestCase
             'description' => 'وصف',
             'program_kind' => TrainingProgramKind::Course,
             'competency_track' => CompetencyTrack::Self,
-            'delivery_mode' => ProgramDeliveryMode::InPerson,
+            'delivery_mode' => ProgramDeliveryMode::Hybrid,
             'venue' => 'القاعة',
             'status' => ProgramStatus::Published,
             'published_at' => now()->subDay(),
@@ -205,12 +245,15 @@ class ProgramDailyAttendanceFilamentTest extends TestCase
         ]);
     }
 
-    private function addPrepDay(TrainingProgram $program, string $date): void
-    {
+    private function addPrepDay(
+        TrainingProgram $program,
+        string $date,
+        ProgramPrepDayType $type = ProgramPrepDayType::InPerson,
+    ): void {
         ProgramPrepDay::query()->create([
             'training_program_id' => $program->id,
             'prep_date' => $date,
-            'delivery_type' => ProgramPrepDayType::InPerson,
+            'delivery_type' => $type,
             'requires_attendance' => true,
         ]);
     }

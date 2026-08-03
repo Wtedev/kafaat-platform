@@ -17,7 +17,7 @@ class PathAttendanceService
     }
 
     /**
-     * Union of explicit prep days requiring attendance across path programs.
+     * Union of all program prep days across path programs (including future).
      *
      * @return list<string>
      */
@@ -40,22 +40,17 @@ class PathAttendanceService
     }
 
     /**
-     * Due prep days for % denominator: requires attendance and date <= today (Asia/Riyadh).
+     * @deprecated Prefer expectedAttendanceDateStrings — kept for older call sites.
      *
      * @return list<string>
      */
     public function dueAttendanceDateStrings(LearningPath $path, ?Carbon $asOf = null): array
     {
-        $today = ($asOf ?? Carbon::today(config('app.timezone')))->toDateString();
-
-        return array_values(array_filter(
-            $this->expectedAttendanceDateStrings($path),
-            static fn (string $date): bool => $date <= $today,
-        ));
+        return $this->expectedAttendanceDateStrings($path);
     }
 
     /**
-     * Explicit prep days that require attendance (not weekdays expansion).
+     * All program prep days for a program (shared source of truth).
      *
      * @return list<string>
      */
@@ -65,15 +60,16 @@ class PathAttendanceService
     }
 
     /**
-     * Attendance % = (present + late) / due prep days up to today.
-     * Returns null when no due prep days yet (UI shows «—»).
+     * Path % = (present + late) / all expected prep days × 100.
+     * PathAttendance keeps its own status model; denominator aligns with program prep days.
+     * Returns null when no expected days (UI shows «—»).
      */
     public function calculatePercentage(PathRegistration $registration, ?Carbon $asOf = null): ?float
     {
         $registration->loadMissing('learningPath.programs');
-        $dueDays = $this->dueAttendanceDateStrings($registration->learningPath, $asOf);
+        $expectedDays = $this->expectedAttendanceDateStrings($registration->learningPath);
 
-        if ($dueDays === []) {
+        if ($expectedDays === []) {
             return null;
         }
 
@@ -82,12 +78,12 @@ class PathAttendanceService
             ->get()
             ->filter(fn (PathAttendance $row): bool => in_array(
                 $row->attendance_date->toDateString(),
-                $dueDays,
+                $expectedDays,
                 true,
             ))
             ->count();
 
-        return round($attended / count($dueDays) * 100, 2);
+        return round($attended / count($expectedDays) * 100, 2);
     }
 
     public function markManualDay(PathRegistration $registration, string $date, AttendanceStatus $status, ?string $notes = null): void

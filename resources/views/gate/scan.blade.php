@@ -26,12 +26,20 @@
         </div>
 
         <div class="mt-4 rounded-2xl border border-[#d7e2ef] bg-[#f5f8fc] px-4 py-3">
-            <p class="text-xs text-gray-500">يوم التحضير المحدد</p>
+            <p class="text-xs text-gray-500">يوم التحضير (اليوم حسب توقيت الرياض)</p>
             <p class="mt-0.5 text-sm font-bold text-[#335483]">{{ $prepDateLabel }}</p>
             <p class="mt-0.5 text-xs font-mono text-gray-500">{{ $prepDate }}</p>
-            <a href="{{ route('gate.scan', ['program' => $program->slug, 'change' => 1]) }}" class="mt-2 inline-block text-xs font-medium text-[#335483] underline-offset-2 hover:underline">
-                تغيير اليوم
-            </a>
+            @if ($isInPersonToday)
+                <p class="mt-2 text-xs font-medium text-emerald-700">يوم حضوري — المسح مفعّل لهذا اليوم فقط</p>
+            @else
+                <p class="mt-2 text-xs font-medium text-amber-700">
+                    @if ($prepDay)
+                        اليوم ليس يوماً حضورياً. مسح QR غير متاح حالياً.
+                    @else
+                        اليوم ليس من أيام البرنامج. مسح QR غير متاح حالياً.
+                    @endif
+                </p>
+            @endif
         </div>
 
         <div id="gate-feedback" class="mt-5 hidden rounded-2xl border px-4 py-4 text-center" role="status" aria-live="polite">
@@ -54,38 +62,39 @@
             </div>
         @endif
 
-        <div class="mt-5">
-            <div id="reader" class="overflow-hidden rounded-2xl border border-[#d7e2ef] bg-[#0f172a]" style="min-height: 240px;"></div>
-            <p id="camera-hint" class="mt-2 text-center text-xs text-gray-500">وجّهي الكاميرا نحو رمز QR الخاص بالمشاركة.</p>
-            <p id="camera-error" class="mt-2 hidden text-center text-xs text-red-600"></p>
-        </div>
+        @if ($isInPersonToday)
+            <div class="mt-5">
+                <div id="reader" class="overflow-hidden rounded-2xl border border-[#d7e2ef] bg-[#0f172a]" style="min-height: 240px;"></div>
+                <p id="camera-hint" class="mt-2 text-center text-xs text-gray-500">وجّهي الكاميرا نحو رمز QR الخاص بالمشاركة.</p>
+                <p id="camera-error" class="mt-2 hidden text-center text-xs text-red-600"></p>
+            </div>
 
-        <form id="manual-pass-form" method="POST" action="{{ route('gate.scan.store', ['program' => $program->slug]) }}" class="mt-6 space-y-3">
-            @csrf
-            <input type="hidden" name="date" value="{{ $prepDate }}" />
-            <label for="pass" class="block text-sm font-medium text-gray-700">أو أدخلي الرمز يدوياً</label>
-            <input
-                id="pass"
-                type="text"
-                name="pass"
-                value="{{ old('pass') }}"
-                placeholder="KAFAAT-P…-R…"
-                autocomplete="off"
-                class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-mono tracking-wide focus:outline-none focus:ring-2 focus:ring-brand/25"
-            />
-            <button type="submit" id="manual-submit" class="w-full py-3 rounded-xl bg-brand text-white font-semibold text-sm hover:opacity-95 transition">
-                تسجيل الحضور
-            </button>
-        </form>
+            <form id="manual-pass-form" method="POST" action="{{ route('gate.scan.store', ['program' => $program->slug]) }}" class="mt-6 space-y-3">
+                @csrf
+                <label for="pass" class="block text-sm font-medium text-gray-700">أو أدخلي الرمز يدوياً</label>
+                <input
+                    id="pass"
+                    type="text"
+                    name="pass"
+                    value="{{ old('pass') }}"
+                    placeholder="KAFAAT-P…-R…"
+                    autocomplete="off"
+                    class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-mono tracking-wide focus:outline-none focus:ring-2 focus:ring-brand/25"
+                />
+                <button type="submit" id="manual-submit" class="w-full py-3 rounded-xl bg-brand text-white font-semibold text-sm hover:opacity-95 transition">
+                    تسجيل الحضور
+                </button>
+            </form>
+        @endif
     </div>
 </div>
 @endsection
 
+@if ($isInPersonToday)
 @push('scripts')
 <script>
 (() => {
     const scanUrl = @json(route('gate.scan.store', ['program' => $program->slug]));
-    const prepDate = @json($prepDate);
     const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const feedback = document.getElementById('gate-feedback');
     const feedbackName = document.getElementById('gate-feedback-name');
@@ -136,7 +145,7 @@
                     'X-CSRF-TOKEN': csrf,
                     'X-Requested-With': 'XMLHttpRequest',
                 },
-                body: JSON.stringify({ pass, date: prepDate }),
+                body: JSON.stringify({ pass }),
             });
             const data = await response.json().catch(() => ({}));
             const ok = Boolean(data.ok);
@@ -196,3 +205,4 @@
 })();
 </script>
 @endpush
+@endif

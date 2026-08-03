@@ -3,12 +3,15 @@
 namespace App\Services;
 
 use App\Enums\AttendanceStatus;
+use App\Enums\ProgramPrepDayType;
 use App\Models\AttendanceLiveSession;
 use App\Models\PathAttendance;
 use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
+use App\Models\TrainingProgram;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
@@ -16,21 +19,29 @@ class AttendanceLiveSessionService
 {
     public const SESSION_MINUTES = 5;
 
-    public function activeSessionFor(Model $attendable): ?AttendanceLiveSession
+    public function activeSessionFor(Model $attendable, ?string $sessionDate = null): ?AttendanceLiveSession
     {
         if (! Schema::hasTable('attendance_live_sessions')) {
             return null;
         }
 
-        return AttendanceLiveSession::query()
+        $query = AttendanceLiveSession::query()
             ->where('attendable_type', $attendable->getMorphClass())
             ->where('attendable_id', $attendable->getKey())
-            ->where('expires_at', '>', now())
-            ->latest('started_at')
-            ->first();
+            ->where('expires_at', '>', now());
+
+        if ($sessionDate !== null && Schema::hasColumn('attendance_live_sessions', 'session_date')) {
+            $query->whereDate('session_date', $sessionDate);
+        }
+
+        return $query->latest('started_at')->first();
     }
 
-    public function startSession(Model $attendable, User $admin): AttendanceLiveSession
+    /**
+     * Start a 5-minute remote attendance window for TODAY's remote prep day.
+     * If an active session already exists for today, returns it without replacing.
+     */
+    public function startProgramRemoteSession(TrainingProgram $program, User $admin): AttendanceLiveSession
     {
         if (! Schema::hasTable('attendance_live_sessions')) {
             throw ValidationException::withMessages([
@@ -38,11 +49,50 @@ class AttendanceLiveSessionService
             ]);
         }
 
-        AttendanceLiveSession::query()
-            ->where('attendable_type', $attendable->getMorphClass())
-            ->where('attendable_id', $attendable->getKey())
-            ->where('expires_at', '>', now())
-            ->update(['expires_at' => now()]);
+        $today = Carbon::today(config('app.timezone'))->toDateString();
+        $prepDay = app(ProgramAttendanceService::class)->todayPrepDay($program);
+
+        if ($prepDay === null || $prepDay->delivery_type !== ProgramPrepDayType::Remote) {
+            throw ValidationException::withMessages([
+                'session' => 'فتح التحضير متاح فقط عندما يكون يوم اليوم من أيام البرنامج عن بُعد.',
+            ]);
+        }
+
+        $existing = $this->activeSessionFor($program, $today);
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        return AttendanceLiveSession::create([
+            'attendable_type' => $program->getMorphClass(),
+            'attendable_id' => $program->getKey(),
+            'program_prep_day_id' => $prepDay->id,
+            'session_date' => $today,
+            'created_by' => $admin->id,
+            'started_at' => now(),
+            'expires_at' => now()->addMinutes(self::SESSION_MINUTES),
+        ]);
+    }
+
+    /**
+     * Path / generic sessions: do not silently replace an active window.
+     */
+    public function startSession(Model $attendable, User $admin): AttendanceLiveSession
+    {
+        if ($attendable instanceof TrainingProgram) {
+            return $this->startProgramRemoteSession($attendable, $admin);
+        }
+
+        if (! Schema::hasTable('attendance_live_sessions')) {
+            throw ValidationException::withMessages([
+                'session' => 'جدول جلسات الحضور غير متوفر. شغّل ترحيلات قاعدة البيانات: php artisan migrate',
+            ]);
+        }
+
+        $existing = $this->activeSessionFor($attendable);
+        if ($existing !== null) {
+            return $existing;
+        }
 
         return AttendanceLiveSession::create([
             'attendable_type' => $attendable->getMorphClass(),
@@ -59,8 +109,16 @@ class AttendanceLiveSessionService
         $this->assertSessionActiveFor($session, $registration->trainingProgram);
         $this->assertRegistrationApproved($registration);
 
-        // Prep-day validation + AuditLogger via ProgramAttendanceService.
-        app(ProgramAttendanceService::class)->markPresentFromLiveSession($registration);
+        $prepDate = $session->session_date instanceof Carbon
+            ? $session->session_date->toDateString()
+            : ($session->session_date !== null
+                ? (string) $session->session_date
+                : Carbon::today(config('app.timezone'))->toDateString());
+
+        app(ProgramAttendanceService::class)->markPresentFromLiveSession(
+            $registration,
+            $prepDate,
+        );
     }
 
     public function checkInPath(AttendanceLiveSession $session, PathRegistration $registration): void

@@ -2,32 +2,30 @@
 
 namespace App\Filament\Resources\TrainingProgramResource\RelationManagers;
 
-use App\Enums\AttendanceStatus;
-use App\Enums\ProgramDeliveryMode;
+use App\Enums\ProgramPrepDayType;
 use App\Enums\RegistrationStatus;
 use App\Filament\Concerns\InteractsWithAttendanceLiveSession;
 use App\Filament\Support\RegistrationFilamentTableSupport;
+use App\Models\AttendanceLiveSession;
 use App\Models\ProgramPrepDay;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
+use App\Services\AttendanceLiveSessionService;
 use App\Services\ProgramAttendanceService;
 use Filament\Actions\Action;
-use Filament\Actions\BulkAction;
-use Filament\Actions\BulkActionGroup;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\HtmlString;
+use Illuminate\Validation\ValidationException;
 
 class ProgramAttendanceRegistrationsRelationManager extends RelationManager
 {
@@ -90,28 +88,27 @@ class ProgramAttendanceRegistrationsRelationManager extends RelationManager
         $program = $this->ownerProgram();
         $prepOptions = $service->attendancePrepDateOptions($program);
         $selectedDate = $this->resolvedSelectedPrepDate($service, $program);
+        $selectedDay = $selectedDate ? $service->prepDayForDate($program, $selectedDate) : null;
+        $today = Carbon::today(config('app.timezone'))->toDateString();
 
         $table = RegistrationFilamentTableSupport::configureBeneficiaryRowNavigation($table)
-            ->poll(fn (): ?string => $this->isRemoteProgram()
+            ->poll(fn (): ?string => $this->shouldPollLiveSession($selectedDate, $today)
                 ? $this->attendanceLiveSessionTablePollInterval()
                 : null)
-            ->modifyQueryUsing(function (Builder $query) use ($service, $program): Builder {
+            ->modifyQueryUsing(function (Builder $query): Builder {
                 $query->whereIn('status', [
                     RegistrationStatus::Approved->value,
                     RegistrationStatus::Completed->value,
                 ])->with([
                     'user',
-                    'attendanceRecords' => fn ($q) => $q->whereIn(
-                        'training_date',
-                        $service->attendancePrepDateStrings($program),
-                    ),
+                    'attendanceRecords',
                     'trainingProgram.prepDays',
                 ]);
 
                 return $query;
             })
-            ->description(fn (): HtmlString => new HtmlString($this->legendHtml()))
-            ->headerActions($this->headerActions($service, $program, $prepOptions, $selectedDate))
+            ->description(fn (): ?HtmlString => $this->headerHintHtml($selectedDay, $selectedDate))
+            ->headerActions($this->headerActions($service, $program, $prepOptions, $selectedDate, $selectedDay, $today))
             ->defaultSort('user.name');
 
         if ($this->attendanceMode === 'matrix') {
@@ -130,27 +127,26 @@ class ProgramAttendanceRegistrationsRelationManager extends RelationManager
         TrainingProgram $program,
         array $prepOptions,
         ?string $selectedDate,
+        ?ProgramPrepDay $selectedDay,
+        string $today,
     ): array {
         return [
             Action::make('modeDaily')
                 ->label('تحضير يومي')
-                ->icon('heroicon-o-calendar-days')
                 ->color(fn (): string => $this->attendanceMode === 'daily' ? 'primary' : 'gray')
                 ->action(fn () => $this->setAttendanceMode('daily')),
 
             Action::make('modeMatrix')
                 ->label('سجل جميع الأيام')
-                ->icon('heroicon-o-table-cells')
                 ->color(fn (): string => $this->attendanceMode === 'matrix' ? 'primary' : 'gray')
                 ->action(fn () => $this->setAttendanceMode('matrix')),
 
             Action::make('selectPrepDay')
-                ->label('يوم التحضير')
-                ->icon('heroicon-o-clock')
+                ->label('اختر اليوم')
                 ->visible(fn (): bool => $this->attendanceMode === 'daily' && $prepOptions !== [])
                 ->form([
                     Select::make('prep_date')
-                        ->label('اختر يوم التحضير')
+                        ->label('يوم البرنامج')
                         ->options($prepOptions)
                         ->required()
                         ->default($selectedDate)
@@ -162,56 +158,67 @@ class ProgramAttendanceRegistrationsRelationManager extends RelationManager
                 }),
 
             Action::make('openGateScan')
-                ->label('مسح QR للتحضير')
+                ->label('مسح QR')
                 ->icon('heroicon-o-qr-code')
                 ->color('success')
-                ->url(function () use ($selectedDate): string {
-                    $params = ['program' => $this->ownerProgram()->slug];
-                    if (filled($selectedDate)) {
-                        $params['date'] = $selectedDate;
-                    }
-
-                    return route('gate.scan', $params);
-                })
+                ->url(fn (): string => route('gate.scan', ['program' => $this->ownerProgram()->slug]))
                 ->openUrlInNewTab()
-                ->visible(fn (): bool => $this->isInPersonProgram())
+                ->visible(fn (): bool => $this->attendanceMode === 'daily' && $this->isSelectedTodayInPerson())
                 ->authorize(fn (): bool => auth()->user()?->can('viewOperational', $this->getOwnerRecord()) ?? false),
 
             Action::make('startLiveSession')
-                ->label('فتح جلسة حضور (5 دقائق)')
+                ->label('فتح التحضير')
                 ->icon('heroicon-o-signal')
                 ->color('success')
-                ->visible(fn (): bool => $this->isRemoteProgram() && $this->activeAttendanceSession() === null)
+                ->visible(fn (): bool => $this->attendanceMode === 'daily'
+                    && $this->isSelectedTodayRemote()
+                    && $this->activeAttendanceSession() === null)
                 ->authorize(fn (): bool => auth()->user()?->can('viewOperational', $this->getOwnerRecord()) ?? false)
-                ->action(fn (): mixed => $this->startAttendanceLiveSession()),
+                ->action(function (): void {
+                    try {
+                        $this->startAttendanceLiveSession();
+                    } catch (ValidationException $exception) {
+                        Notification::make()
+                            ->title('تعذّر فتح التحضير')
+                            ->body(collect($exception->errors())->flatten()->first() ?? 'حدث خطأ.')
+                            ->danger()
+                            ->send();
+                    }
+                }),
 
             $this->makeAttendanceLiveSessionCountdownAction()
-                ->visible(fn (): bool => $this->isRemoteProgram() && ($this->activeAttendanceSession()?->isActive() ?? false)),
-
-            Action::make('adoptAbsent')
-                ->label('اعتماد غياب اليوم')
-                ->icon('heroicon-o-user-minus')
-                ->color('danger')
-                ->requiresConfirmation()
-                ->modalHeading('اعتماد غياب اليوم')
-                ->modalDescription('سيتم تعليم جميع المستفيدات غير المحدّدات كغائبات لهذا اليوم فقط. لن تُغيَّر الحالات المسجّلة مسبقاً.')
-                ->visible(fn (): bool => $this->attendanceMode === 'daily' && filled($selectedDate))
-                ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
-                ->action(function () use ($service, $program, $selectedDate): void {
-                    $count = $service->adoptAbsentForUnspecified(
-                        $program,
-                        (string) $selectedDate,
-                        Auth::user(),
-                    );
-
-                    Notification::make()
-                        ->title($count > 0 ? "تم اعتماد غياب {$count} مستفيدة" : 'لا يوجد غير محدّد لاعتماده')
-                        ->success()
-                        ->send();
-
-                    $this->resetTable();
-                }),
+                ->visible(fn (): bool => $this->attendanceMode === 'daily'
+                    && $this->isSelectedTodayRemote()
+                    && ($this->activeAttendanceSession()?->isActive() ?? false)),
         ];
+    }
+
+    protected function isSelectedTodayInPerson(): bool
+    {
+        $service = app(ProgramAttendanceService::class);
+        $program = $this->ownerProgram();
+        $selected = $this->resolvedSelectedPrepDate($service, $program);
+        $today = Carbon::today(config('app.timezone'))->toDateString();
+
+        if ($selected === null || $selected !== $today) {
+            return false;
+        }
+
+        return $service->prepDayForDate($program, $selected)?->delivery_type === ProgramPrepDayType::InPerson;
+    }
+
+    protected function isSelectedTodayRemote(): bool
+    {
+        $service = app(ProgramAttendanceService::class);
+        $program = $this->ownerProgram();
+        $selected = $this->resolvedSelectedPrepDate($service, $program);
+        $today = Carbon::today(config('app.timezone'))->toDateString();
+
+        if ($selected === null || $selected !== $today) {
+            return false;
+        }
+
+        return $service->prepDayForDate($program, $selected)?->delivery_type === ProgramPrepDayType::Remote;
     }
 
     protected function configureDailyTable(
@@ -220,64 +227,44 @@ class ProgramAttendanceRegistrationsRelationManager extends RelationManager
         TrainingProgram $program,
         ?string $selectedDate,
     ): Table {
-        $dayLabel = $selectedDate
-            ? ($service->attendancePrepDateOptions($program)[$selectedDate] ?? $selectedDate)
-            : '—';
-
         return $table
             ->columns([
                 RegistrationFilamentTableSupport::beneficiaryNameColumn(),
 
-                TextColumn::make('day_status')
-                    ->label('حالة '.$dayLabel)
-                    ->badge()
-                    ->getStateUsing(function (ProgramRegistration $record) use ($selectedDate): string {
+                ToggleColumn::make('is_present')
+                    ->label('حاضر')
+                    ->disabled(fn (): bool => $selectedDate === null || ! (auth()->user()?->can('update', $program) ?? false))
+                    ->getStateUsing(function (ProgramRegistration $record) use ($service, $selectedDate): bool {
                         if ($selectedDate === null) {
-                            return 'غير محدد';
+                            return false;
                         }
 
-                        return $this->statusLabelFor($record, $selectedDate);
+                        return $service->isPresentOnDate($record, $selectedDate);
+                    })
+                    ->updateStateUsing(function (ProgramRegistration $record, bool $state) use ($service, $selectedDate): void {
+                        if ($selectedDate === null) {
+                            return;
+                        }
+
+                        $service->setPresentState($record, $selectedDate, $state, Auth::user());
+                    }),
+
+                TextColumn::make('day_status')
+                    ->label('الحالة')
+                    ->badge()
+                    ->getStateUsing(function (ProgramRegistration $record) use ($service, $selectedDate): string {
+                        if ($selectedDate === null) {
+                            return '—';
+                        }
+
+                        return $service->displayLabelForDate($record, $selectedDate);
                     })
                     ->color(function (ProgramRegistration $record) use ($service, $selectedDate): string {
                         if ($selectedDate === null) {
                             return 'gray';
                         }
 
-                        $status = $service->statusForDate($record, $selectedDate);
-
-                        return $status?->color() ?? 'gray';
-                    }),
-
-                SelectColumn::make('quick_status')
-                    ->label('تغيير سريع')
-                    ->options(AttendanceStatus::options())
-                    ->placeholder('غير محدد')
-                    ->disabled(fn (): bool => $selectedDate === null || ! (auth()->user()?->can('update', $program) ?? false))
-                    ->getStateUsing(function (ProgramRegistration $record) use ($service, $selectedDate): ?string {
-                        if ($selectedDate === null) {
-                            return null;
-                        }
-
-                        return $service->statusForDate($record, $selectedDate)?->value;
-                    })
-                    ->updateStateUsing(function (ProgramRegistration $record, ?string $state) use ($service, $selectedDate): void {
-                        if ($selectedDate === null) {
-                            return;
-                        }
-
-                        if ($state === null || $state === '') {
-                            $service->clearDay($record, $selectedDate, Auth::user());
-
-                            return;
-                        }
-
-                        $service->markManualDay(
-                            $record,
-                            $selectedDate,
-                            AttendanceStatus::from($state),
-                            null,
-                            Auth::user(),
-                        );
+                        return $service->isPresentOnDate($record, $selectedDate) ? 'success' : 'gray';
                     }),
 
                 TextColumn::make('attendance_days')
@@ -286,65 +273,8 @@ class ProgramAttendanceRegistrationsRelationManager extends RelationManager
 
                 RegistrationFilamentTableSupport::attendancePercentageColumn(),
             ])
-            ->actions([
-                Action::make('manualAttendance')
-                    ->label('تحضير يدوي')
-                    ->icon('heroicon-o-pencil-square')
-                    ->color('gray')
-                    ->authorize('update')
-                    ->visible(fn (): bool => $selectedDate !== null)
-                    ->form([
-                        Select::make('status')
-                            ->label('الحالة')
-                            ->options(AttendanceStatus::options())
-                            ->required()
-                            ->default(AttendanceStatus::Present->value),
-
-                        Textarea::make('notes')
-                            ->label('ملاحظات')
-                            ->rows(2),
-                    ])
-                    ->action(function (ProgramRegistration $record, array $data) use ($service, $selectedDate): void {
-                        $service->markManualDay(
-                            $record,
-                            (string) $selectedDate,
-                            AttendanceStatus::from((string) $data['status']),
-                            $data['notes'] ?? null,
-                            Auth::user(),
-                        );
-
-                        Notification::make()->title('تم تحديث الحضور')->success()->send();
-                    }),
-            ])
-            ->bulkActions([
-                BulkActionGroup::make([
-                    $this->bulkStatusAction('bulkPresent', 'تحضير الكل حاضر', AttendanceStatus::Present, $selectedDate),
-                    $this->bulkStatusAction('bulkAbsent', 'تحضير الكل غائب', AttendanceStatus::Absent, $selectedDate),
-                    $this->bulkStatusAction('bulkExcused', 'تحضير الكل بعذر', AttendanceStatus::Excused, $selectedDate),
-                    $this->bulkStatusAction('bulkLate', 'تحضير الكل متأخر', AttendanceStatus::Late, $selectedDate),
-                    BulkAction::make('bulkReset')
-                        ->label('إعادة لغير محدد')
-                        ->icon('heroicon-o-arrow-path')
-                        ->color('gray')
-                        ->requiresConfirmation()
-                        ->deselectRecordsAfterCompletion()
-                        ->visible(fn (): bool => $selectedDate !== null)
-                        ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
-                        ->action(function (EloquentCollection $records) use ($service, $program, $selectedDate): void {
-                            $count = $service->bulkClearDay(
-                                $program,
-                                $records->modelKeys(),
-                                (string) $selectedDate,
-                                Auth::user(),
-                            );
-
-                            Notification::make()
-                                ->title("تم إعادة {$count} سجل لغير محدد")
-                                ->success()
-                                ->send();
-                        }),
-                ]),
-            ]);
+            ->actions([])
+            ->bulkActions([]);
     }
 
     protected function configureMatrixTable(
@@ -367,10 +297,8 @@ class ProgramAttendanceRegistrationsRelationManager extends RelationManager
             $columns[] = TextColumn::make('day_'.$date)
                 ->label($label)
                 ->badge()
-                ->getStateUsing(fn (ProgramRegistration $record): string => $this->statusLabelFor($record, $date))
-                ->color(function (ProgramRegistration $record) use ($service, $date): string {
-                    return $service->statusForDate($record, $date)?->color() ?? 'gray';
-                });
+                ->getStateUsing(fn (ProgramRegistration $record): string => $service->displayLabelForDate($record, $date))
+                ->color(fn (ProgramRegistration $record): string => $service->isPresentOnDate($record, $date) ? 'success' : 'gray');
         }
 
         $columns[] = TextColumn::make('attended_count')
@@ -386,79 +314,33 @@ class ProgramAttendanceRegistrationsRelationManager extends RelationManager
         return $table
             ->columns($columns)
             ->extraAttributes(['class' => 'fi-attendance-matrix-scroll'])
-            ->actions([
-                Action::make('manualAttendance')
-                    ->label('تحضير يدوي')
-                    ->icon('heroicon-o-pencil-square')
-                    ->color('gray')
-                    ->authorize('update')
-                    ->visible(fn (): bool => $prepDays->isNotEmpty())
-                    ->form([
-                        Select::make('training_date')
-                            ->label('يوم التحضير')
-                            ->options($service->attendancePrepDateOptions($program))
-                            ->required()
-                            ->native(false)
-                            ->default($service->defaultPrepDate($program)),
-
-                        Select::make('status')
-                            ->label('الحالة')
-                            ->options(AttendanceStatus::options())
-                            ->required()
-                            ->default(AttendanceStatus::Present->value),
-
-                        Textarea::make('notes')
-                            ->label('ملاحظات')
-                            ->rows(2),
-                    ])
-                    ->action(function (ProgramRegistration $record, array $data) use ($service): void {
-                        $service->markManualDay(
-                            $record,
-                            (string) $data['training_date'],
-                            AttendanceStatus::from((string) $data['status']),
-                            $data['notes'] ?? null,
-                            Auth::user(),
-                        );
-
-                        Notification::make()->title('تم تحديث الحضور')->success()->send();
-                    }),
-            ])
+            ->actions([])
             ->bulkActions([]);
     }
 
-    protected function bulkStatusAction(
-        string $name,
-        string $label,
-        AttendanceStatus $status,
-        ?string $selectedDate,
-    ): BulkAction {
-        return BulkAction::make($name)
-            ->label($label)
-            ->requiresConfirmation()
-            ->deselectRecordsAfterCompletion()
-            ->visible(fn (): bool => $selectedDate !== null)
-            ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
-            ->action(function (EloquentCollection $records) use ($status, $selectedDate): void {
-                $count = app(ProgramAttendanceService::class)->bulkMarkDay(
-                    $this->ownerProgram(),
-                    $records->modelKeys(),
-                    (string) $selectedDate,
-                    $status,
-                    Auth::user(),
-                );
+    protected function headerHintHtml(?ProgramPrepDay $selectedDay, ?string $selectedDate): ?HtmlString
+    {
+        if ($this->attendanceMode !== 'daily' || $selectedDate === null) {
+            return null;
+        }
 
-                Notification::make()
-                    ->title("تم تحديث {$count} مستفيدة ({$status->label()})")
-                    ->success()
-                    ->send();
-            });
+        $typeLabel = $selectedDay?->delivery_type?->label() ?? '—';
+        $typeColor = $selectedDay?->delivery_type === ProgramPrepDayType::InPerson ? 'success' : 'gray';
+
+        return new HtmlString(
+            '<div class="flex flex-wrap items-center gap-2 text-sm">'
+            .'<span>اليوم:</span>'
+            .'<strong>'.e($selectedDay?->displayLabel() ?? $selectedDate).'</strong>'
+            .'<span class="fi-badge fi-color-'.$typeColor.'">'.e($typeLabel).'</span>'
+            .'</div>'
+        );
     }
 
-    protected function statusLabelFor(ProgramRegistration $record, string $date): string
+    protected function shouldPollLiveSession(?string $selectedDate, string $today): bool
     {
-        $status = app(ProgramAttendanceService::class)->statusForDate($record, $date);
-
-        return $status?->label() ?? 'غير محدد';
+        return $this->attendanceMode === 'daily'
+            && $selectedDate === $today
+            && app(ProgramAttendanceService::class)->isTodayRemotePrepDay($this->ownerProgram());
     }
 
     protected function resolvedSelectedPrepDate(
@@ -477,34 +359,6 @@ class ProgramAttendanceRegistrationsRelationManager extends RelationManager
         return $this->selectedPrepDate;
     }
 
-    protected function legendHtml(): string
-    {
-        $tz = config('app.timezone');
-        $today = Carbon::today($tz)->toDateString();
-        $dayHint = $this->attendanceMode === 'daily' && filled($this->selectedPrepDate)
-            ? ' · اليوم المحدد: <strong>'.e($this->selectedPrepDate).'</strong>'
-            : '';
-
-        $items = [
-            ['حاضر', 'success'],
-            ['متأخر', 'warning'],
-            ['غائب', 'danger'],
-            ['بعذر', 'info'],
-            ['غير محدد', 'gray'],
-        ];
-
-        $badges = collect($items)->map(function (array $item): string {
-            [$label, $color] = $item;
-
-            return '<span class="fi-badge fi-color-'.$color.'" style="margin-inline:0.15rem">'.e($label).'</span>';
-        })->implode('');
-
-        return '<div class="flex flex-wrap items-center gap-2 text-sm">'
-            .'<span>دليل الحالات:</span>'.$badges
-            .'<span class="text-gray-500">Timezone: '.e($tz).' · اليوم: '.e($today).$dayHint.'</span>'
-            .'</div>';
-    }
-
     protected function ownerProgram(): TrainingProgram
     {
         $program = $this->getOwnerRecord();
@@ -513,13 +367,11 @@ class ProgramAttendanceRegistrationsRelationManager extends RelationManager
         return $program;
     }
 
-    protected function isInPersonProgram(): bool
+    public function activeAttendanceSession(): ?AttendanceLiveSession
     {
-        return $this->ownerProgram()->delivery_mode?->hasPhysicalComponent() ?? false;
-    }
+        $today = Carbon::today(config('app.timezone'))->toDateString();
 
-    protected function isRemoteProgram(): bool
-    {
-        return $this->ownerProgram()->delivery_mode === ProgramDeliveryMode::Remote;
+        return app(AttendanceLiveSessionService::class)
+            ->activeSessionFor($this->getOwnerRecord(), $today);
     }
 }
