@@ -253,9 +253,9 @@ final class ProgramAcceptanceConditions
     public static function genderCapacityFullMessage(string $gender): string
     {
         return match ($gender) {
-            ProfileGender::Female->value => 'انتهت المقاعد للإناث',
-            ProfileGender::Male->value => 'انتهت المقاعد للذكور',
-            default => 'انتهت المقاعد',
+            ProfileGender::Female->value => 'نأسف بإبلاغكم انتهت مقاعد التسجيل للإناث',
+            ProfileGender::Male->value => 'نأسف بإبلاغكم انتهت مقاعد التسجيل للذكور',
+            default => 'نأسف بإبلاغكم انتهت مقاعد التسجيل',
         };
     }
 
