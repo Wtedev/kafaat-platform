@@ -2,7 +2,7 @@
 
 Worktree: `/Users/mymac/projects/kafaat_attendance_checkers_secure`  
 Branch: `fix/attendance-checkers-secure-links` @ `7a05a68` (origin/main + local changes)  
-Status: Draft PR prep — HTML fixtures only until real app screenshots are captured.
+Status: Draft PR open — real app PNG screenshots captured locally (tokens redacted). No merge/deploy.
 
 ## Old flow deprecated
 
@@ -47,11 +47,24 @@ Legacy DB columns kept for safe later drop: `email`, `invite_code_hash`, `invite
 
 ## Screenshots
 
-Under `docs/audits/screenshots/prep-officers-secure-links/`:
+### Real app PNGs (`docs/audits/screenshots/prep-officers-secure-links/real/`)
 
-1. `01-filament-checkers-desktop.html`  
-2. `02-create-link-modal-desktop.html`  
-3. `03-portal-qr-mobile.html`  
-4. `04-portal-manual-mobile.html`  
-5. `05-portal-search-desktop.html`  
-6. `06-portal-remote-day-mobile.html`  
+1. `01-filament-checkers-tab.png` — مسؤولو التحضير tab  
+2. `02-create-link-copy-modal.png` — create/copy link modal (token redacted)  
+3. `03-manual-prep-list.png` — manual prep list  
+4. `04-search-arabic-name-parts.png` — search by Arabic name part  
+5. `05-qr-in-person-day.png` — QR on in-person day  
+6. `06-remote-day-no-qr.png` — remote day (no QR)  
+7. `07-mobile-view.png` — mobile portal  
+
+### HTML fixtures (placeholder UX)
+
+Also under `docs/audits/screenshots/prep-officers-secure-links/*.html`.
+
+## Regenerate invalidation (local)
+
+Verified against running `php artisan serve` + isolated screenshot SQLite:
+
+- Old access URL after regenerate → redirect to gate login  
+- Old portal session after regenerate → redirect to gate login  
+- New access URL → portal 200  
