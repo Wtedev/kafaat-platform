@@ -63,7 +63,7 @@ class VolunteerLeadersProgramDatesSeederTest extends TestCase
 
     public function test_registration_stays_open_through_registration_end_day(): void
     {
-        Carbon::setTestNow(Carbon::parse('2026-08-03')->startOfDay());
+        Carbon::setTestNow(Carbon::parse('2026-08-01')->startOfDay());
 
         $program = TrainingProgram::query()->create([
             'title' => 'برنامج قادة التطوع',
@@ -73,7 +73,7 @@ class VolunteerLeadersProgramDatesSeederTest extends TestCase
             'start_date' => '2026-01-01',
             'end_date' => '2026-02-01',
             'registration_start' => '2026-07-22',
-            'registration_end' => '2026-08-01',
+            'registration_end' => '2026-08-03',
         ]);
 
         $this->seed(VolunteerLeadersProgramDatesSeeder::class);
@@ -91,7 +91,7 @@ class VolunteerLeadersProgramDatesSeederTest extends TestCase
 
     public function test_locks_registration_closed_after_registration_end(): void
     {
-        Carbon::setTestNow(Carbon::parse('2026-08-04')->startOfDay());
+        Carbon::setTestNow(Carbon::parse('2026-08-02')->startOfDay());
 
         $program = TrainingProgram::query()->create([
             'title' => 'برنامج قادة التطوع',
@@ -101,7 +101,7 @@ class VolunteerLeadersProgramDatesSeederTest extends TestCase
             'start_date' => '2026-01-01',
             'end_date' => '2026-02-01',
             'registration_start' => '2026-07-22',
-            'registration_end' => '2026-08-01',
+            'registration_end' => '2026-08-03',
         ]);
 
         $this->seed(VolunteerLeadersProgramDatesSeeder::class);
@@ -153,7 +153,7 @@ class VolunteerLeadersProgramDatesSeederTest extends TestCase
         );
     }
 
-    public function test_re_run_reopens_registration_if_window_was_closed_early(): void
+    public function test_re_run_closes_registration_if_window_was_reopened(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-08-02')->startOfDay());
 
@@ -165,10 +165,10 @@ class VolunteerLeadersProgramDatesSeederTest extends TestCase
             'start_date' => VolunteerLeadersProgramDatesSeeder::START_DATE,
             'end_date' => VolunteerLeadersProgramDatesSeeder::END_DATE,
             'registration_start' => VolunteerLeadersProgramDatesSeeder::REGISTRATION_START,
-            'registration_end' => '2026-08-01',
+            'registration_end' => '2026-08-03',
         ]);
 
-        $this->assertFalse($program->isRegistrationOpen());
+        $this->assertTrue($program->isRegistrationOpen());
 
         $this->seed(VolunteerLeadersProgramDatesSeeder::class);
 
@@ -178,6 +178,6 @@ class VolunteerLeadersProgramDatesSeederTest extends TestCase
             VolunteerLeadersProgramDatesSeeder::REGISTRATION_END,
             $program->registration_end?->toDateString(),
         );
-        $this->assertTrue($program->isRegistrationOpen());
+        $this->assertFalse($program->isRegistrationOpen());
     }
 }
