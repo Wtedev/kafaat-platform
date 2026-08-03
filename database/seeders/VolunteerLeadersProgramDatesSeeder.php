@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\TrainingProgram;
-use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
 
@@ -50,10 +49,8 @@ class VolunteerLeadersProgramDatesSeeder extends Seeder
             return;
         }
 
-        $start = Carbon::parse(self::START_DATE)->startOfDay();
-        $end = Carbon::parse(self::END_DATE)->startOfDay();
-        $registrationStart = Carbon::parse(self::REGISTRATION_START)->startOfDay();
-        $registrationEnd = Carbon::parse(self::REGISTRATION_END)->startOfDay();
+        // Pass Y-m-d strings (not Carbon startOfDay): Asia/Riyadh midnight converts to the
+        // previous UTC calendar day and PostgreSQL DATE columns would persist one day early.
         $updated = 0;
 
         foreach ($matched as $program) {
@@ -72,10 +69,10 @@ class VolunteerLeadersProgramDatesSeeder extends Seeder
             }
 
             $program->forceFill([
-                'start_date' => $start,
-                'end_date' => $end,
-                'registration_start' => $registrationStart,
-                'registration_end' => $registrationEnd,
+                'start_date' => self::START_DATE,
+                'end_date' => self::END_DATE,
+                'registration_start' => self::REGISTRATION_START,
+                'registration_end' => self::REGISTRATION_END,
             ])->save();
             $updated++;
         }
