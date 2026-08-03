@@ -48,7 +48,26 @@ class VolunteerLeadersProgramPeriodTest extends TestCase
         $this->assertCount(2, $groups[3]['partners']);
         $this->assertCount(2, $groups[4]['partners']);
         $this->assertSame(7, array_sum(array_map(fn (array $g): int => count($g['partners']), $groups)));
+    }
 
+    public function test_applies_via_stable_slug(): void
+    {
+        $program = TrainingProgram::query()->create([
+            'title' => 'عنوان متغيّر',
+            'slug' => VolunteerLeadersProgramPeriod::PROGRAM_SLUG,
+            'status' => ProgramStatus::Published,
+            'published_at' => now(),
+            'start_date' => Carbon::parse('2026-08-03'),
+            'end_date' => Carbon::parse('2026-09-01'),
+            'learning_path_id' => null,
+        ]);
+
+        $this->assertTrue(VolunteerLeadersProgramPeriod::applies($program));
+        $this->assertTrue(VolunteerLeadersProgramPeriod::matchesStableIdentity($program));
+    }
+
+    public function test_applies_via_title_needle_without_stable_slug(): void
+    {
         $program = TrainingProgram::query()->create([
             'title' => 'قادة التطوع',
             'slug' => 'period-test',
@@ -60,6 +79,7 @@ class VolunteerLeadersProgramPeriodTest extends TestCase
         ]);
 
         $this->assertTrue(VolunteerLeadersProgramPeriod::applies($program));
+        $this->assertFalse(VolunteerLeadersProgramPeriod::matchesStableIdentity($program));
     }
 
     public function test_does_not_apply_to_other_programs(): void
@@ -75,5 +95,6 @@ class VolunteerLeadersProgramPeriodTest extends TestCase
         ]);
 
         $this->assertFalse(VolunteerLeadersProgramPeriod::applies($program));
+        $this->assertFalse(VolunteerLeadersProgramPeriod::matchesStableIdentity($program));
     }
 }

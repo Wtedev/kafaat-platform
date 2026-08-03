@@ -266,6 +266,7 @@ class ProgramRegistrationService
             throw new RegistrationNotApprovedException;
         }
 
+        // Prefer live prep-day calculator; null means «—» (no due days), not 0.
         $calculatedPct = app(ProgramAttendanceService::class)->calculatePercentage($registration);
         $finalPct = $calculatedPct ?? $attendancePercentage ?? $registration->attendance_percentage;
 

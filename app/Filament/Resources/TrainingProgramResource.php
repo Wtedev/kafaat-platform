@@ -15,6 +15,7 @@ use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramAtten
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramAttendanceRegistrationsRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramBroadcastsRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramGradesRelationManager;
+use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramPrepDaysRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationCertificatesRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationsRelationManager;
 use App\Filament\Support\EntityTwoColumnFormLayout;
@@ -499,6 +500,7 @@ class TrainingProgramResource extends Resource
             ProgramRegistrationsRelationManager::class,
             ProgramBroadcastsRelationManager::class,
             ProgramAttendanceRegistrationsRelationManager::class,
+            ProgramPrepDaysRelationManager::class,
             ProgramAttendanceCheckersRelationManager::class,
             ProgramGradesRelationManager::class,
             ProgramRegistrationCertificatesRelationManager::class,

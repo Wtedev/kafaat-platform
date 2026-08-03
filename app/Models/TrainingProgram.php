@@ -535,6 +535,16 @@ class TrainingProgram extends Model
         return $this->hasMany(ProgramAttendanceChecker::class);
     }
 
+    public function prepDays(): HasMany
+    {
+        return $this->hasMany(ProgramPrepDay::class)->chronological();
+    }
+
+    public function attendancePrepDays(): HasMany
+    {
+        return $this->prepDays()->requiresAttendance();
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

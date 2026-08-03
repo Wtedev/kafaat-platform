@@ -1,6 +1,7 @@
 @php
 use App\Enums\ProgramDeliveryMode;
 use App\Enums\RegistrationStatus;
+use App\Support\RegistrationEligibilitySupport;
 use App\Support\TrainingProgramExtrasSupport;
 
 $statusColors = RegistrationStatus::badgeClasses();
@@ -93,21 +94,27 @@ $statusLabels = [
                 RegistrationStatus::Approved->value,
                 RegistrationStatus::Completed->value,
             ], true);
-            $attOk = $reg->attendance_percentage !== null && (float) $reg->attendance_percentage >= 80;
-            $scoreOk = $reg->score === null || (float) $reg->score >= 60;
+            $effectiveAttendance = $reg->effectiveAttendancePercentage();
+            $scoreValue = $reg->score !== null ? (float) $reg->score : null;
 
-            $attendanceDisplay = $reg->attendance_percentage !== null
-                ? number_format((float) $reg->attendance_percentage, 1).'%'
+            $attendanceDisplay = $effectiveAttendance !== null
+                ? number_format($effectiveAttendance, 1).'%'
                 : '—';
-            $scoreDisplay = $reg->score !== null
-                ? number_format((float) $reg->score, 1)
+            $scoreDisplay = $scoreValue !== null
+                ? number_format($scoreValue, 1)
                 : '—';
 
-            if ($showElig && $reg->attendance_percentage !== null) {
-                $eligDisplay = ($attOk && $scoreOk) ? 'مؤهل ✓' : 'غير مؤهل حتى الآن';
-                $eligClass = ($attOk && $scoreOk)
-                    ? config('brand.classes.badge_secondary')
-                    : config('brand.classes.badge_danger');
+            if ($showElig) {
+                $eligDisplay = RegistrationEligibilitySupport::eligibilityLabel($effectiveAttendance, $scoreValue);
+                if ($eligDisplay === 'مؤهل') {
+                    $eligDisplay = 'مؤهل ✓';
+                    $eligClass = config('brand.classes.badge_secondary');
+                } elseif ($eligDisplay === 'بانتظار البيانات') {
+                    $eligDisplay = '—';
+                    $eligClass = null;
+                } else {
+                    $eligClass = config('brand.classes.badge_danger');
+                }
             } else {
                 $eligDisplay = '—';
                 $eligClass = null;

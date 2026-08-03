@@ -6,7 +6,6 @@ use App\Enums\AttendanceStatus;
 use App\Models\AttendanceLiveSession;
 use App\Models\PathAttendance;
 use App\Models\PathRegistration;
-use App\Models\ProgramAttendance;
 use App\Models\ProgramRegistration;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -56,19 +55,12 @@ class AttendanceLiveSessionService
 
     public function checkInProgram(AttendanceLiveSession $session, ProgramRegistration $registration): void
     {
+        $registration->loadMissing('trainingProgram');
         $this->assertSessionActiveFor($session, $registration->trainingProgram);
         $this->assertRegistrationApproved($registration);
 
-        ProgramAttendance::updateOrCreate(
-            [
-                'program_registration_id' => $registration->id,
-                'training_date' => today()->toDateString(),
-            ],
-            [
-                'status' => AttendanceStatus::Present,
-                'notes' => 'تسجيل حضور ذاتي',
-            ],
-        );
+        // Prep-day validation + AuditLogger via ProgramAttendanceService.
+        app(ProgramAttendanceService::class)->markPresentFromLiveSession($registration);
     }
 
     public function checkInPath(AttendanceLiveSession $session, PathRegistration $registration): void

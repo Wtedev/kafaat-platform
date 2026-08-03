@@ -102,17 +102,8 @@ class ProgramRegistration extends Model
 
     public function effectiveAttendancePercentage(): ?float
     {
-        $calculated = app(ProgramAttendanceService::class)->calculatePercentage($this);
-
-        if ($calculated !== null) {
-            return $calculated;
-        }
-
-        if ($this->attendance_percentage === null) {
-            return null;
-        }
-
-        return (float) $this->attendance_percentage;
+        // Prep-day calculator is authoritative: null means «—» (no due days yet).
+        return app(ProgramAttendanceService::class)->calculatePercentage($this);
     }
 
     public function certificateForEntity(): ?Certificate

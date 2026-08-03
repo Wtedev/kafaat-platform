@@ -5,11 +5,13 @@ namespace Tests\Unit\Services;
 use App\Enums\AttendanceStatus;
 use App\Enums\CompetencyTrack;
 use App\Enums\ProgramDeliveryMode;
+use App\Enums\ProgramPrepDayType;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
 use App\Models\ProgramAttendance;
 use App\Models\ProgramAttendanceChecker;
+use App\Models\ProgramPrepDay;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
@@ -59,6 +61,13 @@ class ProgramAttendancePassServiceTest extends TestCase
             'auto_accept_registrations' => true,
         ]);
 
+        ProgramPrepDay::query()->create([
+            'training_program_id' => $program->id,
+            'prep_date' => '2026-07-14',
+            'delivery_type' => ProgramPrepDayType::InPerson,
+            'requires_attendance' => true,
+        ]);
+
         $user = User::factory()->create(['name' => 'نورة المتحققة']);
         $registration = ProgramRegistration::query()->create([
             'training_program_id' => $program->id,
@@ -78,7 +87,7 @@ class ProgramAttendancePassServiceTest extends TestCase
         $service = app(ProgramAttendanceService::class);
         $pass = sprintf('KAFAAT-P%d-R%d', $program->id, $registration->id);
 
-        $first = $service->markPresentFromPass($program, $pass, $checker);
+        $first = $service->markPresentFromPass($program, $pass, $checker, prepDate: '2026-07-14');
         $this->assertTrue($first['ok']);
         $this->assertSame('marked', $first['reason']);
         $this->assertSame('نورة المتحققة', $first['beneficiary_name']);
@@ -88,7 +97,7 @@ class ProgramAttendancePassServiceTest extends TestCase
             'status' => AttendanceStatus::Present->value,
         ]);
 
-        $second = $service->markPresentFromPass($program, $pass, $checker);
+        $second = $service->markPresentFromPass($program, $pass, $checker, prepDate: '2026-07-14');
         $this->assertTrue($second['ok']);
         $this->assertSame('already_present', $second['reason']);
 
