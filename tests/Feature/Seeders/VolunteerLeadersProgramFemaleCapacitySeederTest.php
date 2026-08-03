@@ -57,7 +57,7 @@ class VolunteerLeadersProgramFemaleCapacitySeederTest extends TestCase
         $femaleResult = $evaluator->evaluate($program, $female->fresh('profile'));
         $this->assertFalse($femaleResult['eligible']);
         $this->assertSame(
-            ['انتهت المقاعد للإناث'],
+            ['نأسف بإبلاغكم انتهت مقاعد التسجيل للإناث'],
             $femaleResult['reasons'],
         );
 
