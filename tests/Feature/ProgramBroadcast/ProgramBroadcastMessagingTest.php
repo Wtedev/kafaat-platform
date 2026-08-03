@@ -27,8 +27,10 @@ use App\Models\User;
 use App\Services\ProgramBroadcasts\ProgramBroadcastService;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
@@ -266,37 +268,27 @@ class ProgramBroadcastMessagingTest extends TestCase
         ));
     }
 
-    public function test_dedupes_by_user_id_and_email_case_insensitive(): void
+    public function test_dedupes_by_user_id_and_normalizes_recipient_email(): void
     {
         $service = app(ProgramBroadcastService::class);
         [$program, $staff] = $this->programWithEditorStaff();
 
         $user = User::factory()->create([
-            'email' => 'Same@Example.com',
+            'email' => 'same@example.com',
             'is_active' => true,
             'account_status' => AccountStatus::Active,
             'email_verified_at' => now(),
             'notify_email' => false,
         ]);
 
-        // Single registration — duplicate email check is in resolveEligibleRecipients.
+        // Simulate a legacy mixed-case mailbox; lookups/dedupe must still normalize.
+        DB::table('users')->where('id', $user->id)->update(['email' => 'Same@Example.com']);
+        $user->refresh();
+
         ProgramRegistration::query()->create([
             'training_program_id' => $program->id,
             'user_id' => $user->id,
             'status' => RegistrationStatus::Approved,
-        ]);
-
-        $other = User::factory()->create([
-            'email' => 'same@example.com',
-            'is_active' => true,
-            'account_status' => AccountStatus::Active,
-            'email_verified_at' => now(),
-        ]);
-        // Unique (program, user) — different user, same email case-insensitively.
-        ProgramRegistration::query()->create([
-            'training_program_id' => $program->id,
-            'user_id' => $other->id,
-            'status' => RegistrationStatus::Completed,
         ]);
 
         $draft = $service->createDraft($program, $staff, [
@@ -307,6 +299,16 @@ class ProgramBroadcastMessagingTest extends TestCase
         $queued = $service->sendNow($draft, $staff);
 
         $this->assertSame(1, $queued->recipients_count);
+        $this->assertSame('same@example.com', $queued->recipients()->firstOrFail()->email);
+
+        // Case-variant second accounts are no longer insertable (canonical uniqueness).
+        $this->expectException(UniqueConstraintViolationException::class);
+        User::factory()->create([
+            'email' => 'SAME@EXAMPLE.COM',
+            'is_active' => true,
+            'account_status' => AccountStatus::Active,
+            'email_verified_at' => now(),
+        ]);
     }
 
     public function test_does_not_gate_on_notify_email_preference(): void

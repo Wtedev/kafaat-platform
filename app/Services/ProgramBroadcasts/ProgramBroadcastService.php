@@ -17,6 +17,7 @@ use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
+use App\Support\Auth\EmailNormalizer;
 use App\Support\RichContentSupport;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -506,7 +507,7 @@ class ProgramBroadcastService
                 continue;
             }
 
-            $email = strtolower(trim((string) $user->email));
+            $email = EmailNormalizer::normalize((string) $user->email);
             $userId = (int) $user->id;
 
             if (isset($seenUserIds[$userId]) || isset($seenEmails[$email])) {
