@@ -16,6 +16,7 @@ use App\Services\Audit\AuditLogger;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ProgramAttendanceService
@@ -300,6 +301,8 @@ class ProgramAttendanceService
         ProgramRegistration $registration,
         string $date,
         ?User $actor = null,
+        string $source = 'manual',
+        ?ProgramAttendanceChecker $checker = null,
     ): void {
         $existing = ProgramAttendance::query()
             ->where('program_registration_id', $registration->id)
@@ -319,7 +322,8 @@ class ProgramAttendanceService
             $old,
             null,
             $actor,
-            'manual',
+            $source,
+            $checker,
         );
     }
 
@@ -339,6 +343,100 @@ class ProgramAttendanceService
         }
 
         $this->clearDay($registration, $date, $actor);
+    }
+
+    /**
+     * Checker portal: present/absent toggle for server TODAY only.
+     *
+     * @return array{ok: bool, reason: string, message: string, present: bool, beneficiary_name: ?string}
+     */
+    public function setPresentStateByChecker(
+        TrainingProgram $program,
+        ProgramRegistration $registration,
+        bool $present,
+        ProgramAttendanceChecker $checker,
+        ?string $forgedDate = null,
+    ): array {
+        // Client-supplied dates are intentionally ignored.
+        unset($forgedDate);
+
+        if ((int) $registration->training_program_id !== (int) $program->id) {
+            return [
+                'ok' => false,
+                'reason' => 'wrong_program',
+                'message' => 'هذا التسجيل لا يخص هذا البرنامج.',
+                'present' => false,
+                'beneficiary_name' => null,
+            ];
+        }
+
+        if (! in_array($registration->status, [
+            RegistrationStatus::Approved,
+            RegistrationStatus::Completed,
+        ], true)) {
+            return [
+                'ok' => false,
+                'reason' => 'not_eligible',
+                'message' => 'لا يمكن تحضير تسجيل غير مقبول.',
+                'present' => false,
+                'beneficiary_name' => null,
+            ];
+        }
+
+        $date = Carbon::today(config('app.timezone'))->toDateString();
+
+        if (! $this->isValidAttendancePrepDate($program, $date)) {
+            return [
+                'ok' => false,
+                'reason' => 'invalid_day',
+                'message' => 'اليوم ليس من أيام البرنامج، ولا يتوفر تحضير اليوم.',
+                'present' => false,
+                'beneficiary_name' => null,
+            ];
+        }
+
+        $registration->loadMissing('user');
+        $beneficiaryName = $registration->user?->fullName() ?: ($registration->user?->name ?? 'مستفيد');
+
+        return DB::transaction(function () use ($registration, $date, $present, $checker, $beneficiaryName): array {
+            $locked = ProgramRegistration::query()
+                ->whereKey($registration->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($locked === null) {
+                return [
+                    'ok' => false,
+                    'reason' => 'not_found',
+                    'message' => 'تعذّر العثور على التسجيل.',
+                    'present' => false,
+                    'beneficiary_name' => null,
+                ];
+            }
+
+            if ($present) {
+                $this->upsertPresent(
+                    $locked,
+                    $date,
+                    'تحضير يدوي — مسؤول #'.$checker->id.' — '.$checker->name,
+                    null,
+                    'checker_manual',
+                    $checker,
+                );
+            } else {
+                $this->clearDay($locked, $date, null, 'checker_manual', $checker);
+            }
+
+            return [
+                'ok' => true,
+                'reason' => $present ? 'marked' : 'cleared',
+                'message' => $present
+                    ? 'تم تسجيل الحضور.'
+                    : 'تم إلغاء الحضور.',
+                'present' => $present,
+                'beneficiary_name' => $beneficiaryName,
+            ];
+        });
     }
 
     /**
@@ -540,7 +638,8 @@ class ProgramAttendanceService
             return $this->gateResult(false, 'not_eligible', 'لا يوجد تسجيل مقبول مرتبط بهذا المرور.', null, null);
         }
 
-        $beneficiaryName = $registration->user?->name ?? 'مستفيدة';
+        $beneficiaryName = $registration->user?->fullName()
+            ?: ($registration->user?->name ?? 'مستفيد');
 
         $existing = ProgramAttendance::query()
             ->where('program_registration_id', $registration->id)
@@ -552,7 +651,7 @@ class ProgramAttendanceService
             return $this->gateResult(
                 true,
                 'already_present',
-                'تم تسجيل حضور '.$beneficiaryName.' مسبقاً لهذا اليوم.',
+                'تم تسجيل الحضور مسبقاً.',
                 $beneficiaryName,
                 $existing,
             );
@@ -560,24 +659,27 @@ class ProgramAttendanceService
 
         $noteParts = ['تحضير بوابة QR', 'اليوم: '.$date];
         if ($checker !== null) {
-            $noteParts[] = 'متحضّرة #'.$checker->id.' — '.$checker->name;
+            $noteParts[] = 'مسؤول التحضير #'.$checker->id.' — '.$checker->name;
         }
         if ($admin !== null) {
             $noteParts[] = 'أدمن #'.$admin->id.' — '.$admin->name;
         }
+
+        $source = $checker !== null ? 'checker_qr' : 'qr';
 
         $attendance = $this->upsertPresent(
             $registration,
             $date,
             implode(' | ', $noteParts),
             $admin,
-            'qr',
+            $source,
+            $checker,
         );
 
         return $this->gateResult(
             true,
             'marked',
-            'تم تسجيل حضور '.$beneficiaryName.' بنجاح.',
+            'تم تسجيل الحضور.',
             $beneficiaryName,
             $attendance,
         );
@@ -589,6 +691,7 @@ class ProgramAttendanceService
         ?string $notes,
         ?User $actor,
         string $source,
+        ?ProgramAttendanceChecker $checker = null,
     ): ProgramAttendance {
         $existing = ProgramAttendance::query()
             ->where('program_registration_id', $registration->id)
@@ -625,6 +728,7 @@ class ProgramAttendanceService
                 $status->value,
                 $actor,
                 $source,
+                $checker,
             );
         }
 
@@ -638,8 +742,23 @@ class ProgramAttendanceService
         ?string $newStatus,
         ?User $actor,
         string $source,
+        ?ProgramAttendanceChecker $checker = null,
     ): void {
         $actor ??= Auth::user();
+
+        $metadata = [
+            'program_registration_id' => $registration->id,
+            'training_program_id' => $registration->training_program_id,
+            'training_date' => $date,
+            'old_status' => $oldStatus,
+            'new_status' => $newStatus,
+            'source' => $source,
+        ];
+
+        if ($checker !== null) {
+            $metadata['checker_id'] = $checker->id;
+            $metadata['checker_name'] = $checker->name;
+        }
 
         $this->auditLogger->record(
             $actor instanceof User ? $actor : null,
@@ -651,14 +770,7 @@ class ProgramAttendanceService
                 ? User::query()->find($registration->user_id)
                 : null,
             resource: $registration,
-            metadata: [
-                'program_registration_id' => $registration->id,
-                'training_program_id' => $registration->training_program_id,
-                'training_date' => $date,
-                'old_status' => $oldStatus,
-                'new_status' => $newStatus,
-                'source' => $source,
-            ],
+            metadata: $metadata,
         );
     }
 

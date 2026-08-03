@@ -43,9 +43,9 @@ class GateAttendancePrepDayTest extends TestCase
         $this->addPrepDay($program, '2026-08-04');
 
         $this->actingAs($admin)
-            ->get(route('gate.scan', $program->slug))
+            ->get(route('gate.portal', $program->slug))
             ->assertOk()
-            ->assertSee('يوم التحضير (اليوم حسب توقيت الرياض)', false)
+            ->assertSee('اليوم حسب توقيت الرياض', false)
             ->assertSee('2026-08-03', false)
             ->assertDontSee('اختاري يوم التحضير', false)
             ->assertDontSee('تغيير اليوم', false);
@@ -58,7 +58,7 @@ class GateAttendancePrepDayTest extends TestCase
         $this->addPrepDay($program, '2026-08-04');
 
         $this->actingAs($admin)
-            ->get(route('gate.scan', ['program' => $program->slug, 'date' => '2026-08-04']))
+            ->get(route('gate.portal', ['program' => $program->slug, 'date' => '2026-08-04']))
             ->assertOk()
             ->assertSee('2026-08-03', false)
             ->assertDontSee('تغيير اليوم', false);
@@ -118,10 +118,11 @@ class GateAttendancePrepDayTest extends TestCase
 
         $checker = ProgramAttendanceChecker::query()->create([
             'training_program_id' => $program->id,
-            'name' => 'متحضّرة',
-            'email' => 'checker@example.test',
+            'name' => 'مسؤول التحضير',
+            'email' => null,
             'is_active' => true,
-            'verified_at' => now(),
+            'access_token_hash' => hash('sha256', 'test-token-placeholder-32bytes-ok!!'),
+            'access_version' => 1,
         ]);
 
         $other = $this->makeProgram('other-gate');
@@ -130,7 +131,8 @@ class GateAttendancePrepDayTest extends TestCase
         $this->withSession([
             EnsureGateAttendanceAccess::SESSION_CHECKER_ID => $checker->id,
             EnsureGateAttendanceAccess::SESSION_PROGRAM_ID => $program->id,
-        ])->get(route('gate.scan', $other->slug))
+            EnsureGateAttendanceAccess::SESSION_ACCESS_VERSION => 1,
+        ])->get(route('gate.portal', $other->slug))
             ->assertRedirect(route('gate.login', $other->slug));
     }
 

@@ -71,7 +71,7 @@
 | --- | --- | --- |
 | بوابة الحضور `/gate/{program}` (دخول مسؤول تحضير) | ✅ | `GateAttendanceController` · `web.php:114-127` (Throttled) |
 | مسح ووسم الحضور | ✅ | `GateAttendanceController@scan/mark` |
-| مسؤولو تحضير مدعوّون برمز | ✅ | جدول `program_attendance_checkers` + `ProgramAttendanceCheckerInviteService` |
+| مسؤولو تحضير برابط آمن | ✅ | جدول `program_attendance_checkers` + `ProgramAttendanceCheckerAccessService` (hash فقط، بدون بريد/OTP) |
 | جلسة رمز حضور حي (بوابة المستفيد) | ✅ | `AttendanceLiveSession` + `PortalAttendanceSessionController` + `AttendanceLiveSessionService` |
 | تسجيل حضور المستفيد ذاتياً | ✅ | `PortalAttendanceCheckInController` · `web.php:189-195` |
 

@@ -4,12 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Notifications\Notifiable;
 
 class ProgramAttendanceChecker extends Model
 {
-    use Notifiable;
-
     protected $fillable = [
         'training_program_id',
         'name',
@@ -18,6 +15,9 @@ class ProgramAttendanceChecker extends Model
         'invite_code_expires_at',
         'invite_attempts',
         'verified_at',
+        'access_token_hash',
+        'access_version',
+        'last_used_at',
         'is_active',
     ];
 
@@ -26,8 +26,10 @@ class ProgramAttendanceChecker extends Model
         return [
             'invite_code_expires_at' => 'datetime',
             'verified_at' => 'datetime',
+            'last_used_at' => 'datetime',
             'is_active' => 'boolean',
             'invite_attempts' => 'integer',
+            'access_version' => 'integer',
         ];
     }
 
@@ -36,9 +38,9 @@ class ProgramAttendanceChecker extends Model
         return $this->belongsTo(TrainingProgram::class);
     }
 
-    public function routeNotificationForMail(): string
+    public function hasAccessLink(): bool
     {
-        return $this->email;
+        return filled($this->access_token_hash);
     }
 
     public function isInviteExpired(): bool

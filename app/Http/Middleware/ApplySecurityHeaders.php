@@ -18,6 +18,15 @@ class ApplySecurityHeaders
         $response->headers->set('Permissions-Policy', (string) config('security.headers.permissions_policy'));
         $response->headers->set('X-Frame-Options', (string) config('security.headers.frame_options'));
 
+        if ($request->routeIs('gate.*')) {
+            $response->headers->set('Referrer-Policy', 'no-referrer');
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
+            $response->headers->set(
+                'Permissions-Policy',
+                'camera=(self), microphone=(), geolocation=(), payment=(), usb=()',
+            );
+        }
+
         $coop = (string) config('security.headers.cross_origin_opener_policy', '');
         if ($coop !== '') {
             $response->headers->set('Cross-Origin-Opener-Policy', $coop);
