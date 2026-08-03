@@ -130,6 +130,9 @@ Route::prefix('gate/{program:slug}')->name('gate.')->group(function () {
 
     Route::middleware('gate.attendance')->group(function () {
         Route::get('/scan', [GateAttendanceController::class, 'scan'])->name('scan');
+        Route::post('/scan/day', [GateAttendanceController::class, 'selectDay'])
+            ->middleware('throttle:30,1')
+            ->name('scan.day');
         Route::post('/scan', [GateAttendanceController::class, 'mark'])
             ->middleware('throttle:60,1')
             ->name('scan.store');

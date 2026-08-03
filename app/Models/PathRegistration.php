@@ -121,17 +121,8 @@ class PathRegistration extends Model
 
     public function effectiveAttendancePercentage(): ?float
     {
-        $calculated = app(PathAttendanceService::class)->calculatePercentage($this);
-
-        if ($calculated !== null) {
-            return $calculated;
-        }
-
-        if ($this->attendance_percentage === null) {
-            return null;
-        }
-
-        return (float) $this->attendance_percentage;
+        // Prep-day calculator is authoritative: null means «—» (no expected days yet).
+        return app(PathAttendanceService::class)->calculatePercentage($this);
     }
 
     public function isEligibleForCertificate(): bool

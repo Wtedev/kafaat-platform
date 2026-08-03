@@ -6,7 +6,6 @@ use App\Enums\AttendanceStatus;
 use App\Enums\RegistrationStatus;
 use App\Filament\Concerns\InteractsWithAttendanceLiveSession;
 use App\Filament\Support\RegistrationFilamentTableSupport;
-use App\Models\LearningPath;
 use App\Models\PathRegistration;
 use App\Services\PathAttendanceService;
 use Filament\Actions\Action;
@@ -76,27 +75,6 @@ class PathAttendanceRegistrationsRelationManager extends RelationManager
                     ->action(fn (): mixed => $this->startAttendanceLiveSession()),
 
                 $this->makeAttendanceLiveSessionCountdownAction(),
-
-                Action::make('generateAllSessions')
-                    ->label('توليد جلسات المسار')
-                    ->icon('heroicon-o-calendar-days')
-                    ->color('info')
-                    ->requiresConfirmation()
-                    ->modalHeading('توليد جلسات الحضور')
-                    ->modalDescription('سيتم إنشاء سجلات حضور لجميع أيام برامج المسار لكل المسجلين المقبولين.')
-                    ->modalSubmitActionLabel('نعم، توليد')
-                    ->authorize(fn (): bool => auth()->user()?->can('viewOperational', $this->getOwnerRecord()) ?? false)
-                    ->action(function (): void {
-                        /** @var LearningPath $path */
-                        $path = $this->getOwnerRecord();
-                        $count = app(PathAttendanceService::class)->generateSessionsForAllRegistrations($path);
-
-                        if ($count > 0) {
-                            Notification::make()->title("تم توليد {$count} جلسة")->success()->send();
-                        } else {
-                            Notification::make()->title('لم تُنشأ جلسات جديدة')->warning()->send();
-                        }
-                    }),
             ])
             ->actions([
                 Action::make('manualAttendance')

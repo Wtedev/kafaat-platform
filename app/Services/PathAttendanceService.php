@@ -3,15 +3,25 @@
 namespace App\Services;
 
 use App\Enums\AttendanceStatus;
-use App\Enums\RegistrationStatus;
 use App\Models\LearningPath;
 use App\Models\PathAttendance;
 use App\Models\PathRegistration;
 use App\Models\TrainingProgram;
+use Illuminate\Support\Carbon;
 
 class PathAttendanceService
 {
     public function countExpectedTrainingDays(LearningPath $path): int
+    {
+        return count($this->expectedAttendanceDateStrings($path));
+    }
+
+    /**
+     * Union of explicit prep days requiring attendance across path programs.
+     *
+     * @return list<string>
+     */
+    public function expectedAttendanceDateStrings(LearningPath $path): array
     {
         $path->loadMissing('programs');
 
@@ -23,52 +33,61 @@ class PathAttendanceService
             }
         }
 
-        return count($dates);
+        $sorted = array_keys($dates);
+        sort($sorted);
+
+        return $sorted;
     }
 
     /**
+     * Due prep days for % denominator: requires attendance and date <= today (Asia/Riyadh).
+     *
+     * @return list<string>
+     */
+    public function dueAttendanceDateStrings(LearningPath $path, ?Carbon $asOf = null): array
+    {
+        $today = ($asOf ?? Carbon::today(config('app.timezone')))->toDateString();
+
+        return array_values(array_filter(
+            $this->expectedAttendanceDateStrings($path),
+            static fn (string $date): bool => $date <= $today,
+        ));
+    }
+
+    /**
+     * Explicit prep days that require attendance (not weekdays expansion).
+     *
      * @return list<string>
      */
     public function expectedDatesForProgram(TrainingProgram $program): array
     {
-        if (
-            $program->start_date === null
-            || $program->end_date === null
-            || empty($program->weekdays)
-        ) {
-            return [];
-        }
-
-        $weekdays = array_map('intval', $program->weekdays);
-        $dates = [];
-        $current = $program->start_date->copy();
-        $end = $program->end_date->copy();
-
-        while ($current->lte($end)) {
-            if (in_array($current->dayOfWeek, $weekdays, strict: true)) {
-                $dates[] = $current->toDateString();
-            }
-
-            $current->addDay();
-        }
-
-        return $dates;
+        return app(ProgramAttendanceService::class)->attendancePrepDateStrings($program);
     }
 
-    public function calculatePercentage(PathRegistration $registration): ?float
+    /**
+     * Attendance % = (present + late) / due prep days up to today.
+     * Returns null when no due prep days yet (UI shows «—»).
+     */
+    public function calculatePercentage(PathRegistration $registration, ?Carbon $asOf = null): ?float
     {
         $registration->loadMissing('learningPath.programs');
-        $expectedDays = $this->countExpectedTrainingDays($registration->learningPath);
+        $dueDays = $this->dueAttendanceDateStrings($registration->learningPath, $asOf);
 
-        if ($expectedDays === 0) {
+        if ($dueDays === []) {
             return null;
         }
 
-        $present = $registration->attendanceRecords()
-            ->where('status', AttendanceStatus::Present->value)
+        $attended = $registration->attendanceRecords()
+            ->whereIn('status', AttendanceStatus::attendedValues())
+            ->get()
+            ->filter(fn (PathAttendance $row): bool => in_array(
+                $row->attendance_date->toDateString(),
+                $dueDays,
+                true,
+            ))
             ->count();
 
-        return round($present / $expectedDays * 100, 2);
+        return round($attended / count($dueDays) * 100, 2);
     }
 
     public function markManualDay(PathRegistration $registration, string $date, AttendanceStatus $status, ?string $notes = null): void
@@ -85,45 +104,16 @@ class PathAttendanceService
         );
     }
 
+    /**
+     * B1 alignment: do not pre-create absent rows.
+     */
     public function generateSessions(PathRegistration $registration): int
     {
-        $registration->loadMissing('learningPath.programs');
-        $created = 0;
-
-        foreach ($registration->learningPath->programs as $program) {
-            foreach ($this->expectedDatesForProgram($program) as $date) {
-                $record = PathAttendance::firstOrCreate(
-                    [
-                        'path_registration_id' => $registration->id,
-                        'attendance_date' => $date,
-                    ],
-                    [
-                        'status' => AttendanceStatus::Absent,
-                    ],
-                );
-
-                if ($record->wasRecentlyCreated) {
-                    $created++;
-                }
-            }
-        }
-
-        return $created;
+        return 0;
     }
 
     public function generateSessionsForAllRegistrations(LearningPath $path): int
     {
-        $total = 0;
-
-        $path->registrations()
-            ->whereIn('status', [
-                RegistrationStatus::Approved->value,
-                RegistrationStatus::Completed->value,
-            ])
-            ->each(function (PathRegistration $registration) use (&$total): void {
-                $total += $this->generateSessions($registration);
-            });
-
-        return $total;
+        return 0;
     }
 }

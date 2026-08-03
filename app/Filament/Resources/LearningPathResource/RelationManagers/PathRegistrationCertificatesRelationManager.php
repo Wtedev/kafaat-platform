@@ -57,7 +57,6 @@ class PathRegistrationCertificatesRelationManager extends RelationManager
 
                 TextColumn::make('eligibility_average')
                     ->label('المتوسط')
-                    ->suffix('%')
                     ->getStateUsing(fn (PathRegistration $record): string => RegistrationFilamentTableSupport::formatPercentage(
                         RegistrationEligibilitySupport::averageScore(
                             $record->effectiveAttendancePercentage(),

@@ -12,6 +12,21 @@ final class VolunteerLeadersProgramPeriod
 {
     public const TITLE_NEEDLE = 'قادة التطوع';
 
+    /**
+     * Canonical public slug for the live Volunteer Leaders program.
+     * Prefer this over title for seeders / backfills (titles are editable).
+     */
+    public const PROGRAM_SLUG = 'volunteer-leadership';
+
+    /**
+     * Historical / demo slug aliases that should still receive prep-day backfill.
+     *
+     * @var list<string>
+     */
+    public const PROGRAM_SLUG_ALIASES = [
+        'qadah',
+    ];
+
     public const PARTNER_ADEED_LOGO = 'images/programs/adeed-logo.png';
 
     public const PARTNER_KAFAAT_LOGO = 'images/programs/partner-kafaat.svg';
@@ -115,7 +130,39 @@ final class VolunteerLeadersProgramPeriod
             return false;
         }
 
+        if (self::matchesStableIdentity($program)) {
+            return true;
+        }
+
+        // Public marketing pages: title needle remains a soft match for renamed display titles
+        // on the canonical program only when slug already matched above, or legacy title-only rows.
         return str_contains((string) $program->title, self::TITLE_NEEDLE);
+    }
+
+    /**
+     * Stable identity for ops backfills (slug / aliases), not mutable title.
+     */
+    public static function matchesStableIdentity(?TrainingProgram $program): bool
+    {
+        if ($program === null) {
+            return false;
+        }
+
+        $slug = (string) $program->slug;
+
+        return $slug === self::PROGRAM_SLUG
+            || in_array($slug, self::PROGRAM_SLUG_ALIASES, true);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function stableSlugs(): array
+    {
+        return array_values(array_unique([
+            self::PROGRAM_SLUG,
+            ...self::PROGRAM_SLUG_ALIASES,
+        ]));
     }
 
     /**

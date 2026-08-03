@@ -138,8 +138,10 @@ class ProgressService
 
     private function approvedProgramProgress(ProgramRegistration $reg): float
     {
-        if ($reg->attendance_percentage !== null) {
-            return min(99.0, max(0.0, (float) $reg->attendance_percentage));
+        $pct = $reg->effectiveAttendancePercentage();
+
+        if ($pct !== null) {
+            return min(99.0, max(0.0, (float) $pct));
         }
 
         return 25.0;

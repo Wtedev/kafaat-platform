@@ -39,15 +39,7 @@ class PathAttendance extends Model
                 return;
             }
 
-            $expectedDays = app(PathAttendanceService::class)
-                ->countExpectedTrainingDays($registration->learningPath);
-            $present = static::where('path_registration_id', $regId)
-                ->where('status', AttendanceStatus::Present->value)
-                ->count();
-
-            $percentage = $expectedDays > 0
-                ? round($present / $expectedDays * 100, 2)
-                : 0;
+            $percentage = app(PathAttendanceService::class)->calculatePercentage($registration);
 
             DB::table('path_registrations')
                 ->where('id', $regId)

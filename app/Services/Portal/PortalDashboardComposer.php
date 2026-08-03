@@ -195,8 +195,8 @@ final class PortalDashboardComposer
     {
         $program = $reg->trainingProgram;
         $title = $program?->title ?? 'برنامج تدريبي';
-        $progress = $reg->attendance_percentage !== null
-            ? (float) $reg->attendance_percentage
+        $progress = ($pct = $reg->effectiveAttendancePercentage()) !== null
+            ? (float) $pct
             : null;
 
         [$statusLabel, $statusTone] = self::registrationUxMeta($reg->status);

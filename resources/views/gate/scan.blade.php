@@ -25,6 +25,15 @@
             </form>
         </div>
 
+        <div class="mt-4 rounded-2xl border border-[#d7e2ef] bg-[#f5f8fc] px-4 py-3">
+            <p class="text-xs text-gray-500">يوم التحضير المحدد</p>
+            <p class="mt-0.5 text-sm font-bold text-[#335483]">{{ $prepDateLabel }}</p>
+            <p class="mt-0.5 text-xs font-mono text-gray-500">{{ $prepDate }}</p>
+            <a href="{{ route('gate.scan', ['program' => $program->slug, 'change' => 1]) }}" class="mt-2 inline-block text-xs font-medium text-[#335483] underline-offset-2 hover:underline">
+                تغيير اليوم
+            </a>
+        </div>
+
         <div id="gate-feedback" class="mt-5 hidden rounded-2xl border px-4 py-4 text-center" role="status" aria-live="polite">
             <p id="gate-feedback-name" class="text-base font-bold"></p>
             <p id="gate-feedback-message" class="mt-1 text-sm"></p>
@@ -53,6 +62,7 @@
 
         <form id="manual-pass-form" method="POST" action="{{ route('gate.scan.store', ['program' => $program->slug]) }}" class="mt-6 space-y-3">
             @csrf
+            <input type="hidden" name="date" value="{{ $prepDate }}" />
             <label for="pass" class="block text-sm font-medium text-gray-700">أو أدخلي الرمز يدوياً</label>
             <input
                 id="pass"
@@ -75,6 +85,7 @@
 <script>
 (() => {
     const scanUrl = @json(route('gate.scan.store', ['program' => $program->slug]));
+    const prepDate = @json($prepDate);
     const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const feedback = document.getElementById('gate-feedback');
     const feedbackName = document.getElementById('gate-feedback-name');
@@ -125,7 +136,7 @@
                     'X-CSRF-TOKEN': csrf,
                     'X-Requested-With': 'XMLHttpRequest',
                 },
-                body: JSON.stringify({ pass }),
+                body: JSON.stringify({ pass, date: prepDate }),
             });
             const data = await response.json().catch(() => ({}));
             const ok = Boolean(data.ok);

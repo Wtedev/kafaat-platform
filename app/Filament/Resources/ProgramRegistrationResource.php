@@ -16,6 +16,7 @@ use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Services\CertificateService;
 use App\Services\ProgramRegistrationService;
+use App\Support\RegistrationEligibilitySupport;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -151,10 +152,12 @@ class ProgramRegistrationResource extends Resource
 
                 TextColumn::make('attendance_percentage')
                     ->label('نسبة الحضور')
-                    ->suffix('%')
+                    ->getStateUsing(fn (ProgramRegistration $record): string => RegistrationFilamentTableSupport::formatPercentage(
+                        $record->effectiveAttendancePercentage(),
+                    ))
                     ->sortable()
                     ->toggleable()
-                    ->description('محسوبة من الحضور اليومي'),
+                    ->description('محسوبة من أيام التحضير المستحقة'),
 
                 TextColumn::make('score')
                     ->label('الدرجة')
@@ -185,16 +188,14 @@ class ProgramRegistrationResource extends Resource
                         ])) {
                             return '—';
                         }
-                        if ($record->attendance_percentage === null) {
-                            return 'بانتظار البيانات';
-                        }
-                        $attOk = (float) $record->attendance_percentage >= 80;
-                        $scoreOk = $record->score === null || (float) $record->score >= 60;
 
-                        return ($attOk && $scoreOk) ? 'مؤهل ✓' : 'غير مؤهل حتى الآن';
+                        return RegistrationEligibilitySupport::eligibilityLabel(
+                            $record->effectiveAttendancePercentage(),
+                            $record->score !== null ? (float) $record->score : null,
+                        );
                     })
                     ->color(fn (string $state): string => match ($state) {
-                        'مؤهل ✓' => 'success',
+                        'مؤهل' => 'success',
                         'غير مؤهل حتى الآن', 'غير مؤهل بعد' => 'danger',
                         'بانتظار البيانات' => 'warning',
                         default => 'gray',

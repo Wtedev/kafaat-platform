@@ -35,6 +35,8 @@ class ProgramAttendance extends Model
      *
      * Uses a direct DB update to avoid triggering Eloquent model events on
      * ProgramRegistration, which would risk infinite loops.
+     *
+     * Null means «—» (no due prep days yet); never coerce to 0.
      */
     protected static function booted(): void
     {
@@ -46,20 +48,6 @@ class ProgramAttendance extends Model
             }
 
             $percentage = app(ProgramAttendanceService::class)->calculatePercentage($registration);
-
-            if ($percentage === null) {
-                $total = static::where('program_registration_id', $registration->id)->count();
-
-                if ($total === 0) {
-                    return;
-                }
-
-                $present = static::where('program_registration_id', $registration->id)
-                    ->where('status', AttendanceStatus::Present->value)
-                    ->count();
-
-                $percentage = round($present / $total * 100, 2);
-            }
 
             DB::table('program_registrations')
                 ->where('id', $registration->id)

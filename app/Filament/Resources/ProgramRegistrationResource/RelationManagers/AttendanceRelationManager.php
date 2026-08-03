@@ -7,12 +7,9 @@ use App\Models\ProgramAttendance;
 use App\Models\ProgramRegistration;
 use App\Services\ProgramAttendanceService;
 use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
@@ -22,7 +19,10 @@ use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class AttendanceRelationManager extends RelationManager
 {
@@ -50,17 +50,25 @@ class AttendanceRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
+        /** @var ProgramRegistration $registration */
+        $registration = $this->getOwnerRecord();
+        $registration->loadMissing('trainingProgram');
+        $options = app(ProgramAttendanceService::class)
+            ->attendancePrepDateOptions($registration->trainingProgram);
+
         return $schema->components([
-            DatePicker::make('training_date')
-                ->label('تاريخ الجلسة')
+            Select::make('training_date')
+                ->label('يوم التحضير')
+                ->options($options)
                 ->required()
+                ->native(false)
                 ->disabled(fn (string $operation): bool => $operation === 'edit'),
 
             Select::make('status')
                 ->label('الحالة')
-                ->options(AttendanceStatus::class)
+                ->options(AttendanceStatus::options())
                 ->required()
-                ->default(AttendanceStatus::Absent),
+                ->default(AttendanceStatus::Present->value),
 
             Textarea::make('notes')
                 ->label('ملاحظات')
@@ -73,16 +81,21 @@ class AttendanceRelationManager extends RelationManager
     {
         /** @var ProgramRegistration $registration */
         $registration = $this->getOwnerRecord();
+        $registration->loadMissing('trainingProgram');
         $summary = app(ProgramAttendanceService::class)->getSummary($registration);
+        $prepOptions = app(ProgramAttendanceService::class)
+            ->attendancePrepDateOptions($registration->trainingProgram);
 
         return $table
             ->description(
                 sprintf(
-                    'الجلسات: %d | حاضر: %d | غائب: %d | معذور: %d',
+                    'أيام التحضير: %d | حاضر: %d | متأخر: %d | غائب: %d | بعذر: %d | غير محدد: %d',
                     $summary['total'],
                     $summary['present'],
+                    $summary['late'],
                     $summary['absent'],
                     $summary['excused'],
+                    $summary['unspecified'],
                 )
             )
             ->columns([
@@ -106,10 +119,14 @@ class AttendanceRelationManager extends RelationManager
 
                 BadgeColumn::make('status')
                     ->label('الحالة')
+                    ->formatStateUsing(fn ($state): string => $state instanceof AttendanceStatus
+                        ? $state->label()
+                        : (AttendanceStatus::tryFrom((string) $state)?->label() ?? (string) $state))
                     ->colors([
                         'success' => AttendanceStatus::Present->value,
+                        'warning' => AttendanceStatus::Late->value,
                         'danger' => AttendanceStatus::Absent->value,
-                        'warning' => AttendanceStatus::Excused->value,
+                        'info' => AttendanceStatus::Excused->value,
                     ]),
 
                 TextColumn::make('notes')
@@ -120,56 +137,109 @@ class AttendanceRelationManager extends RelationManager
             ->filters([
                 SelectFilter::make('status')
                     ->label('الحالة')
-                    ->options(AttendanceStatus::class),
+                    ->options(AttendanceStatus::options()),
             ])
             ->headerActions([
-                Action::make('generateSessions')
-                    ->label('توليد الجلسات التدريبية')
-                    ->icon('heroicon-o-calendar-days')
-                    ->color('info')
-                    ->requiresConfirmation()
-                    ->modalHeading('توليد الجلسات التدريبية')
-                    ->modalDescription(
-                        'سيتم إنشاء سجل حضور (غائب) لكل يوم دراسة متوقع بناءً على الجدول الأسبوعي للبرنامج. '
-                        .'السجلات الموجودة لن تُحذف أو تُعدَّل.'
-                    )
-                    ->modalSubmitActionLabel('نعم، توليد')
+                Action::make('addDay')
+                    ->label('تسجيل يوم')
+                    ->icon('heroicon-o-plus')
                     ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
-                    ->action(function (RelationManager $livewire): void {
-                        /** @var ProgramRegistration $reg */
-                        $reg = $livewire->getOwnerRecord();
-                        $count = app(ProgramAttendanceService::class)->generateSessions($reg);
+                    ->visible(fn (): bool => $prepOptions !== [])
+                    ->form([
+                        Select::make('training_date')
+                            ->label('يوم التحضير')
+                            ->options($prepOptions)
+                            ->required()
+                            ->native(false),
+                        Select::make('status')
+                            ->label('الحالة')
+                            ->options(AttendanceStatus::options())
+                            ->required()
+                            ->default(AttendanceStatus::Present->value),
+                        Textarea::make('notes')
+                            ->label('ملاحظات')
+                            ->rows(2),
+                    ])
+                    ->action(function (array $data) use ($registration): void {
+                        app(ProgramAttendanceService::class)->markManualDay(
+                            $registration,
+                            (string) $data['training_date'],
+                            AttendanceStatus::from((string) $data['status']),
+                            $data['notes'] ?? null,
+                            Auth::user(),
+                        );
 
-                        if ($count === 0) {
-                            Notification::make()
-                                ->title('لم تُنشأ جلسات جديدة')
-                                ->body('تأكد من تحديد أيام الدراسة وتواريخ بداية ونهاية البرنامج.')
-                                ->warning()
-                                ->send();
-                        } else {
-                            Notification::make()
-                                ->title("تم توليد {$count} جلسة تدريبية جديدة")
-                                ->success()
-                                ->send();
-                        }
+                        Notification::make()->title('تم تحديث الحضور')->success()->send();
                     }),
-
-                CreateAction::make()
-                    ->label('إضافة يوم يدوياً')
-                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false),
             ])
             ->actions([
                 EditAction::make()
                     ->label('تعديل الحالة')
-                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false),
-                DeleteAction::make()
-                    ->label('حذف')
-                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false),
+                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
+                    ->using(function (Model $record, array $data): Model {
+                        /** @var ProgramAttendance $record */
+                        /** @var ProgramRegistration $registration */
+                        $registration = $this->getOwnerRecord();
+
+                        try {
+                            app(ProgramAttendanceService::class)->markManualDay(
+                                $registration,
+                                $record->training_date->toDateString(),
+                                AttendanceStatus::from((string) $data['status']),
+                                $data['notes'] ?? null,
+                                Auth::user(),
+                            );
+                        } catch (ValidationException $e) {
+                            Notification::make()
+                                ->title($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+
+                        return $record->refresh();
+                    }),
+                Action::make('clearDay')
+                    ->label('حذف (غير محدد)')
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
+                    ->action(function (ProgramAttendance $record) use ($registration): void {
+                        app(ProgramAttendanceService::class)->clearDay(
+                            $registration,
+                            $record->training_date->toDateString(),
+                            Auth::user(),
+                        );
+
+                        Notification::make()->title('تم إعادة اليوم إلى غير محدد')->success()->send();
+                    }),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false),
+                    BulkAction::make('clearDays')
+                        ->label('حذف (غير محدد)')
+                        ->icon('heroicon-o-trash')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
+                        ->action(function (EloquentCollection $records) use ($registration): void {
+                            $service = app(ProgramAttendanceService::class);
+
+                            foreach ($records as $record) {
+                                if (! $record instanceof ProgramAttendance) {
+                                    continue;
+                                }
+
+                                $service->clearDay(
+                                    $registration,
+                                    $record->training_date->toDateString(),
+                                    Auth::user(),
+                                );
+                            }
+
+                            Notification::make()->title('تم إعادة الأيام المحددة إلى غير محدد')->success()->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
                 ]),
             ])
             ->defaultSort('training_date', 'asc');

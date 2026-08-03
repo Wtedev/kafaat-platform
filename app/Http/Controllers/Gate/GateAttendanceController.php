@@ -12,16 +12,22 @@ use App\Services\ProgramAttendanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class GateAttendanceController extends Controller
 {
+    public const SESSION_PREP_DATE = 'gate_prep_date';
+
     public function login(Request $request, TrainingProgram $program): View|RedirectResponse
     {
         $this->assertInPersonProgram($program);
 
         if ($this->alreadyAuthorized($request, $program)) {
-            return redirect()->route('gate.scan', ['program' => $program->slug]);
+            return redirect()->route('gate.scan', array_filter([
+                'program' => $program->slug,
+                'date' => $request->query('date'),
+            ]));
         }
 
         return view('gate.login', [
@@ -75,14 +81,70 @@ class GateAttendanceController extends Controller
         return redirect()->route('gate.scan', ['program' => $program->slug]);
     }
 
-    public function scan(Request $request, TrainingProgram $program): View
-    {
+    public function scan(
+        Request $request,
+        TrainingProgram $program,
+        ProgramAttendanceService $attendanceService,
+    ): View|RedirectResponse {
         $this->assertInPersonProgram($program);
+
+        $options = $attendanceService->attendancePrepDateOptions($program);
+        $resolved = $this->resolvePrepDate($request, $program, $attendanceService, $options);
+
+        if ($resolved['needs_choice']) {
+            return view('gate.choose-day', [
+                'program' => $program,
+                'options' => $options,
+                'operatorName' => (string) $request->attributes->get('gate_operator_name', 'مشغّلة البوابة'),
+                'operatorType' => (string) $request->attributes->get('gate_operator_type', 'checker'),
+                'suggested' => $resolved['suggested'],
+            ]);
+        }
+
+        if ($resolved['date'] === null) {
+            return view('gate.choose-day', [
+                'program' => $program,
+                'options' => $options,
+                'operatorName' => (string) $request->attributes->get('gate_operator_name', 'مشغّلة البوابة'),
+                'operatorType' => (string) $request->attributes->get('gate_operator_type', 'checker'),
+                'suggested' => null,
+                'emptyMessage' => 'لا توجد أيام تحضير مفعّلة لهذا البرنامج. أضيفي أياماً من لوحة الإدارة أولاً.',
+            ]);
+        }
+
+        $request->session()->put(self::SESSION_PREP_DATE, $resolved['date']);
 
         return view('gate.scan', [
             'program' => $program,
+            'prepDate' => $resolved['date'],
+            'prepDateLabel' => $options[$resolved['date']] ?? $resolved['date'],
             'operatorName' => (string) $request->attributes->get('gate_operator_name', 'مشغّلة البوابة'),
             'operatorType' => (string) $request->attributes->get('gate_operator_type', 'checker'),
+        ]);
+    }
+
+    public function selectDay(
+        Request $request,
+        TrainingProgram $program,
+        ProgramAttendanceService $attendanceService,
+    ): RedirectResponse {
+        $this->assertInPersonProgram($program);
+
+        $data = $request->validate([
+            'date' => ['required', 'date_format:Y-m-d'],
+        ], [
+            'date.required' => 'اختاري يوم التحضير.',
+        ]);
+
+        if (! $attendanceService->isValidAttendancePrepDate($program, $data['date'])) {
+            return back()->withErrors(['date' => 'يوم التحضير غير صالح لهذا البرنامج.']);
+        }
+
+        $request->session()->put(self::SESSION_PREP_DATE, $data['date']);
+
+        return redirect()->route('gate.scan', [
+            'program' => $program->slug,
+            'date' => $data['date'],
         ]);
     }
 
@@ -95,9 +157,30 @@ class GateAttendanceController extends Controller
 
         $data = $request->validate([
             'pass' => ['required', 'string', 'max:500'],
+            'date' => ['nullable', 'date_format:Y-m-d'],
         ], [
             'pass.required' => 'أدخلي أو امسحي رمز المرور.',
         ]);
+
+        $prepDate = $data['date']
+            ?? $request->session()->get(self::SESSION_PREP_DATE)
+            ?? Carbon::today(config('app.timezone'))->toDateString();
+
+        if (! $attendanceService->isValidAttendancePrepDate($program, $prepDate)) {
+            $message = 'يوم التحضير غير محدّد أو غير صالح. اختاري يوماً أولاً.';
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'ok' => false,
+                    'reason' => 'invalid_day',
+                    'message' => $message,
+                    'beneficiary_name' => null,
+                ], 422);
+            }
+
+            return redirect()->route('gate.scan', ['program' => $program->slug])
+                ->with('gate_error', $message);
+        }
 
         /** @var ProgramAttendanceChecker|null $checker */
         $checker = $request->attributes->get('gate_checker');
@@ -110,6 +193,7 @@ class GateAttendanceController extends Controller
             $data['pass'],
             $checker instanceof ProgramAttendanceChecker ? $checker : null,
             $admin instanceof User ? $admin : null,
+            $prepDate,
         );
 
         if ($request->expectsJson() || $request->ajax()) {
@@ -135,10 +219,64 @@ class GateAttendanceController extends Controller
         $request->session()->forget([
             EnsureGateAttendanceAccess::SESSION_CHECKER_ID,
             EnsureGateAttendanceAccess::SESSION_PROGRAM_ID,
+            self::SESSION_PREP_DATE,
         ]);
 
         return redirect()->route('gate.login', ['program' => $program->slug])
             ->with('success', 'تم تسجيل الخروج من بوابة التحضير.');
+    }
+
+    /**
+     * @param  array<string, string>  $options
+     * @return array{date: ?string, needs_choice: bool, suggested: ?string}
+     */
+    private function resolvePrepDate(
+        Request $request,
+        TrainingProgram $program,
+        ProgramAttendanceService $attendanceService,
+        array $options,
+    ): array {
+        if ($options === []) {
+            return ['date' => null, 'needs_choice' => false, 'suggested' => null];
+        }
+
+        $queryDate = $request->query('date');
+        if (is_string($queryDate) && $attendanceService->isValidAttendancePrepDate($program, $queryDate)) {
+            return ['date' => $queryDate, 'needs_choice' => false, 'suggested' => $queryDate];
+        }
+
+        if ($request->boolean('change')) {
+            $request->session()->forget(self::SESSION_PREP_DATE);
+            $today = Carbon::today(config('app.timezone'))->toDateString();
+            $suggested = array_key_exists($today, $options)
+                ? $today
+                : $attendanceService->defaultPrepDate($program);
+
+            return ['date' => null, 'needs_choice' => true, 'suggested' => $suggested];
+        }
+
+        $sessionDate = $request->session()->get(self::SESSION_PREP_DATE);
+        if (is_string($sessionDate) && $attendanceService->isValidAttendancePrepDate($program, $sessionDate)) {
+            // Still require explicit choice when multiple days and no query date,
+            // unless only one day exists.
+            if (count($options) === 1) {
+                return ['date' => $sessionDate, 'needs_choice' => false, 'suggested' => $sessionDate];
+            }
+        }
+
+        if (count($options) === 1) {
+            $only = array_key_first($options);
+
+            return ['date' => $only, 'needs_choice' => false, 'suggested' => $only];
+        }
+
+        $today = Carbon::today(config('app.timezone'))->toDateString();
+        $suggested = array_key_exists($today, $options)
+            ? $today
+            : $attendanceService->defaultPrepDate($program);
+
+        // Multiple valid prep days → require explicit choice before scanner.
+        return ['date' => null, 'needs_choice' => true, 'suggested' => $suggested];
     }
 
     private function assertInPersonProgram(TrainingProgram $program): void

@@ -91,7 +91,6 @@ class RegistrationFilamentTableSupport
     {
         return TextColumn::make('attendance_percentage')
             ->label('نسبة الحضور')
-            ->suffix('%')
             ->getStateUsing(fn (ProgramRegistration|PathRegistration $record): string => self::formatPercentage(
                 $record->effectiveAttendancePercentage(),
             ))
@@ -112,36 +111,35 @@ class RegistrationFilamentTableSupport
             return '—';
         }
 
-        return number_format($value, 1);
+        return number_format($value, 1).'%';
     }
 
     public static function programAttendanceSummary(ProgramRegistration $record): string
     {
         $record->loadMissing('trainingProgram');
-        $expected = app(ProgramAttendanceService::class)->countExpectedTrainingDays($record->trainingProgram);
-        $present = $record->attendanceRecords()
-            ->where('status', AttendanceStatus::Present->value)
-            ->count();
+        $service = app(ProgramAttendanceService::class);
+        $expected = $service->countExpectedTrainingDays($record->trainingProgram);
+        $attended = $service->countAttendedDays($record);
 
         if ($expected === 0) {
-            return 'لم تُحدَّد أيام البرنامج بعد';
+            return 'لم تُحدَّد أيام التحضير بعد';
         }
 
-        return "حضور {$present} من {$expected} يوم";
+        return "حضور {$attended} من {$expected} يوم";
     }
 
     public static function pathAttendanceSummary(PathRegistration $record): string
     {
         $record->loadMissing('learningPath.programs');
         $expected = app(PathAttendanceService::class)->countExpectedTrainingDays($record->learningPath);
-        $present = $record->attendanceRecords()
-            ->where('status', AttendanceStatus::Present->value)
+        $attended = $record->attendanceRecords()
+            ->whereIn('status', AttendanceStatus::attendedValues())
             ->count();
 
         if ($expected === 0) {
-            return 'لم تُحدَّد أيام المسار بعد';
+            return 'لم تُحدَّد أيام التحضير بعد';
         }
 
-        return "حضور {$present} من {$expected} يوم";
+        return "حضور {$attended} من {$expected} يوم";
     }
 }

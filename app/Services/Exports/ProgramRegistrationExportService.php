@@ -262,7 +262,7 @@ final class ProgramRegistrationExportService
             self::SCOPE_COMPLETED => $query->where('status', RegistrationStatus::Completed),
             self::SCOPE_ATTENDED => $query->whereHas(
                 'attendanceRecords',
-                fn (Builder $q) => $q->where('status', AttendanceStatus::Present),
+                fn (Builder $q) => $q->whereIn('status', AttendanceStatus::attendedValues()),
             ),
             self::SCOPE_ABSENT => $query->whereHas(
                 'attendanceRecords',

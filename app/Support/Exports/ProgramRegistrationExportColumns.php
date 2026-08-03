@@ -139,7 +139,9 @@ final class ProgramRegistrationExportColumns
             'approved_at' => $registration->approved_at?->timezone(config('app.timezone'))->format('Y-m-d H:i'),
             'approved_by_name' => $registration->approvedBy?->name,
             'rejected_reason' => $registration->rejected_reason,
-            'attendance_percentage' => $registration->effectiveAttendancePercentage(),
+            'attendance_percentage' => ($pct = $registration->effectiveAttendancePercentage()) === null
+                ? '—'
+                : $pct,
             'score' => $registration->score,
             default => null,
         };
