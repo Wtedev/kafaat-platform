@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Auth\EloquentUserProvider;
 use App\Enums\SecurityLogResult;
 use App\Enums\SecurityLogSeverity;
 use App\Models\AuditLog;
@@ -50,11 +51,13 @@ use App\Services\Privacy\Retention\RetentionResourceCatalog;
 use App\Services\Rbac\RbacService;
 use App\Services\Security\SecurityLogService;
 use App\Services\UserActivityLogger;
+use App\Support\Auth\EmailNormalizer;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -83,6 +86,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureAuthUserProvider();
         $this->configureRateLimiting();
         $this->configureProductionHttps();
         $this->configureEmailVerificationOnLogin();
@@ -255,11 +259,18 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
+    private function configureAuthUserProvider(): void
+    {
+        Auth::provider('eloquent', function ($app, array $config) {
+            return new EloquentUserProvider($app['hash'], $config['model']);
+        });
+    }
+
     private function configureRateLimiting(): void
     {
         // تسجيل الدخول: 5 محاولات لكل IP+بريد كل دقيقة (يقلل التشويه خلف NAT مع TrustProxies *)
         RateLimiter::for('login', function (Request $request): Limit {
-            $email = strtolower(trim((string) $request->input('email', '')));
+            $email = EmailNormalizer::normalize((string) $request->input('email', ''));
             $key = $email !== '' ? $email.'|'.$request->ip() : (string) $request->ip();
 
             return Limit::perMinute(5)
@@ -300,7 +311,7 @@ class AppServiceProvider extends ServiceProvider
 
         // نسيت كلمة المرور: 5 طلبات لكل بريد+IP كل 5 دقائق
         RateLimiter::for('forgot-password', function (Request $request): Limit {
-            $email = strtolower(trim((string) $request->input('email', '')));
+            $email = EmailNormalizer::normalize((string) $request->input('email', ''));
             $key = $email !== '' ? $email.'|'.$request->ip() : (string) $request->ip();
 
             return Limit::perMinutes(5, 5)

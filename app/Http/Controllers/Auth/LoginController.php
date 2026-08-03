@@ -6,6 +6,7 @@ use App\Enums\SecurityLogResult;
 use App\Enums\SecurityLogSeverity;
 use App\Http\Controllers\Controller;
 use App\Services\Security\SecurityLogService;
+use App\Support\Auth\EmailNormalizer;
 use App\Support\Auth\SafeLoginReturnUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,6 +29,8 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
+        $credentials['email'] = EmailNormalizer::normalize((string) $credentials['email']);
+
         $remember = $request->boolean('remember');
 
         if (! Auth::attempt($credentials, $remember)) {
@@ -35,7 +38,7 @@ class LoginController extends Controller
                 'auth.login_failed',
                 SecurityLogResult::Failed,
                 SecurityLogSeverity::Warning,
-                identifier: (string) $credentials['email'],
+                identifier: $credentials['email'],
                 metadata: ['reason' => 'invalid_credentials'],
                 request: $request,
             );

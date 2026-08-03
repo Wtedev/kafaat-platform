@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Support\Auth\EmailNormalizer;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,8 +37,11 @@ class ResetPasswordController extends Controller
             'password.confirmed' => 'تأكيد كلمة المرور غير متطابق.',
         ]);
 
+        $credentials = $request->only('email', 'password', 'password_confirmation', 'token');
+        $credentials['email'] = EmailNormalizer::normalize((string) $credentials['email']);
+
         $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
+            $credentials,
             function ($user, string $password) {
                 $user->forceFill([
                     'password' => Hash::make($password),

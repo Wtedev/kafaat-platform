@@ -6,7 +6,6 @@ use App\Enums\AccountStatus;
 use App\Enums\SecurityLogResult;
 use App\Enums\SecurityLogSeverity;
 use App\Enums\UserActivityAction;
-use App\Filament\Support\UserInlineEditSupport;
 use App\Models\EmailVerificationCode;
 use App\Models\PendingEmailChange;
 use App\Models\User;
@@ -14,6 +13,7 @@ use App\Notifications\EmailChangedSecurityNotice;
 use App\Notifications\EmailChangeVerificationCode;
 use App\Services\Security\SecurityLogService;
 use App\Services\UserActivityLogger;
+use App\Support\Auth\EmailNormalizer;
 use App\Support\Privacy\SensitiveContactMasker;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -71,20 +71,20 @@ class EmailChangeService
             return $this->fail(self::MSG_RATE_LIMITED);
         }
 
-        $normalized = UserInlineEditSupport::normalizeAccountEmail($email);
+        $normalized = EmailNormalizer::normalize($email);
 
         if ($normalized === '' || ! filter_var($normalized, FILTER_VALIDATE_EMAIL)) {
             return $this->fail(self::MSG_INVALID_EMAIL, 'email');
         }
 
         if ($emailConfirmation !== null) {
-            $confirmNormalized = UserInlineEditSupport::normalizeAccountEmail($emailConfirmation);
+            $confirmNormalized = EmailNormalizer::normalize($emailConfirmation);
             if ($confirmNormalized !== $normalized) {
                 return $this->fail(self::MSG_CONFIRM_MISMATCH, 'email_confirmation');
             }
         }
 
-        $currentNormalized = UserInlineEditSupport::normalizeAccountEmail((string) $user->email);
+        $currentNormalized = EmailNormalizer::normalize((string) $user->email);
         if ($normalized === $currentNormalized) {
             return $this->fail(self::MSG_SAME_AS_CURRENT, 'email');
         }
@@ -277,7 +277,7 @@ class EmailChangeService
                     throw new EmailChangeAbortedException(self::MSG_ACCOUNT_BLOCKED);
                 }
 
-                $currentNormalized = UserInlineEditSupport::normalizeAccountEmail((string) $locked->email);
+                $currentNormalized = EmailNormalizer::normalize((string) $locked->email);
                 if ($currentNormalized !== $pending->current_email_snapshot) {
                     throw new EmailChangeAbortedException(self::MSG_EXPIRED_OTP);
                 }
@@ -402,7 +402,7 @@ class EmailChangeService
             return null;
         }
 
-        $currentNormalized = UserInlineEditSupport::normalizeAccountEmail((string) $user->email);
+        $currentNormalized = EmailNormalizer::normalize((string) $user->email);
         if ($pending->current_email_snapshot !== $currentNormalized) {
             $pending->delete();
 
@@ -427,7 +427,7 @@ class EmailChangeService
     private function emailTakenByAnother(string $normalizedEmail, User $user): bool
     {
         return User::query()
-            ->whereRaw('lower(email) = ?', [$normalizedEmail])
+            ->whereEmailIgnoreCase($normalizedEmail)
             ->whereKeyNot($user->getKey())
             ->exists();
     }
@@ -441,7 +441,7 @@ class EmailChangeService
 
     private function notifyOldEmail(string $oldEmail): void
     {
-        $normalized = UserInlineEditSupport::normalizeAccountEmail($oldEmail);
+        $normalized = EmailNormalizer::normalize($oldEmail);
         if ($normalized === '' || ! filter_var($normalized, FILTER_VALIDATE_EMAIL)) {
             return;
         }
