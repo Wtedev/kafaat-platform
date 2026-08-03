@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Schema;
  * Sets durable program + registration dates for «قادة التطوع». Safe to re-run.
  *
  * Program: 2026-08-03 → 2026-09-01 (~30 days inclusive)
- * Registration window: 2026-07-22 → 2026-08-03 (inclusive; restored prior open end)
+ * Registration window: 2026-07-22 → 2026-08-01 (inclusive; locked closed after that day)
  */
 class VolunteerLeadersProgramDatesSeeder extends Seeder
 {
@@ -23,8 +23,8 @@ class VolunteerLeadersProgramDatesSeeder extends Seeder
 
     public const REGISTRATION_START = '2026-07-22';
 
-    /** Inclusive last day; predeploy re-seed keeps this window (restored from 2026-08-01 close). */
-    public const REGISTRATION_END = '2026-08-03';
+    /** Inclusive last day; after this date public registration stays closed on every predeploy re-seed. */
+    public const REGISTRATION_END = '2026-08-01';
 
     public function run(): void
     {
