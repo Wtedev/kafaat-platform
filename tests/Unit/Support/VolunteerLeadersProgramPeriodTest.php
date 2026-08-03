@@ -26,6 +26,20 @@ class VolunteerLeadersProgramPeriodTest extends TestCase
         );
     }
 
+    public function test_official_period_is_thirty_inclusive_days(): void
+    {
+        $dates = VolunteerLeadersProgramPeriod::periodDates();
+
+        $this->assertCount(30, $dates);
+        $this->assertSame(VolunteerLeadersProgramPeriod::PERIOD_START, $dates[0]);
+        $this->assertSame(VolunteerLeadersProgramPeriod::PERIOD_END, $dates[array_key_last($dates)]);
+        $this->assertContains('2026-09-01', $dates);
+        $this->assertSame(6, count(array_filter(
+            $dates,
+            fn (string $date): bool => VolunteerLeadersProgramPeriod::isInPersonDate($date),
+        )));
+    }
+
     public function test_sidebar_labels_for_volunteer_leaders_program(): void
     {
         $this->assertSame('3–5 أغسطس، 16–18 أغسطس', VolunteerLeadersProgramPeriod::inPersonDaysLabel());

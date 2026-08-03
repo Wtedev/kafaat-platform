@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>أيام البرنامج</title>
+<style>
+  body{margin:0;font-family:"Segoe UI",Tahoma,sans-serif;background:#f4f7fb}
+  .shell{max-width:900px;margin:24px auto;padding:0 16px}
+  .card{background:#fff;border:1px solid #d7e2ef;border-radius:16px;overflow:hidden}
+  .head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #d7e2ef;background:#f8fafc}
+  .btn{background:#335483;color:#fff;border-radius:10px;padding:8px 14px;font-weight:700;font-size:13px}
+  table{width:100%;border-collapse:collapse} th,td{padding:12px 16px;border-bottom:1px solid #eef2f7;text-align:right;font-size:14px}
+  th{font-size:12px;color:#64748b;background:#fbfcfe}
+  .badge{border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}
+  .ok{background:#d1fae5;color:#065f46}.gray{background:#e2e8f0;color:#475569}
+  h1{font-size:20px;margin:0 0 8px}.sub{color:#64748b;font-size:13px;margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="shell">
+  <h1>أيام البرنامج</h1>
+  <p class="sub">التاريخ + نوع اليوم فقط — يتطلب تحضير مخفي ومفعّل دائماً</p>
+  <div class="card">
+    <div class="head"><strong>أيام البرنامج</strong><span class="btn">إضافة يوم</span></div>
+    <table>
+      <thead><tr><th>التاريخ</th><th>اليوم</th><th>النوع</th></tr></thead>
+      <tbody>
+        <tr><td>2026-08-03</td><td>الأحد 3 أغسطس</td><td><span class="badge ok">حضوري</span></td></tr>
+        <tr><td>2026-08-04</td><td>الاثنين 4 أغسطس</td><td><span class="badge ok">حضوري</span></td></tr>
+        <tr><td>2026-08-10</td><td>الاثنين 10 أغسطس</td><td><span class="badge gray">عن بُعد</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

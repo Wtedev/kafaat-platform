@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>سجل جميع الأيام</title>
+<style>
+  :root { --brand:#335483; --bg:#f4f7fb; --line:#d7e2ef; }
+  *{box-sizing:border-box} body{margin:0;font-family:"Segoe UI",Tahoma,sans-serif;background:var(--bg)}
+  .shell{max-width:1200px;margin:24px auto;padding:0 16px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:auto;box-shadow:0 8px 24px rgba(51,84,131,.06)}
+  .tabs{display:flex;gap:8px;padding:14px 16px;border-bottom:1px solid var(--line);background:#f8fafc}
+  .tab{border-radius:10px;padding:8px 14px;font-weight:700;font-size:13px}
+  .tab.on{background:var(--brand);color:#fff} .tab.off{background:#e8eef5;color:#334155}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:900px}
+  th,td{padding:10px 12px;border-bottom:1px solid #eef2f7;text-align:center;white-space:nowrap}
+  th:first-child,td:first-child{text-align:right;position:sticky;right:0;background:#fff}
+  th{font-size:11px;color:#64748b;background:#fbfcfe}
+  .ok{display:inline-block;background:#d1fae5;color:#065f46;border-radius:999px;padding:3px 8px;font-weight:700}
+  .no{display:inline-block;background:#e2e8f0;color:#475569;border-radius:999px;padding:3px 8px;font-weight:700}
+  h1{font-size:20px;margin:0 0 8px} .sub{color:#64748b;font-size:13px;margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="shell">
+  <h1>سجل جميع الأيام</h1>
+  <p class="sub">عرض فقط — التعديل من التحضير اليومي</p>
+  <div class="card">
+    <div class="tabs"><span class="tab off">تحضير يومي</span><span class="tab on">سجل جميع الأيام</span></div>
+    <table>
+      <thead>
+        <tr>
+          <th>اسم المستفيد</th>
+          <th>الأحد 3 أغسطس</th><th>الاثنين 4 أغسطس</th><th>الثلاثاء 5 أغسطس</th>
+          <th>الأحد 16 أغسطس</th><th>الاثنين 17 أغسطس</th><th>الثلاثاء 18 أغسطس</th>
+          <th>أيام الحضور</th><th>إجمالي</th><th>النسبة</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>نورة العتيبي</td><td><span class="ok">حاضر</span></td><td><span class="no">لم يحضر</span></td><td><span class="no">لم يحضر</span></td><td><span class="no">لم يحضر</span></td><td><span class="no">لم يحضر</span></td><td><span class="no">لم يحضر</span></td><td>1</td><td>6</td><td>16.7%</td></tr>
+        <tr><td>سارة الدوسري</td><td><span class="no">لم يحضر</span></td><td><span class="no">لم يحضر</span></td><td><span class="no">لم يحضر</span></td><td><span class="no">لم يحضر</span></td><td><span class="no">لم يحضر</span></td><td><span class="no">لم يحضر</span></td><td>0</td><td>6</td><td>0.0%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

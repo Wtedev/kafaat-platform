@@ -79,14 +79,20 @@ $statusLabels = [
             $programShowUrl = ($program && filled($program->slug))
                 ? route('public.programs.show', $program)
                 : null;
-            $isInPerson = $program?->delivery_mode?->hasPhysicalComponent() ?? false;
+            $isInPersonToday = ($reg->today_prep_type ?? null) === \App\Enums\ProgramPrepDayType::InPerson;
+            $isRemoteToday = ($reg->today_prep_type ?? null) === \App\Enums\ProgramPrepDayType::Remote;
             $attendancePass = $reg->attendance_pass ?? [];
             $liveSession = $reg->live_session ?? null;
             $canOpenAttendance = $isAccepted && $program;
-            $attendanceModalId = $program ? ($isInPerson ? 'program-attendance-qr-'.$program->id : 'program-attendance-remote-'.$program->id) : null;
-            $showQrModal = $canOpenAttendance && $isInPerson && ! empty($attendancePass['qr_data_uri']);
+            $attendanceModalId = null;
+            if ($canOpenAttendance && $isInPersonToday) {
+                $attendanceModalId = 'program-attendance-qr-'.$program->id;
+            } elseif ($canOpenAttendance && $isRemoteToday) {
+                $attendanceModalId = 'program-attendance-remote-'.$program->id;
+            }
+            $showQrModal = $canOpenAttendance && $isInPersonToday && ! empty($attendancePass['qr_data_uri']);
             $canRemoteCheckIn = $canOpenAttendance
-                && ! $isInPerson
+                && $isRemoteToday
                 && $liveSession !== null
                 && $liveSession->isActive();
 
@@ -120,10 +126,14 @@ $statusLabels = [
                 $eligClass = null;
             }
 
-            $checkInLabel = $isInPerson ? 'QR الحضور' : 'التحضير';
-            $checkInMeta = $isAccepted
-                ? ($isInPerson ? 'QR الحضور' : 'التحضير عن بُعد')
-                : 'بعد القبول';
+            $checkInLabel = $isInPersonToday ? 'QR الحضور' : ($isRemoteToday ? 'تسجيل حضوري' : 'التحضير');
+            $checkInMeta = ! $isAccepted
+                ? 'بعد القبول'
+                : ($isInPersonToday
+                    ? 'QR الحضور'
+                    : ($isRemoteToday
+                        ? ($canRemoteCheckIn ? 'جلسة مفتوحة' : 'بانتظار فتح الجلسة')
+                        : 'لا يوجد تحضير اليوم'));
         @endphp
 
         <li>
@@ -231,18 +241,33 @@ $statusLabels = [
                         </ul>
 
                         <div class="mt-3.5 flex flex-wrap items-center gap-2">
-                            @if ($canOpenAttendance && $attendanceModalId && ($showQrModal || ! $isInPerson))
+                            @if ($canOpenAttendance && $showQrModal)
                             <button
                                 type="button"
                                 class="portal-attendance-open inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:opacity-95"
                                 style="background:#335483"
                                 data-attendance-modal="{{ $attendanceModalId }}"
                             >
-                                @if ($isInPerson)
-                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
-                                @endif
+                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                                 {{ $checkInLabel }}
                             </button>
+                            @elseif ($canOpenAttendance && $isRemoteToday && $canRemoteCheckIn)
+                            <button
+                                type="button"
+                                class="portal-attendance-open inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:opacity-95"
+                                style="background:#335483"
+                                data-attendance-modal="{{ $attendanceModalId }}"
+                            >
+                                {{ $checkInLabel }}
+                            </button>
+                            @elseif ($canOpenAttendance && $isRemoteToday)
+                            <span class="inline-flex items-center rounded-xl px-3 py-2 text-xs font-medium text-gray-400 ring-1 ring-gray-200">
+                                بانتظار فتح جلسة التحضير
+                            </span>
+                            @elseif ($isAccepted)
+                            <span class="inline-flex items-center rounded-xl px-3 py-2 text-xs font-medium text-gray-400 ring-1 ring-gray-200">
+                                لا يوجد تحضير اليوم
+                            </span>
                             @elseif ($program)
                             <span class="inline-flex items-center rounded-xl px-3 py-2 text-xs font-medium text-gray-400 ring-1 ring-gray-200">
                                 التحضير: بعد القبول
@@ -340,21 +365,22 @@ $statusLabels = [
             if (! $isAccepted) {
                 continue;
             }
-            $isInPerson = $program->delivery_mode?->hasPhysicalComponent() ?? false;
+            $isInPersonToday = ($reg->today_prep_type ?? null) === \App\Enums\ProgramPrepDayType::InPerson;
+            $isRemoteToday = ($reg->today_prep_type ?? null) === \App\Enums\ProgramPrepDayType::Remote;
             $attendancePass = $reg->attendance_pass ?? [];
             $liveSession = $reg->live_session ?? null;
-            $canRemoteCheckIn = ! $isInPerson
+            $canRemoteCheckIn = $isRemoteToday
                 && $liveSession !== null
                 && $liveSession->isActive();
         @endphp
-        @if ($isInPerson && ! empty($attendancePass['qr_data_uri']))
+        @if ($isInPersonToday && ! empty($attendancePass['qr_data_uri']))
             <x-portal.program-attendance-qr-modal
                 :program-id="$program->id"
                 :qr-data-uri="$attendancePass['qr_data_uri']"
                 :pass-code="$attendancePass['pass_code'] ?? null"
                 :venue-label="$attendancePass['venue_label'] ?? null"
             />
-        @elseif (! $isInPerson)
+        @elseif ($isRemoteToday)
             <x-portal.program-attendance-remote-modal
                 :program-id="$program->id"
                 :program-title="$program->title"

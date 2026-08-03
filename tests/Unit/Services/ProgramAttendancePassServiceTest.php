@@ -43,7 +43,8 @@ class ProgramAttendancePassServiceTest extends TestCase
 
     public function test_mark_present_from_pass_for_in_person_program(): void
     {
-        Carbon::setTestNow('2026-07-14 10:00:00');
+        config(['app.timezone' => 'Asia/Riyadh']);
+        Carbon::setTestNow(Carbon::parse('2026-07-14 10:00:00', 'Asia/Riyadh'));
 
         $program = TrainingProgram::query()->create([
             'title' => 'برنامج حضوري بوابة',
@@ -87,7 +88,7 @@ class ProgramAttendancePassServiceTest extends TestCase
         $service = app(ProgramAttendanceService::class);
         $pass = sprintf('KAFAAT-P%d-R%d', $program->id, $registration->id);
 
-        $first = $service->markPresentFromPass($program, $pass, $checker, prepDate: '2026-07-14');
+        $first = $service->markPresentFromPass($program, $pass, $checker);
         $this->assertTrue($first['ok']);
         $this->assertSame('marked', $first['reason']);
         $this->assertSame('نورة المتحققة', $first['beneficiary_name']);
@@ -97,7 +98,7 @@ class ProgramAttendancePassServiceTest extends TestCase
             'status' => AttendanceStatus::Present->value,
         ]);
 
-        $second = $service->markPresentFromPass($program, $pass, $checker, prepDate: '2026-07-14');
+        $second = $service->markPresentFromPass($program, $pass, $checker, prepDate: '2099-01-01');
         $this->assertTrue($second['ok']);
         $this->assertSame('already_present', $second['reason']);
 

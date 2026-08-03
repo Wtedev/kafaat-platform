@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\AttendanceStatus;
 use App\Enums\AuditLogResult;
+use App\Enums\ProgramPrepDayType;
 use App\Enums\RegistrationStatus;
 use App\Models\ProgramAttendance;
 use App\Models\ProgramAttendanceChecker;
@@ -37,7 +38,7 @@ class ProgramAttendanceService
     ) {}
 
     /**
-     * Prep days that require attendance, chronological Y-m-d strings.
+     * All program prep days (every row counts for attendance), chronological Y-m-d strings.
      *
      * @return list<string>
      */
@@ -56,27 +57,38 @@ class ProgramAttendanceService
     {
         if ($program->relationLoaded('prepDays')) {
             return $program->prepDays
-                ->filter(fn (ProgramPrepDay $day): bool => (bool) $day->requires_attendance)
                 ->sortBy(fn (ProgramPrepDay $day): string => $day->dateString())
                 ->values();
         }
 
-        return $program->attendancePrepDays()->chronological()->get();
+        return $program->prepDays()->chronological()->get();
     }
 
-    /**
-     * Due prep days for % denominator: requires attendance and date <= today (Asia/Riyadh).
-     *
-     * @return list<string>
-     */
-    public function dueAttendancePrepDateStrings(TrainingProgram $program, ?Carbon $asOf = null): array
+    public function prepDayForDate(TrainingProgram $program, string $date): ?ProgramPrepDay
+    {
+        return $this->attendancePrepDays($program)
+            ->first(fn (ProgramPrepDay $day): bool => $day->dateString() === $date);
+    }
+
+    public function todayPrepDay(TrainingProgram $program, ?Carbon $asOf = null): ?ProgramPrepDay
     {
         $today = ($asOf ?? Carbon::today(config('app.timezone')))->toDateString();
 
-        return array_values(array_filter(
-            $this->attendancePrepDateStrings($program),
-            static fn (string $date): bool => $date <= $today,
-        ));
+        return $this->prepDayForDate($program, $today);
+    }
+
+    public function isTodayInPersonPrepDay(TrainingProgram $program, ?Carbon $asOf = null): bool
+    {
+        $day = $this->todayPrepDay($program, $asOf);
+
+        return $day !== null && $day->delivery_type === ProgramPrepDayType::InPerson;
+    }
+
+    public function isTodayRemotePrepDay(TrainingProgram $program, ?Carbon $asOf = null): bool
+    {
+        $day = $this->todayPrepDay($program, $asOf);
+
+        return $day !== null && $day->delivery_type === ProgramPrepDayType::Remote;
     }
 
     /**
@@ -137,7 +149,7 @@ class ProgramAttendanceService
     }
 
     /**
-     * B1: do not pre-create absent rows. Kept for API compatibility; always returns 0.
+     * Kept for API compatibility; never pre-creates absent rows.
      */
     public function generateSessions(ProgramRegistration $registration): int
     {
@@ -145,7 +157,7 @@ class ProgramAttendanceService
     }
 
     /**
-     * B1: do not pre-create absent rows. Kept for API compatibility; always returns 0.
+     * Kept for API compatibility; never pre-creates absent rows.
      */
     public function generateSessionsForAllRegistrations(TrainingProgram $program): int
     {
@@ -153,29 +165,21 @@ class ProgramAttendanceService
     }
 
     /**
-     * Attendance % = (present + late) / due prep days up to today.
-     * Returns null when no due prep days yet (UI shows «—»).
+     * Attendance % = present days / all program prep days (including future) × 100.
+     * Returns null when the program has no prep days (UI shows «—»).
      */
     public function calculatePercentage(ProgramRegistration $registration, ?Carbon $asOf = null): ?float
     {
         $registration->loadMissing('trainingProgram');
-        $dueDays = $this->dueAttendancePrepDateStrings($registration->trainingProgram, $asOf);
+        $totalDays = $this->countExpectedTrainingDays($registration->trainingProgram);
 
-        if ($dueDays === []) {
+        if ($totalDays === 0) {
             return null;
         }
 
-        $attended = $registration->attendanceRecords()
-            ->whereIn('status', AttendanceStatus::attendedValues())
-            ->get()
-            ->filter(fn (ProgramAttendance $row): bool => in_array(
-                $row->training_date->toDateString(),
-                $dueDays,
-                true,
-            ))
-            ->count();
+        $attended = $this->countAttendedDays($registration);
 
-        return round($attended / count($dueDays) * 100, 2);
+        return round($attended / $totalDays * 100, 2);
     }
 
     public function countExpectedTrainingDays(TrainingProgram $program): int
@@ -185,6 +189,7 @@ class ProgramAttendanceService
 
     public function countAttendedDays(ProgramRegistration $registration): int
     {
+        $registration->loadMissing('trainingProgram');
         $dates = $this->attendancePrepDateStrings($registration->trainingProgram);
 
         if ($dates === []) {
@@ -192,7 +197,7 @@ class ProgramAttendanceService
         }
 
         return $registration->attendanceRecords()
-            ->whereIn('status', AttendanceStatus::attendedValues())
+            ->where('status', AttendanceStatus::Present->value)
             ->get()
             ->filter(fn (ProgramAttendance $row): bool => in_array(
                 $row->training_date->toDateString(),
@@ -203,68 +208,29 @@ class ProgramAttendanceService
     }
 
     /**
-     * @return array{total: int, present: int, late: int, absent: int, excused: int, unspecified: int}
+     * @return array{total: int, present: int, not_present: int}
      */
     public function getSummary(ProgramRegistration $registration): array
     {
         $dates = $this->attendancePrepDateStrings($registration->trainingProgram);
         $total = count($dates);
-
-        if ($total === 0) {
-            return [
-                'total' => 0,
-                'present' => 0,
-                'late' => 0,
-                'absent' => 0,
-                'excused' => 0,
-                'unspecified' => 0,
-            ];
-        }
-
-        $records = $registration->attendanceRecords()
-            ->get()
-            ->filter(fn (ProgramAttendance $row): bool => in_array(
-                $row->training_date->toDateString(),
-                $dates,
-                true,
-            ))
-            ->keyBy(fn (ProgramAttendance $row): string => $row->training_date->toDateString());
-
-        $present = 0;
-        $late = 0;
-        $absent = 0;
-        $excused = 0;
-        $specified = 0;
-
-        foreach ($dates as $date) {
-            $record = $records->get($date);
-            if ($record === null) {
-                continue;
-            }
-
-            $specified++;
-            match ($record->status) {
-                AttendanceStatus::Present => $present++,
-                AttendanceStatus::Late => $late++,
-                AttendanceStatus::Absent => $absent++,
-                AttendanceStatus::Excused => $excused++,
-                default => null,
-            };
-        }
+        $present = $this->countAttendedDays($registration);
 
         return [
             'total' => $total,
             'present' => $present,
-            'late' => $late,
-            'absent' => $absent,
-            'excused' => $excused,
-            'unspecified' => $total - $specified,
+            'not_present' => max(0, $total - $present),
         ];
     }
 
     public function dayName(int $dayOfWeek): string
     {
         return self::DAY_NAMES[$dayOfWeek] ?? (string) $dayOfWeek;
+    }
+
+    public function isPresentOnDate(ProgramRegistration $registration, string $date): bool
+    {
+        return $this->statusForDate($registration, $date) === AttendanceStatus::Present;
     }
 
     public function statusForDate(ProgramRegistration $registration, string $date): ?AttendanceStatus
@@ -280,27 +246,55 @@ class ProgramAttendanceService
         return $record?->status;
     }
 
-    public function markManualDay(
+    public function displayLabelForDate(ProgramRegistration $registration, string $date): string
+    {
+        return $this->isPresentOnDate($registration, $date) ? 'حاضر' : 'لم يحضر';
+    }
+
+    /**
+     * Manual mark present for any prep day.
+     */
+    public function markPresent(
         ProgramRegistration $registration,
         string $date,
-        AttendanceStatus $status,
-        ?string $notes = null,
         ?User $actor = null,
+        string $source = 'manual',
+        ?string $notes = null,
     ): ProgramAttendance {
         $registration->loadMissing('trainingProgram');
         $program = $registration->trainingProgram;
 
         if ($program === null || ! $this->isValidAttendancePrepDate($program, $date)) {
             throw ValidationException::withMessages([
-                'training_date' => 'اليوم المحدد ليس من أيام التحضير لهذا البرنامج.',
+                'training_date' => 'اليوم المحدد ليس من أيام البرنامج.',
             ]);
         }
 
-        return $this->upsertStatus($registration, $date, $status, $notes, $actor, 'manual');
+        return $this->upsertPresent($registration, $date, $notes, $actor, $source);
     }
 
     /**
-     * Reset (delete) attendance row for a day → conceptual «غير محدد».
+     * Compatibility wrapper: Present marks attendance; any other status clears the row («لم يحضر»).
+     * Prefer markPresent() / clearDay() / setPresentState() for new call sites.
+     */
+    public function markManualDay(
+        ProgramRegistration $registration,
+        string $date,
+        AttendanceStatus $status,
+        ?string $notes = null,
+        ?User $actor = null,
+    ): ?ProgramAttendance {
+        if ($status !== AttendanceStatus::Present) {
+            $this->clearDay($registration, $date, $actor);
+
+            return null;
+        }
+
+        return $this->markPresent($registration, $date, $actor, 'manual', $notes);
+    }
+
+    /**
+     * Unmark presence: delete the attendance row («لم يحضر») + audit.
      */
     public function clearDay(
         ProgramRegistration $registration,
@@ -325,26 +319,42 @@ class ProgramAttendanceService
             $old,
             null,
             $actor,
-            'reset',
+            'manual',
         );
     }
 
     /**
-     * Bulk set status for many registrations on one day (idempotent).
+     * Toggle present / not-present for manual UI.
+     */
+    public function setPresentState(
+        ProgramRegistration $registration,
+        string $date,
+        bool $present,
+        ?User $actor = null,
+    ): void {
+        if ($present) {
+            $this->markPresent($registration, $date, $actor, 'manual');
+
+            return;
+        }
+
+        $this->clearDay($registration, $date, $actor);
+    }
+
+    /**
+     * Bulk mark present for selected registrations on one day.
      *
      * @param  list<int|string>|Collection<int, int|string>  $registrationIds
-     * @return int Number of registrations updated
      */
-    public function bulkMarkDay(
+    public function bulkMarkPresent(
         TrainingProgram $program,
         iterable $registrationIds,
         string $date,
-        AttendanceStatus $status,
         ?User $actor = null,
     ): int {
         if (! $this->isValidAttendancePrepDate($program, $date)) {
             throw ValidationException::withMessages([
-                'training_date' => 'اليوم المحدد ليس من أيام التحضير لهذا البرنامج.',
+                'training_date' => 'اليوم المحدد ليس من أيام البرنامج.',
             ]);
         }
 
@@ -358,8 +368,8 @@ class ProgramAttendanceService
                 RegistrationStatus::Approved->value,
                 RegistrationStatus::Completed->value,
             ])
-            ->each(function (ProgramRegistration $registration) use ($date, $status, $actor, &$updated): void {
-                $this->upsertStatus($registration, $date, $status, null, $actor, 'bulk');
+            ->each(function (ProgramRegistration $registration) use ($date, $actor, &$updated): void {
+                $this->upsertPresent($registration, $date, null, $actor, 'bulk');
                 $updated++;
             });
 
@@ -367,8 +377,6 @@ class ProgramAttendanceService
     }
 
     /**
-     * Bulk clear (غير محدد) for selected registrations on one day.
-     *
      * @param  list<int|string>|Collection<int, int|string>  $registrationIds
      */
     public function bulkClearDay(
@@ -379,7 +387,7 @@ class ProgramAttendanceService
     ): int {
         if (! $this->isValidAttendancePrepDate($program, $date)) {
             throw ValidationException::withMessages([
-                'training_date' => 'اليوم المحدد ليس من أيام التحضير لهذا البرنامج.',
+                'training_date' => 'اليوم المحدد ليس من أيام البرنامج.',
             ]);
         }
 
@@ -400,53 +408,6 @@ class ProgramAttendanceService
                 if ($before) {
                     $updated++;
                 }
-            });
-
-        return $updated;
-    }
-
-    /**
-     * Mark all approved/completed registrations absent for a day (اعتماد غياب اليوم).
-     * Only fills missing / non-absent rows that are still unspecified; does not overwrite present/late/excused
-     * unless $force is true. Default: only create absent for registrations with no row (unspecified).
-     */
-    public function adoptAbsentForUnspecified(
-        TrainingProgram $program,
-        string $date,
-        ?User $actor = null,
-    ): int {
-        if (! $this->isValidAttendancePrepDate($program, $date)) {
-            throw ValidationException::withMessages([
-                'training_date' => 'اليوم المحدد ليس من أيام التحضير لهذا البرنامج.',
-            ]);
-        }
-
-        $updated = 0;
-
-        $program->registrations()
-            ->whereIn('status', [
-                RegistrationStatus::Approved->value,
-                RegistrationStatus::Completed->value,
-            ])
-            ->each(function (ProgramRegistration $registration) use ($date, $actor, &$updated): void {
-                $exists = ProgramAttendance::query()
-                    ->where('program_registration_id', $registration->id)
-                    ->whereDate('training_date', $date)
-                    ->exists();
-
-                if ($exists) {
-                    return;
-                }
-
-                $this->upsertStatus(
-                    $registration,
-                    $date,
-                    AttendanceStatus::Absent,
-                    'اعتماد غياب اليوم',
-                    $actor,
-                    'adopt_absent',
-                );
-                $updated++;
             });
 
         return $updated;
@@ -476,7 +437,7 @@ class ProgramAttendanceService
     }
 
     /**
-     * Mark Present from a remote live check-in session for today's (or given) prep day.
+     * Mark Present from a remote live check-in session for the session's prep day.
      */
     public function markPresentFromLiveSession(
         ProgramRegistration $registration,
@@ -490,22 +451,29 @@ class ProgramAttendanceService
 
         if ($program === null || ! $this->isValidAttendancePrepDate($program, $date)) {
             throw ValidationException::withMessages([
-                'training_date' => 'اليوم المحدد ليس من أيام التحضير لهذا البرنامج.',
+                'training_date' => 'اليوم المحدد ليس من أيام البرنامج.',
             ]);
         }
 
-        return $this->upsertStatus(
+        $prepDay = $this->prepDayForDate($program, $date);
+        if ($prepDay === null || $prepDay->delivery_type !== ProgramPrepDayType::Remote) {
+            throw ValidationException::withMessages([
+                'training_date' => 'التحضير عن بُعد متاح فقط في أيام البرنامج عن بُعد.',
+            ]);
+        }
+
+        return $this->upsertPresent(
             $registration,
             $date,
-            AttendanceStatus::Present,
             'تسجيل حضور ذاتي',
             $actor,
-            'live_session',
+            'remote_session',
         );
     }
 
     /**
-     * Mark attendance Present from a scanned/typed KAFAAT pass for a specific prep day.
+     * Mark attendance Present from a scanned/typed KAFAAT pass for TODAY (server TZ) only.
+     * Ignores any client-supplied date — forged dates are rejected by never being read.
      *
      * @return array{
      *     ok: bool,
@@ -522,24 +490,40 @@ class ProgramAttendanceService
         ?User $admin = null,
         ?string $prepDate = null,
     ): array {
+        // Client-supplied $prepDate is intentionally ignored (forged-date protection).
+        unset($prepDate);
+
         $parsed = $this->parsePassPayload($rawPass);
 
         if ($parsed === null) {
             return $this->gateResult(false, 'invalid_pass', 'رمز المرور غير صالح.', null, null);
         }
 
-        if ($program->delivery_mode?->hasPhysicalComponent() !== true) {
-            return $this->gateResult(false, 'not_in_person', 'مسح QR متاح للبرامج الحضورية فقط.', null, null);
-        }
-
         if ($parsed['program_id'] !== (int) $program->id) {
             return $this->gateResult(false, 'wrong_program', 'هذا المرور لا يخص هذا البرنامج.', null, null);
         }
 
-        $date = $prepDate ?? Carbon::today(config('app.timezone'))->toDateString();
+        $date = Carbon::today(config('app.timezone'))->toDateString();
+        $prepDay = $this->prepDayForDate($program, $date);
 
-        if (! $this->isValidAttendancePrepDate($program, $date)) {
-            return $this->gateResult(false, 'invalid_day', 'يوم التحضير غير صالح لهذا البرنامج.', null, null);
+        if ($prepDay === null) {
+            return $this->gateResult(
+                false,
+                'invalid_day',
+                'اليوم ليس من أيام البرنامج. لا يمكن تسجيل الحضور عبر QR.',
+                null,
+                null,
+            );
+        }
+
+        if ($prepDay->delivery_type !== ProgramPrepDayType::InPerson) {
+            return $this->gateResult(
+                false,
+                'not_in_person',
+                'مسح QR متاح فقط في الأيام الحضورية للبرنامج.',
+                null,
+                null,
+            );
         }
 
         $registration = ProgramRegistration::query()
@@ -561,9 +545,10 @@ class ProgramAttendanceService
         $existing = ProgramAttendance::query()
             ->where('program_registration_id', $registration->id)
             ->whereDate('training_date', $date)
+            ->where('status', AttendanceStatus::Present->value)
             ->first();
 
-        if ($existing !== null && in_array($existing->status, AttendanceStatus::attendedCases(), true)) {
+        if ($existing !== null) {
             return $this->gateResult(
                 true,
                 'already_present',
@@ -581,10 +566,9 @@ class ProgramAttendanceService
             $noteParts[] = 'أدمن #'.$admin->id.' — '.$admin->name;
         }
 
-        $attendance = $this->upsertStatus(
+        $attendance = $this->upsertPresent(
             $registration,
             $date,
-            AttendanceStatus::Present,
             implode(' | ', $noteParts),
             $admin,
             'qr',
@@ -599,10 +583,9 @@ class ProgramAttendanceService
         );
     }
 
-    private function upsertStatus(
+    private function upsertPresent(
         ProgramRegistration $registration,
         string $date,
-        AttendanceStatus $status,
         ?string $notes,
         ?User $actor,
         string $source,
@@ -613,6 +596,7 @@ class ProgramAttendanceService
             ->first();
 
         $oldStatus = $existing?->status?->value;
+        $status = AttendanceStatus::Present;
 
         $payload = [
             'status' => $status,

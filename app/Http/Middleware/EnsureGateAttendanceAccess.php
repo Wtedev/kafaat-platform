@@ -22,7 +22,11 @@ class EnsureGateAttendanceAccess
             abort(404);
         }
 
-        if ($program->delivery_mode?->hasPhysicalComponent() !== true) {
+        $hasInPersonDay = $program->prepDays()
+            ->where('delivery_type', 'in_person')
+            ->exists();
+
+        if (! $hasInPersonDay && $program->delivery_mode?->hasPhysicalComponent() !== true) {
             abort(404);
         }
 

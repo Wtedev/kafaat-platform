@@ -19,6 +19,7 @@ use App\Models\User;
 use App\Services\ProgramAttendanceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Route;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
 
@@ -32,12 +33,11 @@ class GateAttendancePrepDayTest extends TestCase
         parent::setUp();
         $this->seedRbacRoles();
         config(['app.timezone' => 'Asia/Riyadh']);
+        Carbon::setTestNow(Carbon::parse('2026-08-03 10:00:00', 'Asia/Riyadh'));
     }
 
-    public function test_scan_requires_day_choice_when_multiple_prep_days(): void
+    public function test_scan_uses_server_today_without_day_choice(): void
     {
-        Carbon::setTestNow(Carbon::parse('2026-08-03 10:00:00', 'Asia/Riyadh'));
-
         [$program, $admin] = $this->programWithAdmin();
         $this->addPrepDay($program, '2026-08-03');
         $this->addPrepDay($program, '2026-08-04');
@@ -45,11 +45,13 @@ class GateAttendancePrepDayTest extends TestCase
         $this->actingAs($admin)
             ->get(route('gate.scan', $program->slug))
             ->assertOk()
-            ->assertSee('اختاري يوم التحضير', false)
-            ->assertSee('2026-08-03', false);
+            ->assertSee('يوم التحضير (اليوم حسب توقيت الرياض)', false)
+            ->assertSee('2026-08-03', false)
+            ->assertDontSee('اختاري يوم التحضير', false)
+            ->assertDontSee('تغيير اليوم', false);
     }
 
-    public function test_scan_with_date_query_opens_scanner_for_selected_day(): void
+    public function test_forged_date_query_is_ignored(): void
     {
         [$program, $admin] = $this->programWithAdmin();
         $this->addPrepDay($program, '2026-08-03');
@@ -58,36 +60,37 @@ class GateAttendancePrepDayTest extends TestCase
         $this->actingAs($admin)
             ->get(route('gate.scan', ['program' => $program->slug, 'date' => '2026-08-04']))
             ->assertOk()
-            ->assertSee('يوم التحضير المحدد', false)
-            ->assertSee('2026-08-04', false)
-            ->assertDontSee('اختاري يوم التحضير', false);
+            ->assertSee('2026-08-03', false)
+            ->assertDontSee('تغيير اليوم', false);
     }
 
-    public function test_qr_marks_selected_day_and_prevents_duplicate(): void
+    public function test_qr_marks_today_only_and_prevents_duplicate(): void
     {
         [$program, $admin] = $this->programWithAdmin();
         $this->addPrepDay($program, '2026-08-03');
         $registration = $this->register($program, 'نورة');
-
         $pass = sprintf('KAFAAT-P%d-R%d', $program->id, $registration->id);
 
         $this->actingAs($admin)
             ->postJson(route('gate.scan.store', $program->slug), [
                 'pass' => $pass,
-                'date' => '2026-08-03',
+                'date' => '2026-08-04', // forged — ignored
             ])
             ->assertOk()
             ->assertJsonPath('reason', 'marked');
 
-        $this->assertDatabaseHas('program_attendance', [
-            'program_registration_id' => $registration->id,
-            'status' => AttendanceStatus::Present->value,
-        ]);
+        $this->assertTrue(
+            ProgramAttendance::query()
+                ->where('program_registration_id', $registration->id)
+                ->whereDate('training_date', '2026-08-03')
+                ->where('status', AttendanceStatus::Present->value)
+                ->exists()
+        );
 
         $this->actingAs($admin)
             ->postJson(route('gate.scan.store', $program->slug), [
                 'pass' => $pass,
-                'date' => '2026-08-03',
+                'date' => '2099-01-01',
             ])
             ->assertOk()
             ->assertJsonPath('reason', 'already_present');
@@ -95,37 +98,23 @@ class GateAttendancePrepDayTest extends TestCase
         $this->assertSame(1, ProgramAttendance::query()->where('program_registration_id', $registration->id)->count());
     }
 
-    public function test_qr_day_independence_across_prep_days(): void
+    public function test_qr_rejects_when_today_is_remote_prep_day(): void
     {
         [$program, $admin] = $this->programWithAdmin();
-        $this->addPrepDay($program, '2026-08-03');
-        $this->addPrepDay($program, '2026-08-04');
+        $this->addPrepDay($program, '2026-08-03', ProgramPrepDayType::Remote);
         $registration = $this->register($program, 'سارة');
         $pass = sprintf('KAFAAT-P%d-R%d', $program->id, $registration->id);
 
         $this->actingAs($admin)
-            ->postJson(route('gate.scan.store', $program->slug), [
-                'pass' => $pass,
-                'date' => '2026-08-03',
-            ])
-            ->assertOk();
-
-        $this->actingAs($admin)
-            ->postJson(route('gate.scan.store', $program->slug), [
-                'pass' => $pass,
-                'date' => '2026-08-04',
-            ])
-            ->assertOk()
-            ->assertJsonPath('reason', 'marked');
-
-        $this->assertSame(2, ProgramAttendance::query()->where('program_registration_id', $registration->id)->count());
+            ->postJson(route('gate.scan.store', $program->slug), ['pass' => $pass])
+            ->assertStatus(422)
+            ->assertJsonPath('reason', 'not_in_person');
     }
 
-    public function test_select_day_persists_and_unauthorized_program_denied_for_checker(): void
+    public function test_unauthorized_program_denied_for_checker(): void
     {
         [$program] = $this->programWithAdmin();
         $this->addPrepDay($program, '2026-08-03');
-        $this->addPrepDay($program, '2026-08-04');
 
         $checker = ProgramAttendanceChecker::query()->create([
             'training_program_id' => $program->id,
@@ -135,17 +124,9 @@ class GateAttendancePrepDayTest extends TestCase
             'verified_at' => now(),
         ]);
 
-        $this->withSession([
-            EnsureGateAttendanceAccess::SESSION_CHECKER_ID => $checker->id,
-            EnsureGateAttendanceAccess::SESSION_PROGRAM_ID => $program->id,
-        ])->post(route('gate.scan.day', $program->slug), [
-            'date' => '2026-08-04',
-        ])->assertRedirect(route('gate.scan', [
-            'program' => $program->slug,
-            'date' => '2026-08-04',
-        ]));
-
         $other = $this->makeProgram('other-gate');
+        $this->addPrepDay($other, '2026-08-03');
+
         $this->withSession([
             EnsureGateAttendanceAccess::SESSION_CHECKER_ID => $checker->id,
             EnsureGateAttendanceAccess::SESSION_PROGRAM_ID => $program->id,
@@ -153,8 +134,14 @@ class GateAttendancePrepDayTest extends TestCase
             ->assertRedirect(route('gate.login', $other->slug));
     }
 
-    public function test_mark_present_from_pass_rejects_invalid_prep_day(): void
+    public function test_scan_day_route_removed(): void
     {
+        $this->assertFalse(Route::has('gate.scan.day'));
+    }
+
+    public function test_mark_present_from_pass_rejects_non_prep_today(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-08-09 10:00:00', 'Asia/Riyadh'));
         $program = $this->makeProgram('invalid-day');
         $this->addPrepDay($program, '2026-08-03');
         $registration = $this->register($program, 'ليان');
@@ -162,7 +149,7 @@ class GateAttendancePrepDayTest extends TestCase
         $result = app(ProgramAttendanceService::class)->markPresentFromPass(
             $program,
             sprintf('KAFAAT-P%d-R%d', $program->id, $registration->id),
-            prepDate: '2026-08-09',
+            prepDate: '2026-08-03',
         );
 
         $this->assertFalse($result['ok']);
@@ -203,12 +190,15 @@ class GateAttendancePrepDayTest extends TestCase
         ]);
     }
 
-    private function addPrepDay(TrainingProgram $program, string $date): void
-    {
+    private function addPrepDay(
+        TrainingProgram $program,
+        string $date,
+        ProgramPrepDayType $type = ProgramPrepDayType::InPerson,
+    ): void {
         ProgramPrepDay::query()->create([
             'training_program_id' => $program->id,
             'prep_date' => $date,
-            'delivery_type' => ProgramPrepDayType::InPerson,
+            'delivery_type' => $type,
             'requires_attendance' => true,
         ]);
     }

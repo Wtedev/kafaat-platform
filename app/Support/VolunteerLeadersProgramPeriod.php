@@ -111,6 +111,13 @@ final class VolunteerLeadersProgramPeriod
     }
 
     /**
+     * Inclusive official attendance period (Y-m-d). All calendar days count.
+     */
+    public const PERIOD_START = '2026-08-03';
+
+    public const PERIOD_END = '2026-09-01';
+
+    /**
      * In-person calendar days within the program window (Y-m-d).
      *
      * @var list<string>
@@ -123,6 +130,29 @@ final class VolunteerLeadersProgramPeriod
         '2026-08-17',
         '2026-08-18',
     ];
+
+    /**
+     * Every calendar day in the official period (inclusive), chronological Y-m-d.
+     *
+     * @return list<string>
+     */
+    public static function periodDates(): array
+    {
+        $start = Carbon::parse(self::PERIOD_START)->startOfDay();
+        $end = Carbon::parse(self::PERIOD_END)->startOfDay();
+        $dates = [];
+
+        for ($cursor = $start->copy(); $cursor->lte($end); $cursor->addDay()) {
+            $dates[] = $cursor->toDateString();
+        }
+
+        return $dates;
+    }
+
+    public static function isInPersonDate(string $date): bool
+    {
+        return in_array($date, self::IN_PERSON_DATES, true);
+    }
 
     public static function applies(?TrainingProgram $program): bool
     {

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>التحضير — يومي (سطح المكتب)</title>
+<style>
+  :root { --brand:#335483; --bg:#f4f7fb; --line:#d7e2ef; --ok:#059669; --muted:#64748b; }
+  *{box-sizing:border-box} body{margin:0;font-family:"Segoe UI",Tahoma,sans-serif;background:var(--bg);color:#0f172a}
+  .shell{max-width:1100px;margin:24px auto;padding:0 20px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(51,84,131,.06)}
+  .tabs{display:flex;gap:8px;padding:14px 16px;border-bottom:1px solid var(--line);background:#f8fafc;flex-wrap:wrap;align-items:center}
+  .tab{border:0;border-radius:10px;padding:8px 14px;font-weight:700;font-size:13px;cursor:default}
+  .tab.on{background:var(--brand);color:#fff} .tab.off{background:#e8eef5;color:#334155}
+  .badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700}
+  .badge.ok{background:#d1fae5;color:#065f46} .badge.gray{background:#e2e8f0;color:#475569}
+  .hint{padding:12px 16px;font-size:13px;color:#334155;border-bottom:1px solid var(--line)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:12px 16px;border-bottom:1px solid #eef2f7;text-align:right}
+  th{font-size:12px;color:var(--muted);background:#fbfcfe}
+  .toggle{width:42px;height:24px;border-radius:999px;background:#cbd5e1;position:relative;display:inline-block}
+  .toggle.on{background:var(--ok)} .toggle:after{content:"";position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:#fff}
+  .toggle.on:after{right:auto;left:3px}
+  h1{font-size:20px;margin:0 0 8px} .sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="shell">
+  <h1>التحضير</h1>
+  <p class="sub">برنامج قادة التطوع — وضع التحضير اليومي (حاضر / لم يحضر فقط)</p>
+  <div class="card">
+    <div class="tabs">
+      <span class="tab on">تحضير يومي</span>
+      <span class="tab off">سجل جميع الأيام</span>
+      <span class="tab off">اختر اليوم</span>
+      <span class="tab on" style="background:#059669">مسح QR</span>
+      <span style="margin-inline-start:auto" class="badge ok">حضوري</span>
+    </div>
+    <div class="hint">اليوم: <strong>الأحد 3 أغسطس</strong> <span class="badge ok">حضوري</span></div>
+    <table>
+      <thead><tr><th>اسم المستفيد</th><th>حاضر</th><th>الحالة</th><th>أيام الحضور</th><th>نسبة الحضور</th></tr></thead>
+      <tbody>
+        <tr><td>نورة العتيبي</td><td><span class="toggle on"></span></td><td><span class="badge ok">حاضر</span></td><td>1 من 6</td><td>16.7%</td></tr>
+        <tr><td>سارة الدوسري</td><td><span class="toggle"></span></td><td><span class="badge gray">لم يحضر</span></td><td>0 من 6</td><td>0.0%</td></tr>
+        <tr><td>ليان الحربي</td><td><span class="toggle on"></span></td><td><span class="badge ok">حاضر</span></td><td>1 من 6</td><td>16.7%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

@@ -20,9 +20,21 @@ trait InteractsWithAttendanceLiveSession
         }
 
         $owner = $this->getOwnerRecord();
+        $service = app(AttendanceLiveSessionService::class);
 
         try {
-            app(AttendanceLiveSessionService::class)->startSession($owner, $admin);
+            $before = $this->activeAttendanceSession();
+            $session = $service->startSession($owner, $admin);
+
+            if ($before !== null && $before->isActive() && $before->id === $session->id) {
+                Notification::make()
+                    ->title('جلسة التحضير مفتوحة بالفعل')
+                    ->body($this->attendanceLiveSessionCountdownLabel())
+                    ->warning()
+                    ->send();
+
+                return;
+            }
         } catch (ValidationException $exception) {
             Notification::make()
                 ->title('تعذّر فتح جلسة الحضور')
@@ -34,7 +46,7 @@ trait InteractsWithAttendanceLiveSession
         }
 
         Notification::make()
-            ->title('تم فتح جلسة حضور مباشرة')
+            ->title('تم فتح التحضير')
             ->body('لدى المستفيدين 5 دقائق لتسجيل حضورهم من بوابتهم.')
             ->success()
             ->send();
@@ -64,7 +76,7 @@ trait InteractsWithAttendanceLiveSession
         $minutes = intdiv($remaining, 60);
         $seconds = $remaining % 60;
 
-        return sprintf('جلسة حضور مفتوحة — %d:%02d', $minutes, $seconds);
+        return sprintf('التحضير مفتوح — %d:%02d', $minutes, $seconds);
     }
 
     public function makeAttendanceLiveSessionCountdownAction(): Action

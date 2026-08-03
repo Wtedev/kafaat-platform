@@ -122,10 +122,10 @@ class RegistrationFilamentTableSupport
         $attended = $service->countAttendedDays($record);
 
         if ($expected === 0) {
-            return 'لم تُحدَّد أيام التحضير بعد';
+            return '—';
         }
 
-        return "حضور {$attended} من {$expected} يوم";
+        return "{$attended} من {$expected}";
     }
 
     public static function pathAttendanceSummary(PathRegistration $record): string

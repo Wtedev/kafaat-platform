@@ -542,7 +542,8 @@ class TrainingProgram extends Model
 
     public function attendancePrepDays(): HasMany
     {
-        return $this->prepDays()->requiresAttendance();
+        // All program prep days count toward attendance (requires_attendance forced true).
+        return $this->prepDays();
     }
 
     public function creator(): BelongsTo
