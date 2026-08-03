@@ -99,7 +99,7 @@ class ProgramAcceptanceConditionEvaluatorTest extends TestCase
         $femaleResult = $evaluator->evaluate($program, $female);
         $this->assertFalse($femaleResult['eligible']);
         $this->assertSame(
-            ['السعة الاستيعابية للإناث ممتلئة'],
+            ['نأسف بإبلاغكم انتهت مقاعد التسجيل للإناث'],
             $femaleResult['reasons'],
         );
 
