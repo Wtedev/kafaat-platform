@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Support\Auth\EmailNormalizer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
@@ -24,9 +25,11 @@ class ForgotPasswordController extends Controller
             'email.email' => 'صيغة البريد الإلكتروني غير صحيحة.',
         ]);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        $credentials = [
+            'email' => EmailNormalizer::normalize((string) $request->input('email')),
+        ];
+
+        $status = Password::sendResetLink($credentials);
 
         if ($status === Password::RESET_LINK_SENT) {
             return back()->with('status', 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.');

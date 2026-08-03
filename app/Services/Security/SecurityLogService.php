@@ -6,6 +6,7 @@ use App\Enums\SecurityLogResult;
 use App\Enums\SecurityLogSeverity;
 use App\Models\SecurityLog;
 use App\Models\User;
+use App\Support\Auth\EmailNormalizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 
@@ -36,7 +37,7 @@ class SecurityLogService
 
     public static function hashIdentifier(string $identifier): string
     {
-        $normalized = strtolower(trim($identifier));
+        $normalized = EmailNormalizer::normalize($identifier);
         $key = (string) Config::get('app.key');
 
         return hash_hmac('sha256', $normalized, 'security-log:'.$key);

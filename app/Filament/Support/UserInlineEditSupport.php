@@ -6,6 +6,7 @@ use App\Enums\ProfileGender;
 use App\Models\Profile;
 use App\Models\User;
 use App\Models\VolunteerTeam;
+use App\Support\Auth\EmailNormalizer;
 use App\Support\UserAccountRoleForm;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
@@ -217,7 +218,7 @@ final class UserInlineEditSupport
                         }
 
                         $duplicate = User::query()
-                            ->whereRaw('lower(email) = ?', [$normalized])
+                            ->whereEmailIgnoreCase($normalized)
                             ->whereKeyNot($target->getKey())
                             ->exists();
 
@@ -317,7 +318,7 @@ final class UserInlineEditSupport
 
     public static function normalizeAccountEmail(string $email): string
     {
-        return strtolower(trim($email));
+        return EmailNormalizer::normalize($email);
     }
 
     /**

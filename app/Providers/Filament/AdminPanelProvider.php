@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\Login;
 use App\Filament\Widgets\LatestInAppNotificationsWidget;
 use App\Filament\Widgets\PlatformStatsWidget;
 use App\Http\Middleware\EnsureOperationalAccount;
@@ -105,7 +106,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->login(Login::class)
             ->brandName('كفاءات')
             ->brandLogo(asset('images/brand/kafaat-logo-white.svg'))
             ->brandLogoHeight('2.25rem')

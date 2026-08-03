@@ -2,13 +2,13 @@
 
 namespace App\Services\Auth;
 
-use App\Filament\Support\UserInlineEditSupport;
 use App\Models\PendingRegistration;
 use App\Models\PrivacyPolicyVersion;
 use App\Models\User;
 use App\Notifications\SignupEmailVerificationCode;
 use App\Services\Privacy\PrivacyPolicyService;
 use App\Services\UserActivityLogger;
+use App\Support\Auth\EmailNormalizer;
 use App\Support\Auth\SafeLoginReturnUrl;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Database\QueryException;
@@ -40,13 +40,13 @@ class PendingRegistrationService
 
     public static function normalizeEmail(string $email): string
     {
-        return UserInlineEditSupport::normalizeAccountEmail($email);
+        return EmailNormalizer::normalize($email);
     }
 
     public function emailExists(string $normalizedEmail): bool
     {
         return User::query()
-            ->whereRaw('lower(email) = ?', [$normalizedEmail])
+            ->whereEmailIgnoreCase($normalizedEmail)
             ->exists();
     }
 

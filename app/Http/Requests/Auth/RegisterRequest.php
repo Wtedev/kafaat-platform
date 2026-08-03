@@ -86,7 +86,7 @@ class RegisterRequest extends FormRequest
             }
 
             $exists = User::query()
-                ->whereRaw('lower(email) = ?', [$email])
+                ->whereEmailIgnoreCase($email)
                 ->exists();
 
             if ($exists) {

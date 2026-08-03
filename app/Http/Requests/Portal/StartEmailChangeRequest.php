@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Portal;
 
+use App\Support\Auth\EmailNormalizer;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StartEmailChangeRequest extends FormRequest
@@ -14,9 +15,11 @@ class StartEmailChangeRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'email' => is_string($this->input('email')) ? trim($this->input('email')) : $this->input('email'),
+            'email' => is_string($this->input('email'))
+                ? EmailNormalizer::normalize($this->input('email'))
+                : $this->input('email'),
             'email_confirmation' => is_string($this->input('email_confirmation'))
-                ? trim($this->input('email_confirmation'))
+                ? EmailNormalizer::normalize($this->input('email_confirmation'))
                 : $this->input('email_confirmation'),
         ]);
     }

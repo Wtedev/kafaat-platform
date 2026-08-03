@@ -14,6 +14,7 @@ use App\Services\Identity\PersonNameService;
 use App\Services\Privacy\AccountDeactivationService;
 use App\Services\Rbac\RbacCatalog;
 use App\Services\Rbac\RbacService;
+use App\Support\Auth\EmailNormalizer;
 use App\Support\Privacy\UserDeletionGuard;
 use App\Support\PublicDiskPath;
 use Database\Factories\UserFactory;
@@ -96,6 +97,13 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             'identity_confirmed_at' => 'datetime',
             'profile_completed_at' => 'datetime',
         ];
+    }
+
+    public function setEmailAttribute(?string $value): void
+    {
+        $this->attributes['email'] = $value === null
+            ? null
+            : EmailNormalizer::normalize($value);
     }
 
     /**
