@@ -342,8 +342,15 @@ class ProgramDailyAttendanceServiceTest extends TestCase
         ]);
         $this->seed(VolunteerLeadersProgramPrepDaysSeeder::class);
         $this->assertSame(
-            6,
+            30,
             ProgramPrepDay::query()->where('training_program_id', $canonical->id)->count(),
+        );
+        $this->assertSame(
+            6,
+            ProgramPrepDay::query()
+                ->where('training_program_id', $canonical->id)
+                ->where('delivery_type', ProgramPrepDayType::InPerson)
+                ->count(),
         );
     }
 
