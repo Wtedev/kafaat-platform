@@ -82,6 +82,10 @@ final class UserNotificationPreferences
             return false;
         }
 
+        if ($type === InboxNotificationType::SupportReply) {
+            return $this->wantsSupportRepliesEmail($user);
+        }
+
         $category = NotificationPreferenceCatalog::categoryFor($type);
         if ($category === null || ! $category->supportsEmail()) {
             return false;
@@ -105,8 +109,34 @@ final class UserNotificationPreferences
     }
 
     /**
+     * Email for support replies:
+     * - Requires master `notify_email`
+     * - Requires explicit `support_replies_email` (or categories.support.email)
+     * - Default when unset: false (opt-in)
+     */
+    public function wantsSupportRepliesEmail(User $user): bool
+    {
+        if (! $user->wantsEmailNotifications()) {
+            return false;
+        }
+
+        $settings = $user->notification_settings;
+        if (! is_array($settings)) {
+            return false;
+        }
+
+        if (array_key_exists('support_replies_email', $settings)) {
+            return (bool) $settings['support_replies_email'];
+        }
+
+        $prefs = $this->resolvedCategories($user);
+
+        return ($prefs[NotificationPreferenceCategory::Support->value]['email'] ?? false) === true;
+    }
+
+    /**
      * @param  array<string, mixed>  $input  من نموذج الإعدادات (categories.*.in_app / email)
-     * @return array{categories: array<string, array{in_app: bool, email: bool}>}
+     * @return array{categories: array<string, array{in_app: bool, email: bool}>, support_replies_email: bool}
      */
     public function normalizeFromRequest(array $input, bool $masterEmailEnabled = true): array
     {
@@ -131,6 +161,12 @@ final class UserNotificationPreferences
             ];
         }
 
-        return ['categories' => $categories];
+        $supportEmail = $categories[NotificationPreferenceCategory::Support->value]['email'] ?? false;
+
+        return [
+            'categories' => $categories,
+            // Explicit mirror key required by product spec.
+            'support_replies_email' => $supportEmail,
+        ];
     }
 }

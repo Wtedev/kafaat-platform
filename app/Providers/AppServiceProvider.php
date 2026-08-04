@@ -22,6 +22,7 @@ use App\Models\RetentionException;
 use App\Models\RetentionPolicy;
 use App\Models\RetentionRun;
 use App\Models\SecurityLog;
+use App\Models\SupportTicket;
 use App\Models\User;
 use App\Policies\AuditLogPolicy;
 use App\Policies\BoardMemberPolicy;
@@ -41,6 +42,7 @@ use App\Policies\RetentionPolicyPolicy;
 use App\Policies\RetentionRunPolicy;
 use App\Policies\SecurityLogPolicy;
 use App\Policies\SendInAppNotificationPolicy;
+use App\Policies\SupportTicketPolicy;
 use App\Policies\UserPolicy;
 use App\Services\CandidatePool\CandidatePoolConsentService;
 use App\Services\Inbox\InboxNotificationService;
@@ -50,6 +52,7 @@ use App\Services\Privacy\Retention\RetentionPolicyEngine;
 use App\Services\Privacy\Retention\RetentionResourceCatalog;
 use App\Services\Rbac\RbacService;
 use App\Services\Security\SecurityLogService;
+use App\Services\Support\SupportUnreadService;
 use App\Services\UserActivityLogger;
 use App\Support\Auth\EmailNormalizer;
 use Illuminate\Auth\Events\Login;
@@ -112,6 +115,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(InvestmentDecisionYear::class, InvestmentDecisionYearPolicy::class);
         Gate::policy(BoardMember::class, BoardMemberPolicy::class);
         Gate::policy(MediaPhoto::class, MediaPhotoPolicy::class);
+        Gate::policy(SupportTicket::class, SupportTicketPolicy::class);
 
         Gate::define('accessSendInAppNotificationPage', function (?User $user): bool {
             if ($user === null || ! $user->is_active) {
@@ -126,13 +130,20 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
 
+            $user = auth()->user();
+
             $view->with(
                 'portalInboxUnreadCount',
-                app(InboxNotificationService::class)->unreadCount(auth()->user()),
+                app(InboxNotificationService::class)->unreadCount($user),
+            );
+
+            $view->with(
+                'portalSupportUnreadCount',
+                app(SupportUnreadService::class)->unreadSupportReplyCount($user),
             );
 
             $consentService = app(CandidatePoolConsentService::class);
-            $view->with('showCandidatePoolPrompt', $consentService->shouldPrompt(auth()->user()));
+            $view->with('showCandidatePoolPrompt', $consentService->shouldPrompt($user));
             $view->with('candidatePoolConsentText', $consentService->consentText());
         });
     }
@@ -356,6 +367,18 @@ class AppServiceProvider extends ServiceProvider
                     return back()
                         ->withInput()
                         ->withErrors(['body' => 'لقد تجاوزت عدد التذاكر المسموح بها مؤقتاً. حاول مجدداً بعد قليل.']);
+                });
+        });
+
+        RateLimiter::for('support-reply', function (Request $request): Limit {
+            $key = $request->user()?->id ?? $request->ip();
+
+            return Limit::perMinutes(5, 20)
+                ->by('support-reply:'.$key)
+                ->response(function () {
+                    return back()
+                        ->withInput()
+                        ->withErrors(['body' => 'لقد تجاوزت عدد الردود المسموح بها مؤقتاً. حاول مجدداً بعد قليل.']);
                 });
         });
 

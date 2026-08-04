@@ -28,20 +28,20 @@ class SupportTicketCreatedMail extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $ticket = $this->ticket;
-        $adminUrl = SupportTicketResource::getUrl('edit', ['record' => $ticket]);
+        $adminUrl = SupportTicketResource::getUrl('view', ['record' => $ticket]);
 
         return (new MailMessage)
-            ->subject('تذكرة دعم جديدة #'.$ticket->getKey().' — '.$ticket->subject)
+            ->subject('تذكرة دعم جديدة '.$ticket->displayNumber().' — '.$ticket->subject)
             ->greeting('مرحباً،')
             ->line('وصلت تذكرة دعم جديدة من الموقع.')
-            ->line('الرقم: #'.$ticket->getKey())
+            ->line('الرقم: '.$ticket->displayNumber())
             ->line('الاسم: '.$ticket->name)
             ->line('البريد: '.$ticket->email)
             ->line('الموضوع: '.$ticket->subject)
             ->line('الصفحة: '.($ticket->page_url ?: '—'))
             ->line('التفاصيل:')
             ->line($ticket->body)
-            ->action('فتح التذكرة في لوحة الإدارة', $adminUrl)
+            ->action('فتح المحادثة في لوحة الإدارة', $adminUrl)
             ->salutation('مع تحيات فريق كفاءات');
     }
 }

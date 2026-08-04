@@ -13,6 +13,13 @@ class SupportTicketController extends Controller
     {
         $user = $request->user();
 
+        // Authenticated portal users should use the conversation hub.
+        if ($user !== null && $user->isPortalUser()) {
+            return redirect()
+                ->route('portal.support.create')
+                ->with('success', 'يمكنك فتح محادثة دعم من مركز الدعم الفني.');
+        }
+
         $validated = $request->validate(
             [
                 'name' => ['required', 'string', 'max:120'],
@@ -36,7 +43,7 @@ class SupportTicketController extends Controller
             $validated['email'] = $user->email ?: $validated['email'];
         }
 
-        $tickets->create($validated, $user);
+        $tickets->createAndNotify($validated, $user);
 
         return back()->with('success', 'تم استلام تذكرتك بنجاح. سيتواصل فريق كفاءات معك قريباً.');
     }

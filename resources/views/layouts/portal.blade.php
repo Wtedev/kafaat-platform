@@ -60,10 +60,36 @@
 
             @php
                 $portalHeaderNotifActive = in_array(request()->route()?->getName() ?? '', ['portal.notifications', 'portal.notifications.settings'], true);
+                $portalHeaderSupportActive = str_starts_with(request()->route()?->getName() ?? '', 'portal.support');
                 $portalHeaderUser = auth()->user();
                 $portalHeaderShowExternal = $portalHeaderUser && ($portalHeaderUser->isAdmin() || $portalHeaderUser->isBeneficiary());
+                $portalSupportUnread = (int) ($portalSupportUnreadCount ?? 0);
+                $portalSupportBadge = $portalSupportUnread > 99 ? '+99' : (string) $portalSupportUnread;
+                $portalSupportAria = $portalSupportUnread > 0
+                    ? 'الدعم الفني — '.$portalSupportUnread.' رد غير مقروء'
+                    : 'الدعم الفني';
             @endphp
             <div class="flex shrink-0 items-center rounded-2xl border border-slate-200/80 bg-slate-50/60 p-1 shadow-sm">
+                <a
+                    href="{{ route('portal.support.index') }}"
+                    class="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#335483]/25 {{ $portalHeaderSupportActive ? 'bg-white text-[#335483] shadow-sm ring-1 ring-[#335483]/15' : 'text-slate-500 hover:bg-white hover:text-[#335483]' }}"
+                    title="الدعم الفني"
+                    aria-label="{{ $portalSupportAria }}"
+                    data-support-nav
+                    data-support-unread-url="{{ route('portal.support.unread-count') }}"
+                    @if ($portalHeaderSupportActive) aria-current="page" @endif
+                >
+                    <svg class="h-[1.125rem] w-[1.125rem]" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 18v-6a9 9 0 0118 0v6M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"/>
+                    </svg>
+                    <span
+                        data-support-badge
+                        class="absolute end-1 top-1 {{ $portalSupportUnread > 0 ? 'flex' : 'hidden' }} h-4 min-w-[1rem] items-center justify-center rounded-full bg-brand-danger px-1 text-[9px] font-bold leading-none text-white ring-2 ring-white"
+                    >{{ $portalSupportBadge }}</span>
+                </a>
+
+                <span class="mx-0.5 h-5 w-px shrink-0 bg-slate-200/90" aria-hidden="true"></span>
+
                 <a
                     href="{{ route('portal.notifications') }}"
                     class="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#335483]/25 {{ $portalHeaderNotifActive ? 'bg-white text-[#335483] shadow-sm ring-1 ring-[#335483]/15' : 'text-slate-500 hover:bg-white hover:text-[#335483]' }}"
@@ -235,9 +261,49 @@
                 });
             });
         })();
+
+        (function () {
+            var nav = document.querySelector('[data-support-nav]');
+            if (!nav) return;
+            var url = nav.getAttribute('data-support-unread-url');
+            var badge = nav.querySelector('[data-support-badge]');
+            if (!url || !badge) return;
+            var token = document.querySelector('meta[name="csrf-token"]');
+
+            function refresh() {
+                fetch(url, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        ...(token ? { 'X-CSRF-TOKEN': token.getAttribute('content') } : {}),
+                    },
+                    credentials: 'same-origin',
+                }).then(function (r) { return r.ok ? r.json() : null; }).then(function (data) {
+                    if (!data) return;
+                    var count = Number(data.count || 0);
+                    nav.setAttribute('aria-label', data.aria_label || 'الدعم الفني');
+                    if (count > 0) {
+                        badge.textContent = data.display || String(count);
+                        badge.classList.remove('hidden');
+                        badge.classList.add('flex');
+                    } else {
+                        badge.classList.add('hidden');
+                        badge.classList.remove('flex');
+                    }
+                }).catch(function () {});
+            }
+
+            setInterval(refresh, 30000);
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden) refresh();
+            });
+        })();
     </script>
 
-    <x-support-ticket-fab />
+    {{-- Portal users use the support hub; keep FAB for guests on public/auth only via other layouts. --}}
+    @unless(auth()->check())
+        <x-support-ticket-fab />
+    @endunless
 
     @stack('modals')
     @stack('scripts')
