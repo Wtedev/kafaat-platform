@@ -73,8 +73,8 @@ final class NotificationPreferenceCatalog
             InboxNotificationType::ProgramLaunched,
             InboxNotificationType::LearningPathLaunched,
             InboxNotificationType::NewsPublished,
-            InboxNotificationType::VolunteerOpportunityPublished,
-            InboxNotificationType::SupportReply => true,
+            InboxNotificationType::VolunteerOpportunityPublished => true,
+            // SupportReply primary email is SendSupportReplyEmailJob (always), not InboxNotificationEmail.
             default => false,
         };
     }

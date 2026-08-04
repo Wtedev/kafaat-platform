@@ -82,8 +82,10 @@ final class UserNotificationPreferences
             return false;
         }
 
+        // Primary staff support-reply emails are always sent via SendSupportReplyEmailJob
+        // and are not gated by notify_email / support_replies_email.
         if ($type === InboxNotificationType::SupportReply) {
-            return $this->wantsSupportRepliesEmail($user);
+            return false;
         }
 
         $category = NotificationPreferenceCatalog::categoryFor($type);
@@ -109,34 +111,19 @@ final class UserNotificationPreferences
     }
 
     /**
-     * Email for support replies:
-     * - Requires master `notify_email`
-     * - Requires explicit `support_replies_email` (or categories.support.email)
-     * - Default when unset: false (opt-in)
+     * Legacy preference key — no longer gates primary staff-reply emails.
+     * Kept for callers/tests that inspect stored settings; always false for inbox gating.
+     *
+     * @deprecated Primary support reply emails always send via SendSupportReplyEmailJob.
      */
     public function wantsSupportRepliesEmail(User $user): bool
     {
-        if (! $user->wantsEmailNotifications()) {
-            return false;
-        }
-
-        $settings = $user->notification_settings;
-        if (! is_array($settings)) {
-            return false;
-        }
-
-        if (array_key_exists('support_replies_email', $settings)) {
-            return (bool) $settings['support_replies_email'];
-        }
-
-        $prefs = $this->resolvedCategories($user);
-
-        return ($prefs[NotificationPreferenceCategory::Support->value]['email'] ?? false) === true;
+        return false;
     }
 
     /**
      * @param  array<string, mixed>  $input  من نموذج الإعدادات (categories.*.in_app / email)
-     * @return array{categories: array<string, array{in_app: bool, email: bool}>, support_replies_email: bool}
+     * @return array{categories: array<string, array{in_app: bool, email: bool}>}
      */
     public function normalizeFromRequest(array $input, bool $masterEmailEnabled = true): array
     {
@@ -157,16 +144,13 @@ final class UserNotificationPreferences
 
             $categories[$category->value] = [
                 'in_app' => $inApp,
-                'email' => $email,
+                // Support never exposes an email toggle; force false so UI cannot imply opt-out.
+                'email' => $category === NotificationPreferenceCategory::Support ? false : $email,
             ];
         }
 
-        $supportEmail = $categories[NotificationPreferenceCategory::Support->value]['email'] ?? false;
-
         return [
             'categories' => $categories,
-            // Explicit mirror key required by product spec.
-            'support_replies_email' => $supportEmail,
         ];
     }
 }

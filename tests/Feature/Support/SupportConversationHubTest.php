@@ -482,19 +482,7 @@ class SupportConversationHubTest extends TestCase
         $this->assertSame($before, $after);
     }
 
-    public function test_support_replies_email_default_false_even_if_notify_email_true(): void
-    {
-        $user = $this->beneficiary([
-            'notify_email' => true,
-            'notification_settings' => null,
-        ]);
-
-        $prefs = app(UserNotificationPreferences::class);
-        $this->assertFalse($prefs->wantsSupportRepliesEmail($user));
-        $this->assertFalse($prefs->wantsEmailForType($user, InboxNotificationType::SupportReply));
-    }
-
-    public function test_support_replies_email_honors_explicit_setting(): void
+    public function test_support_replies_email_preference_no_longer_gates_primary_mail(): void
     {
         $user = $this->beneficiary([
             'notify_email' => true,
@@ -507,10 +495,12 @@ class SupportConversationHubTest extends TestCase
         ]);
 
         $prefs = app(UserNotificationPreferences::class);
-        $this->assertTrue($prefs->wantsSupportRepliesEmail($user));
+        // Legacy key ignored — primary staff-reply mail is always sent via dedicated job.
+        $this->assertFalse($prefs->wantsSupportRepliesEmail($user));
+        $this->assertFalse($prefs->wantsEmailForType($user, InboxNotificationType::SupportReply));
     }
 
-    public function test_saving_notification_settings_mirrors_support_replies_email(): void
+    public function test_saving_notification_settings_does_not_mirror_support_replies_email(): void
     {
         $user = $this->beneficiary(['notify_email' => true]);
 
@@ -523,7 +513,20 @@ class SupportConversationHubTest extends TestCase
         ])->assertRedirect();
 
         $user->refresh();
-        $this->assertTrue((bool) ($user->notification_settings['support_replies_email'] ?? false));
+        $this->assertArrayNotHasKey('support_replies_email', $user->notification_settings ?? []);
+        $this->assertFalse((bool) ($user->notification_settings['categories']['support']['email'] ?? false));
+    }
+
+    public function test_notification_settings_ui_does_not_offer_support_email_opt_out(): void
+    {
+        $user = $this->beneficiary(['notify_email' => true]);
+
+        $this->actingPortal($user)
+            ->get(route('portal.notifications.settings'))
+            ->assertOk()
+            ->assertSee('ردود الدعم الفني')
+            ->assertSee('يُرسل بريد بالرد تلقائياً')
+            ->assertDontSee('name="categories[support][email]"', false);
     }
 
     public function test_public_guest_can_still_submit_fab_ticket(): void
