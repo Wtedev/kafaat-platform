@@ -34,21 +34,6 @@
 
     {{-- ── Navbar ──────────────────────────────────────────────────────── --}}
     <x-public-navbar />
-    {{-- Flash messages --}}
-    @if (session('success') || session('error'))
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
-        @if (session('success'))
-        <div class="rounded-2xl border px-4 py-3 text-sm mb-2 {{ config('brand.classes.alert_success') }}">
-            {{ session('success') }}
-        </div>
-        @endif
-        @if (session('error'))
-        <div class="rounded-2xl border px-4 py-3 text-sm {{ config('brand.classes.alert_danger') }}">
-            {{ session('error') }}
-        </div>
-        @endif
-    </div>
-    @endif
 
     {{-- Page content --}}
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -58,6 +43,7 @@
     {{-- Footer (headquarters / map lives on the homepage only) --}}
     <x-public-footer />
 
+    <x-session-flash-toast />
     <x-support-ticket-fab />
 
     @yield('scripts')

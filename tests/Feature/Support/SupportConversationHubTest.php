@@ -152,12 +152,15 @@ class SupportConversationHubTest extends TestCase
         $this->actingPortal($user)
             ->get(route('portal.support.show', $ticket))
             ->assertOk()
-            ->assertSee($message, false);
+            ->assertSee($message, false)
+            ->assertSee('data-session-flash-toast', false)
+            ->assertSee('data-flash-variant="success"', false);
 
         $this->actingPortal($user)
             ->get(route('portal.support.show', $ticket))
             ->assertOk()
-            ->assertDontSee($message, false);
+            ->assertDontSee($message, false)
+            ->assertDontSee('data-session-flash-toast', false);
     }
 
     public function test_portal_reply_flashes_success_once_and_not_on_refresh(): void
@@ -182,12 +185,14 @@ class SupportConversationHubTest extends TestCase
         $this->actingPortal($user)
             ->get(route('portal.support.show', $ticket))
             ->assertOk()
-            ->assertSee($message, false);
+            ->assertSee($message, false)
+            ->assertSee('data-session-flash-toast', false);
 
         $this->actingPortal($user)
             ->get(route('portal.support.show', $ticket))
             ->assertOk()
-            ->assertDontSee($message, false);
+            ->assertDontSee($message, false)
+            ->assertDontSee('data-session-flash-toast', false);
     }
 
     public function test_portal_create_validation_failure_has_no_success_flash_and_preserves_input(): void
@@ -532,13 +537,29 @@ class SupportConversationHubTest extends TestCase
         config(['app.admin_email' => 'admin-support@example.com']);
         $this->admin();
 
-        $this->post(route('public.support-tickets.store'), [
-            'name' => 'زائر',
-            'email' => 'guest@example.com',
-            'subject' => 'مشكلة عامة',
-            'body' => 'وصف المشكلة من الزائر غير المسجل.',
-            'page_url' => 'https://example.com/',
-        ])->assertRedirect();
+        $message = 'تم استلام تذكرتك بنجاح. سيتواصل فريق كفاءات معك قريباً.';
+
+        $this->from(route('home'))
+            ->post(route('public.support-tickets.store'), [
+                'name' => 'زائر',
+                'email' => 'guest@example.com',
+                'subject' => 'مشكلة عامة',
+                'body' => 'وصف المشكلة من الزائر غير المسجل.',
+                'page_url' => 'https://example.com/',
+            ])
+            ->assertRedirect(route('home'))
+            ->assertSessionHas('success', $message);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee($message, false)
+            ->assertSee('data-session-flash-toast', false)
+            ->assertSee('data-flash-variant="success"', false);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertDontSee($message, false)
+            ->assertDontSee('data-session-flash-toast', false);
 
         $ticket = SupportTicket::query()->first();
         $this->assertNotNull($ticket);
