@@ -33,8 +33,9 @@
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0 text-right">
                             <p class="text-sm font-medium text-gray-900">{{ $category->label() }}</p>
+                            <p class="mt-0.5 text-[11px] leading-relaxed text-gray-500">{{ $category->description() }}</p>
                             @if (! $category->canDisableInApp())
-                            <p class="mt-0.5 text-[11px] font-medium text-[#335483]">مفعّل دائماً</p>
+                            <p class="mt-0.5 text-[11px] font-medium text-[#335483]">مفعّل دائماً داخل المنصة</p>
                             @endif
                         </div>
                         @if ($category->canDisableInApp())

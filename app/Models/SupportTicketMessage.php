@@ -17,6 +17,7 @@ class SupportTicketMessage extends Model
         'body',
         'is_system',
         'source',
+        'beneficiary_email_sent_at',
         'created_at',
         'updated_at',
     ];
@@ -26,6 +27,7 @@ class SupportTicketMessage extends Model
         return [
             'sender_type' => SupportMessageSenderType::class,
             'is_system' => 'boolean',
+            'beneficiary_email_sent_at' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
