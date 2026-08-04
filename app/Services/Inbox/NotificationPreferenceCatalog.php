@@ -56,6 +56,8 @@ final class NotificationPreferenceCatalog
             InboxNotificationType::GeneralMessage,
             InboxNotificationType::UserAlert => NotificationPreferenceCategory::Announcements,
 
+            InboxNotificationType::SupportReply => NotificationPreferenceCategory::Support,
+
             default => null,
         };
     }
@@ -71,7 +73,8 @@ final class NotificationPreferenceCatalog
             InboxNotificationType::ProgramLaunched,
             InboxNotificationType::LearningPathLaunched,
             InboxNotificationType::NewsPublished,
-            InboxNotificationType::VolunteerOpportunityPublished => true,
+            InboxNotificationType::VolunteerOpportunityPublished,
+            InboxNotificationType::SupportReply => true,
             default => false,
         };
     }

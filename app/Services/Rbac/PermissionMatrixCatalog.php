@@ -223,6 +223,16 @@ final class PermissionMatrixCatalog
                 ],
             ],
             [
+                'key' => 'support',
+                'label' => 'الدعم الفني',
+                'actions' => [
+                    'view' => ['support_tickets.view'],
+                    'create' => null,
+                    'update' => ['support_tickets.reply', 'support_tickets.assign', 'support_tickets.manage_status'],
+                    'delete' => null,
+                ],
+            ],
+            [
                 'key' => 'brand',
                 'label' => 'الهوية البصرية',
                 'actions' => [
@@ -277,7 +287,7 @@ final class PermissionMatrixCatalog
                 'key' => 'compliance',
                 'label' => 'الخصوصية والأمان',
                 'description' => 'سياسات الخصوصية والاحتفاظ والسجلات والتنبيهات',
-                'group_keys' => ['privacy', 'retention', 'logs', 'comms'],
+                'group_keys' => ['privacy', 'retention', 'logs', 'comms', 'support'],
             ],
         ];
     }

@@ -47,6 +47,7 @@ final class RbacCatalog
             'retention_policies.manage', 'retention_policies.activate', 'retention_policies.preview',
             'retention_runs.view', 'retention_runs.execute', 'retention_exceptions.manage',
             'permissions.assign',
+            'support_tickets.view', 'support_tickets.reply', 'support_tickets.assign', 'support_tickets.manage_status',
         ];
     }
 
@@ -177,6 +178,8 @@ final class RbacCatalog
             'retention_policies.activate' => 'تفعيل الاحتفاظ', 'retention_policies.preview' => 'معاينة الاحتفاظ',
             'retention_runs.view' => 'عرض عمليات الاحتفاظ', 'retention_runs.execute' => 'تنفيذ عمليات الاحتفاظ',
             'retention_exceptions.manage' => 'استثناءات الاحتفاظ', 'permissions.assign' => 'تعيين الصلاحيات',
+            'support_tickets.view' => 'عرض تذاكر الدعم', 'support_tickets.reply' => 'الرد على تذاكر الدعم',
+            'support_tickets.assign' => 'تعيين تذاكر الدعم', 'support_tickets.manage_status' => 'تغيير حالة تذاكر الدعم',
             'users.view' => 'عرض المستخدمين', 'users.create' => 'إنشاء مستخدمين', 'users.update' => 'تعديل المستخدمين',
             'users.delete' => 'حذف المستخدمين', 'users.activate' => 'تفعيل المستخدمين',
             'roles.view' => 'عرض الأدوار', 'roles.create' => 'إنشاء أدوار', 'roles.update' => 'تعديل الأدوار', 'roles.delete' => 'حذف الأدوار',

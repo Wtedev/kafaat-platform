@@ -2,11 +2,15 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\SupportMessageSenderType;
+use App\Enums\SupportTicketCategory;
+use App\Enums\SupportTicketPriority;
 use App\Enums\SupportTicketStatus;
 use App\Filament\Resources\SupportTicketResource\Pages;
 use App\Models\SupportTicket;
 use App\Models\User;
-use Filament\Actions\EditAction;
+use App\Services\Support\SupportUnreadService;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -15,6 +19,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -22,7 +27,7 @@ class SupportTicketResource extends Resource
 {
     protected static ?string $model = SupportTicket::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-ticket';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
     protected static string|\UnitEnum|null $navigationGroup = 'الأمان والامتثال';
 
@@ -38,7 +43,11 @@ class SupportTicketResource extends Resource
     {
         $user = auth()->user();
 
-        return $user instanceof User && $user->isAdmin();
+        return $user instanceof User && (
+            $user->isAdmin()
+            || $user->can('support_tickets.view')
+            || $user->can('support_tickets.reply')
+        );
     }
 
     public static function shouldRegisterNavigation(): bool
@@ -51,6 +60,11 @@ class SupportTicketResource extends Resource
         return static::canAccess();
     }
 
+    public static function canView($record): bool
+    {
+        return static::canAccess();
+    }
+
     public static function canCreate(): bool
     {
         return false;
@@ -58,12 +72,15 @@ class SupportTicketResource extends Resource
 
     public static function canEdit($record): bool
     {
-        return static::canAccess();
+        // Conversation hub uses View page actions — not classic Edit for replies.
+        return false;
     }
 
     public static function canDelete($record): bool
     {
-        return static::canAccess();
+        $user = auth()->user();
+
+        return $user instanceof User && $user->isAdmin();
     }
 
     public static function form(Schema $schema): Schema
@@ -72,18 +89,15 @@ class SupportTicketResource extends Resource
             Section::make('تفاصيل التذكرة')
                 ->columns(2)
                 ->schema([
+                    TextInput::make('ticket_number')->label('الرقم')->disabled(),
+                    TextInput::make('subject')->label('الموضوع')->disabled()->columnSpanFull(),
                     TextInput::make('name')->label('الاسم')->disabled(),
                     TextInput::make('email')->label('البريد')->disabled(),
-                    TextInput::make('subject')->label('الموضوع')->disabled()->columnSpanFull(),
-                    Textarea::make('body')->label('الوصف')->disabled()->rows(6)->columnSpanFull(),
-                    TextInput::make('page_url')->label('رابط الصفحة')->disabled()->columnSpanFull(),
-                    Select::make('status')
-                        ->label('الحالة')
-                        ->options(SupportTicketStatus::options())
-                        ->required()
-                        ->native(false),
+                    Select::make('category')->label('التصنيف')->options(SupportTicketCategory::options())->disabled(),
+                    Select::make('status')->label('الحالة')->options(SupportTicketStatus::options())->disabled(),
                     Textarea::make('admin_notes')
-                        ->label('ملاحظات داخلية')
+                        ->label('ملاحظات داخلية قديمة (غير مرئية للمستفيد)')
+                        ->disabled()
                         ->rows(3)
                         ->columnSpanFull(),
                 ]),
@@ -93,39 +107,93 @@ class SupportTicketResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort('last_message_at', 'desc')
             ->columns([
-                TextColumn::make('id')->label('#')->sortable(),
+                TextColumn::make('ticket_number')->label('الرقم')->searchable()->sortable(),
                 TextColumn::make('subject')->label('الموضوع')->searchable()->wrap()->limit(40),
-                TextColumn::make('name')->label('المرسل')->searchable(),
-                TextColumn::make('email')->label('البريد')->searchable()->toggleable(),
+                TextColumn::make('name')->label('المستفيد')->searchable(),
                 TextColumn::make('status')
                     ->label('الحالة')
                     ->badge()
-                    ->formatStateUsing(fn ($state): string => $state instanceof SupportTicketStatus
-                        ? $state->label()
-                        : (SupportTicketStatus::tryFrom((string) $state)?->label() ?? (string) $state))
-                    ->color(fn ($state): string => match ($state instanceof SupportTicketStatus ? $state : SupportTicketStatus::tryFrom((string) $state)) {
+                    ->formatStateUsing(fn ($state): string => SupportTicketStatus::coerce($state)->adminLabel())
+                    ->color(fn ($state): string => match (SupportTicketStatus::coerce($state)) {
                         SupportTicketStatus::Open => 'warning',
                         SupportTicketStatus::InProgress => 'info',
+                        SupportTicketStatus::WaitingOnUser => 'gray',
+                        SupportTicketStatus::Resolved => 'success',
                         SupportTicketStatus::Closed => 'success',
-                        default => 'gray',
                     }),
-                TextColumn::make('created_at')->label('أُنشئت')->dateTime('j F Y — H:i')->sortable(),
+                TextColumn::make('priority')
+                    ->label('الأولوية')
+                    ->formatStateUsing(fn ($state): string => $state instanceof SupportTicketPriority
+                        ? $state->label()
+                        : (SupportTicketPriority::tryFrom((string) $state)?->label() ?? '—')),
+                TextColumn::make('unread_beneficiary_count')
+                    ->label('غير مقروء')
+                    ->badge()
+                    ->state(fn (SupportTicket $record): int => (int) ($record->unread_beneficiary_count ?? 0))
+                    ->color(fn ($state): string => (int) $state > 0 ? 'danger' : 'gray'),
+                TextColumn::make('last_message_at')->label('آخر نشاط')->dateTime('Y-m-d H:i')->sortable(),
+                TextColumn::make('last_message_sender_type')
+                    ->label('آخر مرسل')
+                    ->formatStateUsing(fn ($state): string => $state instanceof SupportMessageSenderType
+                        ? $state->adminLabel()
+                        : (SupportMessageSenderType::tryFrom((string) $state)?->adminLabel() ?? '—')),
+                TextColumn::make('assignee.name')->label('المسند')->placeholder('—')->toggleable(),
+                TextColumn::make('created_at')->label('أُنشئت')->dateTime('Y-m-d H:i')->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('status')
                     ->label('الحالة')
                     ->options(SupportTicketStatus::options()),
+                SelectFilter::make('category')
+                    ->label('التصنيف')
+                    ->options(SupportTicketCategory::options()),
+                SelectFilter::make('priority')
+                    ->label('الأولوية')
+                    ->options(SupportTicketPriority::options()),
+                TernaryFilter::make('has_unread')
+                    ->label('رسائل مستفيد غير مقروءة')
+                    ->queries(
+                        true: function (Builder $query): Builder {
+                            $user = auth()->user();
+                            if (! $user instanceof User) {
+                                return $query;
+                            }
+
+                            return $query->whereRaw(
+                                '(SELECT COUNT(*) FROM support_ticket_messages m WHERE m.support_ticket_id = support_tickets.id AND m.sender_type = ? AND m.id > COALESCE((SELECT c.last_read_message_id FROM support_ticket_read_cursors c WHERE c.support_ticket_id = support_tickets.id AND c.user_id = ?), 0)) > 0',
+                                [SupportMessageSenderType::Beneficiary->value, $user->id]
+                            );
+                        },
+                        false: fn (Builder $query): Builder => $query,
+                    ),
             ])
             ->recordActions([
-                EditAction::make()->label('عرض / تحديث'),
+                ViewAction::make()->label('المحادثة'),
             ]);
     }
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with(['user']);
+        $query = parent::getEloquentQuery()->with(['user', 'assignee']);
+
+        $user = auth()->user();
+        if ($user instanceof User) {
+            app(SupportUnreadService::class)->attachUnreadBeneficiarySelect($query, $user);
+
+            // Default sort priority: unread desc, then oldest waiting (open/in_progress), then last activity.
+            $query->orderByRaw(
+                '(SELECT COUNT(*) FROM support_ticket_messages m WHERE m.support_ticket_id = support_tickets.id AND m.sender_type = ? AND m.id > COALESCE((SELECT c.last_read_message_id FROM support_ticket_read_cursors c WHERE c.support_ticket_id = support_tickets.id AND c.user_id = ?), 0)) DESC',
+                [SupportMessageSenderType::Beneficiary->value, $user->id]
+            )->orderByRaw(
+                "CASE WHEN status IN ('open','in_progress','waiting_on_user') THEN 0 ELSE 1 END ASC"
+            )->orderByRaw(
+                "CASE WHEN status IN ('open','in_progress','waiting_on_user') THEN COALESCE(last_message_at, created_at) ELSE NULL END ASC"
+            )->orderByDesc('last_message_at');
+        }
+
+        return $query;
     }
 
     public static function getNavigationBadge(): ?string
@@ -134,8 +202,16 @@ class SupportTicketResource extends Resource
             return null;
         }
 
+        $user = auth()->user();
+        if (! $user instanceof User) {
+            return null;
+        }
+
         $count = SupportTicket::query()
-            ->where('status', SupportTicketStatus::Open->value)
+            ->whereRaw(
+                '(SELECT COUNT(*) FROM support_ticket_messages m WHERE m.support_ticket_id = support_tickets.id AND m.sender_type = ? AND m.id > COALESCE((SELECT c.last_read_message_id FROM support_ticket_read_cursors c WHERE c.support_ticket_id = support_tickets.id AND c.user_id = ?), 0)) > 0',
+                [SupportMessageSenderType::Beneficiary->value, $user->id]
+            )
             ->count();
 
         return $count > 0 ? (string) $count : null;
@@ -145,7 +221,7 @@ class SupportTicketResource extends Resource
     {
         return [
             'index' => Pages\ListSupportTickets::route('/'),
-            'edit' => Pages\EditSupportTicket::route('/{record}/edit'),
+            'view' => Pages\ViewSupportTicket::route('/{record}'),
         ];
     }
 }

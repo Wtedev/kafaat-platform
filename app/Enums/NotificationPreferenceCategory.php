@@ -14,6 +14,7 @@ enum NotificationPreferenceCategory: string
     case Volunteering = 'volunteering';
     case News = 'news';
     case Announcements = 'announcements';
+    case Support = 'support';
 
     public function label(): string
     {
@@ -25,6 +26,7 @@ enum NotificationPreferenceCategory: string
             self::Volunteering => 'فرص تطوعية جديدة',
             self::News => 'الأخبار',
             self::Announcements => 'رسائل الإدارة',
+            self::Support => 'ردود الدعم الفني',
         };
     }
 
@@ -38,6 +40,7 @@ enum NotificationPreferenceCategory: string
             self::Volunteering => 'عند نشر فرصة تطوعية جديدة.',
             self::News => 'عند نشر خبر على المنصة.',
             self::Announcements => 'رسائل عامة من فريق كفاءات.',
+            self::Support => 'عند رد فريق الدعم على محادثتك. التنبيه داخل المنصة دائماً؛ البريد اختياري.',
         };
     }
 
@@ -47,7 +50,7 @@ enum NotificationPreferenceCategory: string
     public function canDisableInApp(): bool
     {
         return match ($this) {
-            self::Account => false,
+            self::Account, self::Support => false,
             default => true,
         };
     }
@@ -61,7 +64,8 @@ enum NotificationPreferenceCategory: string
             self::Account,
             self::ProgramsNew,
             self::Volunteering,
-            self::News => true,
+            self::News,
+            self::Support => true,
             default => false,
         };
     }
@@ -79,6 +83,8 @@ enum NotificationPreferenceCategory: string
             self::Volunteering => ['in_app' => true, 'email' => false],
             self::News => ['in_app' => false, 'email' => false],
             self::Announcements => ['in_app' => true, 'email' => false],
+            // Default: in-app on, email off (opt-in via support_replies_email).
+            self::Support => ['in_app' => true, 'email' => false],
         };
     }
 
@@ -95,6 +101,7 @@ enum NotificationPreferenceCategory: string
             self::Volunteering,
             self::News,
             self::Announcements,
+            self::Support,
         ];
     }
 }

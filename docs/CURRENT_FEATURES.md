@@ -24,7 +24,7 @@
 | المركز الإعلامي (صور/ألبومات) | ✅ | `PublicMediaController` · `web.php:164` |
 | سياسة الخصوصية (الحالية + الإصدارات) | ✅ | `PublicPrivacyPolicyController` · `web.php:166-167` |
 | الشروط والأحكام | 🟡 | عرض ثابت `Route::view('/terms')` · `web.php:168` (محتوى Blade فقط) |
-| تذاكر الدعم (إرسال عام) | ✅ | `SupportTicketController@store` · `web.php:103-105` (Throttled) |
+| تذاكر الدعم (إرسال عام للزوار عبر FAB) | ✅ | `SupportTicketController@store` — يحوّل مستخدمي البوابة إلى مركز الدعم |
 | التحقق من الشهادات (عام بلا دخول) | ✅ | `CertificateVerificationController` · `web.php:108-110` |
 
 ---
@@ -60,6 +60,7 @@
 | رفع/تنزيل/حذف السيرة الذاتية (قرص خاص) | ✅ | `PortalCvDocumentController` · `web.php:227-229` |
 | قاعدة المرشحين (طلب/منح/رفض/إعدادات) | ✅ | `PortalCandidatePool*Controller` · `web.php:231-242` |
 | حذف الحساب (طلب) | ✅ | `PortalAccountDeletionController` · `web.php:244-245` |
+| مركز الدعم الفني (قائمة/إنشاء/محادثة/رد) | 🟡 | `PortalSupportController` + `SupportTicketService` — شارة غير المقروء تُحدَّث كل 30ث؛ المحادثة لا تُحدَّث تلقائياً (بدون WebSockets) |
 
 > **مركز الخصوصية للمستفيد:** توجد متحكمات كاملة (`PortalPrivacyCenterController`, `PortalPrivacyAccessRequestController`, `PortalPrivacyCorrectionRequestController`, `PortalPrivacyExportRequestController`, `PortalPrivacyExportDownloadController`, `PortalPrivacyRequestCancelController`) — لكنها **غير مربوطة بمسارات في `routes/web.php`** ضمن العينة المرصودة. راجع `BUG_AUDIT.md` (ميزة قد تكون غير مُفعّلة عبر الويب).
 
@@ -88,7 +89,7 @@
 | المستخدمون | `UserResource`, `ProfileResource`, `RoleResource`, `PermissionResource` | ✅ |
 | الخصوصية والاحتفاظ | `PrivacyPolicyVersionResource`, `PrivacyRequestResource`, `RetentionPolicyResource`, `RetentionRunResource`, `RetentionExceptionResource` | ✅ |
 | قاعدة المرشحين | `CandidatePoolMemberResource`, `CandidatePoolConsentVersionResource` | ✅ |
-| الأمن والدعم | `AuditLogResource`, `SecurityLogResource`, `SupportTicketResource` | ✅ |
+| الأمن والدعم | `AuditLogResource`, `SecurityLogResource`, `SupportTicketResource` (عرض محادثة + رد/حالة) | ✅ |
 | **صفحات مخصصة** | `StaffPermissionMatrix`, `SendInAppNotification`, `InAppNotificationCenter`, `StaffProfilePage`, `ErrorPageStatsPage` | ✅ |
 | **Widgets** | `PlatformStatsWidget`, `LatestInAppNotificationsWidget` | ✅ |
 

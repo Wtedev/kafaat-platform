@@ -173,12 +173,16 @@ erDiagram
 
 - **`in_app_notifications`** ← النموذج `InboxNotification` (**اسم الجدول ≠ اسم النموذج**): `user_id` FK(restrict) · `title` · `message` · `type` · `sender_id` FK→users · `target_type` · `read_at` · `context`(text).
 - **`email_logs`**: `recipient_email` · `subject` · `template_key` · `status`(`sent`) · `sent_by` FK→users.
-- **`support_tickets`**: `user_id` FK(set null، اختياري للزوار) · `name` · `email` · `subject` · `body` · `page_url` · `status`(`open`) · `admin_notes`.
+- **`support_tickets`** (محور محادثات الدعم): `user_id` FK(set null، اختياري للزوار) · `ticket_number`(U، شكل `ST-000001`) · `name` · `email` · `subject` · `category` · `body`(النص الأولي، محفوظ للتوافق) · `page_url` · `related_program_id` FK→training_programs(set null، تخزين داخلي بلا واجهة اختيار برنامج حالياً) · `status`(`open`/`in_progress`/`waiting_on_user`/`resolved`/`closed`) · `priority` · `assigned_to` FK→users(set null) · `admin_notes`(داخلي، غير ظاهر للمستفيد) · `last_message_at` · `last_message_sender_type` · `closed_at` · `resolution_summary`.
+- **`support_ticket_messages`**: `support_ticket_id` FK(cascade) · `user_id` FK(set null) · `sender_type`(`beneficiary`/`support`/`system`) · `body` · `is_system` · `source`(`conversation`/`legacy_body`/`status_update`/…) · timestamps جزئية. فهرس (`support_ticket_id`,`created_at`) و(`support_ticket_id`,`id`).
+- **`support_ticket_status_events`**: سجل انتقالات الحالة · `from_status`/`to_status` · `reason` · `status_update_text` · `actor_id` · `support_ticket_message_id` FK(set null).
+- **`support_ticket_read_cursors`**: مؤشر قراءة لكل مستخدم على تذكرة · **U**(`support_ticket_id`,`user_id`) · `last_read_message_id` · `last_read_at`.
 - **`entity_notes`**: **morph** `noteable_type`/`noteable_id` · `created_by` FK(cascade) · `body`. (ملاحظات داخلية للكيانات).
 - **`error_page_hits`**: `status`,`day` (U معاً) · `hits`. (عدّاد صفحات الأخطاء).
 - **`error_page_visits`**: تفاصيل كل زيارة خطأ (status_code, url, route, method, ip, ua, referer, user_id, exception_class).
 - **`user_activity_logs`**: `user_id` FK(restrict) · `action` · `title` · `detail` · `occurred_at`.
 
+> **ملاحظات دعم:** توليد `ticket_number` يعتمد على قيد فريد + إعادة محاولة عند التصادم (لا قفل واسع ولا WebSockets). شارة غير المقروء في البوابة تُحدَّث كل 30 ثانية؛ صفحة المحادثة نفسها لا تُحدَّث تلقائياً (محدودية معروفة). لا مرفقات في المحادثة حالياً.
 ---
 
 ### 2.7 الأمن والتدقيق

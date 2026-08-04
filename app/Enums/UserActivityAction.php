@@ -38,6 +38,8 @@ enum UserActivityAction: string
     case PrivacyExportDownloaded = 'privacy_export_downloaded';
     case PrivacyExportExpired = 'privacy_export_expired';
     case PrivacyExportFailed = 'privacy_export_failed';
+    case SupportTicketCreated = 'support_ticket_created';
+    case SupportTicketReplied = 'support_ticket_replied';
 
     public function category(): string
     {
@@ -57,6 +59,7 @@ enum UserActivityAction: string
             self::PrivacyRequestCancelled, self::PrivacyAccessCompleted, self::PrivacyCorrectionCompleted,
             self::PrivacyRequestRejected, self::PrivacyExportRequested, self::PrivacyExportReady,
             self::PrivacyExportDownloaded, self::PrivacyExportExpired, self::PrivacyExportFailed => 'الخصوصية',
+            self::SupportTicketCreated, self::SupportTicketReplied => 'الدعم الفني',
         };
     }
 
@@ -97,6 +100,8 @@ enum UserActivityAction: string
             self::PrivacyExportDownloaded => 'تنزيل ملف التصدير',
             self::PrivacyExportExpired => 'انتهاء ملف التصدير',
             self::PrivacyExportFailed => 'فشل تصدير البيانات',
+            self::SupportTicketCreated => 'إنشاء تذكرة دعم',
+            self::SupportTicketReplied => 'رد على تذكرة دعم',
         };
     }
 

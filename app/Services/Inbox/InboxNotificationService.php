@@ -197,6 +197,8 @@ class InboxNotificationService
             'news' => ($news = News::query()->find($id)) !== null
                 ? route('public.news.show', $news->slug)
                 : null,
+            // Login-gated portal conversation — never a public guest URL.
+            'support_ticket' => route('portal.support.show', $id),
             default => null,
         };
     }
