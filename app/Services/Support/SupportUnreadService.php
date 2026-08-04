@@ -117,6 +117,12 @@ final class SupportUnreadService
         $staffId = (int) $staff->id;
         $beneficiary = SupportMessageSenderType::Beneficiary->value;
 
+        // Preserve base ticket columns. Laravel Query\Builder::addSelect() for raw
+        // expressions does not prepend table.* when columns are null, so only the
+        // subquery would be selected — leaving id null and breaking Filament
+        // ViewAction URLs (Missing parameter: record).
+        $query->select('support_tickets.*');
+
         $query->addSelect([
             DB::raw(
                 '(SELECT COUNT(*) FROM support_ticket_messages AS m

@@ -187,10 +187,10 @@ class SupportTicketResource extends Resource
                 '(SELECT COUNT(*) FROM support_ticket_messages m WHERE m.support_ticket_id = support_tickets.id AND m.sender_type = ? AND m.id > COALESCE((SELECT c.last_read_message_id FROM support_ticket_read_cursors c WHERE c.support_ticket_id = support_tickets.id AND c.user_id = ?), 0)) DESC',
                 [SupportMessageSenderType::Beneficiary->value, $user->id]
             )->orderByRaw(
-                "CASE WHEN status IN ('open','in_progress','waiting_on_user') THEN 0 ELSE 1 END ASC"
+                "CASE WHEN support_tickets.status IN ('open','in_progress','waiting_on_user') THEN 0 ELSE 1 END ASC"
             )->orderByRaw(
-                "CASE WHEN status IN ('open','in_progress','waiting_on_user') THEN COALESCE(last_message_at, created_at) ELSE NULL END ASC"
-            )->orderByDesc('last_message_at');
+                "CASE WHEN support_tickets.status IN ('open','in_progress','waiting_on_user') THEN COALESCE(support_tickets.last_message_at, support_tickets.created_at) ELSE NULL END ASC"
+            )->orderByDesc('support_tickets.last_message_at');
         }
 
         return $query;

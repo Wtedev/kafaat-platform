@@ -7,6 +7,7 @@ use App\Enums\SupportMessageSenderType;
 use App\Enums\SupportTicketCategory;
 use App\Enums\SupportTicketStatus;
 use App\Filament\Resources\SupportTicketResource;
+use App\Filament\Resources\SupportTicketResource\Pages\ListSupportTickets;
 use App\Filament\Resources\SupportTicketResource\Pages\ViewSupportTicket;
 use App\Models\InboxNotification;
 use App\Models\SupportTicket;
@@ -513,6 +514,48 @@ class SupportConversationHubTest extends TestCase
             ->assertSuccessful();
 
         $this->assertTrue($ticket->fresh()->messages()->exists());
+    }
+
+    public function test_admin_support_tickets_list_preserves_record_id(): void
+    {
+        Notification::fake();
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        $user = $this->beneficiary();
+        $admin = $this->admin();
+        $ticket = app(SupportTicketService::class)->createAndNotify([
+            'subject' => 'قائمة الإدارة',
+            'category' => 'general',
+            'body' => 'نص كافٍ لاختبار قائمة تذاكر الدعم في الإدارة.',
+        ], $user);
+
+        $this->actingAs($admin)
+            ->withSession(['otp_verified' => true])
+            ->get('/admin/support-tickets')
+            ->assertOk()
+            ->assertSee($ticket->ticket_number);
+
+        $this->actingAs($admin);
+        $row = SupportTicketResource::getEloquentQuery()
+            ->whereKey($ticket->id)
+            ->first();
+
+        $this->assertNotNull($row);
+        $this->assertSame($ticket->id, $row->getKey());
+        $this->assertNotNull($row->id);
+        $this->assertTrue(isset($row->unread_beneficiary_count));
+
+        $viewUrl = SupportTicketResource::getUrl('view', ['record' => $row]);
+        $this->assertStringContainsString('/admin/support-tickets/'.$ticket->id, $viewUrl);
+
+        Livewire::actingAs($admin)
+            ->test(ListSupportTickets::class)
+            ->assertSuccessful()
+            ->assertCanSeeTableRecords([$ticket]);
+
+        Livewire::actingAs($admin)
+            ->test(ViewSupportTicket::class, ['record' => $ticket->getKey()])
+            ->assertSuccessful();
     }
 
     public function test_unread_count_excludes_own_beneficiary_messages(): void
