@@ -9,6 +9,7 @@ use App\Enums\SupportTicketStatus;
 use App\Filament\Resources\SupportTicketResource;
 use App\Filament\Resources\SupportTicketResource\Pages\ListSupportTickets;
 use App\Filament\Resources\SupportTicketResource\Pages\ViewSupportTicket;
+use App\Http\Controllers\Portal\PortalSupportController;
 use App\Models\InboxNotification;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketMessage;
@@ -127,6 +128,137 @@ class SupportConversationHubTest extends TestCase
         ])->assertRedirect();
 
         $this->assertSame(1, SupportTicket::query()->count());
+    }
+
+    public function test_portal_create_ticket_flashes_success_once_and_not_on_refresh(): void
+    {
+        Notification::fake();
+        $user = $this->beneficiary();
+        $message = PortalSupportController::SUCCESS_MESSAGE;
+
+        $response = $this->actingPortal($user)->post(route('portal.support.store'), [
+            'subject' => 'مشكلة تسجيل',
+            'category' => SupportTicketCategory::Registration->value,
+            'body' => 'لا أستطيع إكمال التسجيل في البرنامج المطلوب.',
+            'idempotency_key' => 'flash-create-1',
+        ]);
+
+        $ticket = SupportTicket::query()->first();
+        $this->assertNotNull($ticket);
+        $response
+            ->assertRedirect(route('portal.support.show', $ticket))
+            ->assertSessionHas('success', $message);
+
+        $this->actingPortal($user)
+            ->get(route('portal.support.show', $ticket))
+            ->assertOk()
+            ->assertSee($message, false);
+
+        $this->actingPortal($user)
+            ->get(route('portal.support.show', $ticket))
+            ->assertOk()
+            ->assertDontSee($message, false);
+    }
+
+    public function test_portal_reply_flashes_success_once_and_not_on_refresh(): void
+    {
+        Notification::fake();
+        $user = $this->beneficiary();
+        $message = PortalSupportController::SUCCESS_MESSAGE;
+        $ticket = app(SupportTicketService::class)->createAndNotify([
+            'subject' => 'استفسار رد',
+            'category' => 'general',
+            'body' => 'أحتاج مساعدة بخصوص الحساب من فضلكم.',
+        ], $user);
+
+        $response = $this->actingPortal($user)->post(route('portal.support.reply', $ticket), [
+            'body' => 'هذه رسالة رد إضافية من المستفيد.',
+        ]);
+
+        $response
+            ->assertRedirect(route('portal.support.show', $ticket))
+            ->assertSessionHas('success', $message);
+
+        $this->actingPortal($user)
+            ->get(route('portal.support.show', $ticket))
+            ->assertOk()
+            ->assertSee($message, false);
+
+        $this->actingPortal($user)
+            ->get(route('portal.support.show', $ticket))
+            ->assertOk()
+            ->assertDontSee($message, false);
+    }
+
+    public function test_portal_create_validation_failure_has_no_success_flash_and_preserves_input(): void
+    {
+        Notification::fake();
+        $user = $this->beneficiary();
+
+        $this->actingPortal($user)
+            ->from(route('portal.support.create'))
+            ->post(route('portal.support.store'), [
+                'subject' => 'موضوع قصير',
+                'category' => SupportTicketCategory::General->value,
+                'body' => 'قصير',
+                'idempotency_key' => 'flash-fail-1',
+            ])
+            ->assertRedirect(route('portal.support.create'))
+            ->assertSessionHasErrors('body')
+            ->assertSessionMissing('success')
+            ->assertSessionHasInput('subject', 'موضوع قصير')
+            ->assertSessionHasInput('body', 'قصير');
+
+        $this->assertSame(0, SupportTicket::query()->count());
+    }
+
+    public function test_portal_reply_validation_failure_has_no_success_flash_and_preserves_input(): void
+    {
+        Notification::fake();
+        $user = $this->beneficiary();
+        $ticket = app(SupportTicketService::class)->createAndNotify([
+            'subject' => 'تحقق رد',
+            'category' => 'general',
+            'body' => 'نص كافٍ لاختبار فشل التحقق عند الرد.',
+        ], $user);
+
+        $this->actingPortal($user)
+            ->from(route('portal.support.show', $ticket))
+            ->post(route('portal.support.reply', $ticket), [
+                'body' => '',
+            ])
+            ->assertRedirect(route('portal.support.show', $ticket))
+            ->assertSessionHasErrors('body')
+            ->assertSessionMissing('success');
+
+        $this->assertSame(1, $ticket->messages()->count());
+    }
+
+    public function test_duplicate_create_with_same_idempotency_key_does_not_create_second_ticket(): void
+    {
+        Notification::fake();
+        $user = $this->beneficiary();
+        $payload = [
+            'subject' => 'موضوع مكرر',
+            'category' => 'general',
+            'body' => 'وصف كافٍ للمشكلة عند الطلب المكرر.',
+            'idempotency_key' => 'dup-create-key',
+        ];
+
+        $first = $this->actingPortal($user)->post(route('portal.support.store'), $payload);
+        $second = $this->actingPortal($user)->post(route('portal.support.store'), $payload);
+
+        $ticket = SupportTicket::query()->first();
+        $this->assertNotNull($ticket);
+        $this->assertSame(1, SupportTicket::query()->count());
+        $this->assertSame(1, $ticket->messages()->count());
+
+        $first
+            ->assertRedirect(route('portal.support.show', $ticket))
+            ->assertSessionHas('success', PortalSupportController::SUCCESS_MESSAGE);
+        $second
+            ->assertRedirect(route('portal.support.show', $ticket))
+            ->assertSessionHas('success', PortalSupportController::SUCCESS_MESSAGE);
     }
 
     public function test_beneficiary_cannot_view_others_ticket_idor(): void

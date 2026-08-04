@@ -15,6 +15,8 @@ use Illuminate\View\View;
 
 class PortalSupportController extends Controller
 {
+    public const SUCCESS_MESSAGE = 'تم إرسال رسالتك بنجاح.';
+
     public function index(Request $request, SupportUnreadService $unread): View
     {
         $user = $request->user();
@@ -119,7 +121,7 @@ class PortalSupportController extends Controller
 
                 return redirect()
                     ->route('portal.support.show', $existingId)
-                    ->with('success', 'تم فتح المحادثة.');
+                    ->with('success', self::SUCCESS_MESSAGE);
             }
         }
 
@@ -136,7 +138,7 @@ class PortalSupportController extends Controller
 
         return redirect()
             ->route('portal.support.show', $ticket)
-            ->with('success', 'تم إنشاء محادثة الدعم بنجاح.');
+            ->with('success', self::SUCCESS_MESSAGE);
     }
 
     public function show(Request $request, SupportTicket $supportTicket, SupportUnreadService $unread): View
@@ -179,7 +181,7 @@ class PortalSupportController extends Controller
 
         return redirect()
             ->route('portal.support.show', $supportTicket)
-            ->with('success', 'تم إرسال ردك.');
+            ->with('success', self::SUCCESS_MESSAGE);
     }
 
     public function unreadCount(Request $request, SupportUnreadService $unread): JsonResponse
