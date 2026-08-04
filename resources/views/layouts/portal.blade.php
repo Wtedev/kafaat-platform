@@ -212,18 +212,6 @@
             </div>
             @endif
 
-            @if (session('success'))
-            <div class="mb-4 rounded-3xl border border-[#b8e0e2] bg-[#e6f5f6]/90 px-4 py-3 text-sm text-brand-secondary shadow-[0_2px_16px_-6px_rgba(26,147,153,0.12)] backdrop-blur-sm">
-                {{ session('success') }}
-            </div>
-            @endif
-
-            @if (session('error'))
-            <div class="mb-4 rounded-3xl border border-[#f5c4c0]/60 bg-[#fdeeed]/90 px-4 py-3 text-sm text-brand-danger shadow-[0_2px_16px_-6px_rgba(236,96,86,0.12)] backdrop-blur-sm">
-                {{ session('error') }}
-            </div>
-            @endif
-
             @yield('content')
         </main>
     </div>
@@ -299,6 +287,8 @@
             });
         })();
     </script>
+
+    <x-session-flash-toast />
 
     {{-- Portal users use the support hub; keep FAB for guests on public/auth only via other layouts. --}}
     @unless(auth()->check())
