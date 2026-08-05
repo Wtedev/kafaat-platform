@@ -29,9 +29,18 @@
         </span>
     </div>
     @unless ($canReply)
-        <p class="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-            هذه المحادثة {{ $ticket->status?->label() }}. يمكنك قراءة السجل، ولا يمكن إرسال رد جديد حتى يعيد فريق الدعم فتحها.
-        </p>
+        <div class="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-900">
+            <p>
+                هذه المحادثة {{ $ticket->status?->label() }}. يمكنك قراءة السجل، ولا يمكن إرسال رد جديد على هذه التذكرة.
+            </p>
+            <a
+                href="{{ route('portal.support.create') }}"
+                class="mt-2.5 inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
+                style="background:#335483"
+            >
+                فتح تذكرة جديدة
+            </a>
+        </div>
     @endunless
 </header>
 

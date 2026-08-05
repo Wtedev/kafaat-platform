@@ -56,7 +56,8 @@ final class NotificationPreferenceCatalog
             InboxNotificationType::GeneralMessage,
             InboxNotificationType::UserAlert => NotificationPreferenceCategory::Announcements,
 
-            InboxNotificationType::SupportReply => NotificationPreferenceCategory::Support,
+            InboxNotificationType::SupportReply,
+            InboxNotificationType::SupportTicketClosed => NotificationPreferenceCategory::Support,
 
             default => null,
         };

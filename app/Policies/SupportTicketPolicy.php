@@ -47,6 +47,11 @@ class SupportTicketPolicy
         return $user->isAdmin() || $user->can('support_tickets.manage_status');
     }
 
+    public function manageInternalNotes(User $user, SupportTicket $ticket): bool
+    {
+        return $user->isAdmin() || $user->can('support_tickets.internal_notes');
+    }
+
     public function delete(User $user, SupportTicket $ticket): bool
     {
         return $user->isAdmin();

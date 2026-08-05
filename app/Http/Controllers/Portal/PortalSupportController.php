@@ -125,6 +125,13 @@ class PortalSupportController extends Controller
             }
         }
 
+        $existingOpen = $tickets->findOpenTicketForUser($user);
+        if ($existingOpen !== null) {
+            return redirect()
+                ->route('portal.support.show', $existingOpen)
+                ->with('success', 'لديك محادثة مفتوحة بالفعل.');
+        }
+
         $ticket = $tickets->createAndNotify([
             'subject' => $validated['subject'],
             'category' => $validated['category'],

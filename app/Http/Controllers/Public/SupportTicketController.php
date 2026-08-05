@@ -13,11 +13,11 @@ class SupportTicketController extends Controller
     {
         $user = $request->user();
 
-        // Authenticated portal users should use the conversation hub.
+        // Authenticated portal users should use the conversation widget / hub.
         if ($user !== null && $user->isPortalUser()) {
             return redirect()
-                ->route('portal.support.create')
-                ->with('success', 'يمكنك فتح محادثة دعم من مركز الدعم الفني.');
+                ->route('portal.support.index')
+                ->with('success', 'يمكنك فتح محادثة دعم من زر «لدي مشكلة» أو من مركز الدعم الفني.');
         }
 
         $validated = $request->validate(
@@ -43,8 +43,11 @@ class SupportTicketController extends Controller
             $validated['email'] = $user->email ?: $validated['email'];
         }
 
-        $tickets->createAndNotify($validated, $user);
+        $ticket = $tickets->createAndNotify($validated, $user);
 
-        return back()->with('success', 'تم استلام تذكرتك بنجاح. سيتواصل فريق كفاءات معك قريباً.');
+        return back()->with(
+            'success',
+            'تم استلام تذكرتك بنجاح برقم '.$ticket->displayNumber().'. سيتواصل فريق كفاءات معك قريباً.',
+        );
     }
 }

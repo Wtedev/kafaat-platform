@@ -49,7 +49,8 @@ final class InboxNotificationIcon
 
             InboxNotificationType::GeneralMessage => 'heroicon-o-chat-bubble-left-right',
             InboxNotificationType::UserAlert => 'heroicon-o-exclamation-triangle',
-            InboxNotificationType::SupportReply => 'heroicon-o-lifebuoy',
+            InboxNotificationType::SupportReply,
+            InboxNotificationType::SupportTicketClosed => 'heroicon-o-lifebuoy',
         };
     }
 }

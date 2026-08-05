@@ -34,12 +34,35 @@ enum SupportTicketStatus: string
 
     public function isTerminal(): bool
     {
-        return $this === self::Closed;
+        return $this === self::Closed || $this === self::Resolved;
+    }
+
+    /**
+     * Statuses that count toward the one-open-ticket rule.
+     *
+     * @return list<self>
+     */
+    public static function openishStatuses(): array
+    {
+        return [self::Open, self::InProgress, self::WaitingOnUser];
+    }
+
+    public function isOpenish(): bool
+    {
+        return in_array($this, self::openishStatuses(), true);
+    }
+
+    /**
+     * Chat (beneficiary or staff reply) is allowed while the ticket is openish.
+     */
+    public function allowsChat(): bool
+    {
+        return $this->isOpenish();
     }
 
     public function allowsBeneficiaryReply(): bool
     {
-        return ! in_array($this, [self::Closed, self::Resolved], true);
+        return $this->allowsChat();
     }
 
     public function requiresStatusUpdateText(): bool
@@ -48,6 +71,8 @@ enum SupportTicketStatus: string
     }
 
     /**
+     * No reopen: closed/resolved tickets stay terminal; further contact = new ticket.
+     *
      * @return list<self>
      */
     public function allowedTransitions(): array
@@ -56,8 +81,8 @@ enum SupportTicketStatus: string
             self::Open => [self::InProgress, self::WaitingOnUser, self::Resolved, self::Closed],
             self::InProgress => [self::WaitingOnUser, self::Resolved, self::Closed, self::Open],
             self::WaitingOnUser => [self::InProgress, self::Resolved, self::Closed, self::Open],
-            self::Resolved => [self::Closed, self::Open, self::InProgress],
-            self::Closed => [self::Open, self::InProgress],
+            self::Resolved => [self::Closed],
+            self::Closed => [],
         };
     }
 
