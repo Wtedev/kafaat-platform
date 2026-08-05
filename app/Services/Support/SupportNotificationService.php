@@ -113,4 +113,45 @@ final class SupportNotificationService
             ]);
         }
     }
+
+    /**
+     * In-app notify linked beneficiary that the ticket was closed.
+     * Guests without accounts are not emailed here — avoid inventing a new guest-mail path.
+     */
+    public function notifyBeneficiaryOfTicketClosed(SupportTicket $ticket, User $actor): void
+    {
+        $beneficiary = $ticket->user;
+        if ($beneficiary === null) {
+            return;
+        }
+
+        if ((int) $beneficiary->id === (int) $actor->id) {
+            return;
+        }
+
+        $title = 'تم إغلاق تذكرة الدعم '.$ticket->displayNumber();
+        $body = 'أُغلقت محادثتك «'.$ticket->subject.'». إذا احتجت مساعدة إضافية يمكنك فتح تذكرة جديدة.';
+
+        $msg = new NotificationMessage(
+            type: InboxNotificationType::SupportTicketClosed,
+            title: $title,
+            message: $body,
+            senderId: null,
+            targetType: NotificationTargetType::SingleUser,
+            context: [
+                'resource' => 'support_ticket',
+                'id' => (int) $ticket->getKey(),
+            ],
+            emailable: false,
+        );
+
+        try {
+            $this->inbox->dispatch($msg, [$beneficiary->id]);
+        } catch (Throwable $e) {
+            Log::warning('support.close_inbox_failed', [
+                'ticket_id' => $ticket->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
 }

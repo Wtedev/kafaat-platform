@@ -2,15 +2,18 @@
 
 namespace App\Services\Support;
 
+use App\Enums\AuditLogResult;
 use App\Enums\SupportMessageSenderType;
 use App\Enums\SupportTicketCategory;
 use App\Enums\SupportTicketPriority;
 use App\Enums\SupportTicketStatus;
 use App\Enums\UserActivityAction;
 use App\Models\SupportTicket;
+use App\Models\SupportTicketInternalNote;
 use App\Models\SupportTicketMessage;
 use App\Models\SupportTicketStatusEvent;
 use App\Models\User;
+use App\Services\Audit\AuditLogger;
 use App\Services\UserActivityLogger;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -38,6 +41,7 @@ final class SupportTicketService
         private readonly SupportStatusMachine $statusMachine,
         private readonly SupportNotificationService $notifications,
         private readonly SupportUnreadService $unread,
+        private readonly AuditLogger $audit,
     ) {}
 
     /**
@@ -46,6 +50,16 @@ final class SupportTicketService
     public static function setNextTicketNumberResolver(?\Closure $resolver): void
     {
         self::$nextTicketNumberResolver = $resolver;
+    }
+
+    public function findOpenTicketForUser(User $user): ?SupportTicket
+    {
+        return SupportTicket::query()
+            ->ownedBy($user)
+            ->openish()
+            ->orderByDesc('last_message_at')
+            ->orderByDesc('id')
+            ->first();
     }
 
     /**
@@ -66,6 +80,14 @@ final class SupportTicketService
         for ($attempt = 1; $attempt <= self::TICKET_NUMBER_MAX_ATTEMPTS; $attempt++) {
             try {
                 return DB::transaction(function () use ($data, $user): SupportTicket {
+                    if ($user !== null) {
+                        $this->acquireOneOpenLock($user);
+                        $existing = $this->findOpenTicketForUser($user);
+                        if ($existing !== null) {
+                            return $existing;
+                        }
+                    }
+
                     $name = $user?->name ?: (string) ($data['name'] ?? '');
                     $email = $user?->email ?: (string) ($data['email'] ?? '');
 
@@ -116,9 +138,17 @@ final class SupportTicketService
                         );
                     }
 
-                    return $ticket->fresh(['messages', 'statusEvents']) ?? $ticket;
+                    // Prefer load() over fresh() so wasRecentlyCreated stays true for notify gating.
+                    return $ticket->load(['messages', 'statusEvents']);
                 });
             } catch (UniqueConstraintViolationException $e) {
+                if ($this->isOneOpenConflict($e) && $user !== null) {
+                    $existing = $this->findOpenTicketForUser($user);
+                    if ($existing !== null) {
+                        return $existing;
+                    }
+                }
+
                 if (! $this->isTicketNumberConflict($e)) {
                     throw $e;
                 }
@@ -135,13 +165,17 @@ final class SupportTicketService
 
     /**
      * Create then notify outside the transaction so mail failure never rolls back.
+     * If an open ticket already exists for the user, returns it without re-notifying.
      *
      * @param  array<string, mixed>  $data
      */
     public function createAndNotify(array $data, ?User $user = null): SupportTicket
     {
         $ticket = $this->create($data, $user);
-        $this->notifications->notifyAdminsOfNewTicket($ticket);
+
+        if ($ticket->wasRecentlyCreated) {
+            $this->notifications->notifyAdminsOfNewTicket($ticket);
+        }
 
         return $ticket;
     }
@@ -156,7 +190,7 @@ final class SupportTicketService
         }
 
         $status = SupportTicketStatus::coerce($ticket->status);
-        if (! $status->allowsBeneficiaryReply()) {
+        if (! $status->allowsChat()) {
             throw ValidationException::withMessages([
                 'body' => 'هذه المحادثة مغلقة أو محلولة ولا يمكن إضافة رد جديد.',
             ]);
@@ -224,9 +258,21 @@ final class SupportTicketService
             throw ValidationException::withMessages(['body' => 'نص الرد مطلوب.']);
         }
 
+        $current = SupportTicketStatus::coerce($ticket->status);
+        if (! $current->allowsChat()) {
+            throw ValidationException::withMessages([
+                'body' => 'لا يمكن الرد على تذكرة مغلقة أو محلولة. يمكن للمستفيد فتح تذكرة جديدة.',
+            ]);
+        }
+
         $newStatus = isset($data['new_status']) && filled($data['new_status'])
             ? SupportTicketStatus::coerce($data['new_status'])
             : null;
+
+        // Staff reply moves open → in_progress when no explicit status change is requested.
+        if ($newStatus === null && $current === SupportTicketStatus::Open) {
+            $newStatus = SupportTicketStatus::InProgress;
+        }
 
         $statusText = isset($data['status_update_text']) ? trim((string) $data['status_update_text']) : null;
 
@@ -279,7 +325,7 @@ final class SupportTicketService
                 if ($newStatus === SupportTicketStatus::Closed || $newStatus === SupportTicketStatus::Resolved) {
                     $updates['closed_at'] = now();
                 }
-                if ($newStatus === SupportTicketStatus::Open || $newStatus === SupportTicketStatus::InProgress) {
+                if ($newStatus->isOpenish()) {
                     $updates['closed_at'] = null;
                 }
             }
@@ -300,11 +346,16 @@ final class SupportTicketService
             ]);
         }
 
+        $fresh = $ticket->fresh();
+        if ($fresh !== null && SupportTicketStatus::coerce($fresh->status)->isTerminal()) {
+            $this->notifications->notifyBeneficiaryOfTicketClosed($fresh, $actor);
+        }
+
         return $message;
     }
 
     /**
-     * Status-only change (assign/close/reopen toolbar) without a support reply body.
+     * Status-only change (assign/close toolbar) without a support reply body.
      */
     public function changeStatus(
         SupportTicket $ticket,
@@ -319,8 +370,8 @@ final class SupportTicketService
             ]);
         }
 
-        return DB::transaction(function () use ($ticket, $actor, $to, $statusUpdateText, $reason): SupportTicketStatusEvent {
-            $event = $this->applyStatusChange(
+        $event = DB::transaction(function () use ($ticket, $actor, $to, $statusUpdateText, $reason): SupportTicketStatusEvent {
+            return $this->applyStatusChange(
                 ticket: $ticket,
                 to: $to,
                 actor: $actor,
@@ -329,9 +380,45 @@ final class SupportTicketService
                 linkedMessage: null,
                 persistTicket: true,
             );
-
-            return $event;
         });
+
+        if ($to === SupportTicketStatus::Closed || $to === SupportTicketStatus::Resolved) {
+            $this->audit->record(
+                $actor,
+                'support_ticket.status_closed',
+                AuditLogResult::Success,
+                targetUser: $ticket->user,
+                resource: $ticket,
+                reason: $statusUpdateText,
+                metadata: [
+                    'to_status' => $to->value,
+                    'ticket_number' => $ticket->displayNumber(),
+                ],
+            );
+
+            try {
+                $this->notifications->notifyBeneficiaryOfTicketClosed($ticket->fresh(['user']) ?? $ticket, $actor);
+            } catch (Throwable $e) {
+                Log::warning('support.close_notify_failed', [
+                    'ticket_id' => $ticket->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        } else {
+            $this->audit->record(
+                $actor,
+                'support_ticket.status_changed',
+                AuditLogResult::Success,
+                targetUser: $ticket->user,
+                resource: $ticket,
+                metadata: [
+                    'to_status' => $to->value,
+                    'ticket_number' => $ticket->displayNumber(),
+                ],
+            );
+        }
+
+        return $event;
     }
 
     public function assign(SupportTicket $ticket, User $actor, ?User $assignee): SupportTicket
@@ -345,6 +432,34 @@ final class SupportTicketService
         ]);
 
         return $ticket;
+    }
+
+    public function addInternalNote(SupportTicket $ticket, User $author, string $body): SupportTicketInternalNote
+    {
+        $body = trim($body);
+        if ($body === '') {
+            throw ValidationException::withMessages(['body' => 'نص الملاحظة مطلوب.']);
+        }
+
+        $note = SupportTicketInternalNote::query()->create([
+            'support_ticket_id' => $ticket->id,
+            'author_id' => $author->id,
+            'body' => $body,
+        ]);
+
+        $this->audit->record(
+            $author,
+            'support_ticket.internal_note_created',
+            AuditLogResult::Success,
+            targetUser: $ticket->user,
+            resource: $ticket,
+            metadata: [
+                'note_id' => $note->id,
+                'ticket_number' => $ticket->displayNumber(),
+            ],
+        );
+
+        return $note;
     }
 
     private function applyStatusChange(
@@ -396,7 +511,7 @@ final class SupportTicketService
             if ($to === SupportTicketStatus::Closed || $to === SupportTicketStatus::Resolved) {
                 $updates['closed_at'] = now();
             }
-            if ($to === SupportTicketStatus::Open || $to === SupportTicketStatus::InProgress || $to === SupportTicketStatus::WaitingOnUser) {
+            if ($to->isOpenish()) {
                 $updates['closed_at'] = null;
             }
             if ($systemMessage !== null) {
@@ -409,18 +524,18 @@ final class SupportTicketService
         return $event;
     }
 
+    private function acquireOneOpenLock(User $user): void
+    {
+        if (DB::getDriverName() === 'pgsql') {
+            // Transaction-scoped advisory lock serializes concurrent creates for this user.
+            DB::select('select pg_advisory_xact_lock(?)', [(int) $user->id + 9_100_000]);
+        } else {
+            SupportTicket::query()->ownedBy($user)->openish()->lockForUpdate()->get();
+        }
+    }
+
     /**
      * Candidate number for display shape ST-000001.
-     *
-     * Why unique + retry (not PG SEQUENCE / table-wide advisory lock)?
-     * - Unique index is the authoritative duplicate guard (Laravel + PostgreSQL).
-     * - Retry on UniqueConstraintViolationException handles concurrent candidate races
-     *   without serializing every ticket create behind a wide lock.
-     * - A sequence would also work but needs separate lifecycle sync with legacy
-     *   id-based backfill; unique+retry keeps ST-%06d with less moving parts.
-     *
-     * Uses max(numeric suffix of ticket_number, max(id)) so backfilled ST-{id}
-     * values and ahead-of-id display numbers both advance the candidate correctly.
      */
     private function nextTicketNumber(): string
     {
@@ -450,5 +565,13 @@ final class SupportTicketService
 
         return str_contains($message, 'ticket_number')
             || str_contains($message, 'support_tickets_ticket_number');
+    }
+
+    private function isOneOpenConflict(UniqueConstraintViolationException $e): bool
+    {
+        $message = strtolower($e->getMessage());
+
+        return str_contains($message, 'support_tickets_one_open_per_user')
+            || str_contains($message, 'one_open_per_user');
     }
 }

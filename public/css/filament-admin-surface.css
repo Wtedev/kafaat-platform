@@ -2143,3 +2143,730 @@ html.dark .fi-attendance-sticky-col,
     background: var(--admin-surface, #0f172a);
 }
 
+
+/* ——— صندوق الدعم (Support Inbox) ——— */
+html.fi .fi-page:has(.support-inbox) > .fi-header,
+html.fi .fi-page:has(.support-inbox) .fi-header {
+    display: none;
+}
+
+html.fi .fi-page:has(.support-inbox) .fi-page-content,
+html.fi .fi-page:has(.support-inbox) .fi-main-ctn {
+    padding-top: 0;
+}
+
+html.fi .support-inbox {
+    --si-brand: #335483;
+    --si-brand-soft: rgba(51, 84, 131, 0.12);
+    --si-brand-mid: rgba(51, 84, 131, 0.22);
+    --si-ok: #3d8b6e;
+    --si-danger: #b45353;
+    --si-warn: #b45309;
+    display: grid;
+    grid-template-columns: minmax(240px, 280px) minmax(0, 1fr) minmax(260px, 300px);
+    gap: 0;
+    height: calc(100vh - 4.5rem);
+    min-height: 28rem;
+    max-height: calc(100vh - 4rem);
+    border: 1px solid var(--admin-border, #e4e4e7);
+    border-radius: 0.85rem;
+    overflow: hidden;
+    background: var(--admin-surface, #fff);
+    direction: rtl;
+}
+
+html.fi:not(.dark) .support-inbox {
+    border-color: #e4e4e7;
+    background: #fff;
+}
+
+html.fi .support-inbox__list,
+html.fi .support-inbox__thread,
+html.fi .support-inbox__meta {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    height: 100%;
+}
+
+html.fi .support-inbox__list {
+    border-inline-end: 1px solid var(--admin-border, #e4e4e7);
+    background: rgba(51, 84, 131, 0.03);
+}
+
+html.fi .support-inbox__meta {
+    border-inline-start: 1px solid var(--admin-border, #e4e4e7);
+    background: rgba(51, 84, 131, 0.02);
+}
+
+html.fi .support-inbox__list-head {
+    padding: 0.75rem 0.85rem 0.5rem;
+    border-bottom: 1px solid var(--admin-border, #e4e4e7);
+    flex-shrink: 0;
+}
+
+html.fi .support-inbox__list-title {
+    margin: 0 0 0.55rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--admin-heading, #0f172a);
+}
+
+html.fi .support-inbox__search {
+    position: relative;
+    margin-bottom: 0.5rem;
+}
+
+html.fi .support-inbox__search-icon {
+    position: absolute;
+    inset-inline-start: 0.55rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0.95rem;
+    height: 0.95rem;
+    color: var(--admin-muted, #64748b);
+    pointer-events: none;
+}
+
+html.fi .support-inbox__search-input,
+html.fi .support-inbox__composer-input {
+    width: 100%;
+    border: 1px solid var(--admin-border, #e4e4e7);
+    border-radius: 0.55rem;
+    background: var(--admin-surface, #fff);
+    color: var(--admin-heading, #0f172a);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    padding: 0.45rem 0.65rem;
+    resize: vertical;
+}
+
+html.fi .support-inbox__search-input {
+    padding-inline-start: 1.85rem;
+    resize: none;
+}
+
+html.fi .support-inbox__search-input:focus,
+html.fi .support-inbox__composer-input:focus {
+    outline: 2px solid var(--si-brand-mid);
+    outline-offset: 0;
+    border-color: var(--si-brand);
+}
+
+html.fi .support-inbox__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+html.fi .support-inbox__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--admin-muted, #64748b);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    cursor: pointer;
+}
+
+html.fi .support-inbox__tab:hover {
+    background: var(--si-brand-soft);
+    color: var(--si-brand);
+}
+
+html.fi .support-inbox__tab.is-active {
+    background: var(--si-brand);
+    color: #fff;
+}
+
+html.fi .support-inbox__tab-count {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+}
+
+html.fi .support-inbox__ticket-list {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    padding: 0.35rem;
+}
+
+html.fi .support-inbox__ticket {
+    display: block;
+    width: 100%;
+    text-align: start;
+    border: 1px solid transparent;
+    border-radius: 0.6rem;
+    background: transparent;
+    padding: 0.55rem 0.6rem;
+    margin-bottom: 0.2rem;
+    cursor: pointer;
+    color: inherit;
+}
+
+html.fi .support-inbox__ticket:hover {
+    background: var(--si-brand-soft);
+}
+
+html.fi .support-inbox__ticket.is-active {
+    background: var(--si-brand-soft);
+    border-color: var(--si-brand-mid);
+}
+
+html.fi .support-inbox__ticket.has-unread .support-inbox__ticket-subject {
+    font-weight: 700;
+}
+
+html.fi .support-inbox__ticket-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+}
+
+html.fi .support-inbox__ticket-number {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.68rem;
+    color: var(--admin-muted, #64748b);
+}
+
+html.fi .support-inbox__unread-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background: var(--si-danger);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+}
+
+html.fi .support-inbox__ticket-subject {
+    margin: 0.2rem 0 0;
+    font-size: 0.8rem;
+    line-height: 1.35;
+    color: var(--admin-heading, #0f172a);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+html.fi .support-inbox__ticket-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    margin-top: 0.35rem;
+    font-size: 0.65rem;
+    color: var(--admin-muted, #64748b);
+}
+
+html.fi .support-inbox__ticket-name {
+    margin: 0.2rem 0 0;
+    font-size: 0.7rem;
+    color: var(--admin-muted-soft, #94a3b8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+html.fi .support-inbox__status {
+    display: inline-block;
+    border-radius: 0.35rem;
+    padding: 0.1rem 0.35rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    background: #e2e8f0;
+    color: #334155;
+}
+
+html.fi .support-inbox__status--open { background: #fef3c7; color: #92400e; }
+html.fi .support-inbox__status--in_progress { background: #dbeafe; color: #1e40af; }
+html.fi .support-inbox__status--waiting_on_user { background: #e2e8f0; color: #475569; }
+html.fi .support-inbox__status--resolved { background: #d1fae5; color: #065f46; }
+html.fi .support-inbox__status--closed { background: #e2e8f0; color: #475569; }
+
+html.fi .support-inbox__empty-list,
+html.fi .support-inbox__thread-empty,
+html.fi .support-inbox__meta-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    flex: 1;
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--admin-muted, #64748b);
+    font-size: 0.85rem;
+}
+
+html.fi .support-inbox__thread-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--admin-border, #e4e4e7);
+    flex-shrink: 0;
+}
+
+html.fi .support-inbox__thread-head-text {
+    flex: 1;
+    min-width: 0;
+}
+
+html.fi .support-inbox__thread-number {
+    margin: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.7rem;
+    color: var(--admin-muted, #64748b);
+}
+
+html.fi .support-inbox__thread-subject {
+    margin: 0.15rem 0 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--admin-heading, #0f172a);
+    line-height: 1.35;
+}
+
+html.fi .support-inbox__back,
+html.fi .support-inbox__meta-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--si-brand);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+html.fi .support-inbox__back:hover,
+html.fi .support-inbox__meta-toggle:hover {
+    background: var(--si-brand-soft);
+}
+
+html.fi .support-inbox__messages {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+html.fi .support-inbox__bubble-row {
+    display: flex;
+}
+
+html.fi .support-inbox__bubble-row.is-beneficiary {
+    justify-content: flex-start;
+}
+
+html.fi .support-inbox__bubble-row.is-support {
+    justify-content: flex-end;
+}
+
+html.fi .support-inbox__bubble {
+    max-width: min(78%, 36rem);
+    border-radius: 0.85rem;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.8125rem;
+    line-height: 1.55;
+}
+
+html.fi .support-inbox__bubble--beneficiary {
+    background: var(--si-brand);
+    color: #fff;
+    border-bottom-right-radius: 0.25rem;
+}
+
+html.fi .support-inbox__bubble--support {
+    background: #f1f5f9;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    border-bottom-left-radius: 0.25rem;
+}
+
+html.fi:is(.dark) .support-inbox__bubble--support {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--admin-border);
+    color: var(--admin-heading);
+}
+
+html.fi .support-inbox__bubble--system {
+    align-self: center;
+    max-width: 90%;
+    text-align: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    font-size: 0.75rem;
+    border-radius: 0.65rem;
+}
+
+html.fi .support-inbox__bubble-author {
+    margin: 0 0 0.2rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    opacity: 0.8;
+}
+
+html.fi .support-inbox__bubble--support .support-inbox__bubble-author {
+    color: var(--si-brand);
+    opacity: 1;
+}
+
+html.fi .support-inbox__bubble-body {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+html.fi .support-inbox__bubble time {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.62rem;
+    opacity: 0.7;
+}
+
+html.fi .support-inbox__mail-status {
+    margin: 0;
+    padding: 0.35rem 1rem;
+    font-size: 0.72rem;
+    color: var(--si-brand);
+    background: var(--si-brand-soft);
+    flex-shrink: 0;
+}
+
+html.fi .support-inbox__mail-status.is-error {
+    color: var(--si-danger);
+    background: rgba(180, 83, 83, 0.1);
+}
+
+html.fi .support-inbox__composer,
+html.fi .support-inbox__composer-closed {
+    flex-shrink: 0;
+    padding: 0.65rem 0.85rem 0.85rem;
+    border-top: 1px solid var(--admin-border, #e4e4e7);
+    background: var(--admin-surface, #fff);
+    position: sticky;
+    bottom: 0;
+}
+
+html.fi .support-inbox__composer-closed {
+    font-size: 0.8rem;
+    color: var(--admin-muted, #64748b);
+}
+
+html.fi .support-inbox__composer-closed p {
+    margin: 0;
+}
+
+html.fi .support-inbox__composer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.45rem;
+}
+
+html.fi .support-inbox__composer-hint {
+    font-size: 0.65rem;
+    color: var(--admin-muted, #64748b);
+}
+
+html.fi .support-inbox__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    border-radius: 0.55rem;
+    border: 1px solid transparent;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.4rem 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+html.fi .support-inbox__btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+html.fi .support-inbox__btn--primary {
+    background: var(--si-brand);
+    color: #fff;
+}
+
+html.fi .support-inbox__btn--primary:hover:not(:disabled) {
+    filter: brightness(1.05);
+}
+
+html.fi .support-inbox__btn--ghost {
+    background: transparent;
+    border-color: var(--admin-border, #e4e4e7);
+    color: var(--si-brand);
+}
+
+html.fi .support-inbox__btn--ghost:hover {
+    background: var(--si-brand-soft);
+}
+
+html.fi .support-inbox__btn--danger {
+    background: transparent;
+    border-color: rgba(180, 83, 83, 0.35);
+    color: var(--si-danger);
+}
+
+html.fi .support-inbox__btn--danger:hover {
+    background: rgba(180, 83, 83, 0.08);
+}
+
+html.fi .support-inbox__meta {
+    overflow-y: auto;
+    padding: 0.85rem;
+}
+
+html.fi .support-inbox__meta-mobile-head {
+    display: none;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+html.fi .support-inbox__meta-title {
+    margin: 0 0 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--admin-heading, #0f172a);
+}
+
+html.fi .support-inbox__meta-dl {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+html.fi .support-inbox__meta-dl > div {
+    display: grid;
+    gap: 0.15rem;
+}
+
+html.fi .support-inbox__meta-dl dt {
+    font-size: 0.65rem;
+    color: var(--admin-muted, #64748b);
+}
+
+html.fi .support-inbox__meta-dl dd {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--admin-heading, #0f172a);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    word-break: break-word;
+}
+
+html.fi .support-inbox__truncate {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+html.fi .support-inbox__link {
+    color: var(--si-brand);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+html.fi .support-inbox__copy {
+    border: 0;
+    background: transparent;
+    color: var(--si-brand);
+    font-size: 0.65rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+html.fi .support-inbox__copy:hover {
+    text-decoration: underline;
+}
+
+html.fi .support-inbox__meta-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: 0.85rem;
+}
+
+html.fi .support-inbox__close-confirm {
+    margin-top: 0.75rem;
+    padding: 0.65rem;
+    border-radius: 0.65rem;
+    border: 1px solid rgba(180, 83, 83, 0.3);
+    background: rgba(180, 83, 83, 0.05);
+}
+
+html.fi .support-inbox__close-confirm-text {
+    margin: 0 0 0.45rem;
+    font-size: 0.75rem;
+    color: var(--si-danger);
+    line-height: 1.45;
+}
+
+html.fi .support-inbox__close-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.4rem;
+    margin-top: 0.45rem;
+}
+
+html.fi .support-inbox__notes {
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px dashed var(--admin-border, #e4e4e7);
+}
+
+html.fi .support-inbox__notes-hint {
+    margin: -0.25rem 0 0.55rem;
+    font-size: 0.68rem;
+    color: var(--admin-muted, #64748b);
+}
+
+html.fi .support-inbox__notes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    max-height: 14rem;
+    overflow-y: auto;
+    margin-bottom: 0.55rem;
+}
+
+html.fi .support-inbox__note {
+    border-radius: 0.55rem;
+    border: 1px solid var(--admin-border, #e4e4e7);
+    background: rgba(51, 84, 131, 0.04);
+    padding: 0.5rem 0.6rem;
+}
+
+html.fi .support-inbox__note header {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.4rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.68rem;
+}
+
+html.fi .support-inbox__note header time {
+    color: var(--admin-muted, #64748b);
+}
+
+html.fi .support-inbox__note p {
+    margin: 0;
+    font-size: 0.75rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+html.fi .support-inbox__notes-empty {
+    margin: 0;
+    font-size: 0.72rem;
+    color: var(--admin-muted, #64748b);
+}
+
+html.fi .support-inbox__note-composer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+html.fi .support-inbox .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (max-width: 1024px) {
+    html.fi .support-inbox {
+        grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+    }
+
+    html.fi .support-inbox__meta {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    html.fi .support-inbox {
+        grid-template-columns: 1fr;
+        height: calc(100vh - 4rem);
+        border-radius: 0.65rem;
+    }
+
+    html.fi .support-inbox__list,
+    html.fi .support-inbox__thread,
+    html.fi .support-inbox__meta {
+        display: none;
+    }
+
+    html.fi .support-inbox[data-mobile-screen="list"] .support-inbox__list,
+    html.fi .support-inbox[data-mobile-screen="thread"] .support-inbox__thread,
+    html.fi .support-inbox[data-mobile-screen="meta"] .support-inbox__meta {
+        display: flex;
+    }
+
+    html.fi .support-inbox__back,
+    html.fi .support-inbox__meta-toggle {
+        display: inline-flex;
+    }
+
+    html.fi .support-inbox__meta-mobile-head {
+        display: flex;
+    }
+
+    html.fi .support-inbox__meta {
+        border-inline-start: 0;
+    }
+
+    html.fi .support-inbox__list {
+        border-inline-end: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html.fi .support-inbox__btn,
+    html.fi .support-inbox__ticket,
+    html.fi .support-inbox__tab {
+        transition: none;
+    }
+}

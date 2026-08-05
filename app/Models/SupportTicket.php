@@ -81,6 +81,11 @@ class SupportTicket extends Model
         return $this->hasOne(SupportTicketMessage::class)->latestOfMany('id');
     }
 
+    public function internalNotes(): HasMany
+    {
+        return $this->hasMany(SupportTicketInternalNote::class)->orderByDesc('id');
+    }
+
     public function displayNumber(): string
     {
         return $this->ticket_number ?: ('#'.$this->getKey());
@@ -93,9 +98,14 @@ class SupportTicket extends Model
 
     public function scopeOpenish(Builder $query): Builder
     {
-        return $query->whereNotIn('status', [
-            SupportTicketStatus::Closed->value,
-            SupportTicketStatus::Resolved->value,
-        ]);
+        return $query->whereIn('status', array_map(
+            static fn (SupportTicketStatus $s): string => $s->value,
+            SupportTicketStatus::openishStatuses(),
+        ));
+    }
+
+    public function allowsChat(): bool
+    {
+        return SupportTicketStatus::coerce($this->status)->allowsChat();
     }
 }

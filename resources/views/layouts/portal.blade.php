@@ -290,10 +290,8 @@
 
     <x-session-flash-toast />
 
-    {{-- Portal users use the support hub; keep FAB for guests on public/auth only via other layouts. --}}
-    @unless(auth()->check())
-        <x-support-ticket-fab />
-    @endunless
+    {{-- Authenticated portal users get the chat widget; guests on other layouts keep the create form. --}}
+    <x-support-ticket-fab />
 
     @stack('modals')
     @stack('scripts')

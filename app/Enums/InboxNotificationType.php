@@ -28,6 +28,7 @@ enum InboxNotificationType: string
     case TrainingRunEnded = 'training_run_ended';
     case BeneficiaryApprovedProgramStarting = 'beneficiary_approved_program_starting';
     case SupportReply = 'support_reply';
+    case SupportTicketClosed = 'support_ticket_closed';
 
     public function arabicLabel(): string
     {
@@ -55,6 +56,7 @@ enum InboxNotificationType: string
             self::TrainingRunEnded => 'انتهاء البرنامج',
             self::BeneficiaryApprovedProgramStarting => 'بدء برنامج مسجّل فيه',
             self::SupportReply => 'رد دعم فني',
+            self::SupportTicketClosed => 'إغلاق تذكرة دعم',
         };
     }
 }

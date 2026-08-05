@@ -48,6 +48,7 @@ final class RbacCatalog
             'retention_runs.view', 'retention_runs.execute', 'retention_exceptions.manage',
             'permissions.assign',
             'support_tickets.view', 'support_tickets.reply', 'support_tickets.assign', 'support_tickets.manage_status',
+            'support_tickets.internal_notes',
         ];
     }
 
@@ -180,6 +181,7 @@ final class RbacCatalog
             'retention_exceptions.manage' => 'استثناءات الاحتفاظ', 'permissions.assign' => 'تعيين الصلاحيات',
             'support_tickets.view' => 'عرض تذاكر الدعم', 'support_tickets.reply' => 'الرد على تذاكر الدعم',
             'support_tickets.assign' => 'تعيين تذاكر الدعم', 'support_tickets.manage_status' => 'تغيير حالة تذاكر الدعم',
+            'support_tickets.internal_notes' => 'ملاحظات داخلية لتذاكر الدعم',
             'users.view' => 'عرض المستخدمين', 'users.create' => 'إنشاء مستخدمين', 'users.update' => 'تعديل المستخدمين',
             'users.delete' => 'حذف المستخدمين', 'users.activate' => 'تفعيل المستخدمين',
             'roles.view' => 'عرض الأدوار', 'roles.create' => 'إنشاء أدوار', 'roles.update' => 'تعديل الأدوار', 'roles.delete' => 'حذف الأدوار',

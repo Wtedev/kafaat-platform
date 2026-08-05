@@ -39,6 +39,7 @@ use App\Http\Controllers\Portal\PortalProgramController;
 use App\Http\Controllers\Portal\PortalProgramDetailController;
 use App\Http\Controllers\Portal\PortalSettingsController;
 use App\Http\Controllers\Portal\PortalSupportController;
+use App\Http\Controllers\Portal\PortalSupportWidgetController;
 use App\Http\Controllers\Portal\PortalVolunteerController;
 use App\Http\Controllers\Public\CertificateVerificationController;
 use App\Http\Controllers\Public\HomeController;
@@ -225,6 +226,18 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'beneficiary', 'privac
         Route::get('/support/unread-count', [PortalSupportController::class, 'unreadCount'])
             ->middleware('throttle:60,1')
             ->name('support.unread-count');
+        Route::get('/support/widget/state', [PortalSupportWidgetController::class, 'state'])
+            ->middleware('throttle:60,1')
+            ->name('support.widget.state');
+        Route::post('/support/widget', [PortalSupportWidgetController::class, 'store'])
+            ->middleware('throttle:support-ticket')
+            ->name('support.widget.store');
+        Route::get('/support/widget/{supportTicket}', [PortalSupportWidgetController::class, 'show'])
+            ->middleware('throttle:60,1')
+            ->name('support.widget.show');
+        Route::post('/support/widget/{supportTicket}/reply', [PortalSupportWidgetController::class, 'reply'])
+            ->middleware('throttle:support-reply')
+            ->name('support.widget.reply');
         Route::get('/support/{supportTicket}', [PortalSupportController::class, 'show'])->name('support.show');
         Route::post('/support/{supportTicket}/reply', [PortalSupportController::class, 'reply'])
             ->middleware('throttle:support-reply')
@@ -287,3 +300,5 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'beneficiary', 'privac
             ->name('account-deletion.store');
 
     });
+
+require __DIR__.'/local-screenshot.php';

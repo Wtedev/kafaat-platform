@@ -228,7 +228,12 @@ final class PermissionMatrixCatalog
                 'actions' => [
                     'view' => ['support_tickets.view'],
                     'create' => null,
-                    'update' => ['support_tickets.reply', 'support_tickets.assign', 'support_tickets.manage_status'],
+                    'update' => [
+                        'support_tickets.reply',
+                        'support_tickets.assign',
+                        'support_tickets.manage_status',
+                        'support_tickets.internal_notes',
+                    ],
                     'delete' => null,
                 ],
             ],

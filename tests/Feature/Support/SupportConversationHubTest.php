@@ -6,9 +6,9 @@ use App\Enums\InboxNotificationType;
 use App\Enums\SupportMessageSenderType;
 use App\Enums\SupportTicketCategory;
 use App\Enums\SupportTicketStatus;
+use App\Filament\Pages\SupportInbox;
 use App\Filament\Resources\SupportTicketResource;
 use App\Filament\Resources\SupportTicketResource\Pages\ListSupportTickets;
-use App\Filament\Resources\SupportTicketResource\Pages\ViewSupportTicket;
 use App\Http\Controllers\Portal\PortalSupportController;
 use App\Models\InboxNotification;
 use App\Models\SupportTicket;
@@ -540,8 +540,6 @@ class SupportConversationHubTest extends TestCase
         config(['app.admin_email' => 'admin-support@example.com']);
         $this->admin();
 
-        $message = 'تم استلام تذكرتك بنجاح. سيتواصل فريق كفاءات معك قريباً.';
-
         $this->from(route('home'))
             ->post(route('public.support-tickets.store'), [
                 'name' => 'زائر',
@@ -551,7 +549,15 @@ class SupportConversationHubTest extends TestCase
                 'page_url' => 'https://example.com/',
             ])
             ->assertRedirect(route('home'))
-            ->assertSessionHas('success', $message);
+            ->assertSessionHas('success');
+
+        $ticket = SupportTicket::query()->first();
+        $this->assertNotNull($ticket);
+        $this->assertNull($ticket->user_id);
+        $this->assertSame(1, $ticket->messages()->count());
+
+        $message = 'تم استلام تذكرتك بنجاح برقم '.$ticket->displayNumber().'. سيتواصل فريق كفاءات معك قريباً.';
+        $this->assertSame($message, session('success'));
 
         $this->get(route('home'))
             ->assertOk()
@@ -563,11 +569,6 @@ class SupportConversationHubTest extends TestCase
             ->assertOk()
             ->assertDontSee($message, false)
             ->assertDontSee('data-session-flash-toast', false);
-
-        $ticket = SupportTicket::query()->first();
-        $this->assertNotNull($ticket);
-        $this->assertNull($ticket->user_id);
-        $this->assertSame(1, $ticket->messages()->count());
     }
 
     public function test_authenticated_portal_user_redirected_from_fab_to_hub(): void
@@ -579,9 +580,9 @@ class SupportConversationHubTest extends TestCase
                 'name' => $user->name,
                 'email' => $user->email,
                 'subject' => 'x',
-                'body' => 'should redirect to hub create page instead.',
+                'body' => 'should redirect to hub instead of creating via public FAB.',
             ])
-            ->assertRedirect(route('portal.support.create'));
+            ->assertRedirect(route('portal.support.index'));
 
         $this->assertSame(0, SupportTicket::query()->count());
     }
@@ -590,6 +591,7 @@ class SupportConversationHubTest extends TestCase
     {
         Notification::fake();
         $user = $this->beneficiary();
+        $admin = $this->admin();
         $svc = app(SupportTicketService::class);
 
         $first = $svc->create([
@@ -599,6 +601,9 @@ class SupportConversationHubTest extends TestCase
         ], $user);
 
         $this->assertMatchesRegularExpression('/^ST-\d{6}$/', (string) $first->ticket_number);
+
+        // Close first so one-open rule allows a second ticket for the same user.
+        $svc->changeStatus($first, $admin, SupportTicketStatus::Closed, 'إغلاق للاختبار', 'close');
 
         $calls = 0;
         SupportTicketService::setNextTicketNumberResolver(function () use (&$calls, $first): string {
@@ -666,8 +671,10 @@ class SupportConversationHubTest extends TestCase
         ], $user);
 
         Livewire::actingAs($admin)
-            ->test(ViewSupportTicket::class, ['record' => $ticket->getKey()])
-            ->assertSuccessful();
+            ->test(SupportInbox::class, ['selectedTicketId' => $ticket->getKey()])
+            ->assertSuccessful()
+            ->assertSee($ticket->ticket_number)
+            ->assertSee($ticket->subject);
 
         $this->assertTrue($ticket->fresh()->messages()->exists());
     }
@@ -688,6 +695,11 @@ class SupportConversationHubTest extends TestCase
         $this->actingAs($admin)
             ->withSession(['otp_verified' => true])
             ->get('/admin/support-tickets')
+            ->assertRedirect(SupportInbox::getUrl(panel: 'admin'));
+
+        $this->actingAs($admin)
+            ->withSession(['otp_verified' => true])
+            ->get(SupportInbox::getUrl(['selected' => $ticket->id], panel: 'admin'))
             ->assertOk()
             ->assertSee($ticket->ticket_number);
 
@@ -706,12 +718,17 @@ class SupportConversationHubTest extends TestCase
 
         Livewire::actingAs($admin)
             ->test(ListSupportTickets::class)
-            ->assertSuccessful()
-            ->assertCanSeeTableRecords([$ticket]);
+            ->assertRedirect(SupportInbox::getUrl(panel: 'admin'));
+
+        $this->actingAs($admin)
+            ->withSession(['otp_verified' => true])
+            ->get(SupportTicketResource::getUrl('view', ['record' => $ticket]))
+            ->assertRedirect(SupportInbox::getUrl(['selected' => $ticket->getKey()], panel: 'admin'));
 
         Livewire::actingAs($admin)
-            ->test(ViewSupportTicket::class, ['record' => $ticket->getKey()])
-            ->assertSuccessful();
+            ->test(SupportInbox::class)
+            ->assertSuccessful()
+            ->assertSee($ticket->ticket_number);
     }
 
     public function test_unread_count_excludes_own_beneficiary_messages(): void
@@ -736,26 +753,44 @@ class SupportConversationHubTest extends TestCase
         $this->assertSame(2, $unread->unreadSupportReplyCount($user));
     }
 
-    public function test_reopen_allows_beneficiary_reply_again(): void
+    public function test_closed_ticket_has_new_ticket_cta_and_forbids_reopen(): void
     {
         Notification::fake();
         $user = $this->beneficiary();
         $admin = $this->admin();
         $svc = app(SupportTicketService::class);
         $ticket = $svc->createAndNotify([
-            'subject' => 'إعادة فتح',
+            'subject' => 'إغلاق نهائي',
             'category' => 'general',
-            'body' => 'نص كافٍ لاختبار إعادة فتح المحادثة.',
+            'body' => 'نص كافٍ لاختبار منع إعادة الفتح وCTA تذكرة جديدة.',
         ], $user);
 
-        $svc->changeStatus($ticket, $admin, SupportTicketStatus::Closed, 'إغلاق مؤقت', 'close');
-        $svc->changeStatus($ticket->fresh(), $admin, SupportTicketStatus::Open, 'إعادة فتح للمتابعة', 'reopen');
+        $svc->changeStatus($ticket, $admin, SupportTicketStatus::Closed, 'إغلاق نهائي', 'close');
+
+        $this->expectException(\InvalidArgumentException::class);
+        $svc->changeStatus($ticket->fresh(), $admin, SupportTicketStatus::Open, 'محاولة إعادة فتح', 'reopen');
+    }
+
+    public function test_closed_ticket_show_page_offers_new_ticket_button(): void
+    {
+        Notification::fake();
+        $user = $this->beneficiary();
+        $admin = $this->admin();
+        $svc = app(SupportTicketService::class);
+        $ticket = $svc->createAndNotify([
+            'subject' => 'تذكرة مغلقة',
+            'category' => 'general',
+            'body' => 'نص كافٍ لاختبار زر فتح تذكرة جديدة في صفحة العرض.',
+        ], $user);
+
+        $svc->changeStatus($ticket, $admin, SupportTicketStatus::Closed, 'تم الإغلاق', 'close');
 
         $this->actingPortal($user)
-            ->post(route('portal.support.reply', $ticket->fresh()), [
-                'body' => 'شكراً لإعادة الفتح، هذا ردي الجديد.',
-            ])
-            ->assertRedirect(route('portal.support.show', $ticket));
+            ->get(route('portal.support.show', $ticket->fresh()))
+            ->assertOk()
+            ->assertSee('فتح تذكرة جديدة', false)
+            ->assertSee(route('portal.support.create'), false)
+            ->assertDontSee('حتى يعيد فريق الدعم فتحها', false);
     }
 
     public function test_nav_support_icon_present_in_portal_layout(): void
@@ -776,10 +811,11 @@ class SupportConversationHubTest extends TestCase
             'support_tickets.reply',
             'support_tickets.assign',
             'support_tickets.manage_status',
+            'support_tickets.internal_notes',
         ];
 
         $this->assertSame(
-            4,
+            5,
             Permission::query()->where('guard_name', RbacCatalog::GUARD_WEB)->whereIn('name', $names)->count()
         );
 

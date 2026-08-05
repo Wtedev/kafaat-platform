@@ -52,7 +52,8 @@ class SupportTicketResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return static::canAccess();
+        // Inbox page owns navigation; keep resource for deep links / redirects.
+        return false;
     }
 
     public static function canViewAny(): bool
