@@ -82,6 +82,18 @@ class MediaPhotoSeeder extends Seeder
             $this->command?->info("MediaPhotoSeeder: removed {$removed} stale library photo records.");
         }
 
+        $disk = Storage::disk('public');
+        $purged = 0;
+        foreach ($disk->allFiles(self::STORAGE_PREFIX) as $path) {
+            if (! in_array($path, $this->seededImagePaths, true)) {
+                $disk->delete($path);
+                $purged++;
+            }
+        }
+        if ($purged > 0) {
+            $this->command?->info("MediaPhotoSeeder: purged {$purged} unused library files.");
+        }
+
         $this->command?->info('MediaPhotoSeeder: published '.count($this->seededImagePaths).' photos to the media center.');
     }
 
