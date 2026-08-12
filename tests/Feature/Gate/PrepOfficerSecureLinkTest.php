@@ -418,7 +418,7 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->assertSee('التنقل بين الصفحات', false);
     }
 
-    public function test_manual_prep_button_marks_present_and_second_click_does_not_clear(): void
+    public function test_manual_prep_button_marks_present_and_can_clear_after_confirm_copy_exists(): void
     {
         [$program] = $this->programWithAdmin();
         $this->addPrepDay($program, '2026-08-03', ProgramPrepDayType::Remote);
@@ -446,7 +446,24 @@ class PrepOfficerSecureLinkTest extends TestCase
         $session->get(route('gate.portal', ['program' => $program->slug, 'tab' => 'manual']))
             ->assertOk()
             ->assertSee('>حاضر</button>', false)
+            ->assertSee('إلغاء الحضور', false)
+            ->assertSee('نعم، ألغِ الحضور', false)
+            ->assertDontSee('مسجّل حاضر مسبقاً.', false)
             ->assertDontSee('data-present="0"', false);
+
+        $session->postJson(route('gate.attendance.toggle', [
+            'program' => $program->slug,
+            'registration' => $registration->id,
+        ]), ['present' => false])
+            ->assertOk()
+            ->assertJsonPath('present', false);
+
+        $this->assertSame(0, ProgramAttendance::query()->where('program_registration_id', $registration->id)->count());
+
+        $session->get(route('gate.portal', ['program' => $program->slug, 'tab' => 'manual']))
+            ->assertOk()
+            ->assertSee('>تحضير</button>', false)
+            ->assertSee('data-present="0"', false);
     }
 
     public function test_admin_filament_attendance_and_remote_session_unaffected(): void
