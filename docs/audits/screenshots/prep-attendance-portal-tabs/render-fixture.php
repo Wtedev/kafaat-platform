@@ -7,6 +7,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\AttendanceStatus;
 use App\Enums\CompetencyTrack;
 use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramPrepDayType;
@@ -14,6 +15,7 @@ use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
 use App\Http\Middleware\EnsureGateAttendanceAccess;
+use App\Models\ProgramAttendance;
 use App\Models\ProgramAttendanceChecker;
 use App\Models\ProgramPrepDay;
 use App\Models\ProgramRegistration;
@@ -107,12 +109,20 @@ for ($i = 1; $i <= 180; $i++) {
         'email' => sprintf('prep.shot.%03d@example.test', $i),
     ]);
 
-    ProgramRegistration::query()->create([
+    $registration = ProgramRegistration::query()->create([
         'training_program_id' => $program->id,
         'user_id' => $user->id,
         'status' => RegistrationStatus::Approved,
         'approved_at' => now(),
     ]);
+
+    if (in_array($i, [1, 3], true)) {
+        ProgramAttendance::query()->create([
+            'program_registration_id' => $registration->id,
+            'training_date' => '2026-08-12',
+            'status' => AttendanceStatus::Present,
+        ]);
+    }
 }
 
 $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
@@ -143,8 +153,33 @@ $html = preg_replace(
     1
 ) ?? $html;
 
-$outDir = __DIR__;
+$outDir = __DIR__.'/../prep-manual-instant-search';
+if (! is_dir($outDir)) {
+    mkdir($outDir, 0775, true);
+}
+
 file_put_contents($outDir.'/manual-table-live.html', $html);
+
+$searchRequest = Request::create(
+    '/gate/'.$program->slug.'/portal?tab=manual&q='.rawurlencode('نورة'),
+    'GET',
+);
+$searchRequest->setLaravelSession($app['session']->driver());
+$searchRequest->session()->put(EnsureGateAttendanceAccess::SESSION_CHECKER_ID, $checker->id);
+$searchRequest->session()->put(EnsureGateAttendanceAccess::SESSION_PROGRAM_ID, $program->id);
+$searchRequest->session()->put(EnsureGateAttendanceAccess::SESSION_ACCESS_VERSION, (int) $checker->access_version);
+$searchResponse = $kernel->handle($searchRequest);
+$searchHtml = $searchResponse->getContent();
+$kernel->terminate($searchRequest, $searchResponse);
+$searchHtml = preg_replace('~<link[^>]+href="[^"]*build/[^"]+"[^>]*>~', '', $searchHtml) ?? $searchHtml;
+$searchHtml = preg_replace('~<script[^>]+src="[^"]*build/[^"]+"[^>]*>\s*</script>~', '', $searchHtml) ?? $searchHtml;
+$searchHtml = preg_replace(
+    '~</head>~',
+    '<link rel="stylesheet" href="'.htmlspecialchars($cssHref, ENT_QUOTES, 'UTF-8').'">'."\n</head>",
+    $searchHtml,
+    1
+) ?? $searchHtml;
+file_put_contents($outDir.'/manual-search-live.html', $searchHtml);
 
 $meta = [
     'program_slug' => $program->slug,
@@ -157,3 +192,4 @@ file_put_contents($outDir.'/fixture-meta.json', json_encode($meta, JSON_PRETTY_P
 fwrite(STDOUT, "Rendered fixture → {$outDir}/manual-table-live.html\n");
 fwrite(STDOUT, "HTTP status: {$response->getStatusCode()}\n");
 fwrite(STDOUT, 'HTML bytes: '.strlen($html)."\n");
+fwrite(STDOUT, 'Search HTML bytes: '.strlen($searchHtml)."\n");

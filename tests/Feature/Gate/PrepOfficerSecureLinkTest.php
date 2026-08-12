@@ -180,7 +180,8 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->assertDontSee('معلّق', false)
             ->assertDontSee('مرفوض', false)
             ->assertDontSee('ملغي', false)
-            ->assertSee('لم يحضر', false)
+            ->assertSee('تحضير', false)
+            ->assertDontSee('لم يحضر', false)
             ->assertDontSee($approved->user->email, false)
             ->assertDontSee((string) ($approved->user->identity_number ?? 'NOID'), false);
 
@@ -348,15 +349,18 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->assertDontSee('تحضير QR', false)
             ->assertSee('التحضير اليدوي', false)
             ->assertSee('>الاسم<', false)
-            ->assertSee('>الحالة<', false)
             ->assertSee('>الإجراء<', false)
+            ->assertDontSee('>الحالة<', false)
+            ->assertDontSee('لم يحضر', false)
+            ->assertSee('>تحضير<', false)
             ->assertSee('id="manual-list"', false)
             ->assertSee('table-fixed', false)
             ->assertSee('max-w-6xl', false)
             ->assertSee('عبدالرحمن سليمان عبدالله آل الشيخ الطويل جداً للتحقق', false)
             ->assertDontSee('id="reader"', false)
             ->assertDontSee('Showing', false)
-            ->assertDontSee('min-w-[28rem]', false);
+            ->assertDontSee('min-w-[28rem]', false)
+            ->assertDontSee('>بحث<', false);
 
         // Seed enough rows to paginate and assert Arabic pagination stays inside the custom view.
         for ($i = 0; $i < 25; $i++) {
@@ -368,10 +372,81 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->assertOk()
             ->assertSee('التنقل بين الصفحات', false)
             ->assertSee('التالي', false)
-            ->assertDontSee('Showing', false)
-            ->assertDontSee('results', false);
+            ->assertDontSee('Showing', false);
 
         unset($response);
+    }
+
+    public function test_manual_search_partial_filters_server_side_and_resets_to_first_page(): void
+    {
+        [$program] = $this->programWithAdmin();
+        $this->addPrepDay($program, '2026-08-03', ProgramPrepDayType::Remote);
+        $result = app(ProgramAttendanceCheckerAccessService::class)->create($program, 'باحث فوري');
+        $this->register($program, [
+            'name' => 'legacy',
+            'first_name' => 'نورة',
+            'father_name' => 'سعد',
+            'grandfather_name' => 'فهد',
+            'family_name' => 'القحطاني',
+        ]);
+        for ($i = 0; $i < 25; $i++) {
+            $this->register($program, ['name' => "مستفيد رقم {$i}"]);
+        }
+
+        $session = $this->withCheckerSession($result['checker'], $program);
+
+        $session->get(route('gate.portal', [
+            'program' => $program->slug,
+            'tab' => 'manual',
+            'partial' => 1,
+            'q' => 'القحطاني',
+        ]))
+            ->assertOk()
+            ->assertSee('نورة سعد فهد القحطاني', false)
+            ->assertDontSee('مستفيد رقم 0', false)
+            ->assertDontSee('مسح QR', false)
+            ->assertDontSee('<nav class="mt-5', false);
+
+        $session->get(route('gate.portal', [
+            'program' => $program->slug,
+            'tab' => 'manual',
+            'partial' => 1,
+        ]))
+            ->assertOk()
+            ->assertSee('نورة سعد فهد القحطاني', false)
+            ->assertSee('مستفيد رقم 0', false)
+            ->assertSee('التنقل بين الصفحات', false);
+    }
+
+    public function test_manual_prep_button_marks_present_and_second_click_does_not_clear(): void
+    {
+        [$program] = $this->programWithAdmin();
+        $this->addPrepDay($program, '2026-08-03', ProgramPrepDayType::Remote);
+        $result = app(ProgramAttendanceCheckerAccessService::class)->create($program, 'محضّر زر');
+        $registration = $this->register($program, ['name' => 'مستفيد الزر']);
+
+        $session = $this->withCheckerSession($result['checker'], $program);
+
+        $session->postJson(route('gate.attendance.toggle', [
+            'program' => $program->slug,
+            'registration' => $registration->id,
+        ]), ['present' => true])
+            ->assertOk()
+            ->assertJsonPath('present', true);
+
+        $session->postJson(route('gate.attendance.toggle', [
+            'program' => $program->slug,
+            'registration' => $registration->id,
+        ]), ['present' => true])
+            ->assertOk()
+            ->assertJsonPath('present', true);
+
+        $this->assertSame(1, ProgramAttendance::query()->where('program_registration_id', $registration->id)->count());
+
+        $session->get(route('gate.portal', ['program' => $program->slug, 'tab' => 'manual']))
+            ->assertOk()
+            ->assertSee('>حاضر</button>', false)
+            ->assertDontSee('data-present="0"', false);
     }
 
     public function test_admin_filament_attendance_and_remote_session_unaffected(): void

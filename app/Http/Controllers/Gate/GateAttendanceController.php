@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
@@ -70,7 +71,7 @@ class GateAttendanceController extends Controller
         Request $request,
         TrainingProgram $program,
         ProgramAttendanceService $attendanceService,
-    ): View {
+    ): View|Response {
         $this->assertGateAvailable($program);
 
         $today = Carbon::today(config('app.timezone'))->toDateString();
@@ -101,7 +102,7 @@ class GateAttendanceController extends Controller
             default => null,
         };
 
-        return view('gate.portal', [
+        $viewData = [
             'program' => $program,
             'prepDate' => $today,
             'prepDateLabel' => $prepDay?->displayLabel() ?? $today,
@@ -114,7 +115,15 @@ class GateAttendanceController extends Controller
             'tab' => $tab,
             'search' => $search,
             'registrations' => $registrations,
-        ]);
+        ];
+
+        if ($tab === 'manual' && $request->boolean('partial')) {
+            return response()
+                ->view('gate.partials.manual-list', $viewData)
+                ->header('Cache-Control', 'no-store');
+        }
+
+        return view('gate.portal', $viewData);
     }
 
     /** @deprecated Prefer portal; kept as alias for bookmarks/admin links. */
