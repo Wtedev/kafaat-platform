@@ -82,12 +82,16 @@ class GateAttendanceController extends Controller
         $isInPersonToday = $attendanceService->isTodayInPersonPrepDay($program);
         $isRemoteToday = $attendanceService->isTodayRemotePrepDay($program);
         $isPrepDayToday = $prepDay !== null;
-        $tab = $request->query('tab', $isInPersonToday ? 'qr' : 'manual');
-        if (! in_array($tab, ['qr', 'manual'], true)) {
-            $tab = 'manual';
+        $defaultTab = $isInPersonToday ? 'qr' : ($isRemoteToday ? 'session' : 'manual');
+        $tab = $request->query('tab', $defaultTab);
+        if (! in_array($tab, ['qr', 'manual', 'session'], true)) {
+            $tab = $defaultTab;
         }
         if ($tab === 'qr' && ! $isInPersonToday) {
-            $tab = 'manual';
+            $tab = $isRemoteToday ? 'session' : 'manual';
+        }
+        if ($tab === 'session' && ! $isRemoteToday) {
+            $tab = $isInPersonToday ? 'qr' : 'manual';
         }
 
         $search = trim((string) $request->query('q', ''));
@@ -120,7 +124,7 @@ class GateAttendanceController extends Controller
             'tab' => $tab,
             'search' => $search,
             'registrations' => $registrations,
-            'liveSession' => $isRemoteToday
+            'liveSession' => $tab === 'session' && $isRemoteToday
                 ? $liveSessionService->gateStatusPayload($program)
                 : null,
             'liveSessionMinutes' => AttendanceLiveSessionService::SESSION_MINUTES,
