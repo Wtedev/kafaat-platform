@@ -21,6 +21,7 @@ use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\ProgramAttendanceCheckerAccessService;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
 
@@ -115,7 +116,7 @@ for ($i = 1; $i <= 180; $i++) {
 }
 
 $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
-$request = Illuminate\Http\Request::create(
+$request = Request::create(
     '/gate/'.$program->slug.'/portal?tab=manual',
     'GET',
 );
