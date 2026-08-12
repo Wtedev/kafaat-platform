@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1100"/>
+<title>التحضير اليدوي — سطح المكتب</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;background:linear-gradient(160deg,#EEF5FB,#F7FAFC 45%,#e8eef6);padding:24px;color:#111}
+  .card{max-width:48rem;margin:0 auto;background:#fff;border-radius:24px;padding:28px;box-shadow:0 20px 40px rgba(15,23,42,.08);border:1px solid #fff}
+  h1{font-size:18px;margin:0 0 4px} .meta{color:#4b5563;font-size:14px;margin:0 0 16px}
+  .box{background:#f5f8fc;border:1px solid #d7e2ef;border-radius:16px;padding:12px 16px;font-size:12px;color:#335483}
+  .nav{display:flex;gap:8px;border-bottom:1px solid #e5e7eb;margin:20px 0 16px}
+  .nav a{padding:8px 12px;font-size:14px;font-weight:600;color:#6b7280;text-decoration:none}
+  .nav a.on{color:#335483;border-bottom:2px solid #335483}
+  .search{display:flex;gap:8px;margin-bottom:16px}
+  .search input{flex:1;border:1px solid #d1d5db;border-radius:12px;padding:10px 14px}
+  .search button{background:#335483;color:#fff;border:0;border-radius:12px;padding:10px 16px;font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:14px;border:1px solid #f3f4f6;border-radius:16px;overflow:hidden}
+  thead{background:#e9eff6;color:#335483;font-size:12px}
+  th,td{padding:12px 14px} th{text-align:right} th.center,td.center{text-align:center}
+  tbody tr{border-top:1px solid #f3f4f6}
+  .pill{display:inline-flex;min-width:4.5rem;justify-content:center;border-radius:999px;padding:4px 10px;font-size:12px;background:#f3f4f6;color:#4b5563}
+  .pill.ok{background:#ecfdf5;color:#047857}
+  .btns{display:inline-flex;gap:6px}
+  .btns button{border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;border:1px solid #d1d5db;background:#fff}
+  .btns button.on-g{background:#059669;border-color:#059669;color:#fff}
+  .btns button.on-x{background:#374151;border-color:#374151;color:#fff}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>قادة التطوع</h1>
+  <p class="meta">مسؤول التحضير: <strong style="color:#335483">لمى فؤاد سليمان المشيقح</strong></p>
+  <div class="box">اليوم حسب توقيت الرياض<br><strong>الأربعاء 12 أغسطس</strong><br>2026-08-12<br><span style="color:#0369a1">نوع اليوم: عن بُعد</span></div>
+  <div class="nav"><a>تحضير QR</a><a class="on">التحضير اليدوي</a></div>
+  <div class="search"><input placeholder="بحث بالاسم…"/><button>بحث</button></div>
+  <table>
+    <thead><tr><th>الاسم</th><th class="center">الحالة</th><th class="center">الإجراء</th></tr></thead>
+    <tbody>
+      <tr><td><strong>نورة سعد فهد القحطاني</strong></td><td class="center"><span class="pill">لم يحضر</span></td><td class="center"><div class="btns"><button>حاضر</button><button class="on-x">لم يحضر</button></div></td></tr>
+      <tr><td><strong>أحمد محمد علي العتيبي</strong></td><td class="center"><span class="pill ok">حاضر</span></td><td class="center"><div class="btns"><button class="on-g">حاضر</button><button>لم يحضر</button></div></td></tr>
+      <tr><td><strong>سارة المكتملة</strong></td><td class="center"><span class="pill">لم يحضر</span></td><td class="center"><div class="btns"><button>حاضر</button><button class="on-x">لم يحضر</button></div></td></tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>

@@ -1,7 +1,7 @@
 @extends('layouts.gate')
 
 @section('title', 'بوابة التحضير — '.$program->title)
-@section('container_width', 'max-w-2xl')
+@section('container_width', 'max-w-3xl')
 
 @push('head')
 <meta name="robots" content="noindex, nofollow" />
@@ -49,14 +49,12 @@
         </div>
 
         <nav class="mt-5 flex gap-2 border-b border-gray-200 pb-px" aria-label="وسائل التحضير">
-            @if ($isInPersonToday)
-                <a
-                    href="{{ route('gate.portal', ['program' => $program->slug, 'tab' => 'qr']) }}"
-                    class="px-3 py-2 text-sm font-semibold rounded-t-lg {{ $tab === 'qr' ? 'text-[#335483] border-b-2 border-[#335483]' : 'text-gray-500 hover:text-gray-800' }}"
-                >
-                    مسح QR
-                </a>
-            @endif
+            <a
+                href="{{ route('gate.portal', ['program' => $program->slug, 'tab' => 'qr']) }}"
+                class="px-3 py-2 text-sm font-semibold rounded-t-lg {{ $tab === 'qr' ? 'text-[#335483] border-b-2 border-[#335483]' : 'text-gray-500 hover:text-gray-800' }}"
+            >
+                تحضير QR
+            </a>
             <a
                 href="{{ route('gate.portal', ['program' => $program->slug, 'tab' => 'manual', 'q' => $search ?: null]) }}"
                 class="px-3 py-2 text-sm font-semibold rounded-t-lg {{ $tab === 'manual' ? 'text-[#335483] border-b-2 border-[#335483]' : 'text-gray-500 hover:text-gray-800' }}"
@@ -85,12 +83,36 @@
             </div>
         @endif
 
-        @if ($tab === 'qr' && $isInPersonToday)
-            <div class="mt-5">
-                <div id="reader" class="overflow-hidden rounded-2xl border border-[#d7e2ef] bg-[#0f172a]" style="min-height: 240px;"></div>
-                <p id="camera-hint" class="mt-2 text-center text-xs text-gray-500">وجّه الكاميرا نحو رمز QR الخاص بالمشاركة.</p>
-                <p id="camera-error" class="mt-2 hidden text-center text-xs text-red-600"></p>
-            </div>
+        @if ($tab === 'qr')
+            @if ($isInPersonToday)
+                <div class="mt-5">
+                    <div id="reader" class="overflow-hidden rounded-2xl border border-[#d7e2ef] bg-[#0f172a]" style="min-height: 240px;"></div>
+                    <p id="camera-hint" class="mt-2 text-center text-xs text-gray-500">وجّه الكاميرا نحو رمز QR الخاص بالمشاركة.</p>
+                    <p id="camera-error" class="mt-2 hidden text-center text-xs text-red-600"></p>
+                </div>
+            @else
+                <div class="mt-5 rounded-2xl border border-[#d7e2ef] bg-[#f5f8fc] px-4 py-6 text-center">
+                    <p class="text-sm font-semibold text-[#335483]">تحضير QR غير متاح اليوم</p>
+                    <p class="mt-2 text-sm text-gray-600 leading-relaxed">
+                        مسح QR مخصّص لأيام الحضور الحضوري فقط حسب توقيت الرياض.
+                    </p>
+                    @if ($dayTypeLabel)
+                        <p class="mt-3 text-xs font-medium text-sky-700">
+                            نوع اليوم الحالي: {{ $dayTypeLabel }} — استخدمي «التحضير اليدوي».
+                        </p>
+                    @else
+                        <p class="mt-3 text-xs font-medium text-amber-700">
+                            اليوم ليس من أيام البرنامج. لا يتوفر تحضير QR الآن.
+                        </p>
+                    @endif
+                    <a
+                        href="{{ route('gate.portal', ['program' => $program->slug, 'tab' => 'manual']) }}"
+                        class="mt-4 inline-flex items-center justify-center rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:opacity-95"
+                    >
+                        الانتقال للتحضير اليدوي
+                    </a>
+                </div>
+            @endif
         @elseif ($tab === 'manual')
             @if (! $isPrepDayToday)
                 <div class="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
@@ -116,53 +138,72 @@
                     </div>
                 </form>
 
-                <ul class="mt-4 divide-y divide-gray-100" id="manual-list">
-                    @forelse ($registrations as $registration)
-                        @php
-                            $user = $registration->user;
-                            $fullName = $user?->fullName() ?: ($user?->name ?? '—');
-                            $isPresent = $registration->attendanceRecords
-                                ->contains(fn ($row) => $row->status === AttendanceStatus::Present);
-                        @endphp
-                        <li
-                            class="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between"
-                            data-registration-id="{{ $registration->id }}"
-                        >
-                            <div class="min-w-0">
-                                <p class="text-sm font-semibold text-gray-900 truncate">{{ $fullName }}</p>
-                                <p class="mt-0.5 text-xs attendance-label {{ $isPresent ? 'text-emerald-700' : 'text-gray-500' }}">
-                                    {{ $isPresent ? 'حاضر' : 'لم يحضر' }}
-                                </p>
-                            </div>
-                            <div class="flex shrink-0 gap-2" role="group" aria-label="حالة التحضير لـ {{ $fullName }}">
-                                <button
-                                    type="button"
-                                    class="attendance-toggle flex-1 sm:flex-none rounded-xl px-4 py-2.5 text-sm font-semibold transition border {{ $isPresent ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}"
-                                    data-present="1"
-                                    @disabled(! $isPrepDayToday)
-                                >
-                                    حاضر
-                                </button>
-                                <button
-                                    type="button"
-                                    class="attendance-toggle flex-1 sm:flex-none rounded-xl px-4 py-2.5 text-sm font-semibold transition border {{ ! $isPresent ? 'bg-gray-700 text-white border-gray-700' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}"
-                                    data-present="0"
-                                    @disabled(! $isPrepDayToday)
-                                >
-                                    لم يحضر
-                                </button>
-                            </div>
-                        </li>
-                    @empty
-                        <li class="py-8 text-center text-sm text-gray-500">
-                            @if ($search !== '')
-                                لا توجد نتائج مطابقة للبحث.
-                            @else
-                                لا يوجد مسجلون مقبولون لهذا البرنامج.
-                            @endif
-                        </li>
-                    @endforelse
-                </ul>
+                <div class="mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white">
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[28rem] text-sm" id="manual-list">
+                            <thead class="bg-[#e9eff6] text-xs text-[#335483]">
+                                <tr>
+                                    <th scope="col" class="px-3 py-3 text-right font-semibold sm:px-4">الاسم</th>
+                                    <th scope="col" class="px-3 py-3 text-center font-semibold sm:px-4">الحالة</th>
+                                    <th scope="col" class="px-3 py-3 text-center font-semibold sm:px-4">الإجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @forelse ($registrations as $registration)
+                                    @php
+                                        $user = $registration->user;
+                                        $fullName = $user?->fullName() ?: ($user?->name ?? '—');
+                                        $isPresent = $registration->attendanceRecords
+                                            ->contains(fn ($row) => $row->status === AttendanceStatus::Present);
+                                    @endphp
+                                    <tr
+                                        class="hover:bg-gray-50/80 transition"
+                                        data-registration-id="{{ $registration->id }}"
+                                    >
+                                        <td class="px-3 py-3 text-right font-semibold text-gray-900 sm:px-4">
+                                            <span class="block max-w-[12rem] truncate sm:max-w-none">{{ $fullName }}</span>
+                                        </td>
+                                        <td class="px-3 py-3 text-center sm:px-4">
+                                            <span class="attendance-label inline-flex min-w-[4.5rem] justify-center rounded-full px-2.5 py-1 text-xs font-medium {{ $isPresent ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600' }}">
+                                                {{ $isPresent ? 'حاضر' : 'لم يحضر' }}
+                                            </span>
+                                        </td>
+                                        <td class="px-3 py-3 text-center sm:px-4">
+                                            <div class="inline-flex gap-1.5" role="group" aria-label="حالة التحضير لـ {{ $fullName }}">
+                                                <button
+                                                    type="button"
+                                                    class="attendance-toggle rounded-lg px-3 py-1.5 text-xs font-semibold transition border whitespace-nowrap {{ $isPresent ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}"
+                                                    data-present="1"
+                                                    @disabled(! $isPrepDayToday)
+                                                >
+                                                    حاضر
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="attendance-toggle rounded-lg px-3 py-1.5 text-xs font-semibold transition border whitespace-nowrap {{ ! $isPresent ? 'bg-gray-700 text-white border-gray-700' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}"
+                                                    data-present="0"
+                                                    @disabled(! $isPrepDayToday)
+                                                >
+                                                    لم يحضر
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="3" class="px-4 py-8 text-center text-sm text-gray-500">
+                                            @if ($search !== '')
+                                                لا توجد نتائج مطابقة للبحث.
+                                            @else
+                                                لا يوجد مسجلون مقبولون لهذا البرنامج.
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
                 @if ($registrations && $registrations->hasPages())
                     <div class="mt-4">
@@ -278,6 +319,16 @@
     @endif
 
     @if ($tab === 'manual' && $isPrepDayToday)
+    const presentBtnClass = (active) =>
+        'attendance-toggle rounded-lg px-3 py-1.5 text-xs font-semibold transition border whitespace-nowrap ' +
+        (active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50');
+    const absentBtnClass = (active) =>
+        'attendance-toggle rounded-lg px-3 py-1.5 text-xs font-semibold transition border whitespace-nowrap ' +
+        (active ? 'bg-gray-700 text-white border-gray-700' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50');
+    const statusLabelClass = (present) =>
+        'attendance-label inline-flex min-w-[4.5rem] justify-center rounded-full px-2.5 py-1 text-xs font-medium ' +
+        (present ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600');
+
     document.getElementById('manual-list')?.addEventListener('click', async (event) => {
         const btn = event.target.closest('.attendance-toggle');
         if (!btn || busy) return;
@@ -308,18 +359,12 @@
             const label = row.querySelector('.attendance-label');
             if (label) {
                 label.textContent = present ? 'حاضر' : 'لم يحضر';
-                label.className = 'mt-0.5 text-xs attendance-label ' + (present ? 'text-emerald-700' : 'text-gray-500');
+                label.className = statusLabelClass(present);
             }
             row.querySelectorAll('.attendance-toggle').forEach((el) => {
                 const isPresentBtn = el.getAttribute('data-present') === '1';
                 const active = (present && isPresentBtn) || (!present && !isPresentBtn);
-                if (isPresentBtn) {
-                    el.className = 'attendance-toggle flex-1 sm:flex-none rounded-xl px-4 py-2.5 text-sm font-semibold transition border ' +
-                        (active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50');
-                } else {
-                    el.className = 'attendance-toggle flex-1 sm:flex-none rounded-xl px-4 py-2.5 text-sm font-semibold transition border ' +
-                        (active ? 'bg-gray-700 text-white border-gray-700' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50');
-                }
+                el.className = isPresentBtn ? presentBtnClass(active) : absentBtnClass(active);
             });
         } catch (e) {
             showFeedback(false, '', 'تعذّر الاتصال. حاول مرة أخرى.', false);
