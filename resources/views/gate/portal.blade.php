@@ -45,11 +45,15 @@
             @endif
         </div>
 
-        @if ($isRemoteToday ?? false)
-            @include('gate.partials.live-session')
-        @endif
-
         <nav class="mt-5 flex gap-2 border-b border-gray-200 pb-px" aria-label="وسائل التحضير">
+            @if ($isRemoteToday ?? false)
+                <a
+                    href="{{ route('gate.portal', ['program' => $program->slug, 'tab' => 'session']) }}"
+                    class="px-3 py-2 text-sm font-semibold rounded-t-lg {{ $tab === 'session' ? 'text-[#335483] border-b-2 border-[#335483]' : 'text-gray-500 hover:text-gray-800' }}"
+                >
+                    جلسة التحضير
+                </a>
+            @endif
             @if ($isInPersonToday)
                 <a
                     href="{{ route('gate.portal', ['program' => $program->slug, 'tab' => 'qr']) }}"
@@ -86,7 +90,9 @@
             </div>
         @endif
 
-        @if ($tab === 'qr' && $isInPersonToday)
+        @if ($tab === 'session' && ($isRemoteToday ?? false))
+            @include('gate.partials.live-session')
+        @elseif ($tab === 'qr' && $isInPersonToday)
             <div class="mt-5">
                 <div id="reader" class="overflow-hidden rounded-2xl border border-[#d7e2ef] bg-[#0f172a]" style="min-height: 240px;"></div>
                 <p id="camera-hint" class="mt-2 text-center text-xs text-gray-500">وجّه الكاميرا نحو رمز QR الخاص بالمشاركة.</p>
@@ -438,7 +444,7 @@
     });
     @endif
 
-    @if ($isRemoteToday ?? false)
+    @if ($tab === 'session' && ($isRemoteToday ?? false))
     (function initGateLiveSession() {
         const root = document.querySelector('[data-gate-live-session]');
         if (!root) return;

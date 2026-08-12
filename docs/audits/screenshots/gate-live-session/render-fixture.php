@@ -121,7 +121,7 @@ $live = $app->make(AttendanceLiveSessionService::class);
 $outDir = __DIR__;
 
 $render = static function (string $name) use ($kernel, $program, $checker, $cssRel, $outDir): void {
-    $request = Request::create('/gate/'.$program->slug.'/portal?tab=manual', 'GET');
+    $request = Request::create('/gate/'.$program->slug.'/portal?tab=session', 'GET');
     $request->setLaravelSession(app('session')->driver());
     $request->session()->put(EnsureGateAttendanceAccess::SESSION_CHECKER_ID, $checker->id);
     $request->session()->put(EnsureGateAttendanceAccess::SESSION_PROGRAM_ID, $program->id);

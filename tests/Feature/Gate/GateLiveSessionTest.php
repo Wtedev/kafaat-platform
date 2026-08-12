@@ -43,6 +43,7 @@ class GateLiveSessionTest extends TestCase
 
         $session->get(route('gate.portal', $program))
             ->assertOk()
+            ->assertSee('tab=session', false)
             ->assertSee('جلسة التحضير', false)
             ->assertSee('فتح جلسة التحضير', false)
             ->assertSee('سيتم فتح التحضير للمستفيدين لمدة 5 دقائق', false);
@@ -151,6 +152,7 @@ class GateLiveSessionTest extends TestCase
 
         $session->get(route('gate.portal', $program))
             ->assertOk()
+            ->assertDontSee('tab=session', false)
             ->assertDontSee('فتح جلسة التحضير', false);
 
         $session->postJson(route('gate.live-session.start', $program))
