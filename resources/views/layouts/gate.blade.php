@@ -22,7 +22,7 @@
         <header class="px-4 pt-6 pb-2">
             <div class="mx-auto max-w-lg text-center">
                 <img src="{{ asset(config('brand.logos.kafaat')) }}" alt="كفاءات" class="h-12 w-auto mx-auto" width="160" height="48" />
-                <p class="mt-2 text-xs font-semibold tracking-wide text-[#335483]/بوابة التحضير</p>
+                <p class="mt-2 text-xs font-semibold tracking-wide text-[#335483]">بوابة التحضير</p>
             </div>
         </header>
 
