@@ -1,0 +1,5 @@
+node_modules/
+package-lock.json
+manual-table-live.html
+manual-search-live.html
+fixture-meta.json

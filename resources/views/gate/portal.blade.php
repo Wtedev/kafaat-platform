@@ -9,9 +9,6 @@
 @endpush
 
 @section('content')
-@php
-    use App\Enums\AttendanceStatus;
-@endphp
 <div class="space-y-4">
     <div class="bg-white/95 rounded-3xl shadow-xl border border-white/80 p-4 sm:p-7">
         <div class="flex items-start justify-between gap-3">
@@ -97,95 +94,31 @@
                     اليوم ليس من أيام البرنامج، ولا يتوفر تحضير اليوم.
                 </div>
             @else
-                <form method="GET" action="{{ route('gate.portal', ['program' => $program->slug]) }}" class="mt-5">
-                    <input type="hidden" name="tab" value="manual" />
+                <div class="mt-5">
                     <label for="q" class="sr-only">بحث بالاسم</label>
-                    <div class="flex gap-2">
-                        <input
-                            id="q"
-                            type="search"
-                            name="q"
-                            value="{{ $search }}"
-                            placeholder="بحث بالاسم…"
-                            autocomplete="off"
-                            class="min-w-0 flex-1 rounded-xl border border-gray-300 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand/25 sm:px-4 sm:py-2.5 sm:text-sm"
-                        />
-                        <button type="submit" class="shrink-0 rounded-xl bg-brand px-3 py-2 text-xs font-semibold text-white hover:opacity-95 sm:px-4 sm:py-2.5 sm:text-sm">
-                            بحث
-                        </button>
-                    </div>
-                </form>
-
-                <div class="mt-4 overflow-hidden rounded-2xl border border-gray-100 bg-white">
-                    <table class="w-full table-fixed text-[11px] sm:text-sm" id="manual-list">
-                        <thead class="bg-[#e9eff6] text-[10px] text-[#335483] sm:text-xs">
-                            <tr>
-                                <th scope="col" class="px-2 py-2 text-right font-semibold sm:px-4 sm:py-3">الاسم</th>
-                                <th scope="col" class="w-20 px-1.5 py-2 text-center font-semibold sm:w-24 sm:px-3 sm:py-3">الحالة</th>
-                                <th scope="col" class="w-28 px-1.5 py-2 text-center font-semibold sm:w-40 sm:px-3 sm:py-3">الإجراء</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            @forelse ($registrations as $registration)
-                                @php
-                                    $user = $registration->user;
-                                    $fullName = $user?->fullName() ?: ($user?->name ?? '—');
-                                    $isPresent = $registration->attendanceRecords
-                                        ->contains(fn ($row) => $row->status === AttendanceStatus::Present);
-                                @endphp
-                                <tr
-                                    class="hover:bg-gray-50/80 transition"
-                                    data-registration-id="{{ $registration->id }}"
-                                >
-                                    <td class="min-w-0 px-2 py-2 text-right align-middle font-semibold text-gray-900 sm:px-4 sm:py-3">
-                                        <span class="block break-words leading-snug" title="{{ $fullName }}">{{ $fullName }}</span>
-                                    </td>
-                                    <td class="px-1.5 py-2 text-center align-middle sm:px-3 sm:py-3">
-                                        <span class="attendance-label inline-flex min-w-[3.75rem] justify-center rounded-full px-1.5 py-0.5 text-[10px] font-medium sm:min-w-[4.5rem] sm:px-2.5 sm:py-1 sm:text-xs {{ $isPresent ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600' }}">
-                                            {{ $isPresent ? 'حاضر' : 'لم يحضر' }}
-                                        </span>
-                                    </td>
-                                    <td class="px-1.5 py-2 text-center align-middle sm:px-3 sm:py-3">
-                                        <div class="inline-flex flex-nowrap gap-1 sm:gap-1.5" role="group" aria-label="حالة التحضير لـ {{ $fullName }}">
-                                            <button
-                                                type="button"
-                                                class="attendance-toggle rounded-md px-2 py-1 text-[10px] font-semibold transition border whitespace-nowrap sm:rounded-lg sm:px-3 sm:py-1.5 sm:text-xs {{ $isPresent ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}"
-                                                data-present="1"
-                                                @disabled(! $isPrepDayToday)
-                                            >
-                                                حاضر
-                                            </button>
-                                            <button
-                                                type="button"
-                                                class="attendance-toggle rounded-md px-2 py-1 text-[10px] font-semibold transition border whitespace-nowrap sm:rounded-lg sm:px-3 sm:py-1.5 sm:text-xs {{ ! $isPresent ? 'bg-gray-700 text-white border-gray-700' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' }}"
-                                                data-present="0"
-                                                @disabled(! $isPrepDayToday)
-                                            >
-                                                لم يحضر
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="3" class="px-4 py-8 text-center text-sm text-gray-500">
-                                        @if ($search !== '')
-                                            لا توجد نتائج مطابقة للبحث.
-                                        @else
-                                            لا يوجد مسجلون مقبولون لهذا البرنامج.
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                    <input
+                        id="q"
+                        type="search"
+                        name="q"
+                        value="{{ $search }}"
+                        placeholder="بحث بالاسم…"
+                        autocomplete="off"
+                        data-search-url="{{ route('gate.portal', ['program' => $program->slug]) }}"
+                        class="w-full rounded-xl border border-gray-300 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand/25 sm:px-4 sm:py-2.5 sm:text-sm"
+                    />
+                    <p
+                        id="manual-search-status"
+                        class="mt-1.5 hidden text-[11px] text-gray-400 sm:text-xs"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        جارٍ البحث…
+                    </p>
                 </div>
 
-                @if ($registrations && $registrations->hasPages())
-                    <div class="mt-4 w-full max-w-full overflow-hidden">
-                        {{ $registrations->links('gate.pagination') }}
-                    </div>
-                @endif
+                <div id="manual-results" class="mt-4">
+                    @include('gate.partials.manual-list')
+                </div>
             @endif
         @endif
     </div>
@@ -295,24 +228,103 @@
     @endif
 
     @if ($tab === 'manual' && $isPrepDayToday)
-    const presentBtnClass = (active) =>
-        'attendance-toggle rounded-md px-2 py-1 text-[10px] font-semibold transition border whitespace-nowrap sm:rounded-lg sm:px-3 sm:py-1.5 sm:text-xs ' +
-        (active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50');
-    const absentBtnClass = (active) =>
-        'attendance-toggle rounded-md px-2 py-1 text-[10px] font-semibold transition border whitespace-nowrap sm:rounded-lg sm:px-3 sm:py-1.5 sm:text-xs ' +
-        (active ? 'bg-gray-700 text-white border-gray-700' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50');
-    const statusLabelClass = (present) =>
-        'attendance-label inline-flex min-w-[3.75rem] justify-center rounded-full px-1.5 py-0.5 text-[10px] font-medium sm:min-w-[4.5rem] sm:px-2.5 sm:py-1 sm:text-xs ' +
-        (present ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600');
+    const idleBtnClass = 'prep-mark rounded-md border px-2.5 py-1 text-[10px] font-semibold whitespace-nowrap transition sm:rounded-lg sm:px-3.5 sm:py-1.5 sm:text-xs bg-transparent text-gray-700 border-gray-300 hover:bg-gray-50';
+    const presentBtnClass = 'prep-mark rounded-md border px-2.5 py-1 text-[10px] font-semibold whitespace-nowrap transition sm:rounded-lg sm:px-3.5 sm:py-1.5 sm:text-xs bg-emerald-600 text-white border-emerald-600';
+    const searchInput = document.getElementById('q');
+    const results = document.getElementById('manual-results');
+    const searchStatus = document.getElementById('manual-search-status');
+    const searchBase = searchInput?.getAttribute('data-search-url') || window.location.pathname;
+    let searchTimer = null;
+    let searchSeq = 0;
 
-    document.getElementById('manual-list')?.addEventListener('click', async (event) => {
-        const btn = event.target.closest('.attendance-toggle');
-        if (!btn || busy) return;
+    function setSearchLoading(on) {
+        if (!searchStatus) return;
+        searchStatus.classList.toggle('hidden', !on);
+    }
+
+    function markButtonPresent(btn) {
+        btn.textContent = 'حاضر';
+        btn.className = presentBtnClass;
+        btn.setAttribute('data-present', '1');
+    }
+
+    async function fetchList(query, page) {
+        const seq = ++searchSeq;
+        setSearchLoading(true);
+        const url = new URL(searchBase, window.location.origin);
+        url.searchParams.set('tab', 'manual');
+        url.searchParams.set('partial', '1');
+        if (query) {
+            url.searchParams.set('q', query);
+        }
+        if (page && Number(page) > 1) {
+            url.searchParams.set('page', String(page));
+        }
+        try {
+            const response = await fetch(url.toString(), {
+                headers: {
+                    'Accept': 'text/html',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+            const html = await response.text();
+            if (seq !== searchSeq) return;
+            if (!response.ok) {
+                showFeedback(false, '', 'تعذّر تحديث القائمة.', false);
+                return;
+            }
+            if (results) {
+                results.innerHTML = html;
+            }
+            const publicUrl = new URL(window.location.href);
+            publicUrl.searchParams.set('tab', 'manual');
+            if (query) {
+                publicUrl.searchParams.set('q', query);
+            } else {
+                publicUrl.searchParams.delete('q');
+            }
+            if (page && Number(page) > 1) {
+                publicUrl.searchParams.set('page', String(page));
+            } else {
+                publicUrl.searchParams.delete('page');
+            }
+            publicUrl.searchParams.delete('partial');
+            history.replaceState({}, '', publicUrl);
+        } catch (e) {
+            if (seq !== searchSeq) return;
+            showFeedback(false, '', 'تعذّر الاتصال. حاول مرة أخرى.', false);
+        } finally {
+            if (seq === searchSeq) {
+                setSearchLoading(false);
+            }
+        }
+    }
+
+    searchInput?.addEventListener('input', () => {
+        window.clearTimeout(searchTimer);
+        searchTimer = window.setTimeout(() => {
+            fetchList(searchInput.value.trim(), 1);
+        }, 350);
+    });
+
+    results?.addEventListener('click', async (event) => {
+        const pageLink = event.target.closest('#manual-pagination a');
+        if (pageLink) {
+            event.preventDefault();
+            const next = new URL(pageLink.href, window.location.origin);
+            fetchList(searchInput?.value.trim() || '', next.searchParams.get('page') || '1');
+            return;
+        }
+
+        const btn = event.target.closest('.prep-mark');
+        if (!btn || btn.disabled) return;
+        if (btn.getAttribute('data-present') === '1') {
+            showFeedback(true, '', 'مسجّل حاضر مسبقاً.', true);
+            return;
+        }
         const row = btn.closest('[data-registration-id]');
         if (!row) return;
         const registrationId = row.getAttribute('data-registration-id');
-        const present = btn.getAttribute('data-present') === '1';
-        busy = true;
         btn.disabled = true;
         try {
             const url = `/gate/${programSlug}/registrations/${registrationId}/attendance`;
@@ -324,28 +336,18 @@
                     'X-CSRF-TOKEN': csrf,
                     'X-Requested-With': 'XMLHttpRequest',
                 },
-                body: JSON.stringify({ present }),
+                body: JSON.stringify({ present: true }),
             });
             const data = await response.json().catch(() => ({}));
             if (!data.ok) {
                 showFeedback(false, data.beneficiary_name || '', data.message || 'تعذّر التحديث.', false);
                 return;
             }
-            showFeedback(true, data.beneficiary_name || '', data.message || 'تم التحديث.', false);
-            const label = row.querySelector('.attendance-label');
-            if (label) {
-                label.textContent = present ? 'حاضر' : 'لم يحضر';
-                label.className = statusLabelClass(present);
-            }
-            row.querySelectorAll('.attendance-toggle').forEach((el) => {
-                const isPresentBtn = el.getAttribute('data-present') === '1';
-                const active = (present && isPresentBtn) || (!present && !isPresentBtn);
-                el.className = isPresentBtn ? presentBtnClass(active) : absentBtnClass(active);
-            });
+            markButtonPresent(btn);
+            showFeedback(true, data.beneficiary_name || '', data.message || 'تم تسجيل الحضور.', data.reason === 'already_present');
         } catch (e) {
             showFeedback(false, '', 'تعذّر الاتصال. حاول مرة أخرى.', false);
         } finally {
-            busy = false;
             btn.disabled = false;
         }
     });
