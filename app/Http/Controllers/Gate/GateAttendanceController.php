@@ -81,6 +81,9 @@ class GateAttendanceController extends Controller
         if (! in_array($tab, ['qr', 'manual'], true)) {
             $tab = 'manual';
         }
+        if ($tab === 'qr' && ! $isInPersonToday) {
+            $tab = 'manual';
+        }
 
         $search = trim((string) $request->query('q', ''));
         $registrations = null;
@@ -88,6 +91,7 @@ class GateAttendanceController extends Controller
         if ($tab === 'manual') {
             $registrations = $this->eligibleRegistrationsQuery($program, $search, $today)
                 ->paginate(20)
+                ->onEachSide(1)
                 ->withQueryString();
         }
 

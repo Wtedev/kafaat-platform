@@ -1,0 +1,8 @@
+{
+  "name": "prep-attendance-portal-tabs-screenshots",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "playwright": "^1.54.1"
+  }
+}
