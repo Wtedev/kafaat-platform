@@ -45,8 +45,10 @@ class GateAttendancePrepDayTest extends TestCase
         $this->actingAs($admin)
             ->get(route('gate.portal', $program->slug))
             ->assertOk()
-            ->assertSee('اليوم حسب توقيت الرياض', false)
             ->assertSee('2026-08-03', false)
+            ->assertSee('توقيت الرياض', false)
+            ->assertDontSee('اليوم حسب توقيت الرياض', false)
+            ->assertDontSee('نوع اليوم:', false)
             ->assertDontSee('اختاري يوم التحضير', false)
             ->assertDontSee('تغيير اليوم', false);
     }

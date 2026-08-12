@@ -88,7 +88,6 @@ class PrepOfficerSecureLinkTest extends TestCase
 
         $this->get(route('gate.portal', $program->slug))
             ->assertOk()
-            ->assertSee('مسؤول التحضير', false)
             ->assertSee('نورة', false)
             ->assertSee($program->title, false)
             ->assertDontSee($result['token'], false);
@@ -289,6 +288,7 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->get(route('gate.portal', ['program' => $program->slug, 'tab' => 'qr']))
             ->assertOk()
             ->assertSee('مسح QR', false)
+            ->assertSee('التحضير اليدوي', false)
             ->assertDontSee('KAFAAT-P', false);
 
         $this->withCheckerSession($result['checker'], $program)
@@ -320,7 +320,7 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->assertDontSee('مسح QR', false)
             ->assertDontSee('id="reader"', false)
             ->assertDontSee('تحضير QR غير متاح اليوم', false)
-            ->assertSee('التحضير اليدوي', false);
+            ->assertDontSee('التحضير اليدوي', false);
 
         ProgramAttendance::query()->delete();
         $this->withCheckerSession($result['checker'], $program)
@@ -347,7 +347,7 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->assertOk()
             ->assertDontSee('مسح QR', false)
             ->assertDontSee('تحضير QR', false)
-            ->assertSee('التحضير اليدوي', false)
+            ->assertDontSee('التحضير اليدوي', false)
             ->assertSee('>الاسم<', false)
             ->assertSee('>الإجراء<', false)
             ->assertDontSee('>الحالة<', false)
