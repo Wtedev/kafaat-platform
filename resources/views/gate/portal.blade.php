@@ -123,6 +123,36 @@
         @endif
     </div>
 </div>
+
+@if ($tab === 'manual' && $isPrepDayToday)
+<dialog
+    id="prep-unmark-dialog"
+    class="w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-gray-200 bg-white p-5 shadow-xl backdrop:bg-slate-900/40"
+>
+    <form method="dialog" class="space-y-4 text-right">
+        <div>
+            <h2 class="text-sm font-bold text-gray-900">إلغاء الحضور</h2>
+            <p id="prep-unmark-message" class="mt-2 text-sm leading-relaxed text-gray-600"></p>
+        </div>
+        <div class="flex items-center justify-start gap-2">
+            <button
+                type="submit"
+                value="cancel"
+                class="rounded-xl border border-gray-300 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            >
+                تراجع
+            </button>
+            <button
+                type="submit"
+                value="confirm"
+                class="rounded-xl border border-red-600 bg-red-600 px-3.5 py-2 text-xs font-semibold text-white hover:opacity-95"
+            >
+                نعم، ألغِ الحضور
+            </button>
+        </div>
+    </form>
+</dialog>
+@endif
 @endsection
 
 @push('scripts')
@@ -242,10 +272,85 @@
         searchStatus.classList.toggle('hidden', !on);
     }
 
+    function beneficiaryName(btn) {
+        return (btn.getAttribute('data-name') || btn.closest('tr')?.querySelector('td')?.innerText || '').trim();
+    }
+
     function markButtonPresent(btn) {
+        const name = beneficiaryName(btn);
         btn.textContent = 'حاضر';
         btn.className = presentBtnClass;
         btn.setAttribute('data-present', '1');
+        if (name) {
+            btn.setAttribute('aria-label', 'إلغاء حضور ' + name);
+        }
+    }
+
+    function markButtonIdle(btn) {
+        const name = beneficiaryName(btn);
+        btn.textContent = 'تحضير';
+        btn.className = idleBtnClass;
+        btn.setAttribute('data-present', '0');
+        if (name) {
+            btn.setAttribute('aria-label', 'تحضير ' + name);
+        }
+    }
+
+    function confirmUnmark(name) {
+        return new Promise((resolve) => {
+            const dialog = document.getElementById('prep-unmark-dialog');
+            const message = document.getElementById('prep-unmark-message');
+            if (!dialog || typeof dialog.showModal !== 'function') {
+                resolve(window.confirm('هل تؤكد إلغاء حضور «' + name + '»؟'));
+                return;
+            }
+            if (message) {
+                message.textContent = 'هل تؤكد إلغاء حضور «' + name + '»؟';
+            }
+            const onClose = () => {
+                dialog.removeEventListener('close', onClose);
+                resolve(dialog.returnValue === 'confirm');
+            };
+            dialog.addEventListener('close', onClose);
+            dialog.returnValue = 'cancel';
+            dialog.showModal();
+        });
+    }
+
+    async function submitAttendance(btn, present) {
+        const row = btn.closest('[data-registration-id]');
+        if (!row) return;
+        const registrationId = row.getAttribute('data-registration-id');
+        btn.disabled = true;
+        try {
+            const url = `/gate/${programSlug}/registrations/${registrationId}/attendance`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrf,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ present }),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!data.ok) {
+                showFeedback(false, data.beneficiary_name || '', data.message || 'تعذّر التحديث.', false);
+                return;
+            }
+            if (present) {
+                markButtonPresent(btn);
+                showFeedback(true, data.beneficiary_name || '', data.message || 'تم تسجيل الحضور.', data.reason === 'already_present');
+            } else {
+                markButtonIdle(btn);
+                showFeedback(true, data.beneficiary_name || '', data.message || 'تم إلغاء الحضور.', false);
+            }
+        } catch (e) {
+            showFeedback(false, '', 'تعذّر الاتصال. حاول مرة أخرى.', false);
+        } finally {
+            btn.disabled = false;
+        }
     }
 
     async function fetchList(query, page) {
@@ -319,37 +424,13 @@
         const btn = event.target.closest('.prep-mark');
         if (!btn || btn.disabled) return;
         if (btn.getAttribute('data-present') === '1') {
-            showFeedback(true, '', 'مسجّل حاضر مسبقاً.', true);
+            const name = beneficiaryName(btn) || 'هذا المستفيد';
+            const confirmed = await confirmUnmark(name);
+            if (!confirmed) return;
+            await submitAttendance(btn, false);
             return;
         }
-        const row = btn.closest('[data-registration-id]');
-        if (!row) return;
-        const registrationId = row.getAttribute('data-registration-id');
-        btn.disabled = true;
-        try {
-            const url = `/gate/${programSlug}/registrations/${registrationId}/attendance`;
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrf,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({ present: true }),
-            });
-            const data = await response.json().catch(() => ({}));
-            if (!data.ok) {
-                showFeedback(false, data.beneficiary_name || '', data.message || 'تعذّر التحديث.', false);
-                return;
-            }
-            markButtonPresent(btn);
-            showFeedback(true, data.beneficiary_name || '', data.message || 'تم تسجيل الحضور.', data.reason === 'already_present');
-        } catch (e) {
-            showFeedback(false, '', 'تعذّر الاتصال. حاول مرة أخرى.', false);
-        } finally {
-            btn.disabled = false;
-        }
+        await submitAttendance(btn, true);
     });
     @endif
 })();

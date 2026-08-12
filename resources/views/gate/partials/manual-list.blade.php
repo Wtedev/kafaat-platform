@@ -29,7 +29,8 @@
                             type="button"
                             class="prep-mark rounded-md border px-2.5 py-1 text-[10px] font-semibold whitespace-nowrap transition sm:rounded-lg sm:px-3.5 sm:py-1.5 sm:text-xs {{ $isPresent ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-transparent text-gray-700 border-gray-300 hover:bg-gray-50' }}"
                             data-present="{{ $isPresent ? '1' : '0' }}"
-                            aria-label="تحضير {{ $fullName }}"
+                            data-name="{{ $fullName }}"
+                            aria-label="{{ $isPresent ? 'إلغاء حضور '.$fullName : 'تحضير '.$fullName }}"
                             @disabled(! $isPrepDayToday)
                         >{{ $isPresent ? 'حاضر' : 'تحضير' }}</button>
                     </td>
