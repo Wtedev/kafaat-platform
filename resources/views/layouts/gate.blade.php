@@ -19,10 +19,9 @@
 </head>
 <body class="min-h-screen antialiased font-sans text-brand-body" style="background: linear-gradient(160deg, #EEF5FB 0%, #F7FAFC 45%, #e8eef6 100%)">
     <div class="min-h-screen flex flex-col">
-        <header class="px-4 pt-6 pb-2">
+        <header class="px-4 pt-4 pb-1">
             <div class="mx-auto max-w-lg text-center">
-                <img src="{{ asset(config('brand.logos.kafaat')) }}" alt="كفاءات" class="h-12 w-auto mx-auto" width="160" height="48" />
-                <p class="mt-2 text-xs font-semibold tracking-wide text-[#335483]">بوابة التحضير</p>
+                <img src="{{ asset(config('brand.logos.kafaat')) }}" alt="كفاءات" class="h-9 w-auto mx-auto" width="120" height="36" />
             </div>
         </header>
 

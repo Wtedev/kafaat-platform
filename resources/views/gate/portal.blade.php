@@ -10,16 +10,26 @@
 
 @section('content')
 <div class="space-y-4">
-    <div class="bg-white/95 rounded-3xl shadow-xl border border-white/80 p-4 sm:p-7">
+    <div class="bg-white/95 rounded-3xl shadow-xl border border-white/80 p-4 sm:p-6">
         <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
-                <h1 class="text-base font-bold text-gray-900 leading-snug sm:text-lg">{{ $program->title }}</h1>
-                <p class="mt-1 text-xs text-gray-600 sm:text-sm">
-                    مسؤول التحضير:
-                    <span class="font-semibold text-[#335483]">{{ $operatorName }}</span>
+                <h1 class="text-base font-bold text-gray-900 leading-snug sm:text-[1.05rem]">{{ $program->title }}</h1>
+                <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
+                    <span class="font-medium text-[#335483]">{{ $operatorName }}</span>
                     @if ($operatorType === 'admin')
-                        <span class="text-xs text-gray-400">(إدارة)</span>
+                        <span class="text-gray-400">إدارة</span>
                     @endif
+                    <span class="text-gray-300" aria-hidden="true">·</span>
+                    <span
+                        class="{{ $dayTypeLabel ? ($isInPersonToday ? 'text-emerald-700' : 'text-sky-700') : 'text-amber-700' }}"
+                        title="{{ $prepDate }} — توقيت الرياض"
+                    >
+                        @if ($dayTypeLabel)
+                            {{ $prepDateLabel }} · {{ $dayTypeLabel }}
+                        @else
+                            {{ $prepDateLabel }} · لا يتوفر تحضير اليوم
+                        @endif
+                    </span>
                 </p>
             </div>
             <form method="POST" action="{{ route('gate.logout', ['program' => $program->slug]) }}">
@@ -30,37 +40,22 @@
             </form>
         </div>
 
-        <div class="mt-4 rounded-2xl border border-[#d7e2ef] bg-[#f5f8fc] px-3 py-3 sm:px-4">
-            <p class="text-xs text-gray-500">اليوم حسب توقيت الرياض</p>
-            <p class="mt-0.5 text-sm font-bold text-[#335483]">{{ $prepDateLabel }}</p>
-            <p class="mt-0.5 text-xs font-mono text-gray-500">{{ $prepDate }}</p>
-            @if ($dayTypeLabel)
-                <p class="mt-2 text-xs font-medium {{ $isInPersonToday ? 'text-emerald-700' : 'text-sky-700' }}">
-                    نوع اليوم: {{ $dayTypeLabel }}
-                </p>
-            @else
-                <p class="mt-2 text-xs font-medium text-amber-700">
-                    اليوم ليس من أيام البرنامج، ولا يتوفر تحضير اليوم.
-                </p>
-            @endif
-        </div>
-
-        <nav class="mt-5 flex gap-2 border-b border-gray-200 pb-px" aria-label="وسائل التحضير">
-            @if ($isInPersonToday)
+        @if ($isInPersonToday)
+            <nav class="mt-4 flex gap-2 border-b border-gray-200 pb-px" aria-label="وسائل التحضير">
                 <a
                     href="{{ route('gate.portal', ['program' => $program->slug, 'tab' => 'qr']) }}"
                     class="px-3 py-2 text-sm font-semibold rounded-t-lg {{ $tab === 'qr' ? 'text-[#335483] border-b-2 border-[#335483]' : 'text-gray-500 hover:text-gray-800' }}"
                 >
                     مسح QR
                 </a>
-            @endif
-            <a
-                href="{{ route('gate.portal', ['program' => $program->slug, 'tab' => 'manual', 'q' => $search ?: null]) }}"
-                class="px-3 py-2 text-sm font-semibold rounded-t-lg {{ $tab === 'manual' ? 'text-[#335483] border-b-2 border-[#335483]' : 'text-gray-500 hover:text-gray-800' }}"
-            >
-                التحضير اليدوي
-            </a>
-        </nav>
+                <a
+                    href="{{ route('gate.portal', ['program' => $program->slug, 'tab' => 'manual', 'q' => $search ?: null]) }}"
+                    class="px-3 py-2 text-sm font-semibold rounded-t-lg {{ $tab === 'manual' ? 'text-[#335483] border-b-2 border-[#335483]' : 'text-gray-500 hover:text-gray-800' }}"
+                >
+                    التحضير اليدوي
+                </a>
+            </nav>
+        @endif
 
         <div id="gate-feedback" class="mt-4 hidden rounded-2xl border px-4 py-3 text-center" role="status" aria-live="polite">
             <p id="gate-feedback-name" class="text-sm font-bold"></p>
@@ -94,7 +89,7 @@
                     اليوم ليس من أيام البرنامج، ولا يتوفر تحضير اليوم.
                 </div>
             @else
-                <div class="mt-5">
+                <div class="{{ $isInPersonToday ? 'mt-5' : 'mt-4' }}">
                     <label for="q" class="sr-only">بحث بالاسم</label>
                     <input
                         id="q"
