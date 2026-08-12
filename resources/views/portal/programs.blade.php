@@ -94,7 +94,15 @@ $statusLabels = [
             $canRemoteCheckIn = $canOpenAttendance
                 && $isRemoteToday
                 && $liveSession !== null
-                && $liveSession->isActive();
+                && $liveSession->isActive()
+                && ! ($reg->today_present ?? false);
+            $alreadyPresentToday = (bool) ($reg->today_present ?? false);
+            $markedAtLabel = null;
+            if ($alreadyPresentToday && $reg->today_marked_at) {
+                $markedAt = $reg->today_marked_at->timezone(config('app.timezone'));
+                $markedAtLabel = ar_date($markedAt, 'h:mm a');
+            }
+            $sessionEndedToday = (bool) ($reg->live_session_ended_today ?? false);
 
             $showElig = in_array($reg->status->value, [
                 RegistrationStatus::Approved->value,
@@ -132,7 +140,9 @@ $statusLabels = [
                 : ($isInPersonToday
                     ? 'QR الحضور'
                     : ($isRemoteToday
-                        ? ($canRemoteCheckIn ? 'جلسة مفتوحة' : 'بانتظار فتح الجلسة')
+                        ? ($alreadyPresentToday
+                            ? 'تم التسجيل'
+                            : ($canRemoteCheckIn ? 'جلسة مفتوحة' : ($sessionEndedToday ? 'انتهت الجلسة' : 'بانتظار فتح الجلسة')))
                         : 'لا يوجد تحضير اليوم'));
         @endphp
 
@@ -251,6 +261,10 @@ $statusLabels = [
                                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
                                 {{ $checkInLabel }}
                             </button>
+                            @elseif ($canOpenAttendance && $isRemoteToday && $alreadyPresentToday)
+                            <span class="inline-flex items-center rounded-xl bg-[#e6f5f6] px-3 py-2 text-xs font-semibold text-[#1a9399] ring-1 ring-[#b8e0e2]">
+                                تم تسجيل حضورك{{ $markedAtLabel ? ' الساعة '.$markedAtLabel : '' }}
+                            </span>
                             @elseif ($canOpenAttendance && $isRemoteToday && $canRemoteCheckIn)
                             <button
                                 type="button"
@@ -258,8 +272,12 @@ $statusLabels = [
                                 style="background:#335483"
                                 data-attendance-modal="{{ $attendanceModalId }}"
                             >
-                                {{ $checkInLabel }}
+                                تسجيل حضوري
                             </button>
+                            @elseif ($canOpenAttendance && $isRemoteToday && $sessionEndedToday)
+                            <span class="inline-flex items-center rounded-xl px-3 py-2 text-xs font-medium text-gray-400 ring-1 ring-gray-200">
+                                انتهت جلسة التحضير
+                            </span>
                             @elseif ($canOpenAttendance && $isRemoteToday)
                             <span class="inline-flex items-center rounded-xl px-3 py-2 text-xs font-medium text-gray-400 ring-1 ring-gray-200">
                                 بانتظار فتح جلسة التحضير
