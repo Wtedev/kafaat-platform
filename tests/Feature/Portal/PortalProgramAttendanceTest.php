@@ -32,13 +32,16 @@ class PortalProgramAttendanceTest extends TestCase
         Carbon::setTestNow(Carbon::parse('2026-08-03 12:00:00', 'Asia/Riyadh'));
     }
 
-    public function test_portal_program_show_redirects_to_public_program_page(): void
+    public function test_portal_program_show_renders_beneficiary_detail_page(): void
     {
         [$user, $program] = $this->registeredBeneficiaryWithProgram();
 
         $this->actingAsOtpVerified($user)
             ->get(route('portal.programs.show', $program))
-            ->assertRedirect(route('public.programs.show', $program->slug));
+            ->assertOk()
+            ->assertSee($program->title, false)
+            ->assertSee('سجل الحضور', false)
+            ->assertDontSee('نبذة عن البرنامج', false);
     }
 
     public function test_portal_program_show_attendance_query_redirects_to_programs_list_with_modal(): void
@@ -87,7 +90,7 @@ class PortalProgramAttendanceTest extends TestCase
             ->assertDontSee('id="program-attendance-qr-'.$program->id.'"', false);
     }
 
-    public function test_dashboard_program_activity_links_to_public_program_page(): void
+    public function test_dashboard_program_activity_links_to_portal_program_detail(): void
     {
         [$user, $program] = $this->registeredBeneficiaryWithProgram();
 
@@ -95,7 +98,7 @@ class PortalProgramAttendanceTest extends TestCase
         $activity = $composed['activities']->first();
 
         $this->assertNotNull($activity);
-        $this->assertSame(route('public.programs.show', $program->slug), $activity['cta_url']);
+        $this->assertSame(route('portal.programs.show', $program), $activity['cta_url']);
     }
 
     /**
