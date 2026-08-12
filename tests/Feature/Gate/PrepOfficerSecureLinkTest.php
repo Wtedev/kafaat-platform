@@ -270,7 +270,7 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->assertJsonPath('reason', 'invalid_day');
     }
 
-    public function test_qr_tab_always_visible_scanner_only_on_in_person(): void
+    public function test_qr_only_on_in_person_day_and_hidden_on_remote(): void
     {
         [$program] = $this->programWithAdmin();
         $this->addPrepDay($program, '2026-08-03', ProgramPrepDayType::InPerson);
@@ -287,9 +287,7 @@ class PrepOfficerSecureLinkTest extends TestCase
         $this->withCheckerSession($result['checker'], $program)
             ->get(route('gate.portal', ['program' => $program->slug, 'tab' => 'qr']))
             ->assertOk()
-            ->assertSee('تحضير QR', false)
-            ->assertSee('التحضير اليدوي', false)
-            ->assertSee('id="reader"', false)
+            ->assertSee('مسح QR', false)
             ->assertDontSee('KAFAAT-P', false);
 
         $this->withCheckerSession($result['checker'], $program)
@@ -311,18 +309,17 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->assertOk()
             ->assertJsonPath('reason', 'already_present');
 
-        // Remote day — QR tab stays visible with empty state; scanner/API still blocked
+        // Remote day — QR hidden + rejected
         ProgramPrepDay::query()->where('training_program_id', $program->id)->delete();
         $this->addPrepDay($program, '2026-08-03', ProgramPrepDayType::Remote);
 
         $this->withCheckerSession($result['checker'], $program)
             ->get(route('gate.portal', ['program' => $program->slug, 'tab' => 'qr']))
             ->assertOk()
-            ->assertSee('تحضير QR', false)
-            ->assertSee('التحضير اليدوي', false)
-            ->assertSee('تحضير QR غير متاح اليوم', false)
-            ->assertSee('مسح QR مخصّص لأيام الحضور الحضوري فقط', false)
-            ->assertDontSee('id="reader"', false);
+            ->assertDontSee('مسح QR', false)
+            ->assertDontSee('id="reader"', false)
+            ->assertDontSee('تحضير QR غير متاح اليوم', false)
+            ->assertSee('التحضير اليدوي', false);
 
         ProgramAttendance::query()->delete();
         $this->withCheckerSession($result['checker'], $program)
@@ -331,24 +328,50 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->assertJsonPath('reason', 'not_in_person');
     }
 
-    public function test_manual_tab_renders_attendance_table(): void
+    public function test_manual_tab_renders_attendance_table_without_qr_on_remote(): void
     {
         [$program] = $this->programWithAdmin();
         $this->addPrepDay($program, '2026-08-03', ProgramPrepDayType::Remote);
         $result = app(ProgramAttendanceCheckerAccessService::class)->create($program, 'محضّر جدول');
-        $this->register($program, ['name' => 'مستفيد الجدول']);
+        $this->register($program, [
+            'name' => 'legacy',
+            'first_name' => 'عبدالرحمن',
+            'father_name' => 'سليمان',
+            'grandfather_name' => 'عبدالله',
+            'family_name' => 'آل الشيخ الطويل جداً للتحقق',
+        ]);
 
-        $this->withCheckerSession($result['checker'], $program)
+        $response = $this->withCheckerSession($result['checker'], $program)
             ->get(route('gate.portal', ['program' => $program->slug, 'tab' => 'manual']))
             ->assertOk()
-            ->assertSee('تحضير QR', false)
+            ->assertDontSee('مسح QR', false)
+            ->assertDontSee('تحضير QR', false)
             ->assertSee('التحضير اليدوي', false)
             ->assertSee('>الاسم<', false)
             ->assertSee('>الحالة<', false)
             ->assertSee('>الإجراء<', false)
             ->assertSee('id="manual-list"', false)
-            ->assertSee('مستفيد الجدول', false)
-            ->assertDontSee('id="reader"', false);
+            ->assertSee('table-fixed', false)
+            ->assertSee('max-w-6xl', false)
+            ->assertSee('عبدالرحمن سليمان عبدالله آل الشيخ الطويل جداً للتحقق', false)
+            ->assertDontSee('id="reader"', false)
+            ->assertDontSee('Showing', false)
+            ->assertDontSee('min-w-[28rem]', false);
+
+        // Seed enough rows to paginate and assert Arabic pagination stays inside the custom view.
+        for ($i = 0; $i < 25; $i++) {
+            $this->register($program, ['name' => "مستفيد رقم {$i}"]);
+        }
+
+        $this->withCheckerSession($result['checker'], $program)
+            ->get(route('gate.portal', ['program' => $program->slug, 'tab' => 'manual']))
+            ->assertOk()
+            ->assertSee('التنقل بين الصفحات', false)
+            ->assertSee('التالي', false)
+            ->assertDontSee('Showing', false)
+            ->assertDontSee('results', false);
+
+        unset($response);
     }
 
     public function test_admin_filament_attendance_and_remote_session_unaffected(): void
