@@ -41,7 +41,10 @@ class PortalAttendanceCheckInController extends Controller
             'برنامج: «'.($trainingProgram->title ?? 'برنامج تدريبي').'»',
         );
 
-        return back()->with('attendance_success', 'تم تسجيل حضورك لهذا اليوم بنجاح.');
+        return back()->with(
+            'attendance_success',
+            'تم تسجيل حضورك الساعة '.ar_date(now()->timezone(config('app.timezone')), 'h:mm a').'.',
+        );
     }
 
     public function checkInPath(Request $request, LearningPath $learningPath): RedirectResponse
@@ -70,6 +73,9 @@ class PortalAttendanceCheckInController extends Controller
             'مسار: «'.($learningPath->title ?? 'مسار تدريبي').'»',
         );
 
-        return back()->with('attendance_success', 'تم تسجيل حضورك لهذا اليوم بنجاح.');
+        return back()->with(
+            'attendance_success',
+            'تم تسجيل حضورك الساعة '.ar_date(now()->timezone(config('app.timezone')), 'h:mm a').'.',
+        );
     }
 }

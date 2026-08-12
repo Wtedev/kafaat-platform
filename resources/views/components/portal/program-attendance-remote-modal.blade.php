@@ -40,7 +40,7 @@
                 @if ($initialActive) hidden @endif
             >
                 <p class="font-semibold text-[#335483]">التحضير عن بُعد</p>
-                <p class="mt-1">ستظهر خانة تسجيل التحضير هنا تلقائياً عند فتح جلسة الحضور من الإدارة.</p>
+                <p class="mt-1">بانتظار فتح جلسة التحضير.</p>
             </div>
         </div>
     </div>

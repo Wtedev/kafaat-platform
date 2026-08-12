@@ -141,6 +141,15 @@ Route::prefix('gate/{program:slug}')->name('gate.')->group(function () {
         Route::post('/registrations/{registration}/attendance', [GateAttendanceController::class, 'toggleAttendance'])
             ->middleware('throttle:60,1')
             ->name('attendance.toggle');
+        Route::get('/live-session', [GateAttendanceController::class, 'liveSessionStatus'])
+            ->middleware('throttle:120,1')
+            ->name('live-session.status');
+        Route::post('/live-session/start', [GateAttendanceController::class, 'startLiveSession'])
+            ->middleware('throttle:30,1')
+            ->name('live-session.start');
+        Route::post('/live-session/end', [GateAttendanceController::class, 'endLiveSession'])
+            ->middleware('throttle:30,1')
+            ->name('live-session.end');
         Route::post('/logout', [GateAttendanceController::class, 'logout'])->name('logout');
     });
 });

@@ -10,6 +10,7 @@ use App\Models\ProgramAttendanceChecker;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Services\AttendanceLiveSessionService;
 use App\Services\ProgramAttendanceCheckerAccessService;
 use App\Services\ProgramAttendanceService;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,6 +19,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class GateAttendanceController extends Controller
@@ -71,12 +73,14 @@ class GateAttendanceController extends Controller
         Request $request,
         TrainingProgram $program,
         ProgramAttendanceService $attendanceService,
+        AttendanceLiveSessionService $liveSessionService,
     ): View|Response {
         $this->assertGateAvailable($program);
 
         $today = Carbon::today(config('app.timezone'))->toDateString();
         $prepDay = $attendanceService->todayPrepDay($program);
         $isInPersonToday = $attendanceService->isTodayInPersonPrepDay($program);
+        $isRemoteToday = $attendanceService->isTodayRemotePrepDay($program);
         $isPrepDayToday = $prepDay !== null;
         $tab = $request->query('tab', $isInPersonToday ? 'qr' : 'manual');
         if (! in_array($tab, ['qr', 'manual'], true)) {
@@ -107,6 +111,7 @@ class GateAttendanceController extends Controller
             'prepDate' => $today,
             'prepDateLabel' => $prepDay?->displayLabel() ?? $today,
             'isInPersonToday' => $isInPersonToday,
+            'isRemoteToday' => $isRemoteToday,
             'isPrepDayToday' => $isPrepDayToday,
             'prepDay' => $prepDay,
             'dayTypeLabel' => $dayTypeLabel,
@@ -115,6 +120,10 @@ class GateAttendanceController extends Controller
             'tab' => $tab,
             'search' => $search,
             'registrations' => $registrations,
+            'liveSession' => $isRemoteToday
+                ? $liveSessionService->gateStatusPayload($program)
+                : null,
+            'liveSessionMinutes' => AttendanceLiveSessionService::SESSION_MINUTES,
         ];
 
         if ($tab === 'manual' && $request->boolean('partial')) {
@@ -124,6 +133,79 @@ class GateAttendanceController extends Controller
         }
 
         return view('gate.portal', $viewData);
+    }
+
+    public function liveSessionStatus(
+        Request $request,
+        TrainingProgram $program,
+        AttendanceLiveSessionService $liveSessionService,
+    ): JsonResponse {
+        $this->assertGateAvailable($program);
+
+        return response()->json($liveSessionService->gateStatusPayload($program));
+    }
+
+    public function startLiveSession(
+        Request $request,
+        TrainingProgram $program,
+        AttendanceLiveSessionService $liveSessionService,
+    ): JsonResponse {
+        $this->assertGateAvailable($program);
+
+        $opener = $this->resolveLiveSessionOpener($request);
+
+        try {
+            $before = $liveSessionService->activeSessionFor(
+                $program,
+                Carbon::today(config('app.timezone'))->toDateString(),
+            );
+            $session = $liveSessionService->startProgramRemoteSession($program, $opener);
+            $reused = $before !== null && $before->isActive() && $before->id === $session->id;
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'ok' => false,
+                'message' => collect($exception->errors())->flatten()->first() ?? 'تعذّر فتح الجلسة.',
+                'status' => $liveSessionService->gateStatusPayload($program),
+            ], 422);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'reused' => $reused,
+            'message' => $reused
+                ? 'جلسة التحضير مفتوحة بالفعل.'
+                : 'تم فتح جلسة التحضير.',
+            'status' => $liveSessionService->gateStatusPayload($program),
+        ]);
+    }
+
+    public function endLiveSession(
+        Request $request,
+        TrainingProgram $program,
+        AttendanceLiveSessionService $liveSessionService,
+    ): JsonResponse {
+        $this->assertGateAvailable($program);
+
+        $session = $liveSessionService->activeSessionFor(
+            $program,
+            Carbon::today(config('app.timezone'))->toDateString(),
+        );
+
+        if ($session === null) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'لا توجد جلسة مفتوحة حالياً.',
+                'status' => $liveSessionService->gateStatusPayload($program),
+            ]);
+        }
+
+        $liveSessionService->endSession($session);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'تم إنهاء جلسة التحضير.',
+            'status' => $liveSessionService->gateStatusPayload($program),
+        ]);
     }
 
     /** @deprecated Prefer portal; kept as alias for bookmarks/admin links. */
@@ -269,6 +351,25 @@ class GateAttendanceController extends Controller
 
         return redirect()->route('gate.login', ['program' => $program->slug])
             ->with('success', 'تم تسجيل الخروج من بوابة التحضير.');
+    }
+
+    private function resolveLiveSessionOpener(Request $request): User|ProgramAttendanceChecker
+    {
+        if ($request->attributes->get('gate_operator_type') === 'admin') {
+            $admin = $request->user();
+            if (! $admin instanceof User) {
+                abort(403);
+            }
+
+            return $admin;
+        }
+
+        $checker = $request->attributes->get('gate_checker');
+        if (! $checker instanceof ProgramAttendanceChecker) {
+            abort(403);
+        }
+
+        return $checker;
     }
 
     private function assertGateAvailable(TrainingProgram $program): void

@@ -45,6 +45,10 @@
             @endif
         </div>
 
+        @if ($isRemoteToday ?? false)
+            @include('gate.partials.live-session')
+        @endif
+
         <nav class="mt-5 flex gap-2 border-b border-gray-200 pb-px" aria-label="وسائل التحضير">
             @if ($isInPersonToday)
                 <a
@@ -432,6 +436,184 @@
         }
         await submitAttendance(btn, true);
     });
+    @endif
+
+    @if ($isRemoteToday ?? false)
+    (function initGateLiveSession() {
+        const root = document.querySelector('[data-gate-live-session]');
+        if (!root) return;
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        const statusUrl = root.dataset.statusUrl;
+        const startUrl = root.dataset.startUrl;
+        const endUrl = root.dataset.endUrl;
+        const openBtn = root.querySelector('[data-live-open]');
+        const openBadge = root.querySelector('[data-live-open-badge]');
+        const endBtn = root.querySelector('[data-live-end]');
+        const statusLabel = root.querySelector('[data-live-status-label]');
+        const countdownEl = root.querySelector('[data-live-countdown]');
+        const startedEl = root.querySelector('[data-live-started]');
+        const expiresEl = root.querySelector('[data-live-expires]');
+        const presentEl = root.querySelector('[data-live-present]');
+        const approvedEl = root.querySelector('[data-live-approved]');
+        const attendeesEl = root.querySelector('[data-live-attendees]');
+        const metaEl = root.querySelector('[data-live-meta]');
+        const openDialog = document.getElementById('gate-live-open-dialog');
+        const endDialog = document.getElementById('gate-live-end-dialog');
+        let expiresAtMs = null;
+        let tickTimer = null;
+        let pollTimer = null;
+        let busy = false;
+
+        function formatRemaining(totalSeconds) {
+            const remaining = Math.max(0, totalSeconds);
+            const minutes = Math.floor(remaining / 60);
+            const seconds = remaining % 60;
+            return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+        }
+
+        function confirmDialog(dialog) {
+            return new Promise((resolve) => {
+                if (!dialog || typeof dialog.showModal !== 'function') {
+                    resolve(window.confirm('هل تريد المتابعة؟'));
+                    return;
+                }
+                const onClose = () => {
+                    dialog.removeEventListener('close', onClose);
+                    resolve(dialog.returnValue === 'confirm');
+                };
+                dialog.addEventListener('close', onClose);
+                dialog.returnValue = 'cancel';
+                dialog.showModal();
+            });
+        }
+
+        function renderAttendees(rows) {
+            if (!attendeesEl) return;
+            if (!rows || rows.length === 0) {
+                attendeesEl.innerHTML = '<li class="text-xs text-gray-400" data-live-empty>لا يوجد مسجلون مقبولون.</li>';
+                return;
+            }
+            attendeesEl.innerHTML = rows.map((row) => {
+                const detail = row.present
+                    ? ('حاضر' + (row.marked_at ? ' — ' + row.marked_at : ''))
+                    : 'لم يُسجَّل';
+                const tone = row.present ? 'text-emerald-700' : 'text-gray-400';
+                return '<li class="flex items-center justify-between gap-3 rounded-lg bg-[#F7FAFC] px-3 py-2 text-xs">'
+                    + '<span class="min-w-0 truncate font-semibold text-gray-900"></span>'
+                    + '<span class="shrink-0 ' + tone + '"></span>'
+                    + '</li>';
+            }).join('');
+            Array.from(attendeesEl.children).forEach((li, index) => {
+                const row = rows[index];
+                li.children[0].textContent = row.name;
+                li.children[1].textContent = row.present
+                    ? ('حاضر' + (row.marked_at ? ' — ' + row.marked_at : ''))
+                    : 'لم يُسجَّل';
+            });
+        }
+
+        function applyStatus(status) {
+            if (!status) return;
+            const active = Boolean(status.active);
+            const ended = Boolean(status.ended);
+            if (statusLabel) {
+                statusLabel.textContent = active
+                    ? 'جلسة التحضير مفتوحة'
+                    : (ended ? 'انتهت جلسة التحضير' : 'بانتظار فتح جلسة التحضير');
+            }
+            if (openBtn) {
+                openBtn.hidden = active;
+                openBtn.disabled = !status.can_open || active || busy;
+            }
+            if (openBadge) openBadge.hidden = !active;
+            if (endBtn) endBtn.hidden = !active;
+            if (metaEl) metaEl.hidden = !(active || ended);
+            if (startedEl) startedEl.textContent = status.started_at || '—';
+            if (expiresEl) expiresEl.textContent = status.closed_at || status.expires_at || '—';
+            if (presentEl) presentEl.textContent = String(status.present_count ?? 0);
+            if (approvedEl) approvedEl.textContent = String(status.approved_count ?? 0);
+            renderAttendees(status.attendees || []);
+
+            if (active && status.expires_at_ms) {
+                expiresAtMs = status.expires_at_ms;
+                updateCountdown();
+                if (!tickTimer) tickTimer = window.setInterval(updateCountdown, 1000);
+            } else {
+                expiresAtMs = null;
+                if (countdownEl) countdownEl.textContent = '00:00';
+                if (tickTimer) {
+                    window.clearInterval(tickTimer);
+                    tickTimer = null;
+                }
+            }
+        }
+
+        function updateCountdown() {
+            if (!countdownEl || !expiresAtMs) return;
+            const remaining = Math.max(0, Math.floor((expiresAtMs - Date.now()) / 1000));
+            countdownEl.textContent = formatRemaining(remaining);
+            if (remaining <= 0) {
+                fetchStatus();
+            }
+        }
+
+        async function fetchStatus() {
+            try {
+                const response = await fetch(statusUrl, {
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                });
+                const data = await response.json();
+                applyStatus(data);
+            } catch (e) {}
+        }
+
+        async function postAction(url) {
+            if (busy) return;
+            busy = true;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrf,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                    body: '{}',
+                });
+                const data = await response.json().catch(() => ({}));
+                if (data.status) applyStatus(data.status);
+                else await fetchStatus();
+                if (data.message && typeof showFeedback === 'function') {
+                    showFeedback(Boolean(data.ok), '', data.message, false);
+                }
+            } catch (e) {
+                if (typeof showFeedback === 'function') {
+                    showFeedback(false, '', 'تعذّر الاتصال. حاول مرة أخرى.', false);
+                }
+            } finally {
+                busy = false;
+            }
+        }
+
+        openBtn?.addEventListener('click', async () => {
+            if (openBtn.disabled) return;
+            const ok = await confirmDialog(openDialog);
+            if (!ok) return;
+            await postAction(startUrl);
+        });
+
+        endBtn?.addEventListener('click', async () => {
+            const ok = await confirmDialog(endDialog);
+            if (!ok) return;
+            await postAction(endUrl);
+        });
+
+        fetchStatus();
+        pollTimer = window.setInterval(fetchStatus, 3000);
+    })();
     @endif
 })();
 </script>
