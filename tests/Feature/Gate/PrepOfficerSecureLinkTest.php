@@ -270,7 +270,7 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->assertJsonPath('reason', 'invalid_day');
     }
 
-    public function test_qr_only_on_in_person_day_and_hidden_on_remote(): void
+    public function test_qr_tab_always_visible_scanner_only_on_in_person(): void
     {
         [$program] = $this->programWithAdmin();
         $this->addPrepDay($program, '2026-08-03', ProgramPrepDayType::InPerson);
@@ -287,7 +287,9 @@ class PrepOfficerSecureLinkTest extends TestCase
         $this->withCheckerSession($result['checker'], $program)
             ->get(route('gate.portal', ['program' => $program->slug, 'tab' => 'qr']))
             ->assertOk()
-            ->assertSee('مسح QR', false)
+            ->assertSee('تحضير QR', false)
+            ->assertSee('التحضير اليدوي', false)
+            ->assertSee('id="reader"', false)
             ->assertDontSee('KAFAAT-P', false);
 
         $this->withCheckerSession($result['checker'], $program)
@@ -309,21 +311,44 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->assertOk()
             ->assertJsonPath('reason', 'already_present');
 
-        // Remote day — QR hidden + rejected
+        // Remote day — QR tab stays visible with empty state; scanner/API still blocked
         ProgramPrepDay::query()->where('training_program_id', $program->id)->delete();
         $this->addPrepDay($program, '2026-08-03', ProgramPrepDayType::Remote);
 
         $this->withCheckerSession($result['checker'], $program)
             ->get(route('gate.portal', ['program' => $program->slug, 'tab' => 'qr']))
             ->assertOk()
-            ->assertDontSee('id="reader"', false)
-            ->assertSee('التحضير اليدوي', false);
+            ->assertSee('تحضير QR', false)
+            ->assertSee('التحضير اليدوي', false)
+            ->assertSee('تحضير QR غير متاح اليوم', false)
+            ->assertSee('مسح QR مخصّص لأيام الحضور الحضوري فقط', false)
+            ->assertDontSee('id="reader"', false);
 
         ProgramAttendance::query()->delete();
         $this->withCheckerSession($result['checker'], $program)
             ->postJson(route('gate.scan.store', $program->slug), ['pass' => $pass])
             ->assertStatus(422)
             ->assertJsonPath('reason', 'not_in_person');
+    }
+
+    public function test_manual_tab_renders_attendance_table(): void
+    {
+        [$program] = $this->programWithAdmin();
+        $this->addPrepDay($program, '2026-08-03', ProgramPrepDayType::Remote);
+        $result = app(ProgramAttendanceCheckerAccessService::class)->create($program, 'محضّر جدول');
+        $this->register($program, ['name' => 'مستفيد الجدول']);
+
+        $this->withCheckerSession($result['checker'], $program)
+            ->get(route('gate.portal', ['program' => $program->slug, 'tab' => 'manual']))
+            ->assertOk()
+            ->assertSee('تحضير QR', false)
+            ->assertSee('التحضير اليدوي', false)
+            ->assertSee('>الاسم<', false)
+            ->assertSee('>الحالة<', false)
+            ->assertSee('>الإجراء<', false)
+            ->assertSee('id="manual-list"', false)
+            ->assertSee('مستفيد الجدول', false)
+            ->assertDontSee('id="reader"', false);
     }
 
     public function test_admin_filament_attendance_and_remote_session_unaffected(): void
