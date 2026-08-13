@@ -172,7 +172,7 @@ class ProgramDailyAttendanceServiceTest extends TestCase
         $this->assertContains(AttendanceStatus::Absent, AttendanceStatus::cases());
     }
 
-    public function test_qr_uses_server_today_only_and_rejects_forged_date(): void
+    public function test_qr_accepts_whitelisted_prep_date_and_rejects_non_prep(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-08-03 10:00:00', 'Asia/Riyadh'));
         $program = $this->makeProgram();
@@ -188,14 +188,14 @@ class ProgramDailyAttendanceServiceTest extends TestCase
         $this->assertTrue(
             ProgramAttendance::query()
                 ->where('program_registration_id', $registration->id)
-                ->whereDate('training_date', '2026-08-03')
+                ->whereDate('training_date', '2026-08-04')
                 ->where('status', AttendanceStatus::Present->value)
                 ->exists()
         );
         $this->assertFalse(
             ProgramAttendance::query()
                 ->where('program_registration_id', $registration->id)
-                ->whereDate('training_date', '2026-08-04')
+                ->whereDate('training_date', '2026-08-03')
                 ->exists()
         );
         $this->assertTrue(
@@ -203,6 +203,10 @@ class ProgramDailyAttendanceServiceTest extends TestCase
                 ->get()
                 ->contains(fn (AuditLog $log): bool => ($log->metadata['source'] ?? null) === 'qr')
         );
+
+        $forged = $service->markPresentFromPass($program, $pass, prepDate: '2099-01-01');
+        $this->assertFalse($forged['ok']);
+        $this->assertSame('invalid_day', $forged['reason']);
 
         Carbon::setTestNow(Carbon::parse('2026-08-10 10:00:00', 'Asia/Riyadh'));
         $this->addDay($program, '2026-08-10', ProgramPrepDayType::Remote);

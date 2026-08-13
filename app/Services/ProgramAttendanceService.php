@@ -346,7 +346,8 @@ class ProgramAttendanceService
     }
 
     /**
-     * Checker portal: present/absent toggle for server TODAY only.
+     * Checker portal: present/absent toggle for a whitelisted program prep day.
+     * Null date defaults to server today; non-prep dates are rejected.
      *
      * @return array{ok: bool, reason: string, message: string, present: bool, beneficiary_name: ?string}
      */
@@ -355,11 +356,8 @@ class ProgramAttendanceService
         ProgramRegistration $registration,
         bool $present,
         ProgramAttendanceChecker $checker,
-        ?string $forgedDate = null,
+        ?string $requestedDate = null,
     ): array {
-        // Client-supplied dates are intentionally ignored.
-        unset($forgedDate);
-
         if ((int) $registration->training_program_id !== (int) $program->id) {
             return [
                 'ok' => false,
@@ -383,13 +381,13 @@ class ProgramAttendanceService
             ];
         }
 
-        $date = Carbon::today(config('app.timezone'))->toDateString();
+        $date = $requestedDate ?: Carbon::today(config('app.timezone'))->toDateString();
 
         if (! $this->isValidAttendancePrepDate($program, $date)) {
             return [
                 'ok' => false,
                 'reason' => 'invalid_day',
-                'message' => 'اليوم ليس من أيام البرنامج، ولا يتوفر تحضير اليوم.',
+                'message' => 'اليوم المحدد ليس من أيام البرنامج، ولا يتوفر تحضير.',
                 'present' => false,
                 'beneficiary_name' => null,
             ];
@@ -570,8 +568,8 @@ class ProgramAttendanceService
     }
 
     /**
-     * Mark attendance Present from a scanned/typed KAFAAT pass for TODAY (server TZ) only.
-     * Ignores any client-supplied date — forged dates are rejected by never being read.
+     * Mark attendance Present from a scanned/typed KAFAAT pass for a whitelisted prep day.
+     * Null prepDate defaults to server today; non-prep dates are rejected.
      *
      * @return array{
      *     ok: bool,
@@ -588,9 +586,6 @@ class ProgramAttendanceService
         ?User $admin = null,
         ?string $prepDate = null,
     ): array {
-        // Client-supplied $prepDate is intentionally ignored (forged-date protection).
-        unset($prepDate);
-
         $parsed = $this->parsePassPayload($rawPass);
 
         if ($parsed === null) {
@@ -601,14 +596,14 @@ class ProgramAttendanceService
             return $this->gateResult(false, 'wrong_program', 'هذا المرور لا يخص هذا البرنامج.', null, null);
         }
 
-        $date = Carbon::today(config('app.timezone'))->toDateString();
+        $date = $prepDate ?: Carbon::today(config('app.timezone'))->toDateString();
         $prepDay = $this->prepDayForDate($program, $date);
 
         if ($prepDay === null) {
             return $this->gateResult(
                 false,
                 'invalid_day',
-                'اليوم ليس من أيام البرنامج. لا يمكن تسجيل الحضور عبر QR.',
+                'اليوم المحدد ليس من أيام البرنامج. لا يمكن تسجيل الحضور عبر QR.',
                 null,
                 null,
             );
