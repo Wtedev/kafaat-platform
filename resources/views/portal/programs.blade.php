@@ -76,8 +76,8 @@ $statusLabels = [
                 ? TrainingProgramExtrasSupport::whatsappGroupUrlFor($program, auth()->user())
                 : null;
             $timingLabel = $program?->portalTimingLabel();
-            $programShowUrl = ($program && filled($program->slug))
-                ? route('public.programs.show', $program)
+            $programShowUrl = $program
+                ? route('portal.programs.show', $program)
                 : null;
             $isInPersonToday = ($reg->today_prep_type ?? null) === \App\Enums\ProgramPrepDayType::InPerson;
             $isRemoteToday = ($reg->today_prep_type ?? null) === \App\Enums\ProgramPrepDayType::Remote;
