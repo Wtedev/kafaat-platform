@@ -77,46 +77,58 @@ class GateAttendanceController extends Controller
     ): View|Response {
         $this->assertGateAvailable($program);
 
-        $today = Carbon::today(config('app.timezone'))->toDateString();
-        $prepDay = $attendanceService->todayPrepDay($program);
-        $isInPersonToday = $attendanceService->isTodayInPersonPrepDay($program);
-        $isRemoteToday = $attendanceService->isTodayRemotePrepDay($program);
-        $isPrepDayToday = $prepDay !== null;
-        $defaultTab = $isInPersonToday ? 'qr' : ($isRemoteToday ? 'session' : 'manual');
+        $calendarToday = Carbon::today(config('app.timezone'))->toDateString();
+        $prepDateOptions = $this->gatePrepDateOptions($attendanceService, $program);
+        $prepDate = $this->resolveSelectedPrepDate($request, $program, $attendanceService);
+        $prepDay = $prepDate !== null
+            ? $attendanceService->prepDayForDate($program, $prepDate)
+            : null;
+        $isInPersonDay = $prepDay?->delivery_type === ProgramPrepDayType::InPerson;
+        $isRemoteDay = $prepDay?->delivery_type === ProgramPrepDayType::Remote;
+        $isPrepDay = $prepDay !== null;
+        // Live sessions are real-time; only available when the selected day is calendar today.
+        $canOpenLiveSession = $isRemoteDay && $prepDate === $calendarToday;
+        $defaultTab = $isInPersonDay ? 'qr' : ($canOpenLiveSession ? 'session' : 'manual');
         $tab = $request->query('tab', $defaultTab);
         if (! in_array($tab, ['qr', 'manual', 'session'], true)) {
             $tab = $defaultTab;
         }
-        if ($tab === 'qr' && ! $isInPersonToday) {
-            $tab = $isRemoteToday ? 'session' : 'manual';
+        if ($tab === 'qr' && ! $isInPersonDay) {
+            $tab = $canOpenLiveSession ? 'session' : 'manual';
         }
-        if ($tab === 'session' && ! $isRemoteToday) {
-            $tab = $isInPersonToday ? 'qr' : 'manual';
+        if ($tab === 'session' && ! $canOpenLiveSession) {
+            $tab = $isInPersonDay ? 'qr' : 'manual';
         }
 
         $search = trim((string) $request->query('q', ''));
         $registrations = null;
 
         if ($tab === 'manual') {
-            $registrations = $this->eligibleRegistrationsQuery($program, $search, $today)
+            $registrations = $this->eligibleRegistrationsQuery(
+                $program,
+                $search,
+                $prepDate ?? $calendarToday,
+            )
                 ->paginate(20)
                 ->onEachSide(1)
                 ->withQueryString();
         }
 
         $dayTypeLabel = match (true) {
-            $prepDay?->delivery_type === ProgramPrepDayType::InPerson => 'حضوري',
-            $prepDay?->delivery_type === ProgramPrepDayType::Remote => 'عن بُعد',
+            $isInPersonDay => 'حضوري',
+            $isRemoteDay => 'عن بُعد',
             default => null,
         };
 
         $viewData = [
             'program' => $program,
-            'prepDate' => $today,
-            'prepDateLabel' => $prepDay?->displayLabel() ?? $today,
-            'isInPersonToday' => $isInPersonToday,
-            'isRemoteToday' => $isRemoteToday,
-            'isPrepDayToday' => $isPrepDayToday,
+            'prepDate' => $prepDate,
+            'prepDateLabel' => $prepDay?->displayLabel() ?? $prepDate,
+            'prepDateOptions' => $prepDateOptions,
+            'calendarToday' => $calendarToday,
+            'isInPersonToday' => $isInPersonDay,
+            'isRemoteToday' => $canOpenLiveSession,
+            'isPrepDayToday' => $isPrepDay,
             'prepDay' => $prepDay,
             'dayTypeLabel' => $dayTypeLabel,
             'operatorName' => (string) $request->attributes->get('gate_operator_name', 'مسؤول التحضير'),
@@ -124,7 +136,7 @@ class GateAttendanceController extends Controller
             'tab' => $tab,
             'search' => $search,
             'registrations' => $registrations,
-            'liveSession' => $tab === 'session' && $isRemoteToday
+            'liveSession' => $tab === 'session' && $canOpenLiveSession
                 ? $liveSessionService->gateStatusPayload($program)
                 : null,
             'liveSessionMinutes' => AttendanceLiveSessionService::SESSION_MINUTES,
@@ -232,6 +244,7 @@ class GateAttendanceController extends Controller
 
         $data = $request->validate([
             'pass' => ['required', 'string', 'max:500'],
+            'date' => ['sometimes', 'nullable', 'date'],
         ], [
             'pass.required' => 'امسح رمز المرور.',
         ]);
@@ -247,6 +260,7 @@ class GateAttendanceController extends Controller
             $data['pass'],
             $checker instanceof ProgramAttendanceChecker ? $checker : null,
             $admin instanceof User ? $admin : null,
+            $data['date'] ?? null,
         );
 
         if ($request->expectsJson() || $request->ajax()) {
@@ -281,27 +295,31 @@ class GateAttendanceController extends Controller
 
         $data = $request->validate([
             'present' => ['required', 'boolean'],
-            'date' => ['sometimes', 'nullable', 'date'], // ignored — forged-date protection
+            'date' => ['sometimes', 'nullable', 'date'],
         ]);
 
         /** @var ProgramAttendanceChecker|null $checker */
         $checker = $request->attributes->get('gate_checker');
-        $today = Carbon::today(config('app.timezone'))->toDateString();
+        $date = $this->resolveMutationPrepDate(
+            $program,
+            $attendanceService,
+            isset($data['date']) ? (string) $data['date'] : null,
+        );
+
+        if ($date === null) {
+            return response()->json([
+                'ok' => false,
+                'reason' => 'invalid_day',
+                'message' => 'اليوم المحدد ليس من أيام البرنامج، ولا يتوفر تحضير.',
+                'present' => false,
+                'beneficiary_name' => null,
+            ], 422);
+        }
 
         if ($request->attributes->get('gate_operator_type') === 'admin') {
             $admin = $request->user();
             if (! $admin instanceof User) {
                 abort(403);
-            }
-
-            if (! $attendanceService->isValidAttendancePrepDate($program, $today)) {
-                return response()->json([
-                    'ok' => false,
-                    'reason' => 'invalid_day',
-                    'message' => 'اليوم ليس من أيام البرنامج، ولا يتوفر تحضير اليوم.',
-                    'present' => false,
-                    'beneficiary_name' => null,
-                ], 422);
             }
 
             $registration->loadMissing('user');
@@ -310,7 +328,7 @@ class GateAttendanceController extends Controller
 
             $attendanceService->setPresentState(
                 $registration,
-                $today,
+                $date,
                 (bool) $data['present'],
                 $admin,
             );
@@ -333,7 +351,7 @@ class GateAttendanceController extends Controller
             $registration,
             (bool) $data['present'],
             $checker,
-            $data['date'] ?? null,
+            $date,
         );
 
         return response()->json([
@@ -374,6 +392,70 @@ class GateAttendanceController extends Controller
         }
 
         return $checker;
+    }
+
+    /**
+     * @return array<string, string> date => label
+     */
+    private function gatePrepDateOptions(
+        ProgramAttendanceService $attendanceService,
+        TrainingProgram $program,
+    ): array {
+        $options = [];
+
+        foreach ($attendanceService->attendancePrepDays($program) as $day) {
+            $typeLabel = match ($day->delivery_type) {
+                ProgramPrepDayType::InPerson => 'حضوري',
+                ProgramPrepDayType::Remote => 'عن بُعد',
+                default => null,
+            };
+
+            $label = $day->displayLabel();
+            if ($typeLabel !== null) {
+                $label .= ' — '.$typeLabel;
+            }
+
+            $options[$day->dateString()] = $label;
+        }
+
+        return $options;
+    }
+
+    /**
+     * Accept only whitelisted program prep days. Invalid/forged dates fall back to default.
+     */
+    private function resolveSelectedPrepDate(
+        Request $request,
+        TrainingProgram $program,
+        ProgramAttendanceService $attendanceService,
+    ): ?string {
+        $requested = $request->query('date');
+        if (is_string($requested) && $attendanceService->isValidAttendancePrepDate($program, $requested)) {
+            return $requested;
+        }
+
+        return $attendanceService->defaultPrepDate($program);
+    }
+
+    /**
+     * Mutation date: explicit valid prep day, else today if today is a prep day, else null.
+     */
+    private function resolveMutationPrepDate(
+        TrainingProgram $program,
+        ProgramAttendanceService $attendanceService,
+        ?string $requested,
+    ): ?string {
+        if (is_string($requested) && $requested !== '') {
+            return $attendanceService->isValidAttendancePrepDate($program, $requested)
+                ? $requested
+                : null;
+        }
+
+        $today = Carbon::today(config('app.timezone'))->toDateString();
+
+        return $attendanceService->isValidAttendancePrepDate($program, $today)
+            ? $today
+            : null;
     }
 
     private function assertGateAvailable(TrainingProgram $program): void

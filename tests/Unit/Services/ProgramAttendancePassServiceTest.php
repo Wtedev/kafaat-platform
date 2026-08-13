@@ -100,8 +100,12 @@ class ProgramAttendancePassServiceTest extends TestCase
         ]);
 
         $second = $service->markPresentFromPass($program, $pass, $checker, prepDate: '2099-01-01');
-        $this->assertTrue($second['ok']);
-        $this->assertSame('already_present', $second['reason']);
+        $this->assertFalse($second['ok']);
+        $this->assertSame('invalid_day', $second['reason']);
+
+        $duplicate = $service->markPresentFromPass($program, $pass, $checker);
+        $this->assertTrue($duplicate['ok']);
+        $this->assertSame('already_present', $duplicate['reason']);
 
         $this->assertSame(1, ProgramAttendance::query()->where('program_registration_id', $registration->id)->count());
     }

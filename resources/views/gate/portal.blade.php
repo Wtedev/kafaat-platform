@@ -31,16 +31,37 @@
         </div>
 
         <div class="mt-4 rounded-2xl border border-[#d7e2ef] bg-[#f5f8fc] px-3 py-3 sm:px-4">
-            <p class="text-xs text-gray-500">اليوم حسب توقيت الرياض</p>
-            <p class="mt-0.5 text-sm font-bold text-[#335483]">{{ $prepDateLabel }}</p>
-            <p class="mt-0.5 text-xs font-mono text-gray-500">{{ $prepDate }}</p>
-            @if ($dayTypeLabel)
-                <p class="mt-2 text-xs font-medium {{ $isInPersonToday ? 'text-emerald-700' : 'text-sky-700' }}">
-                    نوع اليوم: {{ $dayTypeLabel }}
-                </p>
+            @if ($prepDateOptions !== [])
+                <form method="GET" action="{{ route('gate.portal', ['program' => $program->slug]) }}" class="space-y-2">
+                    @if ($tab)
+                        <input type="hidden" name="tab" value="{{ $tab }}" />
+                    @endif
+                    @if ($search !== '')
+                        <input type="hidden" name="q" value="{{ $search }}" />
+                    @endif
+                    <label for="prep-date" class="block text-xs font-medium text-gray-600">اختيار يوم التحضير</label>
+                    <select
+                        id="prep-date"
+                        name="date"
+                        onchange="this.form.submit()"
+                        class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm font-semibold text-[#335483] focus:outline-none focus:ring-2 focus:ring-brand/25"
+                    >
+                        @foreach ($prepDateOptions as $optionDate => $optionLabel)
+                            <option value="{{ $optionDate }}" @selected($optionDate === $prepDate)>
+                                {{ $optionLabel }}@if ($optionDate === $calendarToday) (اليوم)@endif
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
+                @if ($dayTypeLabel)
+                    <p class="mt-2 text-xs font-medium {{ $isInPersonToday ? 'text-emerald-700' : 'text-sky-700' }}">
+                        نوع اليوم: {{ $dayTypeLabel }}
+                        <span class="font-mono text-gray-400">· {{ $prepDate }}</span>
+                    </p>
+                @endif
             @else
-                <p class="mt-2 text-xs font-medium text-amber-700">
-                    اليوم ليس من أيام البرنامج، ولا يتوفر تحضير اليوم.
+                <p class="text-xs font-medium text-amber-700">
+                    لا توجد أيام تحضير معرفة لهذا البرنامج.
                 </p>
             @endif
         </div>
@@ -48,7 +69,7 @@
         <nav class="mt-5 flex gap-2 border-b border-gray-200 pb-px" aria-label="وسائل التحضير">
             @if ($isRemoteToday ?? false)
                 <a
-                    href="{{ route('gate.portal', ['program' => $program->slug, 'tab' => 'session']) }}"
+                    href="{{ route('gate.portal', ['program' => $program->slug, 'tab' => 'session', 'date' => $prepDate]) }}"
                     class="px-3 py-2 text-sm font-semibold rounded-t-lg {{ $tab === 'session' ? 'text-[#335483] border-b-2 border-[#335483]' : 'text-gray-500 hover:text-gray-800' }}"
                 >
                     جلسة التحضير
@@ -56,14 +77,14 @@
             @endif
             @if ($isInPersonToday)
                 <a
-                    href="{{ route('gate.portal', ['program' => $program->slug, 'tab' => 'qr']) }}"
+                    href="{{ route('gate.portal', ['program' => $program->slug, 'tab' => 'qr', 'date' => $prepDate]) }}"
                     class="px-3 py-2 text-sm font-semibold rounded-t-lg {{ $tab === 'qr' ? 'text-[#335483] border-b-2 border-[#335483]' : 'text-gray-500 hover:text-gray-800' }}"
                 >
                     مسح QR
                 </a>
             @endif
             <a
-                href="{{ route('gate.portal', ['program' => $program->slug, 'tab' => 'manual', 'q' => $search ?: null]) }}"
+                href="{{ route('gate.portal', ['program' => $program->slug, 'tab' => 'manual', 'date' => $prepDate, 'q' => $search ?: null]) }}"
                 class="px-3 py-2 text-sm font-semibold rounded-t-lg {{ $tab === 'manual' ? 'text-[#335483] border-b-2 border-[#335483]' : 'text-gray-500 hover:text-gray-800' }}"
             >
                 التحضير اليدوي
@@ -101,7 +122,7 @@
         @elseif ($tab === 'manual')
             @if (! $isPrepDayToday)
                 <div class="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
-                    اليوم ليس من أيام البرنامج، ولا يتوفر تحضير اليوم.
+                    لا يتوفر تحضير لليوم المحدد. اختَر يوماً من أيام البرنامج.
                 </div>
             @else
                 <div class="mt-5">
@@ -173,6 +194,7 @@
     const feedbackName = document.getElementById('gate-feedback-name');
     const feedbackMessage = document.getElementById('gate-feedback-message');
     const programSlug = @json($program->slug);
+    const prepDate = @json($prepDate);
     let busy = false;
 
     function showFeedback(ok, name, message, already) {
@@ -217,7 +239,7 @@
                     'X-CSRF-TOKEN': csrf,
                     'X-Requested-With': 'XMLHttpRequest',
                 },
-                body: JSON.stringify({ pass }),
+                body: JSON.stringify({ pass, date: prepDate }),
             });
             const data = await response.json().catch(() => ({}));
             const ok = Boolean(data.ok);
@@ -342,7 +364,7 @@
                     'X-CSRF-TOKEN': csrf,
                     'X-Requested-With': 'XMLHttpRequest',
                 },
-                body: JSON.stringify({ present }),
+                body: JSON.stringify({ present, date: prepDate }),
             });
             const data = await response.json().catch(() => ({}));
             if (!data.ok) {
@@ -369,6 +391,9 @@
         const url = new URL(searchBase, window.location.origin);
         url.searchParams.set('tab', 'manual');
         url.searchParams.set('partial', '1');
+        if (prepDate) {
+            url.searchParams.set('date', prepDate);
+        }
         if (query) {
             url.searchParams.set('q', query);
         }
@@ -393,6 +418,9 @@
             }
             const publicUrl = new URL(window.location.href);
             publicUrl.searchParams.set('tab', 'manual');
+            if (prepDate) {
+                publicUrl.searchParams.set('date', prepDate);
+            }
             if (query) {
                 publicUrl.searchParams.set('q', query);
             } else {

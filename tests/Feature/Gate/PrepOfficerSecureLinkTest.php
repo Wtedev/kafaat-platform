@@ -216,10 +216,11 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->assertDontSee('نورة سعد فهد القحطاني', false);
     }
 
-    public function test_manual_toggle_today_only_and_rejects_forged_date_and_non_prep_day(): void
+    public function test_manual_toggle_accepts_valid_prep_date_and_rejects_forged_and_non_prep_day(): void
     {
         [$program] = $this->programWithAdmin();
         $this->addPrepDay($program, '2026-08-03');
+        $this->addPrepDay($program, '2026-08-04');
         $result = app(ProgramAttendanceCheckerAccessService::class)->create($program, 'محضّر');
         $registration = $this->register($program, ['name' => 'مستفيد']);
 
@@ -240,7 +241,7 @@ class PrepOfficerSecureLinkTest extends TestCase
         $this->assertTrue(
             ProgramAttendance::query()
                 ->where('program_registration_id', $registration->id)
-                ->whereDate('training_date', '2026-08-03')
+                ->whereDate('training_date', '2026-08-04')
                 ->exists()
         );
 
@@ -255,11 +256,25 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->postJson(route('gate.attendance.toggle', [
                 'program' => $program->slug,
                 'registration' => $registration->id,
-            ]), ['present' => false])
+            ]), [
+                'present' => false,
+                'date' => '2026-08-04',
+            ])
             ->assertOk()
             ->assertJsonPath('present', false);
 
         $this->assertSame(0, ProgramAttendance::query()->where('program_registration_id', $registration->id)->count());
+
+        $this->withCheckerSession($result['checker'], $program)
+            ->postJson(route('gate.attendance.toggle', [
+                'program' => $program->slug,
+                'registration' => $registration->id,
+            ]), [
+                'present' => true,
+                'date' => '2099-01-01',
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('reason', 'invalid_day');
 
         Carbon::setTestNow(Carbon::parse('2026-08-09 10:00:00', 'Asia/Riyadh'));
         $this->withCheckerSession($result['checker'], $program)
