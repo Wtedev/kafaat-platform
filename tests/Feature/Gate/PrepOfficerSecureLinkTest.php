@@ -463,6 +463,8 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->assertSee('>حاضر</button>', false)
             ->assertSee('إلغاء الحضور', false)
             ->assertSee('نعم، ألغِ الحضور', false)
+            ->assertSee('id="prep-unmark-dialog"', false)
+            ->assertSee('fixed inset-0 z-50 m-auto h-fit', false)
             ->assertDontSee('مسجّل حاضر مسبقاً.', false)
             ->assertDontSee('data-present="0"', false);
 

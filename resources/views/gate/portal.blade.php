@@ -158,7 +158,7 @@
 @if ($tab === 'manual' && $isPrepDayToday)
 <dialog
     id="prep-unmark-dialog"
-    class="w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-gray-200 bg-white p-5 shadow-xl backdrop:bg-slate-900/40"
+    class="fixed inset-0 z-50 m-auto h-fit w-[min(22rem,calc(100vw-2rem))] max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl border border-gray-200 bg-white p-5 shadow-xl backdrop:bg-slate-900/40"
 >
     <form method="dialog" class="space-y-4 text-right">
         <div>
