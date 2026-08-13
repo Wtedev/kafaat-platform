@@ -14,6 +14,7 @@ use App\Services\AttendanceLiveSessionService;
 use App\Services\ProgramAttendanceService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
@@ -267,13 +268,76 @@ class ProgramAttendanceRegistrationsRelationManager extends RelationManager
                         return $service->isPresentOnDate($record, $selectedDate) ? 'success' : 'gray';
                     }),
 
+                TextColumn::make('internal_notes')
+                    ->label('ملاحظة داخلية')
+                    ->placeholder('—')
+                    ->wrap()
+                    ->limit(40)
+                    ->getStateUsing(function (ProgramRegistration $record) use ($selectedDate): ?string {
+                        if ($selectedDate === null) {
+                            return null;
+                        }
+
+                        $row = $record->attendanceRecords
+                            ->first(fn ($attendance): bool => $attendance->training_date?->toDateString() === $selectedDate
+                                || (string) $attendance->training_date === $selectedDate);
+
+                        $note = trim((string) ($row?->internal_notes ?? ''));
+
+                        return $note !== '' ? $note : null;
+                    })
+                    ->tooltip('لا يراها المستفيد'),
+
                 TextColumn::make('attendance_days')
                     ->label('أيام الحضور')
                     ->getStateUsing(fn (ProgramRegistration $record): string => RegistrationFilamentTableSupport::programAttendanceSummary($record)),
 
                 RegistrationFilamentTableSupport::attendancePercentageColumn(),
             ])
-            ->actions([])
+            ->actions([
+                Action::make('editInternalNote')
+                    ->label('ملاحظة')
+                    ->icon('heroicon-o-pencil-square')
+                    ->visible(fn (ProgramRegistration $record): bool => $selectedDate !== null
+                        && $service->isPresentOnDate($record, $selectedDate)
+                        && (auth()->user()?->can('update', $program) ?? false))
+                    ->fillForm(function (ProgramRegistration $record) use ($selectedDate): array {
+                        $row = $record->attendanceRecords
+                            ->first(fn ($attendance): bool => $attendance->training_date?->toDateString() === $selectedDate
+                                || (string) $attendance->training_date === $selectedDate);
+
+                        return [
+                            'internal_notes' => (string) ($row?->internal_notes ?? ''),
+                        ];
+                    })
+                    ->form([
+                        Textarea::make('internal_notes')
+                            ->label('ملاحظة داخلية')
+                            ->helperText('لا يراها المستفيد.')
+                            ->rows(3)
+                            ->maxLength(1000),
+                    ])
+                    ->action(function (ProgramRegistration $record, array $data) use ($service, $selectedDate): void {
+                        if ($selectedDate === null) {
+                            return;
+                        }
+
+                        $note = trim((string) ($data['internal_notes'] ?? ''));
+                        $service->setPresentState(
+                            $record,
+                            $selectedDate,
+                            true,
+                            Auth::user(),
+                            $note !== '' ? $note : null,
+                            true,
+                        );
+
+                        Notification::make()
+                            ->title('تم حفظ الملاحظة الداخلية')
+                            ->success()
+                            ->send();
+                    }),
+            ])
             ->bulkActions([]);
     }
 

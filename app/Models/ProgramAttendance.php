@@ -17,7 +17,13 @@ class ProgramAttendance extends Model
         'training_date',
         'status',
         'notes',
+        'internal_notes',
     ];
+
+    public function hasInternalNote(): bool
+    {
+        return filled(trim((string) $this->internal_notes));
+    }
 
     protected function casts(): array
     {

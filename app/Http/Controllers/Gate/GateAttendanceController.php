@@ -296,7 +296,16 @@ class GateAttendanceController extends Controller
         $data = $request->validate([
             'present' => ['required', 'boolean'],
             'date' => ['sometimes', 'nullable', 'date'],
+            'internal_notes' => ['sometimes', 'nullable', 'string', 'max:1000'],
         ]);
+
+        $touchInternalNotes = array_key_exists('internal_notes', $data);
+        $internalNotes = $touchInternalNotes
+            ? trim((string) ($data['internal_notes'] ?? ''))
+            : null;
+        if ($touchInternalNotes && $internalNotes === '') {
+            $internalNotes = null;
+        }
 
         /** @var ProgramAttendanceChecker|null $checker */
         $checker = $request->attributes->get('gate_checker');
@@ -313,6 +322,8 @@ class GateAttendanceController extends Controller
                 'message' => 'اليوم المحدد ليس من أيام البرنامج، ولا يتوفر تحضير.',
                 'present' => false,
                 'beneficiary_name' => null,
+                'has_internal_note' => false,
+                'internal_note' => null,
             ], 422);
         }
 
@@ -331,7 +342,19 @@ class GateAttendanceController extends Controller
                 $date,
                 (bool) $data['present'],
                 $admin,
+                $internalNotes,
+                $touchInternalNotes && (bool) $data['present'],
             );
+
+            $note = null;
+            if ((bool) $data['present']) {
+                $row = $registration->attendanceRecords()
+                    ->whereDate('training_date', $date)
+                    ->first();
+                $note = filled(trim((string) ($row?->internal_notes ?? '')))
+                    ? trim((string) $row->internal_notes)
+                    : null;
+            }
 
             return response()->json([
                 'ok' => true,
@@ -339,6 +362,8 @@ class GateAttendanceController extends Controller
                 'message' => $data['present'] ? 'تم تسجيل الحضور.' : 'تم إلغاء الحضور.',
                 'present' => (bool) $data['present'],
                 'beneficiary_name' => $beneficiaryName,
+                'has_internal_note' => $note !== null,
+                'internal_note' => $note,
             ]);
         }
 
@@ -352,6 +377,8 @@ class GateAttendanceController extends Controller
             (bool) $data['present'],
             $checker,
             $date,
+            $internalNotes,
+            $touchInternalNotes && (bool) $data['present'],
         );
 
         return response()->json([
@@ -360,6 +387,8 @@ class GateAttendanceController extends Controller
             'message' => $result['message'],
             'present' => $result['present'],
             'beneficiary_name' => $result['beneficiary_name'],
+            'has_internal_note' => $result['has_internal_note'] ?? false,
+            'internal_note' => $result['internal_note'] ?? null,
         ], $result['ok'] ? 200 : 422);
     }
 

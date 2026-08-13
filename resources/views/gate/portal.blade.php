@@ -158,7 +158,7 @@
 @if ($tab === 'manual' && $isPrepDayToday)
 <dialog
     id="prep-unmark-dialog"
-    class="w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-gray-200 bg-white p-5 shadow-xl backdrop:bg-slate-900/40"
+    class="fixed inset-0 m-auto h-fit w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-gray-200 bg-white p-5 shadow-xl backdrop:bg-slate-900/40"
 >
     <form method="dialog" class="space-y-4 text-right">
         <div>
@@ -179,6 +179,44 @@
                 class="rounded-xl border border-red-600 bg-red-600 px-3.5 py-2 text-xs font-semibold text-white hover:opacity-95"
             >
                 نعم، ألغِ الحضور
+            </button>
+        </div>
+    </form>
+</dialog>
+
+<dialog
+    id="prep-note-dialog"
+    class="fixed inset-0 m-auto h-fit w-[min(24rem,calc(100vw-2rem))] rounded-2xl border border-gray-200 bg-white p-5 shadow-xl backdrop:bg-slate-900/40"
+>
+    <form method="dialog" class="space-y-4 text-right">
+        <div>
+            <h2 id="prep-note-title" class="text-sm font-bold text-gray-900">تسجيل الحضور</h2>
+            <p id="prep-note-subtitle" class="mt-1 text-xs text-gray-500"></p>
+            <label for="prep-note-input" class="mt-3 block text-xs font-medium text-gray-600">
+                ملاحظة داخلية <span class="font-normal text-gray-400">(اختيارية — لا يراها المستفيد)</span>
+            </label>
+            <textarea
+                id="prep-note-input"
+                rows="3"
+                maxlength="1000"
+                class="mt-1.5 w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/25"
+                placeholder="مثال: تأخر 10 دقائق، اعتذر عن جزء من الجلسة…"
+            ></textarea>
+        </div>
+        <div class="flex items-center justify-start gap-2">
+            <button
+                type="submit"
+                value="cancel"
+                class="rounded-xl border border-gray-300 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            >
+                تراجع
+            </button>
+            <button
+                type="submit"
+                value="confirm"
+                class="rounded-xl border border-brand bg-brand px-3.5 py-2 text-xs font-semibold text-white hover:opacity-95"
+            >
+                حفظ
             </button>
         </div>
     </form>
@@ -316,6 +354,11 @@
         if (name) {
             btn.setAttribute('aria-label', 'إلغاء حضور ' + name);
         }
+        const row = btn.closest('[data-registration-id]');
+        const noteBtn = row?.querySelector('.prep-note');
+        if (noteBtn) {
+            noteBtn.classList.remove('hidden');
+        }
     }
 
     function markButtonIdle(btn) {
@@ -325,6 +368,39 @@
         btn.setAttribute('data-present', '0');
         if (name) {
             btn.setAttribute('aria-label', 'تحضير ' + name);
+        }
+        const row = btn.closest('[data-registration-id]');
+        if (row) {
+            row.setAttribute('data-internal-note', '');
+            const preview = row.querySelector('.internal-note-preview');
+            if (preview) {
+                preview.textContent = '';
+                preview.classList.add('hidden');
+            }
+            const noteBtn = row.querySelector('.prep-note');
+            if (noteBtn) {
+                noteBtn.classList.add('hidden');
+                noteBtn.className = 'prep-note rounded-md border px-2 py-1 text-[10px] font-semibold whitespace-nowrap transition sm:rounded-lg sm:px-2.5 sm:py-1.5 sm:text-xs border-gray-200 bg-white text-gray-500 hover:bg-gray-50 hidden';
+            }
+        }
+    }
+
+    function updateInternalNoteUi(row, note) {
+        if (!row) return;
+        const text = (note || '').trim();
+        row.setAttribute('data-internal-note', text);
+        const preview = row.querySelector('.internal-note-preview');
+        if (preview) {
+            preview.textContent = text;
+            preview.classList.toggle('hidden', text === '');
+        }
+        const noteBtn = row.querySelector('.prep-note');
+        if (noteBtn) {
+            noteBtn.classList.remove('hidden');
+            noteBtn.className = 'prep-note rounded-md border px-2 py-1 text-[10px] font-semibold whitespace-nowrap transition sm:rounded-lg sm:px-2.5 sm:py-1.5 sm:text-xs ' +
+                (text !== ''
+                    ? 'border-amber-300 bg-amber-50 text-amber-900'
+                    : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50');
         }
     }
 
@@ -349,13 +425,46 @@
         });
     }
 
-    async function submitAttendance(btn, present) {
+    function promptInternalNote({ title, subtitle, initial }) {
+        return new Promise((resolve) => {
+            const dialog = document.getElementById('prep-note-dialog');
+            const titleEl = document.getElementById('prep-note-title');
+            const subtitleEl = document.getElementById('prep-note-subtitle');
+            const input = document.getElementById('prep-note-input');
+            if (!dialog || typeof dialog.showModal !== 'function' || !input) {
+                const fallback = window.prompt((title || 'ملاحظة داخلية') + '\n(لا يراها المستفيد)', initial || '');
+                resolve(fallback === null ? null : { confirmed: true, note: (fallback || '').trim() });
+                return;
+            }
+            if (titleEl) titleEl.textContent = title || 'ملاحظة داخلية';
+            if (subtitleEl) subtitleEl.textContent = subtitle || '';
+            input.value = initial || '';
+            const onClose = () => {
+                dialog.removeEventListener('close', onClose);
+                if (dialog.returnValue !== 'confirm') {
+                    resolve(null);
+                    return;
+                }
+                resolve({ confirmed: true, note: (input.value || '').trim() });
+            };
+            dialog.addEventListener('close', onClose);
+            dialog.returnValue = 'cancel';
+            dialog.showModal();
+            input.focus();
+        });
+    }
+
+    async function submitAttendance(btn, present, internalNotes) {
         const row = btn.closest('[data-registration-id]');
         if (!row) return;
         const registrationId = row.getAttribute('data-registration-id');
         btn.disabled = true;
         try {
             const url = `/gate/${programSlug}/registrations/${registrationId}/attendance`;
+            const payload = { present, date: prepDate };
+            if (present && typeof internalNotes === 'string') {
+                payload.internal_notes = internalNotes;
+            }
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -364,7 +473,7 @@
                     'X-CSRF-TOKEN': csrf,
                     'X-Requested-With': 'XMLHttpRequest',
                 },
-                body: JSON.stringify({ present, date: prepDate }),
+                body: JSON.stringify(payload),
             });
             const data = await response.json().catch(() => ({}));
             if (!data.ok) {
@@ -373,6 +482,7 @@
             }
             if (present) {
                 markButtonPresent(btn);
+                updateInternalNoteUi(row, data.internal_note || '');
                 showFeedback(true, data.beneficiary_name || '', data.message || 'تم تسجيل الحضور.', data.reason === 'already_present');
             } else {
                 markButtonIdle(btn);
@@ -382,6 +492,44 @@
             showFeedback(false, '', 'تعذّر الاتصال. حاول مرة أخرى.', false);
         } finally {
             btn.disabled = false;
+        }
+    }
+
+    async function saveNoteOnly(row, noteBtn, note) {
+        const markBtn = row.querySelector('.prep-mark');
+        if (!markBtn) return;
+        noteBtn.disabled = true;
+        markBtn.disabled = true;
+        try {
+            const registrationId = row.getAttribute('data-registration-id');
+            const url = `/gate/${programSlug}/registrations/${registrationId}/attendance`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrf,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                    present: true,
+                    date: prepDate,
+                    internal_notes: note,
+                }),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!data.ok) {
+                showFeedback(false, data.beneficiary_name || '', data.message || 'تعذّر حفظ الملاحظة.', false);
+                return;
+            }
+            markButtonPresent(markBtn);
+            updateInternalNoteUi(row, data.internal_note || '');
+            showFeedback(true, data.beneficiary_name || '', 'تم حفظ الملاحظة الداخلية.', false);
+        } catch (e) {
+            showFeedback(false, '', 'تعذّر الاتصال. حاول مرة أخرى.', false);
+        } finally {
+            noteBtn.disabled = false;
+            markBtn.disabled = false;
         }
     }
 
@@ -459,6 +607,21 @@
             return;
         }
 
+        const noteBtn = event.target.closest('.prep-note');
+        if (noteBtn && !noteBtn.disabled) {
+            const row = noteBtn.closest('[data-registration-id]');
+            if (!row) return;
+            const name = noteBtn.getAttribute('data-name') || 'المستفيد';
+            const result = await promptInternalNote({
+                title: 'ملاحظة داخلية',
+                subtitle: 'لـ «' + name + '» — لا يراها المستفيد',
+                initial: row.getAttribute('data-internal-note') || '',
+            });
+            if (!result) return;
+            await saveNoteOnly(row, noteBtn, result.note);
+            return;
+        }
+
         const btn = event.target.closest('.prep-mark');
         if (!btn || btn.disabled) return;
         if (btn.getAttribute('data-present') === '1') {
@@ -468,7 +631,14 @@
             await submitAttendance(btn, false);
             return;
         }
-        await submitAttendance(btn, true);
+        const name = beneficiaryName(btn) || 'المستفيد';
+        const result = await promptInternalNote({
+            title: 'تسجيل الحضور',
+            subtitle: 'لـ «' + name + '»',
+            initial: '',
+        });
+        if (!result) return;
+        await submitAttendance(btn, true, result.note);
     });
     @endif
 

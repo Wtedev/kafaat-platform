@@ -261,6 +261,8 @@ class ProgramAttendanceService
         ?User $actor = null,
         string $source = 'manual',
         ?string $notes = null,
+        ?string $internalNotes = null,
+        bool $touchInternalNotes = false,
     ): ProgramAttendance {
         $registration->loadMissing('trainingProgram');
         $program = $registration->trainingProgram;
@@ -271,7 +273,16 @@ class ProgramAttendanceService
             ]);
         }
 
-        return $this->upsertPresent($registration, $date, $notes, $actor, $source);
+        return $this->upsertPresent(
+            $registration,
+            $date,
+            $notes,
+            $actor,
+            $source,
+            null,
+            $internalNotes,
+            $touchInternalNotes,
+        );
     }
 
     /**
@@ -335,9 +346,19 @@ class ProgramAttendanceService
         string $date,
         bool $present,
         ?User $actor = null,
+        ?string $internalNotes = null,
+        bool $touchInternalNotes = false,
     ): void {
         if ($present) {
-            $this->markPresent($registration, $date, $actor, 'manual');
+            $this->markPresent(
+                $registration,
+                $date,
+                $actor,
+                'manual',
+                null,
+                $internalNotes,
+                $touchInternalNotes,
+            );
 
             return;
         }
@@ -349,7 +370,15 @@ class ProgramAttendanceService
      * Checker portal: present/absent toggle for a whitelisted program prep day.
      * Null date defaults to server today; non-prep dates are rejected.
      *
-     * @return array{ok: bool, reason: string, message: string, present: bool, beneficiary_name: ?string}
+     * @return array{
+     *     ok: bool,
+     *     reason: string,
+     *     message: string,
+     *     present: bool,
+     *     beneficiary_name: ?string,
+     *     has_internal_note: bool,
+     *     internal_note: ?string
+     * }
      */
     public function setPresentStateByChecker(
         TrainingProgram $program,
@@ -357,6 +386,8 @@ class ProgramAttendanceService
         bool $present,
         ProgramAttendanceChecker $checker,
         ?string $requestedDate = null,
+        ?string $internalNotes = null,
+        bool $touchInternalNotes = false,
     ): array {
         if ((int) $registration->training_program_id !== (int) $program->id) {
             return [
@@ -365,6 +396,8 @@ class ProgramAttendanceService
                 'message' => 'هذا التسجيل لا يخص هذا البرنامج.',
                 'present' => false,
                 'beneficiary_name' => null,
+                'has_internal_note' => false,
+                'internal_note' => null,
             ];
         }
 
@@ -378,6 +411,8 @@ class ProgramAttendanceService
                 'message' => 'لا يمكن تحضير تسجيل غير مقبول.',
                 'present' => false,
                 'beneficiary_name' => null,
+                'has_internal_note' => false,
+                'internal_note' => null,
             ];
         }
 
@@ -390,13 +425,23 @@ class ProgramAttendanceService
                 'message' => 'اليوم المحدد ليس من أيام البرنامج، ولا يتوفر تحضير.',
                 'present' => false,
                 'beneficiary_name' => null,
+                'has_internal_note' => false,
+                'internal_note' => null,
             ];
         }
 
         $registration->loadMissing('user');
         $beneficiaryName = $registration->user?->fullName() ?: ($registration->user?->name ?? 'مستفيد');
 
-        return DB::transaction(function () use ($registration, $date, $present, $checker, $beneficiaryName): array {
+        return DB::transaction(function () use (
+            $registration,
+            $date,
+            $present,
+            $checker,
+            $beneficiaryName,
+            $internalNotes,
+            $touchInternalNotes,
+        ): array {
             $locked = ProgramRegistration::query()
                 ->whereKey($registration->id)
                 ->lockForUpdate()
@@ -409,30 +454,47 @@ class ProgramAttendanceService
                     'message' => 'تعذّر العثور على التسجيل.',
                     'present' => false,
                     'beneficiary_name' => null,
+                    'has_internal_note' => false,
+                    'internal_note' => null,
                 ];
             }
 
             if ($present) {
-                $this->upsertPresent(
+                $attendance = $this->upsertPresent(
                     $locked,
                     $date,
                     'تحضير يدوي — مسؤول #'.$checker->id.' — '.$checker->name,
                     null,
                     'checker_manual',
                     $checker,
+                    $internalNotes,
+                    $touchInternalNotes,
                 );
-            } else {
-                $this->clearDay($locked, $date, null, 'checker_manual', $checker);
+                $note = filled(trim((string) $attendance->internal_notes))
+                    ? trim((string) $attendance->internal_notes)
+                    : null;
+
+                return [
+                    'ok' => true,
+                    'reason' => 'marked',
+                    'message' => 'تم تسجيل الحضور.',
+                    'present' => true,
+                    'beneficiary_name' => $beneficiaryName,
+                    'has_internal_note' => $note !== null,
+                    'internal_note' => $note,
+                ];
             }
+
+            $this->clearDay($locked, $date, null, 'checker_manual', $checker);
 
             return [
                 'ok' => true,
-                'reason' => $present ? 'marked' : 'cleared',
-                'message' => $present
-                    ? 'تم تسجيل الحضور.'
-                    : 'تم إلغاء الحضور.',
-                'present' => $present,
+                'reason' => 'cleared',
+                'message' => 'تم إلغاء الحضور.',
+                'present' => false,
                 'beneficiary_name' => $beneficiaryName,
+                'has_internal_note' => false,
+                'internal_note' => null,
             ];
         });
     }
@@ -687,6 +749,8 @@ class ProgramAttendanceService
         ?User $actor,
         string $source,
         ?ProgramAttendanceChecker $checker = null,
+        ?string $internalNotes = null,
+        bool $touchInternalNotes = false,
     ): ProgramAttendance {
         $existing = ProgramAttendance::query()
             ->where('program_registration_id', $registration->id)
@@ -702,6 +766,9 @@ class ProgramAttendanceService
         ];
         if ($notes !== null) {
             $payload['notes'] = $notes;
+        }
+        if ($touchInternalNotes) {
+            $payload['internal_notes'] = filled($internalNotes) ? trim($internalNotes) : null;
         }
 
         if ($existing !== null) {

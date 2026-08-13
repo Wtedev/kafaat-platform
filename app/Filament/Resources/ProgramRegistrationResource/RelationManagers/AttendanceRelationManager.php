@@ -99,6 +99,13 @@ class AttendanceRelationManager extends RelationManager
                     ->badge()
                     ->getStateUsing(fn (): string => 'حاضر')
                     ->color('success'),
+
+                TextColumn::make('internal_notes')
+                    ->label('ملاحظة داخلية')
+                    ->placeholder('—')
+                    ->wrap()
+                    ->limit(60)
+                    ->tooltip('لا يراها المستفيد'),
             ])
             ->headerActions([
                 Action::make('addDay')
