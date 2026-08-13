@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Gate;
 
+use App\Data\Privacy\Export\AttendanceExportData;
 use App\Enums\AttendanceStatus;
 use App\Enums\CompetencyTrack;
 use App\Enums\ProgramDeliveryMode;
@@ -26,11 +27,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
+use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
 
 class PrepOfficerSecureLinkTest extends TestCase
 {
+    use ActsAsOtpVerifiedUser;
     use RefreshDatabase;
     use SeedsRbacRoles;
 
@@ -463,6 +466,8 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->assertSee('>حاضر</button>', false)
             ->assertSee('إلغاء الحضور', false)
             ->assertSee('نعم، ألغِ الحضور', false)
+            ->assertSee('ملاحظة داخلية', false)
+            ->assertSee('لا يراها المستفيد', false)
             ->assertDontSee('مسجّل حاضر مسبقاً.', false)
             ->assertDontSee('data-present="0"', false);
 
@@ -479,6 +484,74 @@ class PrepOfficerSecureLinkTest extends TestCase
             ->assertOk()
             ->assertSee('>تحضير</button>', false)
             ->assertSee('data-present="0"', false);
+    }
+
+    public function test_manual_toggle_saves_internal_note_for_staff_only(): void
+    {
+        [$program] = $this->programWithAdmin();
+        $this->addPrepDay($program, '2026-08-03');
+        $result = app(ProgramAttendanceCheckerAccessService::class)->create($program, 'محضّر ملاحظة');
+        $registration = $this->register($program, ['name' => 'مستفيد الملاحظة']);
+        $secret = 'تأخر 10 دقائق — ملاحظة داخلية سرية';
+
+        $this->withCheckerSession($result['checker'], $program)
+            ->postJson(route('gate.attendance.toggle', [
+                'program' => $program->slug,
+                'registration' => $registration->id,
+            ]), [
+                'present' => true,
+                'date' => '2026-08-03',
+                'internal_notes' => $secret,
+            ])
+            ->assertOk()
+            ->assertJsonPath('present', true)
+            ->assertJsonPath('has_internal_note', true)
+            ->assertJsonPath('internal_note', $secret);
+
+        $this->assertDatabaseHas('program_attendance', [
+            'program_registration_id' => $registration->id,
+            'internal_notes' => $secret,
+        ]);
+
+        $this->withCheckerSession($result['checker'], $program)
+            ->get(route('gate.portal', ['program' => $program->slug, 'tab' => 'manual']))
+            ->assertOk()
+            ->assertSee($secret, false)
+            ->assertSee('ملاحظة', false);
+
+        $beneficiary = $registration->user;
+        $this->assertNotNull($beneficiary);
+
+        $portal = $this->actingAsOtpVerified($beneficiary)
+            ->get(route('portal.programs'))
+            ->assertOk();
+
+        $portal->assertDontSee($secret, false);
+        $portal->assertDontSee('ملاحظة داخلية', false);
+
+        $export = AttendanceExportData::forUser($beneficiary);
+        $encoded = json_encode($export, JSON_UNESCAPED_UNICODE);
+        $this->assertIsString($encoded);
+        $this->assertStringNotContainsString($secret, $encoded);
+        $this->assertStringNotContainsString('internal_notes', $encoded);
+
+        $this->withCheckerSession($result['checker'], $program)
+            ->postJson(route('gate.attendance.toggle', [
+                'program' => $program->slug,
+                'registration' => $registration->id,
+            ]), [
+                'present' => true,
+                'date' => '2026-08-03',
+                'internal_notes' => '',
+            ])
+            ->assertOk()
+            ->assertJsonPath('has_internal_note', false)
+            ->assertJsonPath('internal_note', null);
+
+        $this->assertDatabaseHas('program_attendance', [
+            'program_registration_id' => $registration->id,
+            'internal_notes' => null,
+        ]);
     }
 
     public function test_admin_filament_attendance_and_remote_session_unaffected(): void
