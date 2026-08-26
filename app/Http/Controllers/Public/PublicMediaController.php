@@ -19,7 +19,13 @@ class PublicMediaController extends Controller
         $photos = MediaPhoto::active()
             ->orderBy('sort_order')
             ->orderByDesc('created_at')
-            ->get();
+            ->get()
+            ->filter(function (MediaPhoto $photo): bool {
+                $category = filled($photo->category) ? (string) $photo->category : 'عام';
+
+                return MediaPhotoLibrarySupport::isAllowedAlbum($category, $photo->album);
+            })
+            ->values();
 
         $photoSections = $this->groupPhotosByCategoryAndAlbum($photos);
 
@@ -45,7 +51,7 @@ class PublicMediaController extends Controller
 
             $ordered->put(
                 $category,
-                $grouped->get($category)->groupBy(fn (MediaPhoto $photo): string => $photo->album ?? 'عام')
+                $this->groupAndSortAlbums($grouped->get($category))
             );
         }
 
@@ -54,12 +60,23 @@ class PublicMediaController extends Controller
                 continue;
             }
 
-            $ordered->put(
-                $category,
-                $categoryPhotos->groupBy(fn (MediaPhoto $photo): string => $photo->album ?? 'عام')
-            );
+            $ordered->put($category, $this->groupAndSortAlbums($categoryPhotos));
         }
 
         return $ordered;
+    }
+
+    /**
+     * @param  Collection<int, MediaPhoto>  $categoryPhotos
+     * @return Collection<string, Collection<int, MediaPhoto>>
+     */
+    private function groupAndSortAlbums(Collection $categoryPhotos): Collection
+    {
+        return $categoryPhotos
+            ->groupBy(function (MediaPhoto $photo): string {
+                return MediaPhotoLibrarySupport::normalizeFolderName((string) ($photo->album ?? 'عام'));
+            })
+            ->sortByDesc(fn (Collection $albumPhotos, string $album): int => MediaPhotoLibrarySupport::albumSortTimestamp($album))
+            ->map(fn (Collection $albumPhotos): Collection => $albumPhotos->values());
     }
 }

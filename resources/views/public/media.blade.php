@@ -166,10 +166,16 @@
         </div>
 
         @foreach($albums as $album => $albumPhotos)
+        @php
+            $albumDate = \App\Support\MediaPhotoLibrarySupport::albumDate($album);
+        @endphp
         <div class="mb-10">
-            <div class="flex items-center gap-3 mb-5">
-                <div class="w-1 h-6 rounded-full" style="background:#335483"></div>
+            <div class="flex flex-wrap items-center gap-3 mb-5">
+                <div class="w-1 h-6 rounded-full shrink-0" style="background:#335483"></div>
                 <h3 class="text-lg font-bold">{{ $album }}</h3>
+                @if($albumDate)
+                <span class="text-xs" style="color:#9CA3AF" dir="ltr">{{ ar_date($albumDate, 'd MMMM y') }}</span>
+                @endif
                 <span class="text-xs px-2 py-0.5 rounded-full" style="background:#e9eff6; color:#335483">{{ $albumPhotos->count() }} صورة</span>
             </div>
 
