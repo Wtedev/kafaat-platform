@@ -52,7 +52,7 @@ class MediaPhoto extends Model
     }
 
     /**
-     * Active photos from the homepage hero album («يوم الشباب»).
+     * Active photos from the homepage hero album («الاحتفاء باليوم العالمي للشباب»).
      */
     public function scopeForHomepageHero(Builder $query): void
     {
@@ -63,7 +63,7 @@ class MediaPhoto extends Model
     /**
      * Public URL for the homepage hero: Youth Day library photo, else static fallback.
      *
-     * Prefers the curated basename within «يوم الشباب», then any photo in that album
+     * Prefers the curated basename within the Youth Day album, then any photo in that album
      * (professional Media Center look wins over the people-free facility rule).
      */
     public static function homepageHeroUrl(string $fallbackRelativeToPublic = 'images/home/hero.jpg'): string

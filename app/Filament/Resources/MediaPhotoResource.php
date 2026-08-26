@@ -89,11 +89,14 @@ class MediaPhotoResource extends Resource
                         ->nullable()
                         ->searchable(),
 
-                    TextInput::make('album')
-                        ->label('الألبوم / المجموعة')
-                        ->maxLength(255)
+                    Select::make('album')
+                        ->label('الألبوم / المناسبة')
+                        ->options(collect(MediaPhotoLibrarySupport::albumCatalog())
+                            ->mapWithKeys(fn (array $meta, string $title): array => [$title => $title])
+                            ->all())
+                        ->searchable()
                         ->nullable()
-                        ->helperText('مثال: فعالية 2026، الحفل السنوي'),
+                        ->helperText('اختر المناسبة من القائمة المعتمدة للمركز الإعلامي'),
 
                     TextInput::make('sort_order')
                         ->label('الترتيب')
