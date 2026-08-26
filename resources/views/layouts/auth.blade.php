@@ -27,7 +27,7 @@
         <div class="text-center mb-8">
             <a href="{{ route('home') }}" class="inline-flex flex-col items-center justify-center gap-2" aria-label="كفاءات — الرئيسية">
                 <img src="{{ asset(config('brand.logos.kafaat')) }}" alt="كفاءات" class="h-14 w-auto mx-auto" width="185" height="56" />
-                <span class="inline-flex items-center rounded-full border border-[#c5d4e4] bg-[#e9eff6] px-2.5 py-0.5 text-[11px] font-bold text-[#335483]">إطلاق تجريبي</span>
+                <span class="inline-flex items-center rounded-full border border-[#c5d4e4] bg-[#e9eff6] px-2 py-0.5 text-[9px] font-semibold text-[#5a7a9a]">إطلاق تجريبي</span>
             </a>
             <p class="text-sm mt-3" style="color:#6B7280">جمعية كفاءات لبناء قدرات الشباب</p>
         </div>

@@ -161,7 +161,7 @@
             @endif
 
             <div class="flex flex-col items-center gap-4 text-center text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:text-right">
-                <p class="leading-relaxed">© {{ date('Y') }} {{ $legalName }}. جميع الحقوق محفوظة.</p>
+                <p class="leading-relaxed">© {{ date('Y') }} {{ $legalName }}. جميع الحقوق محفوظة <span class="text-gray-400" aria-hidden="true">|</span> <span class="font-medium text-gray-400">By Kafaat Team</span></p>
                 <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:justify-end">
                     <a href="{{ route('public.privacy') }}" class="kafaat-footer-link font-medium">سياسة الخصوصية</a>
                     <a href="{{ route('public.terms') }}" class="kafaat-footer-link font-medium">الشروط والأحكام</a>

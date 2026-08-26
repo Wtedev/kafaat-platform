@@ -4,7 +4,7 @@
 $u = auth()->user();
 $p = $u->profile;
 $avatarUrl = $p?->avatarUrl();
-$initials = \App\Models\Profile::initialsFromName($u->name);
+$initials = \App\Models\Profile::initialsFromName($u->fullName());
 @endphp
 
 <div {{ $attributes->class('shrink-0 text-center') }}>
@@ -15,6 +15,6 @@ $initials = \App\Models\Profile::initialsFromName($u->name);
         <span class="select-none">{{ $initials }}</span>
         @endif
     </div>
-    <p class="line-clamp-2 text-sm font-bold leading-snug text-slate-900">{{ $u->name }}</p>
+    <p class="whitespace-normal break-words text-xs font-bold leading-snug text-slate-900 sm:text-[13px]">{{ $u->fullName() }}</p>
     <x-portal.profile-badges class="mt-3 w-full" :profile="$p" align="center" />
 </div>
