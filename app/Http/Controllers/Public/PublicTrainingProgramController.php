@@ -25,7 +25,14 @@ class PublicTrainingProgramController extends Controller
 
     public function index()
     {
-        return redirect()->route('public.programs.track', CompetencyTrack::Self);
+        $programs = TrainingProgram::published()
+            ->standaloneCatalog()
+            ->latest('published_at')
+            ->paginate(12);
+
+        return view('public.programs.index', [
+            'programs' => $programs,
+        ]);
     }
 
     public function track(CompetencyTrack $track)

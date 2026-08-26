@@ -3,14 +3,10 @@
     Shared public navbar — used on the standalone homepage AND all public layout pages.
 --}}
 @php
-use App\Support\CompetencyTrackCatalog;
-
 $aboutHref = request()->routeIs('home') ? '#about' : route('home') . '#about';
 $hasGovernance = Route::has('public.governance.index');
 $hasRegulations = Route::has('public.regulations.index');
 $hasMedia = Route::has('public.media.index');
-$programTrackOrder = CompetencyTrackCatalog::order();
-$programTrackMeta = config('competency_tracks.tracks', []);
 $programsActive = request()->routeIs('public.programs.*') || request()->routeIs('public.tracks.*');
 $brand = config('brand');
 $govTabs = $hasGovernance
@@ -132,7 +128,7 @@ $govActive = request()->routeIs('public.governance.*');
                     width="132"
                     height="40"
                 />
-                <span class="inline-flex items-center rounded-full border border-[#c5d4e4] bg-[#e9eff6] px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-[#335483]">
+                <span class="inline-flex items-center rounded-full border border-[#c5d4e4] bg-[#e9eff6] px-2 py-0.5 text-[9px] font-semibold tracking-wide text-[#5a7a9a]">
                     إطلاق تجريبي
                 </span>
             </a>
@@ -144,37 +140,19 @@ $govActive = request()->routeIs('public.governance.*');
                     عن كفاءات
                 </a>
 
-                <div class="pub-nav-dropdown group relative">
-                    <button type="button" class="pub-nav-link gap-1 {{ $programsActive ? 'is-active' : '' }}" aria-haspopup="true">
-                        البرامج
-                        <svg class="w-3.5 h-3.5 opacity-60 transition-transform duration-200 group-hover:rotate-180 group-focus-within:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-                    <div class="pub-nav-dropdown-panel pub-nav-programs-panel absolute top-full start-0 z-50 mt-3 rounded-2xl border border-gray-100 bg-white py-2 shadow-xl">
-                        <a href="{{ route('public.tracks.index') }}" class="pub-nav-dropdown-item block px-4 py-2.5 text-sm font-semibold text-[#335483]">
-                            عن المسارات
-                        </a>
-                        <div class="my-1 border-t border-gray-100"></div>
-                        @foreach ($programTrackOrder as $trackKey)
-                            @php
-                            $track = \App\Enums\CompetencyTrack::from($trackKey);
-                            $tMeta = $programTrackMeta[$trackKey] ?? [];
-                            $trackColor = $tMeta['color'] ?? '#335483';
-                            $isActiveTrack = request()->routeIs('public.programs.track') && request()->route('track')?->value === $trackKey;
-                            @endphp
-                            <a href="{{ route('public.programs.track', $track) }}"
-                               class="pub-nav-dropdown-item pub-nav-dropdown-item--track block text-right {{ $isActiveTrack ? 'is-active' : '' }}"
-                               style="--track-color: {{ $trackColor }}">
-                                {{ $track->shortLabel() }}
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
+                <a href="{{ route('public.programs.index') }}" class="pub-nav-link {{ $programsActive ? 'is-active' : '' }}">
+                    البرامج
+                </a>
 
                 <a href="{{ route('public.volunteering.index') }}" class="pub-nav-link {{ request()->routeIs('public.volunteering.*') ? 'is-active' : '' }}">
                     الفرص التطوعية
                 </a>
+
+                @if($hasMedia)
+                <a href="{{ route('public.media.index') }}" class="pub-nav-link {{ request()->routeIs('public.media.*') ? 'is-active' : '' }}">
+                    المركز الإعلامي
+                </a>
+                @endif
 
                 @if($hasGovernance)
                 <div class="pub-nav-dropdown group relative">
@@ -201,12 +179,6 @@ $govActive = request()->routeIs('public.governance.*');
                 @if($hasRegulations)
                 <a href="{{ route('public.regulations.index') }}" class="pub-nav-link {{ request()->routeIs('public.regulations.*') ? 'is-active' : '' }}">
                     اللوائح والأنظمة
-                </a>
-                @endif
-
-                @if($hasMedia)
-                <a href="{{ route('public.media.index') }}" class="pub-nav-link {{ request()->routeIs('public.media.*') ? 'is-active' : '' }}">
-                    المركز الإعلامي
                 </a>
                 @endif
 
@@ -243,29 +215,13 @@ $govActive = request()->routeIs('public.governance.*');
         <nav class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
             <a href="{{ $aboutHref }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">عن كفاءات</a>
 
-            <details class="group rounded-xl">
-                <summary class="pub-nav-mobile-link flex cursor-pointer list-none items-center justify-between px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right [&::-webkit-details-marker]:hidden">
-                    <span>البرامج</span>
-                    <svg class="w-4 h-4 opacity-50 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                </summary>
-                <div class="mt-1 space-y-0.5 pe-2">
-                    <a href="{{ route('public.tracks.index') }}" class="pub-nav-mobile-link block rounded-lg px-6 py-2 text-sm font-semibold text-[#335483] hover:bg-[#e9eff6] text-right">عن المسارات</a>
-                    @foreach ($programTrackOrder as $trackKey)
-                        @php
-                            $track = \App\Enums\CompetencyTrack::from($trackKey);
-                            $tMeta = $programTrackMeta[$trackKey] ?? [];
-                            $trackColor = $tMeta['color'] ?? '#335483';
-                            $isActiveTrack = request()->routeIs('public.programs.track') && request()->route('track')?->value === $trackKey;
-                        @endphp
-                        <a href="{{ route('public.programs.track', $track) }}"
-                           class="pub-nav-mobile-link block rounded-lg border-s-[3px] px-6 py-2 text-sm hover:bg-[#e9eff6] text-right {{ $isActiveTrack ? 'font-semibold' : 'text-gray-600' }}"
-                           style="border-color: {{ $trackColor }}; {{ $isActiveTrack ? 'color:'.$trackColor : '' }}">
-                            {{ $track->shortLabel() }}
-                        </a>
-                    @endforeach
-                </div>
-            </details>
+            <a href="{{ route('public.programs.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right {{ $programsActive ? 'font-semibold text-[#335483]' : '' }}">البرامج</a>
+
             <a href="{{ route('public.volunteering.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">الفرص التطوعية</a>
+
+            @if($hasMedia)
+            <a href="{{ route('public.media.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">المركز الإعلامي</a>
+            @endif
 
             @if($hasGovernance)
             <details class="group rounded-xl">
@@ -284,10 +240,6 @@ $govActive = request()->routeIs('public.governance.*');
 
             @if($hasRegulations)
             <a href="{{ route('public.regulations.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">اللوائح والأنظمة</a>
-            @endif
-
-            @if($hasMedia)
-            <a href="{{ route('public.media.index') }}" class="pub-nav-mobile-link px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-[#e9eff6] hover:text-[#335483] text-right">المركز الإعلامي</a>
             @endif
 
             @auth

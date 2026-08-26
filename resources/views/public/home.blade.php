@@ -789,7 +789,7 @@
 
                 <div class="text-center mb-12">
                     <h2 class="text-3xl font-bold mb-2" style="color:#335483">أرقام كفاءات 2025</h2>
-                    <p class="text-sm" style="color:#4B5563">نتائج نعتز بها</p>
+                    <p class="text-xl font-semibold sm:text-2xl md:text-3xl" style="color:#4B5563">نتائج نعتز بها</p>
                 </div>
 
                 @php
@@ -797,8 +797,8 @@
                     ['count' => 2497, 'prefix' => '+', 'suffix' => '', 'label' => 'مستفيد', 'icon' => 'users'],
                     ['count' => 18, 'prefix' => '', 'suffix' => '+', 'label' => 'برامج تدريبية', 'icon' => 'academic-cap'],
                     ['count' => 274, 'prefix' => '', 'suffix' => '', 'label' => 'جهة مستفيدة', 'icon' => 'building'],
-                    ['count' => 20, 'prefix' => '', 'suffix' => '', 'label' => 'جهات داعمة', 'icon' => 'handshake'],
                     ['count' => 124, 'prefix' => '', 'suffix' => '', 'label' => 'فرص تطوعية', 'icon' => 'heart-hand'],
+                    ['count' => 20, 'prefix' => '', 'suffix' => '', 'label' => 'جهات داعمة', 'icon' => 'handshake'],
                     ['count' => 1, 'prefix' => '+', 'suffix' => ' مليون', 'label' => 'الظهور الإعلامي', 'icon' => 'eye'],
                 ];
                 @endphp
@@ -935,7 +935,68 @@
 
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 8. NEWS / أحدث الأخبار                                            --}}
+    {{-- 8. PARTNERS / شركاؤنا                                                 --}}
+    {{-- ═══════════════════════════════════════════════════════════════════ --}}
+    <section class="overflow-hidden bg-white py-16 sm:py-20" dir="rtl" aria-labelledby="partners-heading">
+        <div class="mx-auto mb-10 max-w-7xl px-4 text-center sm:mb-12 sm:px-6 lg:px-8">
+            <p class="mb-2 text-sm font-semibold" style="color:#1a9399">شركاء النجاح</p>
+            <h2 id="partners-heading" class="text-2xl font-bold sm:text-3xl">شركاؤنا</h2>
+            <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed" style="color:#6B7280">مؤسسات وشركات نفتخر بشراكتها معنا في بناء قدرات الشباب.</p>
+        </div>
+
+        @if ($partners->isEmpty())
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-2xl rounded-3xl border border-dashed border-gray-200 bg-[#F7FAFC] px-6 py-14 text-center text-sm" style="color:#6B7280">
+                سيتم عرض شعارات الشركاء هنا عند إضافتهم من لوحة التحكم.
+            </div>
+        </div>
+        @else
+        @php
+            $partnerItems = $partners->values();
+            // Repeat enough times so the marquee always feels continuous on wide screens.
+            $marqueeFill = max(1, (int) ceil(10 / max(1, $partnerItems->count())));
+            $marqueePartners = collect();
+            for ($i = 0; $i < $marqueeFill; $i++) {
+                $marqueePartners = $marqueePartners->concat($partnerItems);
+            }
+        @endphp
+        <div class="partners-marquee" dir="ltr" aria-label="شريط شركاء الجمعية">
+            <div class="partners-marquee__track">
+                @foreach ([false, true] as $isClone)
+                <div class="partners-marquee__group" @if ($isClone) data-marquee-clone="true" aria-hidden="true" @endif>
+                    @foreach ($marqueePartners as $partner)
+                    @php
+                        $logoUrl = $partner->logoPublicUrl();
+                        $hasLink = filled($partner->website_url) && ! $isClone;
+                    @endphp
+                    @if ($logoUrl)
+                    @if ($hasLink)
+                    <a
+                        href="{{ $partner->website_url }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="partners-marquee__card"
+                        dir="rtl"
+                    >
+                        <img src="{{ $logoUrl }}" alt="{{ $partner->name }}" loading="lazy" decoding="async" />
+                    </a>
+                    @else
+                    <div class="partners-marquee__card" dir="rtl" @if ($isClone) tabindex="-1" @endif>
+                        <img src="{{ $logoUrl }}" alt="{{ $isClone ? '' : $partner->name }}" loading="lazy" decoding="async" />
+                    </div>
+                    @endif
+                    @endif
+                    @endforeach
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+    </section>
+
+
+    {{-- ═══════════════════════════════════════════════════════════════════ --}}
+    {{-- 9. NEWS / أحدث الأخبار                                            --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <section id="news" class="scroll-mt-24 py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1011,7 +1072,7 @@
 
 
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 9. FAQ / الأسئلة الشائعة                                                     --}}
+    {{-- 10. FAQ / الأسئلة الشائعة                                                     --}}
     {{-- ═══════════════════════════════════════════════════════════════════ --}}
     <section id="faq" class="scroll-mt-24 bg-white py-20">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1027,14 +1088,14 @@
             'a' => 'جمعية أهلية غير ربحية تُعنى ببناء قدرات الشباب وتأهيلهم للمشاركة المجتمعية، عبر برامج تدريبية وفرص تطوعية وشراكات مؤسسية.'],
             ['q' => 'من يستفيد من برامج الجمعية؟',
             'a' => 'تستهدف الجمعية الشباب والشابات الراغبين في تنمية مهاراتهم والمشاركة في العمل التطوعي والمجتمعي، وفق شروط كل برنامج أو فرصة.'],
-            ['q' => 'كيف أشارك في التطوع؟',
-            'a' => 'تصفّح قسم «الفرص التطوعية»، اختر الفرصة المناسبة لك، وقدّم طلب التسجيل. سيتواصل معك فريق الجمعية بعد مراجعة الطلب.'],
             ['q' => 'كيف أسجّل في برنامج تدريبي؟',
             'a' => 'من صفحة «البرامج» اختر البرنامج أو المسار المناسب، ثم اتبع خطوات التسجيل. بعض البرامج تتطلب إنشاء حساب ومتابعة حالة الطلب.'],
             ['q' => 'أين مقر الجمعية؟',
             'a' => 'مقرّنا في بريدة — القصيم. تجد العنوان التفصيلي وساعات العمل وخريطة الموقع في أسفل الصفحة ضمن «تواصل معنا».'],
             ['q' => 'كيف أتابع أخبار الجمعية؟',
             'a' => 'من قسم «أحدث الأخبار» في الموقع، أو عبر حسابات الجمعية على منصات التواصل الاجتماعي المذكورة في التذييل.'],
+            ['q' => 'كيف أشارك في التطوع؟',
+            'a' => 'تصفّح قسم «الفرص التطوعية»، اختر الفرصة المناسبة لك، وقدّم طلب التسجيل. سيتواصل معك فريق الجمعية بعد مراجعة الطلب.'],
             ];
             @endphp
 
@@ -1058,67 +1119,6 @@
             </div>
 
         </div>
-    </section>
-
-
-    {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    {{-- 10. PARTNERS / شركاؤنا                                                 --}}
-    {{-- ═══════════════════════════════════════════════════════════════════ --}}
-    <section class="overflow-hidden bg-white py-16 sm:py-20" dir="rtl" aria-labelledby="partners-heading">
-        <div class="mx-auto mb-10 max-w-7xl px-4 text-center sm:mb-12 sm:px-6 lg:px-8">
-            <p class="mb-2 text-sm font-semibold" style="color:#1a9399">شركاء النجاح</p>
-            <h2 id="partners-heading" class="text-2xl font-bold sm:text-3xl">شركاؤنا</h2>
-            <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed" style="color:#6B7280">مؤسسات وشركات نفتخر بشراكتها معنا في بناء قدرات الشباب.</p>
-        </div>
-
-        @if ($partners->isEmpty())
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="mx-auto max-w-2xl rounded-3xl border border-dashed border-gray-200 bg-[#F7FAFC] px-6 py-14 text-center text-sm" style="color:#6B7280">
-                سيتم عرض شعارات الشركاء هنا عند إضافتهم من لوحة التحكم.
-            </div>
-        </div>
-        @else
-        @php
-            $partnerItems = $partners->values();
-            // Repeat enough times so the marquee always feels continuous on wide screens.
-            $marqueeFill = max(1, (int) ceil(10 / max(1, $partnerItems->count())));
-            $marqueePartners = collect();
-            for ($i = 0; $i < $marqueeFill; $i++) {
-                $marqueePartners = $marqueePartners->concat($partnerItems);
-            }
-        @endphp
-        <div class="partners-marquee" dir="ltr" aria-label="شريط شركاء الجمعية">
-            <div class="partners-marquee__track">
-                @foreach ([false, true] as $isClone)
-                <div class="partners-marquee__group" @if ($isClone) data-marquee-clone="true" aria-hidden="true" @endif>
-                    @foreach ($marqueePartners as $partner)
-                    @php
-                        $logoUrl = $partner->logoPublicUrl();
-                        $hasLink = filled($partner->website_url) && ! $isClone;
-                    @endphp
-                    @if ($logoUrl)
-                    @if ($hasLink)
-                    <a
-                        href="{{ $partner->website_url }}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="partners-marquee__card"
-                        dir="rtl"
-                    >
-                        <img src="{{ $logoUrl }}" alt="{{ $partner->name }}" loading="lazy" decoding="async" />
-                    </a>
-                    @else
-                    <div class="partners-marquee__card" dir="rtl" @if ($isClone) tabindex="-1" @endif>
-                        <img src="{{ $logoUrl }}" alt="{{ $isClone ? '' : $partner->name }}" loading="lazy" decoding="async" />
-                    </div>
-                    @endif
-                    @endif
-                    @endforeach
-                </div>
-                @endforeach
-            </div>
-        </div>
-        @endif
     </section>
 
 
