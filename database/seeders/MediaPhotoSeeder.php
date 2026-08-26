@@ -62,11 +62,18 @@ class MediaPhotoSeeder extends Seeder
 
             foreach (File::directories($categoryPath) as $albumPath) {
                 $albumName = MediaPhotoLibrarySupport::normalizeFolderName(basename($albumPath));
+                $albumLabel = MediaPhotoLibrarySupport::albumLabel($category, $albumName);
+
+                if (! MediaPhotoLibrarySupport::isAllowedAlbum($category, $albumLabel)) {
+                    $this->command?->warn("MediaPhotoSeeder: skipping unlisted album «{$albumLabel}».");
+
+                    continue;
+                }
 
                 $sortOrder = $this->seedDirectory(
                     $albumPath,
                     category: $category,
-                    album: MediaPhotoLibrarySupport::albumLabel($category, $albumName),
+                    album: $albumLabel,
                     categoryIndex: $categoryIndex,
                     sortOrder: $sortOrder,
                 );
