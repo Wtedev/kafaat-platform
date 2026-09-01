@@ -6,10 +6,12 @@ use App\Enums\SecurityLogResult;
 use App\Enums\SecurityLogSeverity;
 use App\Models\User;
 use App\Services\Security\SecurityLogService;
+use Illuminate\Auth\SessionGuard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -44,6 +46,8 @@ final class AccountPasswordChangeService
      * 3. Persist new password (hashed cast) and rotate remember_token.
      * 4. Delete remaining database session rows for this user except the current session id
      *    (only when session.driver=database and the sessions table exists).
+     * 5. Refresh the password hash AuthenticateSession keeps in the current session, so the
+     *    session that performed the change is not logged out on its next request.
      */
     public function change(
         User $user,
@@ -77,7 +81,38 @@ final class AccountPasswordChangeService
             $this->deleteOtherDatabaseSessions($user, $currentSessionId);
         });
 
+        $this->refreshCurrentSessionPasswordHash($user, $guard);
+
         $this->log('auth.password_change_completed', SecurityLogResult::Success, $user);
+    }
+
+    /**
+     * AuthenticateSession only refreshes its stored hash in its own middleware tail, which
+     * does not run for Livewire update requests. Without this the current session would be
+     * logged out on the next panel request even though its session row was preserved.
+     */
+    private function refreshCurrentSessionPasswordHash(User $user, string $guard): void
+    {
+        $sessionGuard = Auth::guard($guard);
+
+        if (! $sessionGuard instanceof SessionGuard) {
+            return;
+        }
+
+        if ($sessionGuard->id() === null || (string) $sessionGuard->id() !== (string) $user->getAuthIdentifier()) {
+            return;
+        }
+
+        $session = Session::driver();
+
+        if (! $session->isStarted()) {
+            return;
+        }
+
+        $session->put(
+            'password_hash_'.Auth::getDefaultDriver(),
+            $sessionGuard->hashPasswordForCookie($user->getAuthPassword()),
+        );
     }
 
     private function deleteOtherDatabaseSessions(User $user, ?string $exceptSessionId): void
