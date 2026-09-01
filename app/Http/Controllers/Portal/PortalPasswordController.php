@@ -4,13 +4,17 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Portal\UpdatePortalPasswordRequest;
+use App\Services\Auth\AccountPasswordChangeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
 class PortalPasswordController extends Controller
 {
+    public function __construct(
+        private readonly AccountPasswordChangeService $passwordChangeService,
+    ) {}
+
     public function show(Request $request): View
     {
         return view('portal.settings.password', [
@@ -21,12 +25,16 @@ class PortalPasswordController extends Controller
     public function update(UpdatePortalPasswordRequest $request): RedirectResponse
     {
         $user = $request->user();
-        $user->forceFill([
-            'password' => Hash::make($request->validated('password')),
-        ])->save();
+
+        $this->passwordChangeService->change(
+            $user,
+            (string) $request->validated('current_password'),
+            (string) $request->validated('password'),
+            $request->session()->getId(),
+        );
 
         return redirect()
             ->route('portal.settings.password')
-            ->with('success', 'تم تحديث كلمة المرور بنجاح.');
+            ->with('success', AccountPasswordChangeService::MSG_SUCCESS);
     }
 }

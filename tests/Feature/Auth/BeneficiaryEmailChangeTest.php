@@ -518,6 +518,8 @@ class BeneficiaryEmailChangeTest extends TestCase
             ->first();
 
         $this->assertNotNull($log);
+        $this->assertSame(EmailChangeService::MSG_ACTIVITY_EMAIL_CHANGED, $log->detail);
+        $this->assertStringNotContainsString('مستفيد', (string) $log->detail);
         $this->assertStringNotContainsString('privacy-log@example.com', (string) $log->detail);
         $this->assertStringNotContainsString('privacy-log-new@example.com', (string) $log->detail);
         $this->assertStringNotContainsString($code, (string) $log->detail);
