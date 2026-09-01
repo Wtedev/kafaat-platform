@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Portal;
 
+use App\Services\Auth\AccountPasswordChangeService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
 
 class UpdatePortalPasswordRequest extends FormRequest
 {
@@ -17,7 +17,7 @@ class UpdatePortalPasswordRequest extends FormRequest
     {
         return [
             'current_password' => ['required', 'string'],
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'password' => AccountPasswordChangeService::newPasswordRules(),
         ];
     }
 
@@ -27,7 +27,7 @@ class UpdatePortalPasswordRequest extends FormRequest
             $user = $this->user();
 
             if ($user === null || ! Hash::check((string) $this->input('current_password'), (string) $user->password)) {
-                $validator->errors()->add('current_password', 'كلمة المرور الحالية غير صحيحة.');
+                $validator->errors()->add('current_password', AccountPasswordChangeService::MSG_CURRENT_WRONG);
             }
         });
     }

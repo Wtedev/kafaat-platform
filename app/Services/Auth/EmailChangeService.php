@@ -5,7 +5,6 @@ namespace App\Services\Auth;
 use App\Enums\AccountStatus;
 use App\Enums\SecurityLogResult;
 use App\Enums\SecurityLogSeverity;
-use App\Enums\UserActivityAction;
 use App\Models\EmailVerificationCode;
 use App\Models\PendingEmailChange;
 use App\Models\User;
@@ -43,6 +42,8 @@ class EmailChangeService
     public const MSG_EXPIRED_OTP = 'انتهت صلاحية رمز التحقق، يرجى طلب رمز جديد.';
 
     public const MSG_TOO_MANY_ATTEMPTS = 'تم تجاوز عدد المحاولات المسموح بها، يرجى المحاولة لاحقًا.';
+
+    public const MSG_ACTIVITY_EMAIL_CHANGED = 'تم تغيير البريد الإلكتروني بعد التحقق برمز OTP.';
 
     public const MSG_SUCCESS = 'تم تغيير البريد الإلكتروني بنجاح.';
 
@@ -320,7 +321,7 @@ class EmailChangeService
 
         $user->refresh();
 
-        UserActivityLogger::log($user, UserActivityAction::EmailChanged, 'غيّر المستفيد بريده الإلكتروني بعد التحقق برمز OTP.');
+        UserActivityLogger::logEmailChanged($user);
 
         $this->securityLog(
             'auth.email_change_completed',

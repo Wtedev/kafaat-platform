@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\UserActivityAction;
 use App\Models\User;
 use App\Models\UserActivityLog;
+use App\Services\Auth\EmailChangeService;
 use Illuminate\Support\Carbon;
 
 class UserActivityLogger
@@ -32,6 +33,25 @@ class UserActivityLogger
     public static function logEmailVerified(User $user): void
     {
         self::log($user, UserActivityAction::EmailVerified, 'أكّد المستفيد بريده الإلكتروني.');
+    }
+
+    public static function logEmailChanged(User $user): void
+    {
+        $detail = EmailChangeService::MSG_ACTIVITY_EMAIL_CHANGED;
+
+        if ($user->isPortalUser()) {
+            self::log($user, UserActivityAction::EmailChanged, $detail);
+
+            return;
+        }
+
+        UserActivityLog::create([
+            'user_id' => $user->id,
+            'action' => UserActivityAction::EmailChanged,
+            'title' => UserActivityAction::EmailChanged->title(),
+            'detail' => $detail,
+            'occurred_at' => now(),
+        ]);
     }
 
     public static function logLogin(User $user): void
