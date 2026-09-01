@@ -17,6 +17,7 @@ use Filament\Facades\Filament;
 use Illuminate\Auth\SessionGuard;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Session\SessionManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -24,6 +25,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+use RuntimeException;
 use Spatie\Permission\Models\Permission;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\SeedsRbacRoles;
@@ -650,11 +652,127 @@ class StaffProfilePageTest extends TestCase
             ->assertDontSee('id="notification-prefs-modal"', false);
     }
 
+    public function test_current_session_stays_authenticated_over_http_after_password_change(): void
+    {
+        $this->useDatabaseSessions();
+
+        $staff = $this->makeStaff();
+        $oldRemember = $staff->remember_token;
+        $sessionCookie = (string) config('session.cookie');
+
+        $currentSessionId = $this->loginRealSession($staff);
+
+        $this->withCookie($sessionCookie, $currentSessionId)
+            ->get(StaffProfilePage::getUrl())
+            ->assertOk();
+
+        $otherSessionId = str_repeat('d', 40);
+        $this->insertDatabaseSession($otherSessionId, $staff, 'second-browser');
+
+        $this->livewireAsStaff($staff)
+            ->set('data.current_password', 'password')
+            ->set('data.password', 'NewPassword1!')
+            ->set('data.password_confirmation', 'NewPassword1!')
+            ->call('changePassword')
+            ->assertHasNoErrors();
+
+        $staff->refresh();
+        $this->assertTrue(Hash::check('NewPassword1!', $staff->password));
+        $this->assertFalse(Hash::check('password', $staff->password));
+        $this->assertNotSame($oldRemember, $staff->remember_token);
+
+        // A real request persists the session when it terminates; Livewire's test
+        // harness does not run that lifecycle, so write the session out explicitly.
+        session()->save();
+
+        $this->withCookie($sessionCookie, $currentSessionId)
+            ->get(StaffProfilePage::getUrl())
+            ->assertOk();
+        $this->assertAuthenticatedAs($staff);
+        $this->assertDatabaseHas('sessions', ['id' => $currentSessionId, 'user_id' => $staff->id]);
+
+        // The second browser's session row is gone, so its cookie can no longer be
+        // resumed; AccountPasswordChangeServiceTest covers its redirect to login.
+        $this->assertDatabaseMissing('sessions', ['id' => $otherSessionId]);
+    }
+
+    public function test_failed_user_save_discards_new_photo_and_keeps_previous(): void
+    {
+        $previousPath = UploadedFile::fake()->image('previous.jpg')->store('staff-photos', 'public');
+        $staff = $this->makeStaff(['staff_photo' => $previousPath]);
+
+        $newPath = UploadedFile::fake()->image('replacement.jpg')->store('staff-photos', 'public');
+        Storage::disk('public')->assertExists($newPath);
+
+        User::saving(function (): void {
+            throw new RuntimeException('forced user save failure');
+        });
+
+        try {
+            $this->livewireAsStaff($staff)
+                ->fillForm([
+                    'name' => 'اسم بعد الفشل',
+                    'staff_photo' => [$newPath],
+                ])
+                ->call('save');
+
+            $this->fail('Expected the user save to fail.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('forced user save failure', $exception->getMessage());
+        } finally {
+            User::flushEventListeners();
+        }
+
+        Storage::disk('public')->assertMissing($newPath);
+        Storage::disk('public')->assertExists($previousPath);
+        $this->assertSame($previousPath, $staff->fresh()->staff_photo);
+    }
+
     private function livewireAsStaff(User $staff): Testable
     {
         $this->withSession(['otp_verified' => true]);
 
         return Livewire::actingAs($staff)->test(StaffProfilePage::class);
+    }
+
+    private function useDatabaseSessions(): void
+    {
+        config(['session.driver' => 'database']);
+
+        $this->app->singleton('session', fn ($app) => new SessionManager($app));
+        $this->app->singleton('session.store', fn ($app) => $app->make('session')->driver());
+    }
+
+    /**
+     * Establish a genuinely authenticated, persisted session (login key included)
+     * and return its id, mimicking a real browser login.
+     */
+    private function loginRealSession(User $user): string
+    {
+        $this->startSession();
+
+        auth()->guard('web')->login($user);
+        session()->put('otp_verified', true);
+        session()->save();
+
+        $sessionId = (string) session()->getId();
+        $this->assertDatabaseHas('sessions', ['id' => $sessionId, 'user_id' => $user->id]);
+
+        return $sessionId;
+    }
+
+    private function insertDatabaseSession(string $sessionId, User $user, string $userAgent = 'test'): void
+    {
+        $loginKey = 'login_web_'.sha1(SessionGuard::class);
+
+        DB::table('sessions')->insert([
+            'id' => $sessionId,
+            'user_id' => $user->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => $userAgent,
+            'payload' => base64_encode($loginKey.'|i:'.$user->id.';'),
+            'last_activity' => now()->timestamp,
+        ]);
     }
 
     /**
