@@ -438,6 +438,34 @@ class TrainingProgramCreationFlowTest extends TestCase
             ->assertDontSee('د. محمد النصار');
     }
 
+    public function test_public_show_page_renders_presenters_and_benefits_for_data_forum(): void
+    {
+        $program = $this->createPublishedProgram([
+            'title' => 'ملتقى تحليل البيانات 2',
+            'slug' => 'multaqa-tahlil-al-bayanat-2',
+            'competency_track' => CompetencyTrack::Professional,
+            'delivery_mode' => ProgramDeliveryMode::Remote,
+            'session_topics_enabled' => true,
+            'session_topics' => [
+                ['title' => 'تعلّم ومعرفة', 'facilitators' => ''],
+            ],
+            'program_presenters' => [
+                ['name' => 'د. عبد الله العمير', 'role' => 'عالم بيانات'],
+            ],
+        ]);
+
+        $this->get(route('public.programs.show', $program->slug))
+            ->assertOk()
+            ->assertSee('محاور البرنامج')
+            ->assertSee('تعلّم ومعرفة')
+            ->assertDontSee('المسؤولون / المدربون')
+            ->assertSee('مقدمو البرنامج')
+            ->assertSee('د. عبد الله العمير')
+            ->assertSee('مميزات البرنامج')
+            ->assertSee('شهادة الإتمام')
+            ->assertSee('جوائز مالية للمميزين');
+    }
+
     public function test_apply_delivery_mode_fields_clears_venue_for_remote_programs(): void
     {
         $result = TrainingEntityFormSupport::applyDeliveryModeFields([

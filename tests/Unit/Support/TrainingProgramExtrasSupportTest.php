@@ -112,6 +112,21 @@ class TrainingProgramExtrasSupportTest extends TestCase
         $this->assertSame('من', TrainingProgramExtrasSupport::presenterInitials('د. محمد النصار'));
     }
 
+    public function test_public_benefits_are_explicit_per_program(): void
+    {
+        $forum = $this->makeProgram(['slug' => 'multaqa-tahlil-al-bayanat-2']);
+        $other = $this->makeProgram(['slug' => 'other-program']);
+
+        $this->assertSame(
+            [
+                ['label' => 'شهادة الإتمام', 'value' => 'لكل مشارك'],
+                ['label' => 'الجوائز', 'value' => 'جوائز مالية للمميزين'],
+            ],
+            TrainingProgramExtrasSupport::publicBenefits($forum),
+        );
+        $this->assertSame([], TrainingProgramExtrasSupport::publicBenefits($other));
+    }
+
     public function test_apply_form_data_clears_empty_program_presenters(): void
     {
         $data = TrainingProgramExtrasSupport::applyFormData([
