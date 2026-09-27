@@ -375,6 +375,23 @@ final class TrainingProgramExtrasSupport
         );
     }
 
+    /**
+     * Optional public sidebar highlights. Kept explicit per program so marketing
+     * copy is not inferred from the description body.
+     *
+     * @return list<array{label: string, value: string}>
+     */
+    public static function publicBenefits(TrainingProgram $program): array
+    {
+        return match ((string) $program->slug) {
+            'multaqa-tahlil-al-bayanat-2' => [
+                ['label' => 'شهادة الإتمام', 'value' => 'لكل مشارك'],
+                ['label' => 'الجوائز', 'value' => 'جوائز مالية للمميزين'],
+            ],
+            default => [],
+        };
+    }
+
     public static function presenterInitials(string $name): string
     {
         $name = trim(preg_replace('/\s+/u', ' ', $name) ?? '');

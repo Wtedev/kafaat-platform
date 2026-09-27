@@ -1,6 +1,7 @@
 @props(['trainingProgram'])
 
 @php
+use App\Support\TrainingProgramExtrasSupport;
 use App\Support\VolunteerLeadersProgramPeriod;
 
 $viaPathOnly = $trainingProgram->learning_path_id !== null;
@@ -19,6 +20,8 @@ $venueMapUrl = filled($trainingProgram->venue)
     && str_contains((string) $trainingProgram->title, 'قادة التطوع')
     ? 'https://share.google/kqJFTgCRM2b0GT1jO'
     : null;
+
+$benefits = TrainingProgramExtrasSupport::publicBenefits($trainingProgram);
 @endphp
 
 <div @class(['space-y-4', 'md:sticky md:top-24' => $isVolunteerLeaders])>
@@ -92,4 +95,18 @@ $venueMapUrl = filled($trainingProgram->venue)
         </x-public.info-sidebar-item>
         @endif
     </x-public.info-sidebar>
+
+    @if ($benefits !== [])
+        <x-public.info-sidebar title="مميزات البرنامج" dense :sticky="false">
+            @foreach ($benefits as $benefit)
+                <x-public.info-sidebar-item dense :label="$benefit['label']" :value="$benefit['value']">
+                    <x-slot:icon>
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </x-slot:icon>
+                </x-public.info-sidebar-item>
+            @endforeach
+        </x-public.info-sidebar>
+    @endif
 </div>

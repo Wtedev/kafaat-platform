@@ -58,6 +58,20 @@ $ackLabel = $inPerson
                 'mt-0 border-0 pt-0' => blank($trainingProgram->description),
             ])
         />
+        @if (! \App\Support\VolunteerLeadersProgramPeriod::applies($trainingProgram))
+            @php
+                $publicPresenters = \App\Support\TrainingProgramExtrasSupport::publicProgramPresenters($trainingProgram);
+                $hasTopics = (bool) $trainingProgram->session_topics_enabled
+                    && \App\Support\TrainingProgramExtrasSupport::publicSessionTopics($trainingProgram) !== [];
+            @endphp
+            <x-public.program-presenters
+                :presenters="$publicPresenters"
+                @class([
+                    'mt-8 border-t border-[#c5d4e4]/70 pt-8' => $hasTopics || filled($trainingProgram->description),
+                    'mt-0 border-0 pt-0' => ! $hasTopics && blank($trainingProgram->description),
+                ])
+            />
+        @endif
     </x-slot:afterDescription>
 
     @if (\App\Support\VolunteerLeadersProgramPeriod::applies($trainingProgram))
