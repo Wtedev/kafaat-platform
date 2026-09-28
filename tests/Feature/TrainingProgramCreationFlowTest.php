@@ -445,6 +445,7 @@ class TrainingProgramCreationFlowTest extends TestCase
             'slug' => 'multaqa-tahlil-al-bayanat-2',
             'competency_track' => CompetencyTrack::Professional,
             'delivery_mode' => ProgramDeliveryMode::Remote,
+            'image' => 'images/programs/multaqa-tahlil-al-bayanat-2.jpg',
             'session_topics_enabled' => true,
             'session_topics' => [
                 ['title' => 'تعلّم ومعرفة', 'facilitators' => ''],
@@ -464,7 +465,8 @@ class TrainingProgramCreationFlowTest extends TestCase
             ->assertSee('مميزات البرنامج')
             ->assertSee('شهادة الإتمام')
             ->assertSee('لمن أتم حضور جميع أيام البرنامج')
-            ->assertSee('جوائز مالية للمميزين');
+            ->assertSee('جوائز مالية للمميزين')
+            ->assertSee('background:#061824', false);
     }
 
     public function test_apply_delivery_mode_fields_clears_venue_for_remote_programs(): void

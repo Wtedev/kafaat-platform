@@ -18,6 +18,7 @@
      * Catalog cards always fill the media box — no letterboxing around logos.
      */
     'objectFit' => 'cover',
+    'surfaceColor' => null,
 ])
 
 @php
@@ -67,7 +68,8 @@
 
     // Catalog/thumb cards always cover the media frame. Contain is only for detail hero.
     $fitContain = $variant === 'hero' && $objectFit === 'contain';
-    $containSurface = 'background:#eef2f6';
+    $surface = is_string($surfaceColor) ? trim($surfaceColor) : '';
+    $containSurface = 'background:'.($surface !== '' ? $surface : '#eef2f6');
 
     if ($variant === 'hero') {
         $heightWrap = 'h-56 sm:h-64 flex items-center justify-center';

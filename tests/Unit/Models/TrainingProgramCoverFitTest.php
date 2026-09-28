@@ -28,5 +28,16 @@ class TrainingProgramCoverFitTest extends TestCase
         ]);
 
         $this->assertFalse($program->imageUsesContainFit());
+        $this->assertNull($program->imageHeroSurfaceColor());
+    }
+
+    public function test_data_forum_cover_uses_sampled_hero_surface_color(): void
+    {
+        $program = new TrainingProgram([
+            'image' => 'images/programs/multaqa-tahlil-al-bayanat-2.jpg',
+        ]);
+
+        $this->assertTrue($program->imageUsesContainFit());
+        $this->assertSame('#061824', $program->imageHeroSurfaceColor());
     }
 }
