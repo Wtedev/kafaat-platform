@@ -108,8 +108,11 @@
                     @if ($programs->isNotEmpty())
                         <div class="track-program-grid">
                             @foreach ($programs as $index => $program)
-                                @php $descriptionExcerpt = $program->descriptionExcerpt(); @endphp
-                                <a href="{{ route('public.programs.show', $program->slug) }}" class="track-program-card group">
+                                @php
+                                    $descriptionExcerpt = $program->descriptionExcerpt();
+                                    $ended = $program->publicRegistrationUxState() === 'ended';
+                                @endphp
+                                <a href="{{ route('public.programs.show', $program->slug) }}" @class(['track-program-card group', 'is-ended' => $ended])>
                                     <x-public.program-catalog-media :program="$program" :index="$index" />
                                     <div class="track-program-body">
                                         <h4 class="track-program-title">{{ $program->title }}</h4>
@@ -526,6 +529,27 @@
         .track-program-card:hover {
             transform: translateY(-0.25rem);
             box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.1);
+        }
+
+        .track-program-card.is-ended {
+            background: #F3F4F6;
+            border-color: #e5e7eb;
+            box-shadow: none;
+        }
+
+        .track-program-card.is-ended:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .track-program-card.is-ended .track-program-body {
+            opacity: 0.55;
+        }
+
+        .track-program-card.is-ended .track-program-title,
+        .track-program-card.is-ended .track-program-desc,
+        .track-program-card.is-ended .track-program-cta {
+            color: #9ca3af;
         }
 
         /* Slightly shorter cover than full catalog pages so cards fit the accordion panel. */
