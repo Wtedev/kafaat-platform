@@ -151,6 +151,15 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
                 EnsureOtpVerified::class,
             ])
+            // Livewire component updates hit /livewire/update, not the panel routes, so
+            // only middleware marked persistent runs for them. Without this a session
+            // invalidated elsewhere (password change, logoutOtherDevices) keeps driving
+            // Livewire actions until the next full page load.
+            ->persistentMiddleware([
+                AuthenticateSession::class,
+                EnsureOperationalAccount::class,
+                EnsureOtpVerified::class,
+            ])
             ->authGuard('web');
 
         return $panel;
