@@ -47,6 +47,7 @@ $ackLabel = $inPerson
             {{ $trainingProgram->competency_track->shortLabel() }}
         </span>
         @endif
+        <x-public.program-registration-status-badge :program="$trainingProgram" on-media />
     </x-slot:mediaBadges>
 
     <x-slot:afterDescription>
@@ -112,9 +113,23 @@ $ackLabel = $inPerson
                 @endauth
             </div>
             @elseif (! $trainingProgram->isRegistrationOpen())
-            <div class="space-y-1 sm:max-w-xl">
-                <p class="text-sm font-medium text-gray-800">{{ $trainingProgram->publicRegistrationUnavailableHeading() }}</p>
-                <p class="text-sm leading-relaxed text-gray-500">{{ $trainingProgram->publicRegistrationUnavailableBody() }}</p>
+            @php $registrationUx = $trainingProgram->publicRegistrationUxState(); @endphp
+            <div @class([
+                'space-y-1 rounded-2xl border p-4 sm:max-w-xl',
+                'border-amber-200/80 bg-amber-50/80' => $registrationUx === 'upcoming',
+                'border-gray-200 bg-gray-50' => $registrationUx === 'ended',
+                'border-[#c5d4e4] bg-[#F7FAFC]' => $registrationUx === 'path',
+            ])>
+                <p @class([
+                    'text-sm font-semibold',
+                    'text-amber-900' => $registrationUx === 'upcoming',
+                    'text-gray-800' => $registrationUx !== 'upcoming',
+                ])>{{ $trainingProgram->publicRegistrationUnavailableHeading() }}</p>
+                <p @class([
+                    'text-sm leading-relaxed',
+                    'text-amber-800/90' => $registrationUx === 'upcoming',
+                    'text-gray-500' => $registrationUx !== 'upcoming',
+                ])>{{ $trainingProgram->publicRegistrationUnavailableBody() }}</p>
             </div>
             @elseif ($ineligible)
             @php
