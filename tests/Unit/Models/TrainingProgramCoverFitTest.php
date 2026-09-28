@@ -40,4 +40,14 @@ class TrainingProgramCoverFitTest extends TestCase
         $this->assertTrue($program->imageUsesContainFit());
         $this->assertSame('#061824', $program->imageHeroSurfaceColor());
     }
+
+    public function test_fok_cover_uses_sampled_hero_surface_color(): void
+    {
+        $program = new TrainingProgram([
+            'image' => 'images/programs/fok.jpg',
+        ]);
+
+        $this->assertTrue($program->imageUsesContainFit());
+        $this->assertSame('#265485', $program->imageHeroSurfaceColor());
+    }
 }
