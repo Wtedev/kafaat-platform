@@ -44,4 +44,12 @@ class ImageSurfaceColorTest extends TestCase
             + hexdec(substr($hex, 4, 2)) * 114) / 1000;
         $this->assertGreaterThan(200, $luma);
     }
+
+    public function test_samples_blue_edge_color_from_fok_cover(): void
+    {
+        $this->assertSame(
+            '#265485',
+            ImageSurfaceColor::fromStoredPath('images/programs/fok.jpg'),
+        );
+    }
 }
