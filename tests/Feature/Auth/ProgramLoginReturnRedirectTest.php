@@ -265,6 +265,7 @@ class ProgramLoginReturnRedirectTest extends TestCase
             ->assertSee('انتهى التسجيل في هذا البرنامج.', false)
             ->assertSee('باب التسجيل مغلق حالياً ولا يمكن تقديم طلبات جديدة.', false)
             ->assertSee('انتهى التسجيل', false)
+            ->assertSee('border-gray-200 bg-gray-50', false)
             ->assertDontSee('سجّل الدخول للتسجيل', false)
             ->assertDontSee('يجب تسجيل الدخول للتسجيل في البرنامج.', false)
             ->assertDontSee('سجّل في البرنامج', false);
@@ -289,6 +290,8 @@ class ProgramLoginReturnRedirectTest extends TestCase
             ->assertOk()
             ->assertSee('التسجيل لم يُفتح بعد.', false)
             ->assertSee($program->publicRegistrationUnavailableBody(), false)
+            ->assertSee('التسجيل قريباً', false)
+            ->assertSee('border-amber-200/80 bg-amber-50/80', false)
             ->assertDontSee('انتهى التسجيل في هذا البرنامج.', false)
             ->assertDontSee('باب التسجيل مغلق حالياً ولا يمكن تقديم طلبات جديدة.', false)
             ->assertDontSee('سجّل الدخول للتسجيل', false)

@@ -37,16 +37,7 @@
     @php $descriptionExcerpt = $program->descriptionExcerpt(); @endphp
     <a href="{{ route('public.programs.show', $program->slug) }}" class="group overflow-hidden rounded-2xl border border-gray-100 bg-white text-right shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
 
-        <x-public.card-media
-            variant="catalog"
-            mediaContext="program"
-            :programKind="$program->program_kind"
-            :hasImage="filled($program->image)"
-            :imageUrl="$program->imagePublicUrl()"
-            objectFit="cover"
-            :alt="$program->title"
-            :index="$index"
-        />
+        <x-public.program-catalog-media :program="$program" :index="$index" />
 
         <div class="p-5">
             <h3 class="mb-2 font-bold leading-snug text-brand transition-colors">{{ $program->title }}</h3>

@@ -409,6 +409,29 @@ class TrainingProgram extends Model
         return $this->registrationWindowStatusLabel() === 'لم يبدأ';
     }
 
+    /**
+     * Public catalog/detail UX: open | upcoming | ended | path.
+     */
+    public function publicRegistrationUxState(): string
+    {
+        return match ($this->registrationWindowStatusLabel()) {
+            'التسجيل عبر المسار' => 'path',
+            'لم يبدأ' => 'upcoming',
+            'مفتوح' => 'open',
+            default => 'ended',
+        };
+    }
+
+    public function publicRegistrationUxLabel(): string
+    {
+        return match ($this->publicRegistrationUxState()) {
+            'path' => 'التسجيل عبر المسار',
+            'upcoming' => 'التسجيل قريباً',
+            'open' => 'التسجيل مفتوح',
+            default => 'انتهى التسجيل',
+        };
+    }
+
     public function publicRegistrationUnavailableHeading(): string
     {
         return $this->isRegistrationUpcoming()

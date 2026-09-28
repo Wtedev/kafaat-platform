@@ -110,16 +110,7 @@
                             @foreach ($programs as $index => $program)
                                 @php $descriptionExcerpt = $program->descriptionExcerpt(); @endphp
                                 <a href="{{ route('public.programs.show', $program->slug) }}" class="track-program-card group">
-                                    <x-public.card-media
-                                        variant="catalog"
-                                        mediaContext="program"
-                                        :programKind="$program->program_kind"
-                                        :hasImage="filled($program->image)"
-                                        :imageUrl="$program->imagePublicUrl()"
-                                        objectFit="cover"
-                                        :alt="$program->title"
-                                        :index="$index"
-                                    />
+                                    <x-public.program-catalog-media :program="$program" :index="$index" />
                                     <div class="track-program-body">
                                         <h4 class="track-program-title">{{ $program->title }}</h4>
                                         @if (filled($descriptionExcerpt))
