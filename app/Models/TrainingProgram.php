@@ -12,6 +12,7 @@ use App\Models\Concerns\HasEntityNotes;
 use App\Services\Media\PublicMediaLifecycleService;
 use App\Support\Casts\LenientEnumCast;
 use App\Support\FilamentAssignmentVisibility;
+use App\Support\Media\ImageSurfaceColor;
 use App\Support\PublicDiskPath;
 use App\Support\RichContentSupport;
 use App\Support\StaffFilamentRoles;
@@ -240,6 +241,15 @@ class TrainingProgram extends Model
         $path = PublicDiskPath::normalize($this->image ?? null);
 
         return $path !== null && str_starts_with($path, 'images/programs/');
+    }
+
+    public function imageHeroSurfaceColor(): ?string
+    {
+        if (! $this->imageUsesContainFit()) {
+            return null;
+        }
+
+        return ImageSurfaceColor::fromStoredPath($this->image);
     }
 
     // ─── Scopes ───────────────────────────────────────────────────────────────
