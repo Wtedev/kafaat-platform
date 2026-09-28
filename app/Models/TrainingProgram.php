@@ -394,6 +394,31 @@ class TrainingProgram extends Model
         };
     }
 
+    public function isRegistrationUpcoming(): bool
+    {
+        return $this->registrationWindowStatusLabel() === 'لم يبدأ';
+    }
+
+    public function publicRegistrationUnavailableHeading(): string
+    {
+        return $this->isRegistrationUpcoming()
+            ? 'التسجيل لم يُفتح بعد.'
+            : 'انتهى التسجيل في هذا البرنامج.';
+    }
+
+    public function publicRegistrationUnavailableBody(): string
+    {
+        if (! $this->isRegistrationUpcoming()) {
+            return 'باب التسجيل مغلق حالياً ولا يمكن تقديم طلبات جديدة.';
+        }
+
+        if ($this->registration_start === null) {
+            return 'سيُفتح باب التسجيل قريباً.';
+        }
+
+        return 'يُفتح باب التسجيل يوم '.en_digits(ar_date($this->registration_start, 'd MMM y')).'.';
+    }
+
     /**
      * مدة البرنامج من تاريخ البداية والنهاية (لا يُعرض تاريخ النهاية في واجهة العرض).
      */

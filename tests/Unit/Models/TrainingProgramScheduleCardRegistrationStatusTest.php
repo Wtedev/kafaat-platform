@@ -40,6 +40,9 @@ class TrainingProgramScheduleCardRegistrationStatusTest extends TestCase
         ]);
 
         $this->assertSame('لم يبدأ التسجيل', $program->scheduleCardRegistrationStatusLabel());
+        $this->assertTrue($program->isRegistrationUpcoming());
+        $this->assertSame('التسجيل لم يُفتح بعد.', $program->publicRegistrationUnavailableHeading());
+        $this->assertSame('يُفتح باب التسجيل يوم 27 يوليو 2026.', $program->publicRegistrationUnavailableBody());
     }
 
     public function test_ended_status_shows_closed_label(): void
@@ -55,6 +58,9 @@ class TrainingProgramScheduleCardRegistrationStatusTest extends TestCase
         ]);
 
         $this->assertSame('انتهى التسجيل', $program->scheduleCardRegistrationStatusLabel());
+        $this->assertFalse($program->isRegistrationUpcoming());
+        $this->assertSame('انتهى التسجيل في هذا البرنامج.', $program->publicRegistrationUnavailableHeading());
+        $this->assertSame('باب التسجيل مغلق حالياً ولا يمكن تقديم طلبات جديدة.', $program->publicRegistrationUnavailableBody());
     }
 
     public function test_path_only_keeps_via_path_label(): void

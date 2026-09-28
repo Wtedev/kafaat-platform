@@ -270,6 +270,31 @@ class ProgramLoginReturnRedirectTest extends TestCase
             ->assertDontSee('سجّل في البرنامج', false);
     }
 
+    public function test_guest_sees_upcoming_registration_message_not_ended_copy(): void
+    {
+        $program = TrainingProgram::query()->create([
+            'title' => 'ملتقى تحليل البيانات 2',
+            'slug' => 'upcoming-registration-copy',
+            'status' => ProgramStatus::Published,
+            'published_at' => now(),
+            'learning_path_id' => null,
+            'registration_start' => now()->addDays(2)->toDateString(),
+            'registration_end' => now()->addDays(12)->toDateString(),
+        ]);
+
+        $this->assertFalse($program->isRegistrationOpen());
+        $this->assertTrue($program->isRegistrationUpcoming());
+
+        $this->get(route('public.programs.show', $program))
+            ->assertOk()
+            ->assertSee('التسجيل لم يُفتح بعد.', false)
+            ->assertSee($program->publicRegistrationUnavailableBody(), false)
+            ->assertDontSee('انتهى التسجيل في هذا البرنامج.', false)
+            ->assertDontSee('باب التسجيل مغلق حالياً ولا يمكن تقديم طلبات جديدة.', false)
+            ->assertDontSee('سجّل الدخول للتسجيل', false)
+            ->assertDontSee('سجّل في البرنامج', false);
+    }
+
     public function test_staff_still_goes_to_admin_even_with_program_return(): void
     {
         Notification::fake();

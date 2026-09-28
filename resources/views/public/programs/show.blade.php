@@ -113,8 +113,8 @@ $ackLabel = $inPerson
             </div>
             @elseif (! $trainingProgram->isRegistrationOpen())
             <div class="space-y-1 sm:max-w-xl">
-                <p class="text-sm font-medium text-gray-800">انتهى التسجيل في هذا البرنامج.</p>
-                <p class="text-sm leading-relaxed text-gray-500">باب التسجيل مغلق حالياً ولا يمكن تقديم طلبات جديدة.</p>
+                <p class="text-sm font-medium text-gray-800">{{ $trainingProgram->publicRegistrationUnavailableHeading() }}</p>
+                <p class="text-sm leading-relaxed text-gray-500">{{ $trainingProgram->publicRegistrationUnavailableBody() }}</p>
             </div>
             @elseif ($ineligible)
             @php
