@@ -159,6 +159,7 @@ class PublicProgramsIndexTest extends TestCase
             ->assertSee('التسجيل مفتوح', false)
             ->assertSee('التسجيل قريباً', false)
             ->assertSee('انتهى التسجيل', false)
-            ->assertSee('grayscale', false);
+            ->assertSee('grayscale', false)
+            ->assertSee('program-card--ended', false);
     }
 }
