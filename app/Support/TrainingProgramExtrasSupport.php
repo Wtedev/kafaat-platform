@@ -385,7 +385,7 @@ final class TrainingProgramExtrasSupport
     {
         return match ((string) $program->slug) {
             'multaqa-tahlil-al-bayanat-2' => [
-                ['label' => 'شهادة الإتمام', 'value' => 'لكل مشارك'],
+                ['label' => 'شهادة الإتمام', 'value' => 'لمن أتم حضور جميع أيام البرنامج'],
                 ['label' => 'الجوائز', 'value' => 'جوائز مالية للمميزين'],
             ],
             default => [],
