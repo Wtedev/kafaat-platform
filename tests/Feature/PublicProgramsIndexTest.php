@@ -78,4 +78,23 @@ class PublicProgramsIndexTest extends TestCase
             ->assertSee('٦:٠٠ص - ١٢:٠٠م', false)
             ->assertSee('١٢:٠٠م - ٦:٠٠ص', false);
     }
+
+    public function test_homepage_hero_uses_vision_and_mission_and_hides_about_cards(): void
+    {
+        $vision = (string) config('about.vision.text');
+        $mission = (string) config('about.mission.text');
+
+        $html = $this->get(route('home'))
+            ->assertOk()
+            ->assertSee($vision, false)
+            ->assertSee($mission, false)
+            ->assertDontSee('نمكن الشباب. ونصنع الأثر', false)
+            ->assertDontSee('نؤهّل الشباب ونوسّع مشاركتهم المجتمعية عبر برامج تدريبية وفرص تطوعية وشراكات مستدامة.', false)
+            ->getContent();
+
+        $this->assertSame(1, substr_count($html, $vision));
+        $this->assertSame(1, substr_count($html, $mission));
+        $this->assertStringNotContainsString('>الرؤية<', $html);
+        $this->assertStringNotContainsString('>الرسالة<', $html);
+    }
 }

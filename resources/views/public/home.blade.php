@@ -668,6 +668,9 @@
 
     @php
     $homeAboutHref = request()->routeIs('home') ? '#about' : route('home') . '#about';
+    $homeAbout = config('about', []);
+    $homeHeroTitle = $homeAbout['vision']['text'] ?? 'نصنع الأثر بشباب ملهم ومتمكن';
+    $homeHeroDescription = $homeAbout['mission']['text'] ?? 'بناء كفاءات الشباب وتعزيز قدراتهم وتأهيلهم للمشاركة المجتمعية وفق عمل مؤسسي وشراكات تكاملية';
     $selfTrackMeta = config('competency_tracks.tracks.self', []);
     $selfTrackColor = $selfTrackMeta['color'] ?? config('brand.secondary');
     $selfTrackBg = $selfTrackMeta['bg_tint'] ?? config('brand.secondary_light');
@@ -706,10 +709,10 @@
 
                     <div class="home-hero__copy">
                         <h1 class="home-hero__headline font-extrabold text-white mb-5">
-                            نمكن الشباب. ونصنع الأثر
+                            {{ $homeHeroTitle }}
                         </h1>
-                        <p class="text-sm sm:text-base leading-relaxed text-white/70 max-w-md mb-8">
-                            نؤهّل الشباب ونوسّع مشاركتهم المجتمعية عبر برامج تدريبية وفرص تطوعية وشراكات مستدامة.
+                        <p class="text-sm sm:text-base leading-relaxed text-white/70 max-w-xl mb-8">
+                            {{ $homeHeroDescription }}
                         </p>
                     </div>
 
