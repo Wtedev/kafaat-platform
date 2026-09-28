@@ -463,6 +463,7 @@ class TrainingProgramCreationFlowTest extends TestCase
             ->assertSee('د. عبد الله العمير')
             ->assertSee('مميزات البرنامج')
             ->assertSee('شهادة الإتمام')
+            ->assertSee('لمن أتم حضور جميع أيام البرنامج')
             ->assertSee('جوائز مالية للمميزين');
     }
 

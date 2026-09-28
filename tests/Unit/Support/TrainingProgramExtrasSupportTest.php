@@ -119,7 +119,7 @@ class TrainingProgramExtrasSupportTest extends TestCase
 
         $this->assertSame(
             [
-                ['label' => 'شهادة الإتمام', 'value' => 'لكل مشارك'],
+                ['label' => 'شهادة الإتمام', 'value' => 'لمن أتم حضور جميع أيام البرنامج'],
                 ['label' => 'الجوائز', 'value' => 'جوائز مالية للمميزين'],
             ],
             TrainingProgramExtrasSupport::publicBenefits($forum),
