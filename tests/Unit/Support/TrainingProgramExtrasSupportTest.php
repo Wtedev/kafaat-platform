@@ -119,8 +119,9 @@ class TrainingProgramExtrasSupportTest extends TestCase
 
         $this->assertSame(
             [
-                ['label' => 'شهادة الإتمام', 'value' => 'لمن أتم حضور جميع أيام البرنامج'],
-                ['label' => 'الجوائز', 'value' => 'جوائز مالية للمميزين'],
+                ['label' => 'شهادة الحضور', 'value' => 'لمن أتمّ حضور الجلسات النظرية الثلاث'],
+                ['label' => 'مواصلة الرحلة', 'value' => 'فرصة مواصلة الرحلة بالتطبيق العملي وتنفيذ المشاريع، مع الإرشاد والمتابعة.'],
+                ['label' => 'الجوائز', 'value' => 'جوائز مالية للمشاريع الفائزة، سواء كانت فردية أو مقدمة من فرق.'],
             ],
             TrainingProgramExtrasSupport::publicBenefits($forum),
         );

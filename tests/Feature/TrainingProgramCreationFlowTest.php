@@ -453,19 +453,29 @@ class TrainingProgramCreationFlowTest extends TestCase
             'program_presenters' => [
                 ['name' => 'د. عبد الله العمير', 'role' => 'عالم بيانات'],
             ],
+            'acceptance_conditions' => [
+                'min_age' => 18,
+                'max_age' => 38,
+                'require_saudi_national' => true,
+            ],
         ]);
 
         $this->get(route('public.programs.show', $program->slug))
             ->assertOk()
-            ->assertSee('محاور البرنامج')
+            ->assertSee('مراحل الملتقى')
             ->assertSee('تعلّم ومعرفة')
             ->assertDontSee('المسؤولون / المدربون')
             ->assertSee('مقدمو البرنامج')
             ->assertSee('د. عبد الله العمير')
+            ->assertSee('من 18 إلى 38 سنة')
+            ->assertSee('سعوديون وسعوديات')
             ->assertSee('مميزات البرنامج')
-            ->assertSee('شهادة الإتمام')
-            ->assertSee('لمن أتم حضور جميع أيام البرنامج')
-            ->assertSee('جوائز مالية للمميزين')
+            ->assertSee('شهادة الحضور')
+            ->assertSee('لمن أتمّ حضور الجلسات النظرية الثلاث')
+            ->assertSee('فرصة مواصلة الرحلة بالتطبيق العملي وتنفيذ المشاريع، مع الإرشاد والمتابعة.')
+            ->assertSee('جوائز مالية للمشاريع الفائزة، سواء كانت فردية أو مقدمة من فرق.')
+            ->assertDontSee('شهادة الإتمام')
+            ->assertDontSee('جوائز مالية للمميزين')
             ->assertSee('background:#061824', false);
     }
 
