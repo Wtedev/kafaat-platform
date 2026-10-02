@@ -2,6 +2,7 @@
 
 namespace App\Services\Certificates;
 
+use App\Data\Certificates\CertificateElement;
 use App\Enums\CertificatePdfStatus;
 use App\Enums\CertificateTemplateStatus;
 use App\Enums\RegistrationStatus;
@@ -100,10 +101,102 @@ class CertificateIssuanceService
         return $certificate;
     }
 
+    public function markEligible(Model $registration, User $actor): Certificate
+    {
+        if (! $this->canDecide($actor)) {
+            throw ValidationException::withMessages([
+                'design' => 'تأهيل الشهادة متاح للمدير فقط.',
+            ]);
+        }
+
+        $owner = $this->ownerOf($registration);
+        $user = $registration->getAttribute('user') ?? $registration->user()->first();
+        $template = $owner instanceof Model && method_exists($owner, 'certificateTemplate')
+            ? $owner->certificateTemplate
+            : null;
+        $gaps = $this->designGaps($template instanceof CertificateTemplate ? $template : null);
+        if ($gaps !== []) {
+            throw ValidationException::withMessages([
+                'design' => 'لا يمكن إصدار الشهادة قبل حفظ التصميم. '.implode(' ', $gaps),
+            ]);
+        }
+
+        if (! $user instanceof User || ! $owner instanceof Model) {
+            throw ValidationException::withMessages([
+                'design' => 'تعذر إصدار الشهادة.',
+            ]);
+        }
+
+        $already = $this->activeCertificate($user, $owner);
+        $certificate = $this->issue($user, $owner, $actor, manual: true);
+        if (! $certificate instanceof Certificate) {
+            throw ValidationException::withMessages([
+                'design' => 'تعذر إصدار الشهادة.',
+            ]);
+        }
+
+        if (! $already instanceof Certificate) {
+            activity()
+                ->causedBy($actor)
+                ->performedOn($certificate)
+                ->event('certificate_marked_eligible')
+                ->withProperties(['reason' => null])
+                ->log('وُسم المستفيد مؤهلاً وصدرت الشهادة');
+        }
+
+        return $certificate;
+    }
+
+    public function revokeForRegistration(Model $registration, User $actor, string $reason): void
+    {
+        $owner = $this->ownerOf($registration);
+        $user = $registration->getAttribute('user') ?? $registration->user()->first();
+        if (! $user instanceof User || ! $owner instanceof Model) {
+            throw ValidationException::withMessages([
+                'reason' => 'لا توجد شهادة لإلغائها.',
+            ]);
+        }
+
+        $certificate = $this->activeCertificate($user, $owner);
+        if (! $certificate instanceof Certificate) {
+            throw ValidationException::withMessages([
+                'reason' => 'لا توجد شهادة لإلغائها.',
+            ]);
+        }
+
+        $this->revoke($certificate, $actor, $reason);
+    }
+
+    public function canDecide(User $user): bool
+    {
+        return $user->hasRole('super_admin')
+            || $user->isAdmin()
+            || $user->can('certificates.mark_eligible');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function designGaps(?CertificateTemplate $template): array
+    {
+        if (! $template instanceof CertificateTemplate) {
+            return ['لا يوجد قالب شهادة لهذا النشاط.'];
+        }
+
+        $elements = [];
+        foreach ($template->elements ?? [] as $element) {
+            $elements[] = $element instanceof CertificateElement
+                ? $element->toArray()
+                : (array) $element;
+        }
+
+        return app(CertificateDesignService::class)->approvalGaps($template, $elements);
+    }
+
     public function revoke(Certificate $certificate, User $admin, string $reason): void
     {
         $reason = trim($reason);
-        if (! $admin->isAdmin()) {
+        if (! $this->canDecide($admin)) {
             throw ValidationException::withMessages([
                 'reason' => 'إلغاء الشهادة للمدير فقط.',
             ]);
@@ -139,6 +232,7 @@ class CertificateIssuanceService
         bool $exceptional = false,
         ?string $overrideReason = null,
         bool $automatic = false,
+        bool $manual = false,
     ): ?Certificate {
         if ($exceptional && ($issuedBy === null || ! $issuedBy->isAdmin() || trim((string) $overrideReason) === '')) {
             return null;
@@ -147,15 +241,19 @@ class CertificateIssuanceService
         $template = method_exists($certificateable, 'certificateTemplate')
             ? $certificateable->certificateTemplate
             : null;
-        if (! $this->templateIsReady($template)) {
+        if ($manual) {
+            if ($this->designGaps($template) !== []) {
+                return null;
+            }
+        } elseif (! $this->templateIsReady($template)) {
             return null;
         }
 
-        if ($automatic && ! $template->auto_issue) {
+        if ($automatic) {
             return null;
         }
 
-        if (! $exceptional) {
+        if (! $exceptional && ! $manual) {
             $registration = $this->registrationFor($user, $certificateable);
             if ($registration === null || ! $this->eligibility->evaluate($registration)->eligible) {
                 return null;

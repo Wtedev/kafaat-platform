@@ -53,10 +53,11 @@ class CertificateDesignService
      */
     public function saveDraft(CertificateTemplate $template, array $elements, array $eligibility): CertificateTemplate
     {
+        $this->pullAutoIssue($eligibility);
         $template->update([
             'elements' => $this->normalizeElements($template, $elements),
             'eligibility' => $this->normalizeEligibility($eligibility),
-            'auto_issue' => $this->pullAutoIssue($eligibility),
+            'auto_issue' => false,
             'status' => CertificateTemplateStatus::Draft,
         ]);
 
@@ -111,14 +112,14 @@ class CertificateDesignService
     public function approve(CertificateTemplate $template, array $elements, array $eligibility, bool $regenerate): CertificateTemplate
     {
         $normalized = $this->normalizeElements($template, $elements);
-        $autoIssue = $this->pullAutoIssue($eligibility);
+        $this->pullAutoIssue($eligibility);
         $rules = $this->normalizeEligibility($eligibility);
         $nextVersion = ((int) $template->version) + 1;
 
         $template->update([
             'elements' => $normalized,
             'eligibility' => $rules,
-            'auto_issue' => $autoIssue,
+            'auto_issue' => false,
             'status' => CertificateTemplateStatus::Ready,
             'version' => $nextVersion,
         ]);

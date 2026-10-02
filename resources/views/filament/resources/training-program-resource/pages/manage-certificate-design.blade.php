@@ -179,10 +179,6 @@
                         <input type="number" min="0" step="0.01" x-model="eligibility.min_approved_hours">
                     </label>
                     <label class="cd-rule">
-                        إصدار تلقائي عند تحقق الشروط
-                        <input type="checkbox" x-model="eligibility.auto_issue">
-                    </label>
-                    <label class="cd-rule">
                         التسجيل مقبول أو مكتمل
                         <input type="checkbox" x-model="eligibility.require_completed_status">
                     </label>

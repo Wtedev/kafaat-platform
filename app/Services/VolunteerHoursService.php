@@ -8,13 +8,11 @@ use App\Models\User;
 use App\Models\VolunteerHour;
 use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
-use App\Services\Certificates\CertificateIssuanceService;
 
 class VolunteerHoursService
 {
     public function __construct(
         private readonly VolunteerRegistrationService $registrationService,
-        private readonly CertificateIssuanceService $certificateIssuance,
     ) {}
 
     /**
@@ -105,15 +103,6 @@ class VolunteerHoursService
 
         if ($totalApproved >= $hoursExpected) {
             $this->registrationService->markCompleted($registration, $admin);
-            $registration->loadMissing(['user', 'opportunity']);
-            if ($registration->user !== null && $registration->opportunity !== null) {
-                $this->certificateIssuance->issue(
-                    $registration->user,
-                    $registration->opportunity,
-                    $admin,
-                    automatic: true,
-                );
-            }
         }
     }
 }

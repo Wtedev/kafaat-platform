@@ -108,11 +108,7 @@ class ActivityCertificateTemplatesTest extends TestCase
 
         $registration->refresh();
         $this->assertSame(RegistrationStatus::Completed, $registration->status);
-        $this->assertSame(1, Certificate::query()->where('user_id', $user->id)->whereNull('revoked_at')->count());
-        $issued = Certificate::query()->where('user_id', $user->id)->first();
-        $this->assertSame('2', $this->snapshotValue($issued, 'completed_courses_count'));
-        Storage::disk('local')->assertExists('certificates/'.$issued?->certificate_number.'.pdf');
-        Storage::disk('public')->assertMissing('certificates/'.$issued?->certificate_number.'.pdf');
+        $this->assertSame(0, Certificate::query()->count());
     }
 
     public function test_path_batch_issues_only_learners_who_finished_every_course(): void
@@ -202,9 +198,7 @@ class ActivityCertificateTemplatesTest extends TestCase
         app(VolunteerHoursService::class)->approveHours($entry, $admin);
 
         $this->assertSame(RegistrationStatus::Completed, $registration->fresh()->status);
-        $certificate = Certificate::query()->where('user_id', $user->id)->first();
-        $this->assertInstanceOf(Certificate::class, $certificate);
-        $this->assertSame('8', $this->snapshotValue($certificate, 'approved_volunteer_hours'));
+        $this->assertSame(0, Certificate::query()->count());
     }
 
     public function test_volunteer_auto_issue_stays_off_until_the_template_allows_it(): void
@@ -330,7 +324,7 @@ class ActivityCertificateTemplatesTest extends TestCase
             ->assertOk()
             ->assertSee('إكمال كل الدورات')
             ->assertSee('عدد الدورات المكتملة')
-            ->assertSee('إصدار تلقائي عند تحقق الشروط')
+            ->assertDontSee('إصدار تلقائي عند تحقق الشروط')
             ->assertDontSee('الساعات التطوعية المعتمدة');
 
         Livewire::actingAs($admin)
@@ -340,6 +334,19 @@ class ActivityCertificateTemplatesTest extends TestCase
             ->assertSee('الساعات التطوعية المعتمدة')
             ->assertDontSee('إكمال كل الدورات')
             ->assertDontSee('عدد الدورات المكتملة');
+    }
+
+    public function test_volunteer_backfill_keeps_expected_hours_without_auto_issue(): void
+    {
+        $opportunity = $this->opportunity(30);
+
+        app(CertificateTemplateBackfill::class)->backfillVolunteerOpportunities();
+
+        $template = $opportunity->certificateTemplate()->first();
+        $this->assertNotNull($template);
+        $this->assertFalse($template->auto_issue);
+        $this->assertSame(CertificateEligibilityMode::MinApprovedHours, $template->eligibility->mode);
+        $this->assertSame(30.0, $template->eligibility->minApprovedHours);
     }
 
     public function test_backfilled_path_certificate_can_still_be_downloaded_and_verified(): void
@@ -369,7 +376,7 @@ class ActivityCertificateTemplatesTest extends TestCase
         $certificate->refresh();
         $template = $path->certificateTemplate()->first();
         $this->assertNotNull($certificate->certificate_template_id);
-        $this->assertTrue($template?->auto_issue);
+        $this->assertFalse($template?->auto_issue);
         $this->assertSame(CertificateEligibilityMode::CompletedAllCourses, $template?->eligibility->mode);
 
         $this->actingAsOtpVerified($user)

@@ -4,11 +4,13 @@ namespace App\Filament\Resources\LearningPathResource\RelationManagers;
 
 use App\Enums\RegistrationStatus;
 use App\Exceptions\PathCapacityExceededException;
+use App\Filament\Support\CertificateManualActions;
 use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\LearningPath;
 use App\Models\PathRegistration;
 use App\Services\PathRegistrationService;
 use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -51,12 +53,14 @@ class PathRegistrationsRelationManager extends RelationManager
                 RegistrationFilamentTableSupport::beneficiaryNameColumn(),
                 RegistrationFilamentTableSupport::acceptanceStatusColumn(),
                 RegistrationFilamentTableSupport::certificateEligibilityColumn(),
+                ...CertificateManualActions::helperColumns(),
             ])
             ->filters([
                 SelectFilter::make('status')
                     ->label('حالة القبول')
                     ->options(RegistrationStatus::class),
             ])
+            ->selectable()
             ->actions([
                 Action::make('approve')
                     ->label('قبول')
@@ -96,6 +100,12 @@ class PathRegistrationsRelationManager extends RelationManager
                         app(PathRegistrationService::class)->reject($record, $data['rejected_reason'] ?? null);
                         Notification::make()->title('تم رفض التسجيل')->warning()->send();
                     }),
+                ...CertificateManualActions::recordActions(),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    CertificateManualActions::bulkMarkEligible(),
+                ]),
             ])
             ->defaultSort('created_at', 'desc');
     }

@@ -7,7 +7,6 @@ use App\Enums\CertificateFieldKey;
 use App\Enums\CertificateFontWeight;
 use App\Enums\CertificateTextAlign;
 use App\Models\CertificateTemplate;
-use App\Models\TrainingProgram;
 use App\Services\Certificates\CertificateTemplateBackfill;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
@@ -15,24 +14,16 @@ use Illuminate\Support\Str;
 
 /**
  * يجهّز قوالب الشهادات التي أنشأتها الترحيلات بخلفية تجريبية وعناصر ظاهرة.
- * الإصدار نفسه يتم لاحقاً من ProgramRegistrationSeeder عبر markCompleted.
+ * الإصدار يدوي من لوحة الإدارة، والقوالب تبقى auto_issue = false.
  */
 class CertificateSeeder extends Seeder
 {
     public function run(): void
     {
         $backfill = app(CertificateTemplateBackfill::class);
-        $existingIds = CertificateTemplate::query()->pluck('id');
         $backfill->backfillTrainingPrograms();
         $backfill->backfillLearningPaths();
         $backfill->backfillVolunteerOpportunities();
-
-        $newProgramTemplates = CertificateTemplate::query()
-            ->where('owner_type', (new TrainingProgram)->getMorphClass());
-        if ($existingIds->isNotEmpty()) {
-            $newProgramTemplates->whereNotIn('id', $existingIds);
-        }
-        $newProgramTemplates->update(['auto_issue' => true]);
 
         $png = $this->backgroundPng();
         $count = 0;

@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Data\Certificates\EligibilityRules;
-use App\Enums\CertificateTemplateStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Models\LearningPath;
@@ -12,14 +11,12 @@ use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Certificates\CertificateEligibilityService;
-use App\Services\Certificates\CertificateIssuanceService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ProgressService
 {
     public function __construct(
-        private readonly CertificateIssuanceService $certificateIssuance,
         private readonly CertificateEligibilityService $eligibility,
     ) {}
 
@@ -90,7 +87,8 @@ class ProgressService
     }
 
     /**
-     * When all path programs are completed for the user: path registration → Completed, issue path certificate.
+     * When all path programs are completed for the user, mark the path registration completed.
+     * This does not issue a certificate.
      */
     public function completePathIfEligible(User $user, LearningPath $path): void
     {
@@ -124,12 +122,6 @@ class ProgressService
             }
         });
 
-        $template = $path->certificateTemplate;
-        if ($template !== null
-            && $template->status === CertificateTemplateStatus::Ready
-            && $template->auto_issue) {
-            $this->certificateIssuance->issue($user, $path, automatic: true);
-        }
     }
 
     /**

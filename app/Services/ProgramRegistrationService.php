@@ -16,7 +16,6 @@ use App\Models\User;
 use App\Notifications\ProgramRegistrationApproved;
 use App\Notifications\ProgramRegistrationReceived;
 use App\Notifications\ProgramRegistrationRejected;
-use App\Services\Certificates\CertificateIssuanceService;
 use App\Services\Inbox\InboxNotificationService;
 use App\Support\TrainingProgramExtrasSupport;
 
@@ -24,7 +23,6 @@ class ProgramRegistrationService
 {
     public function __construct(
         private readonly EmailLogService $emailLogService,
-        private readonly CertificateIssuanceService $certificateIssuance,
         private readonly InboxNotificationService $inboxNotifications,
         private readonly ProgressService $progressService,
         private readonly ProgramAcceptanceConditionEvaluator $acceptanceEvaluator,
@@ -270,11 +268,8 @@ class ProgramRegistrationService
     }
 
     /**
-     * Mark an approved registration as completed, recording attendance and
-     * score, and issue a certificate when the program template marks the beneficiary eligible.
-     *
-     * Certificate issuance is idempotent — calling this multiple times will
-     * not produce duplicate certificates.
+     * Mark an approved registration as completed, recording attendance and score.
+     * Completion does not issue a certificate. An admin marks eligibility separately.
      *
      * @throws RegistrationNotApprovedException
      */
@@ -299,9 +294,6 @@ class ProgramRegistrationService
         ]);
 
         $registration->refresh();
-
-        $registration->loadMissing(['user', 'trainingProgram']);
-        $this->certificateIssuance->issueForProgramRegistration($registration, $admin, automatic: true);
 
         $registration->loadMissing(['user', 'trainingProgram.learningPath']);
         $program = $registration->trainingProgram;

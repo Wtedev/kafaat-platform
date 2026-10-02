@@ -98,7 +98,7 @@ class CertificateTemplateBackfill
 
         DB::table('certificate_templates')
             ->where('owner_type', $type)
-            ->update(['auto_issue' => true]);
+            ->update(['auto_issue' => false]);
     }
 
     public function backfillLearningPaths(): int
@@ -114,7 +114,7 @@ class CertificateTemplateBackfill
             'require_activity_ended' => false,
         ], JSON_UNESCAPED_UNICODE);
 
-        return $this->backfillOwners('learning_paths', $type, $eligibility, true);
+        return $this->backfillOwners('learning_paths', $type, $eligibility, false);
     }
 
     public function backfillVolunteerOpportunities(): int
@@ -129,13 +129,13 @@ class CertificateTemplateBackfill
             ->chunkById(200, function ($opportunities) use ($type, $now, &$created): void {
                 foreach ($opportunities as $opportunity) {
                     $hours = round((float) $opportunity->hours_expected, 2);
-                    $autoIssue = $hours > 0;
+                    $autoIssue = false;
                     $eligibility = json_encode([
                         'mode' => 'min_approved_hours',
                         'min_attendance' => null,
                         'min_score' => null,
                         'min_average' => null,
-                        'min_approved_hours' => $autoIssue ? $hours : 0,
+                        'min_approved_hours' => $hours,
                         'require_completed_status' => true,
                         'require_activity_ended' => false,
                     ], JSON_UNESCAPED_UNICODE);
