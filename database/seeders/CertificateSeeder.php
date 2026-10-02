@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 
 /**
  * يجهّز قوالب الشهادات التي أنشأتها الترحيلات بخلفية تجريبية وعناصر ظاهرة.
- * الإصدار يدوي من لوحة الإدارة، والقوالب تبقى auto_issue = false.
+ * الإصدار يدوي من لوحة الإدارة.
  */
 class CertificateSeeder extends Seeder
 {

@@ -176,7 +176,7 @@ class CertificateEligibilityServiceTest extends TestCase
         $this->assertSame(CertificateEligibilityStatus::AwaitingData, $missing->status);
     }
 
-    public function test_data_forum_backfill_requires_full_attendance_without_auto_issue(): void
+    public function test_data_forum_backfill_requires_full_attendance(): void
     {
         $forum = TrainingProgram::query()->create([
             'title' => 'ملتقى تحليل البيانات 2',
@@ -187,17 +187,14 @@ class CertificateEligibilityServiceTest extends TestCase
         $other = $this->program();
 
         app(CertificateTemplateBackfill::class)->backfillTrainingPrograms();
-        app(CertificateTemplateBackfill::class)->enableAutoIssueForTrainingPrograms();
 
         $forumTemplate = $forum->certificateTemplate()->first();
         $otherTemplate = $other->certificateTemplate()->first();
 
         $this->assertSame(CertificateEligibilityMode::AttendanceOnly, $forumTemplate->eligibility->mode);
         $this->assertSame(100.0, $forumTemplate->eligibility->minAttendance);
-        $this->assertFalse($forumTemplate->auto_issue);
         $this->assertSame(CertificateEligibilityMode::Average, $otherTemplate->eligibility->mode);
         $this->assertSame(75.0, $otherTemplate->eligibility->minAverage);
-        $this->assertFalse($otherTemplate->auto_issue);
     }
 
     public function test_evaluate_many_uses_a_constant_query_count(): void

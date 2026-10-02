@@ -26,7 +26,6 @@ class CertificateTemplate extends Model
         'page_height_mm',
         'elements',
         'eligibility',
-        'auto_issue',
         'status',
         'version',
         'created_by',
@@ -37,7 +36,6 @@ class CertificateTemplate extends Model
         'background_disk' => 'public',
         'page_width_mm' => 297,
         'page_height_mm' => 210,
-        'auto_issue' => false,
         'status' => 'draft',
         'version' => 1,
     ];
@@ -49,7 +47,6 @@ class CertificateTemplate extends Model
             'page_height_mm' => 'decimal:2',
             'elements' => CertificateElementsCast::class,
             'eligibility' => EligibilityRulesCast::class,
-            'auto_issue' => 'boolean',
             'status' => CertificateTemplateStatus::class,
             'version' => 'integer',
         ];

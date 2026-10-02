@@ -92,15 +92,6 @@ class CertificateTemplateBackfill
         ], JSON_UNESCAPED_UNICODE);
     }
 
-    public function enableAutoIssueForTrainingPrograms(): void
-    {
-        $type = (new TrainingProgram)->getMorphClass();
-
-        DB::table('certificate_templates')
-            ->where('owner_type', $type)
-            ->update(['auto_issue' => false]);
-    }
-
     public function backfillLearningPaths(): int
     {
         $type = (new LearningPath)->getMorphClass();
@@ -114,7 +105,7 @@ class CertificateTemplateBackfill
             'require_activity_ended' => false,
         ], JSON_UNESCAPED_UNICODE);
 
-        return $this->backfillOwners('learning_paths', $type, $eligibility, false);
+        return $this->backfillOwners('learning_paths', $type, $eligibility);
     }
 
     public function backfillVolunteerOpportunities(): int
@@ -129,7 +120,6 @@ class CertificateTemplateBackfill
             ->chunkById(200, function ($opportunities) use ($type, $now, &$created): void {
                 foreach ($opportunities as $opportunity) {
                     $hours = round((float) $opportunity->hours_expected, 2);
-                    $autoIssue = false;
                     $eligibility = json_encode([
                         'mode' => 'min_approved_hours',
                         'min_attendance' => null,
@@ -140,7 +130,7 @@ class CertificateTemplateBackfill
                         'require_activity_ended' => false,
                     ], JSON_UNESCAPED_UNICODE);
 
-                    if ($this->insertTemplate($type, (int) $opportunity->id, $eligibility, $autoIssue, $opportunity->created_by, $now)) {
+                    if ($this->insertTemplate($type, (int) $opportunity->id, $eligibility, $opportunity->created_by, $now)) {
                         $created++;
                     }
                 }
@@ -149,7 +139,7 @@ class CertificateTemplateBackfill
         return $created;
     }
 
-    private function backfillOwners(string $table, string $type, string $eligibility, bool $autoIssue): int
+    private function backfillOwners(string $table, string $type, string $eligibility): int
     {
         $created = 0;
         $now = now();
@@ -157,9 +147,9 @@ class CertificateTemplateBackfill
         DB::table($table)
             ->select(['id', 'created_by'])
             ->orderBy('id')
-            ->chunkById(200, function ($owners) use ($type, $eligibility, $autoIssue, $now, &$created): void {
+            ->chunkById(200, function ($owners) use ($type, $eligibility, $now, &$created): void {
                 foreach ($owners as $owner) {
-                    if ($this->insertTemplate($type, (int) $owner->id, $eligibility, $autoIssue, $owner->created_by, $now)) {
+                    if ($this->insertTemplate($type, (int) $owner->id, $eligibility, $owner->created_by, $now)) {
                         $created++;
                     }
                 }
@@ -168,7 +158,7 @@ class CertificateTemplateBackfill
         return $created;
     }
 
-    private function insertTemplate(string $type, int $ownerId, string $eligibility, bool $autoIssue, mixed $createdBy, mixed $now): bool
+    private function insertTemplate(string $type, int $ownerId, string $eligibility, mixed $createdBy, mixed $now): bool
     {
         $existingId = DB::table('certificate_templates')
             ->where('owner_type', $type)
@@ -186,7 +176,6 @@ class CertificateTemplateBackfill
                 'page_height_mm' => 210,
                 'elements' => '[]',
                 'eligibility' => $eligibility,
-                'auto_issue' => $autoIssue,
                 'status' => 'ready',
                 'version' => 1,
                 'created_by' => $createdBy,

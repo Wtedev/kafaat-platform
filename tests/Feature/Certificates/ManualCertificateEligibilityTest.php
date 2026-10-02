@@ -55,7 +55,6 @@ class ManualCertificateEligibilityTest extends TestCase
         $admin = $this->admin();
         $program = $this->program();
         $this->designedTemplate($program);
-        $program->certificateTemplate()->update(['auto_issue' => true]);
         $registration = $this->registration($program, 'مكتمل', 10);
 
         app(ProgramRegistrationService::class)->markCompleted($registration, $admin, 95, 100);
@@ -68,7 +67,6 @@ class ManualCertificateEligibilityTest extends TestCase
             'hours_expected' => 4,
         ]);
         $this->designedTemplate($opportunity);
-        $opportunity->certificateTemplate()->update(['auto_issue' => true]);
         $volunteer = User::factory()->create(['role_type' => 'beneficiary', 'is_active' => true]);
         VolunteerRegistration::query()->create([
             'user_id' => $volunteer->id,
@@ -151,7 +149,6 @@ class ManualCertificateEligibilityTest extends TestCase
             'owner_type' => $program->getMorphClass(),
             'owner_id' => $program->id,
             'status' => 'ready',
-            'auto_issue' => false,
             'eligibility' => [
                 'mode' => 'score_only',
                 'min_score' => 1,
@@ -287,7 +284,6 @@ class ManualCertificateEligibilityTest extends TestCase
             'background_disk' => 'local',
             'background_path' => $path,
             'status' => 'ready',
-            'auto_issue' => false,
             'eligibility' => [
                 'mode' => 'score_only',
                 'min_score' => $minScore,

@@ -12,7 +12,7 @@ document.addEventListener('alpine:init', () => {
         backgroundUrl: config.backgroundUrl,
         elements: config.elements || [],
         imageUrls: config.imageUrls || {},
-        eligibility: Object.assign({}, config.eligibility || {}, { auto_issue: Boolean(config.autoIssue) }),
+        eligibility: Object.assign({}, config.eligibility || {}),
         modes: config.modes || [],
         fields: config.fields || [],
         samples: config.samples || {},

@@ -92,7 +92,7 @@ class ActivityCertificateTemplatesTest extends TestCase
             'mode' => CertificateEligibilityMode::CompletedAllCourses->value,
             'require_completed_status' => true,
             'require_activity_ended' => false,
-        ], true);
+        ]);
         [$first, $second] = [$this->publishedProgram($path), $this->publishedProgram($path)];
         $user = $this->beneficiary('مسار مكتمل');
         $this->completeProgram($first, $user);
@@ -119,7 +119,7 @@ class ActivityCertificateTemplatesTest extends TestCase
             'mode' => CertificateEligibilityMode::CompletedAllCourses->value,
             'require_completed_status' => true,
             'require_activity_ended' => false,
-        ], true);
+        ]);
         $program = $this->publishedProgram($path);
         $done = $this->beneficiary('أنهى المسار');
         $waiting = $this->beneficiary('لم ينهِ المسار');
@@ -145,14 +145,13 @@ class ActivityCertificateTemplatesTest extends TestCase
         });
     }
 
-    public function test_draft_template_never_auto_issues_a_path_certificate(): void
+    public function test_completing_a_path_does_not_issue_a_certificate(): void
     {
         $path = $this->path();
         CertificateTemplate::query()->create([
             'owner_type' => $path->getMorphClass(),
             'owner_id' => $path->id,
             'status' => CertificateTemplateStatus::Draft,
-            'auto_issue' => true,
             'eligibility' => [
                 'mode' => CertificateEligibilityMode::CompletedAllCourses->value,
                 'require_completed_status' => true,
@@ -172,7 +171,7 @@ class ActivityCertificateTemplatesTest extends TestCase
         $this->assertSame(0, Certificate::query()->count());
     }
 
-    public function test_volunteer_certificate_follows_approved_hours_and_auto_issue(): void
+    public function test_approving_volunteer_hours_does_not_issue_a_certificate(): void
     {
         $admin = $this->admin();
         $opportunity = $this->opportunity(8);
@@ -181,7 +180,7 @@ class ActivityCertificateTemplatesTest extends TestCase
             'min_approved_hours' => 8,
             'require_completed_status' => true,
             'require_activity_ended' => false,
-        ], true);
+        ]);
         $user = $this->beneficiary('متطوع');
         $registration = VolunteerRegistration::query()->create([
             'user_id' => $user->id,
@@ -201,7 +200,7 @@ class ActivityCertificateTemplatesTest extends TestCase
         $this->assertSame(0, Certificate::query()->count());
     }
 
-    public function test_volunteer_auto_issue_stays_off_until_the_template_allows_it(): void
+    public function test_volunteer_hours_approval_does_not_issue_until_the_tab_action(): void
     {
         $admin = $this->admin();
         $opportunity = $this->opportunity(5);
@@ -210,8 +209,8 @@ class ActivityCertificateTemplatesTest extends TestCase
             'min_approved_hours' => 5,
             'require_completed_status' => true,
             'require_activity_ended' => false,
-        ], false);
-        $user = $this->beneficiary('بدون إصدار تلقائي');
+        ]);
+        $user = $this->beneficiary('متطوع بلا شهادة');
         VolunteerRegistration::query()->create([
             'user_id' => $user->id,
             'opportunity_id' => $opportunity->id,
@@ -248,7 +247,7 @@ class ActivityCertificateTemplatesTest extends TestCase
             'mode' => CertificateEligibilityMode::CompletedAllCourses->value,
             'require_completed_status' => true,
             'require_activity_ended' => false,
-        ], true);
+        ]);
         $this->publishedProgram($path);
         $user = $this->beneficiary('استثنائي');
         $user->assignRole('beneficiary');
@@ -324,7 +323,6 @@ class ActivityCertificateTemplatesTest extends TestCase
             ->assertOk()
             ->assertSee('إكمال كل الدورات')
             ->assertSee('عدد الدورات المكتملة')
-            ->assertDontSee('إصدار تلقائي عند تحقق الشروط')
             ->assertDontSee('الساعات التطوعية المعتمدة');
 
         Livewire::actingAs($admin)
@@ -336,7 +334,7 @@ class ActivityCertificateTemplatesTest extends TestCase
             ->assertDontSee('عدد الدورات المكتملة');
     }
 
-    public function test_volunteer_backfill_keeps_expected_hours_without_auto_issue(): void
+    public function test_volunteer_backfill_keeps_expected_hours(): void
     {
         $opportunity = $this->opportunity(30);
 
@@ -344,7 +342,6 @@ class ActivityCertificateTemplatesTest extends TestCase
 
         $template = $opportunity->certificateTemplate()->first();
         $this->assertNotNull($template);
-        $this->assertFalse($template->auto_issue);
         $this->assertSame(CertificateEligibilityMode::MinApprovedHours, $template->eligibility->mode);
         $this->assertSame(30.0, $template->eligibility->minApprovedHours);
     }
@@ -376,7 +373,6 @@ class ActivityCertificateTemplatesTest extends TestCase
         $certificate->refresh();
         $template = $path->certificateTemplate()->first();
         $this->assertNotNull($certificate->certificate_template_id);
-        $this->assertFalse($template?->auto_issue);
         $this->assertSame(CertificateEligibilityMode::CompletedAllCourses, $template?->eligibility->mode);
 
         $this->actingAsOtpVerified($user)
@@ -448,13 +444,12 @@ class ActivityCertificateTemplatesTest extends TestCase
     /**
      * @param  array<string, mixed>  $eligibility
      */
-    private function readyTemplate(LearningPath|VolunteerOpportunity $owner, array $eligibility, bool $autoIssue): CertificateTemplate
+    private function readyTemplate(LearningPath|VolunteerOpportunity $owner, array $eligibility): CertificateTemplate
     {
         return CertificateTemplate::query()->create([
             'owner_type' => $owner->getMorphClass(),
             'owner_id' => $owner->getKey(),
             'status' => CertificateTemplateStatus::Ready,
-            'auto_issue' => $autoIssue,
             'eligibility' => $eligibility,
             'elements' => [],
             'version' => 1,

@@ -41,7 +41,6 @@ class CertificateDesignService
             'page_height_mm' => 210,
             'elements' => [],
             'eligibility' => $this->defaultRules($owner),
-            'auto_issue' => false,
             'status' => CertificateTemplateStatus::Draft,
             'version' => 1,
         ]);
@@ -53,11 +52,9 @@ class CertificateDesignService
      */
     public function saveDraft(CertificateTemplate $template, array $elements, array $eligibility): CertificateTemplate
     {
-        $this->pullAutoIssue($eligibility);
         $template->update([
             'elements' => $this->normalizeElements($template, $elements),
             'eligibility' => $this->normalizeEligibility($eligibility),
-            'auto_issue' => false,
             'status' => CertificateTemplateStatus::Draft,
         ]);
 
@@ -112,14 +109,12 @@ class CertificateDesignService
     public function approve(CertificateTemplate $template, array $elements, array $eligibility, bool $regenerate): CertificateTemplate
     {
         $normalized = $this->normalizeElements($template, $elements);
-        $this->pullAutoIssue($eligibility);
         $rules = $this->normalizeEligibility($eligibility);
         $nextVersion = ((int) $template->version) + 1;
 
         $template->update([
             'elements' => $normalized,
             'eligibility' => $rules,
-            'auto_issue' => false,
             'status' => CertificateTemplateStatus::Ready,
             'version' => $nextVersion,
         ]);
@@ -358,7 +353,6 @@ class CertificateDesignService
         return [
             'programName' => (string) $owner->getAttribute('title'),
             'modes' => $modes,
-            'autoIssue' => (bool) $template->auto_issue,
             'status' => $template->status->value,
             'statusLabel' => $template->status->label(),
             'version' => (int) $template->version,
@@ -443,17 +437,6 @@ class CertificateDesignService
         }
 
         return EligibilityRules::fromArray($eligibility);
-    }
-
-    /**
-     * @param  array<string, mixed>  $eligibility
-     */
-    private function pullAutoIssue(array &$eligibility): bool
-    {
-        $value = $eligibility['auto_issue'] ?? false;
-        unset($eligibility['auto_issue']);
-
-        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }
 
     private function defaultRules(Model $owner): EligibilityRules
