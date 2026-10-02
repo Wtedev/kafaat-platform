@@ -6,10 +6,12 @@ use App\Enums\SupportMessageSenderType;
 use App\Enums\SupportTicketCategory;
 use App\Enums\SupportTicketPriority;
 use App\Enums\SupportTicketStatus;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Resources\SupportTicketResource\Pages;
 use App\Models\SupportTicket;
 use App\Models\User;
 use App\Services\Support\SupportUnreadService;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -25,6 +27,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 class SupportTicketResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::SUPPORT;
+    }
+
     protected static ?string $model = SupportTicket::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chat-bubble-left-right';

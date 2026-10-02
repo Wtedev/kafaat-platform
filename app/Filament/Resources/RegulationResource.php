@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Resources\RegulationResource\Pages;
 use App\Models\Regulation;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -25,6 +27,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 class RegulationResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::CONTENT;
+    }
+
     use ConfiguresEditOnlyResourceTable;
 
     protected static ?string $model = Regulation::class;

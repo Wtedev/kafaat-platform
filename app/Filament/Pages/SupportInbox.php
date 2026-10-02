@@ -4,12 +4,14 @@ namespace App\Filament\Pages;
 
 use App\Enums\SupportMessageSenderType;
 use App\Enums\SupportTicketStatus;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketInternalNote;
 use App\Models\SupportTicketMessage;
 use App\Models\User;
 use App\Services\Support\SupportTicketService;
 use App\Services\Support\SupportUnreadService;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Enums\Width;
@@ -21,6 +23,13 @@ use Livewire\Attributes\Url;
 
 class SupportInbox extends Page
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::SUPPORT;
+    }
+
     protected static ?string $slug = 'support-inbox';
 
     protected static ?string $navigationLabel = 'صندوق الدعم';

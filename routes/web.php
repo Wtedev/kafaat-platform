@@ -53,6 +53,8 @@ use App\Http\Controllers\Public\PublicTrainingProgramController;
 use App\Http\Controllers\Public\PublicVolunteerOpportunityController;
 use App\Http\Controllers\Public\SupportTicketController;
 use App\Http\Controllers\PublicPrivacyPolicyController;
+use App\Http\Controllers\StaffUi\StaffUiDemoController;
+use App\Support\StaffUi\StaffUiModule;
 use Illuminate\Support\Facades\Route;
 
 // ─── Authentication ───────────────────────────────────────────────────────────
@@ -94,20 +96,27 @@ Route::middleware(['auth', 'otp.verified', 'operational'])->group(function () {
     Route::get('/certificates/{certificate}/download', CertificateDownloadController::class)
         ->name('certificates.download');
 
-    Route::get('/admin/beneficiaries/{user}/cv-pdf', BeneficiaryCvPdfController::class)
-        ->name('admin.beneficiaries.cv-pdf');
+    Route::middleware('staff-ui.maintenance:'.StaffUiModule::USERS)
+        ->group(function () {
+            Route::get('/admin/beneficiaries/{user}/cv-pdf', BeneficiaryCvPdfController::class)
+                ->name('admin.beneficiaries.cv-pdf');
 
-    Route::get('/admin/beneficiaries/{user}/cv/download', BeneficiaryCvFileDownloadController::class)
-        ->name('admin.beneficiaries.cv-file.download');
+            Route::get('/admin/beneficiaries/{user}/cv/download', BeneficiaryCvFileDownloadController::class)
+                ->name('admin.beneficiaries.cv-file.download');
 
-    Route::post('/admin/beneficiaries/{user}/identity/reveal', BeneficiaryIdentityRevealController::class)
-        ->middleware('throttle:10,1')
-        ->name('admin.beneficiaries.identity.reveal');
+            Route::post('/admin/beneficiaries/{user}/identity/reveal', BeneficiaryIdentityRevealController::class)
+                ->middleware('throttle:10,1')
+                ->name('admin.beneficiaries.identity.reveal');
+        });
 
     // تفضيل إشعارات البريد (النافذة المنبثقة لمرة واحدة) — متاح لكل المستخدمين التشغيليين.
     Route::post('/notification-prefs/ack', [NotificationPreferenceController::class, 'acknowledge'])
         ->name('notification-prefs.ack');
 });
+
+Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.maintenance:'.StaffUiModule::SHELL])
+    ->get('/staff-ui/demo', StaffUiDemoController::class)
+    ->name('staff-ui.demo');
 
 // ─── Public website ───────────────────────────────────────────────────────────
 

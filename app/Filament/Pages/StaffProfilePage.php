@@ -2,11 +2,13 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Models\PendingEmailChange;
 use App\Services\Auth\AccountPasswordChangeService;
 use App\Services\Auth\EmailChangeService;
 use App\Services\Staff\StaffProfileUpdateService;
 use App\Support\Privacy\SensitiveContactMasker;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
@@ -29,6 +31,13 @@ use Illuminate\Validation\ValidationException;
  */
 class StaffProfilePage extends Page
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::SHELL;
+    }
+
     protected static ?string $slug = 'profile';
 
     protected static ?string $title = 'الملف الشخصي';

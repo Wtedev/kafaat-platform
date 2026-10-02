@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Resources\GovernanceCommitteeResource\Pages;
 use App\Filament\Resources\GovernanceCommitteeResource\RelationManagers\MembersRelationManager;
 use App\Models\GovernanceCommittee;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -21,6 +23,13 @@ use Filament\Tables\Table;
 
 class GovernanceCommitteeResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::GOVERNANCE;
+    }
+
     use ConfiguresEditOnlyResourceTable;
 
     protected static ?string $model = GovernanceCommittee::class;

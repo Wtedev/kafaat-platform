@@ -4,12 +4,14 @@ namespace App\Filament\Resources;
 
 use App\Enums\MembershipType;
 use App\Enums\ProfileGender;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\ProfileResource\Pages;
 use App\Filament\Resources\ProfileResource\Schemas\ProfileAdminForm;
 use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\Profile;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Resources\Resource;
@@ -20,6 +22,13 @@ use Filament\Tables\Table;
 
 class ProfileResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::USERS;
+    }
+
     use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
 

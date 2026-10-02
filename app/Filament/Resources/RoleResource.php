@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\RoleResource\Pages;
 use App\Services\Rbac\RbacCatalog;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -13,6 +15,13 @@ use Spatie\Permission\Models\Role;
 
 class RoleResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::ACCESS;
+    }
+
     use RegistersNavigationByPermission;
 
     protected static ?string $model = Role::class;
