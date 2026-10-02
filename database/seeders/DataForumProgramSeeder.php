@@ -15,7 +15,11 @@ class DataForumProgramSeeder extends Seeder
 {
     public const SLUG = 'multaqa-tahlil-al-bayanat-2';
 
-    public const DESCRIPTION = 'ملتقى تدريبي تطبيقي يفتح للمشاركين آفاق تحليل البيانات باستخدام لغة Python، ويمكنهم من تحويل البيانات إلى رؤى تدعم اتخاذ القرار وتصنع أثرًا في القطاع غير الربحي.<br><br>تُعقد الجلسات النظرية من الساعة 4:00 حتى 7:00 مساءً.<br><br><strong>محاور الملتقى</strong><ul><li>هندسة الأوامر.</li><li>تحليل البيانات باستخدام لغة Python.</li><li>أتمتة سير العمل.</li><li>بناء مهارات مخصّصة «Skills» في بيئة Claude.</li><li>بناء وكيل ذكي لتحليل البيانات.</li><li>هاكاثون تحليل البيانات في القطاع غير الربحي.</li></ul>';
+    public const START_DATE = '2026-10-10';
+
+    public const END_DATE = '2026-10-31';
+
+    public const DESCRIPTION = 'ملتقى تدريبي تطبيقي يفتح للمشاركين آفاق تحليل البيانات باستخدام لغة Python، ويمكنهم من تحويل البيانات إلى رؤى تدعم اتخاذ القرار وتصنع أثرًا في القطاع غير الربحي.<br><br><strong>محاور الملتقى</strong><ul><li>هندسة الأوامر.</li><li>تحليل البيانات باستخدام لغة Python.</li><li>أتمتة سير العمل.</li><li>بناء مهارات مخصّصة «Skills» في بيئة Claude.</li><li>بناء وكيل ذكي لتحليل البيانات.</li><li>هاكاثون تحليل البيانات في القطاع غير الربحي.</li></ul>';
 
     /**
      * @var list<array{title: string, facilitators: string}>
@@ -73,6 +77,8 @@ class DataForumProgramSeeder extends Seeder
             $conditions = self::acceptanceConditions($program);
             $dirty = $program->program_kind !== TrainingProgramKind::Forum
                 || trim((string) $program->description) !== self::DESCRIPTION
+                || $program->start_date?->toDateString() !== self::START_DATE
+                || $program->end_date?->toDateString() !== self::END_DATE
                 || ! $program->session_topics_enabled
                 || $topics !== self::STAGES
                 || (bool) $program->auto_accept_registrations
@@ -85,6 +91,8 @@ class DataForumProgramSeeder extends Seeder
             $program->forceFill([
                 'program_kind' => TrainingProgramKind::Forum,
                 'description' => self::DESCRIPTION,
+                'start_date' => self::START_DATE,
+                'end_date' => self::END_DATE,
                 'session_topics_enabled' => true,
                 'session_topics' => self::STAGES,
                 'auto_accept_registrations' => false,
