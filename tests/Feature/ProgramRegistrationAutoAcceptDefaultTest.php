@@ -9,8 +9,10 @@ use App\Exceptions\RegistrationWindowClosedException;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Notifications\ProgramRegistrationReceived;
 use App\Services\ProgramRegistrationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
 
@@ -154,6 +156,57 @@ class ProgramRegistrationAutoAcceptDefaultTest extends TestCase
             'training_program_id' => $program->id,
             'user_id' => $user->id,
         ]);
+    }
+
+    public function test_data_forum_pending_registration_emails_the_received_notice(): void
+    {
+        Notification::fake();
+
+        $user = $this->makeBeneficiary();
+        $program = $this->makeOpenProgram([
+            'title' => 'ملتقى تحليل البيانات 2',
+            'slug' => 'multaqa-tahlil-al-bayanat-2',
+            'auto_accept_registrations' => false,
+        ]);
+
+        $registration = app(ProgramRegistrationService::class)->register($program, $user);
+
+        Notification::assertSentTo(
+            $user,
+            ProgramRegistrationReceived::class,
+            function (ProgramRegistrationReceived $notification) use ($user): bool {
+                $mail = $notification->toMail($user);
+
+                return $mail->subject === 'تم استلام طلب مشاركتك — ملتقى تحليل البيانات 2'
+                    && in_array(
+                        'تم استلام طلب مشاركتك، وسيُبلغ المقبولون بعد مراجعة الطلبات واستكمال إجراءات الفرز.',
+                        $mail->introLines,
+                        true,
+                    );
+            },
+        );
+
+        $this->actingAs($user)
+            ->get(route('public.programs.registered', [
+                'trainingProgram' => $program->slug,
+                'registration' => $registration->getKey(),
+            ]))
+            ->assertOk()
+            ->assertSee('تم استلام طلب مشاركتك، وسيُبلغ المقبولون بعد مراجعة الطلبات واستكمال إجراءات الفرز.');
+    }
+
+    public function test_other_pending_programs_do_not_email_the_forum_received_notice(): void
+    {
+        Notification::fake();
+
+        $user = $this->makeBeneficiary();
+        $program = $this->makeOpenProgram([
+            'auto_accept_registrations' => false,
+        ]);
+
+        app(ProgramRegistrationService::class)->register($program, $user);
+
+        Notification::assertNotSentTo($user, ProgramRegistrationReceived::class);
     }
 
     private function makeBeneficiary(): User

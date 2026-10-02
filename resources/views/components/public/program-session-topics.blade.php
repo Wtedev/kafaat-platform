@@ -1,6 +1,9 @@
 @props([
     'topics' => null,
     'enabled' => true,
+    'heading' => 'محاور البرنامج',
+    'intro' => 'مراحل البرنامج ومحاوره.',
+    'detailLabel' => 'المسؤولون / المدربون',
 ])
 
 @php
@@ -34,11 +37,13 @@
         </span>
         <div class="min-w-0">
             <h3 id="program-session-topics-heading" class="text-base font-semibold tracking-tight text-brand sm:text-lg">
-                محاور البرنامج
+                {{ $heading }}
             </h3>
+            @if (filled($intro))
             <p class="mt-1 text-sm leading-relaxed text-gray-500">
-                مراحل البرنامج ومحاوره.
+                {{ $intro }}
             </p>
+            @endif
         </div>
     </div>
 
@@ -53,9 +58,11 @@
                         {{ $topic['title'] }}
                     </p>
                     @if ($topic['facilitators'] !== '')
-                        <p class="mt-1.5 text-sm leading-6 text-gray-600">
-                            <span class="font-medium text-[#335483]">المسؤولون / المدربون</span>
+                        <p class="mt-1.5 text-sm leading-7 text-gray-600">
+                            @if (filled($detailLabel))
+                            <span class="font-medium text-[#335483]">{{ $detailLabel }}</span>
                             <span class="text-gray-400"> · </span>
+                            @endif
                             <span>{{ $topic['facilitators'] }}</span>
                         </p>
                     @endif

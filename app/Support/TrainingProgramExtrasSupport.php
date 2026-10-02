@@ -385,11 +385,24 @@ final class TrainingProgramExtrasSupport
     {
         return match ((string) $program->slug) {
             'multaqa-tahlil-al-bayanat-2' => [
-                ['label' => 'شهادة الإتمام', 'value' => 'لمن أتم حضور جميع أيام البرنامج'],
-                ['label' => 'الجوائز', 'value' => 'جوائز مالية للمميزين'],
+                ['label' => 'شهادة الحضور', 'value' => 'لمن أتمّ حضور الجلسات النظرية الثلاث'],
+                ['label' => 'مواصلة الرحلة', 'value' => 'فرصة مواصلة الرحلة بالتطبيق العملي وتنفيذ المشاريع، مع الإرشاد والمتابعة.'],
+                ['label' => 'الجوائز', 'value' => 'جوائز مالية للمشاريع الفائزة، سواء كانت فردية أو مقدمة من فرق.'],
             ],
             default => [],
         };
+    }
+
+    /**
+     * جملة تُرسل بالبريد وتظهر بعد التسجيل عندما يبقى الطلب قيد المراجعة.
+     */
+    public static function registrationReceivedNotice(TrainingProgram $program): ?string
+    {
+        if ((string) $program->slug !== 'multaqa-tahlil-al-bayanat-2') {
+            return null;
+        }
+
+        return 'تم استلام طلب مشاركتك، وسيُبلغ المقبولون بعد مراجعة الطلبات واستكمال إجراءات الفرز.';
     }
 
     public static function presenterInitials(string $name): string

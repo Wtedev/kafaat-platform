@@ -14,8 +14,10 @@ use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Notifications\ProgramRegistrationApproved;
+use App\Notifications\ProgramRegistrationReceived;
 use App\Notifications\ProgramRegistrationRejected;
 use App\Services\Inbox\InboxNotificationService;
+use App\Support\TrainingProgramExtrasSupport;
 
 class ProgramRegistrationService
 {
@@ -72,6 +74,10 @@ class ProgramRegistrationService
             $approver = $program->owner ?? $user;
 
             return $this->approve($registration, $approver);
+        }
+
+        if ($registration->wasRecentlyCreated && $registration->status === RegistrationStatus::Pending) {
+            $this->sendProgramRegistrationReceivedNotification($registration, $user);
         }
 
         return $registration;
@@ -172,6 +178,22 @@ class ProgramRegistrationService
         );
 
         $this->inboxNotifications->registrationApprovedProgram($registration->user, $program, $approvedBy);
+    }
+
+    public function sendProgramRegistrationReceivedNotification(ProgramRegistration $registration, User $recipient): void
+    {
+        $registration->loadMissing('trainingProgram');
+        $program = $registration->trainingProgram;
+        if ($program === null || TrainingProgramExtrasSupport::registrationReceivedNotice($program) === null) {
+            return;
+        }
+
+        $this->emailLogService->send(
+            recipient: $recipient,
+            notification: new ProgramRegistrationReceived($registration),
+            templateKey: 'program_registration.received',
+            subject: 'تم استلام طلب مشاركتك — '.$program->title,
+        );
     }
 
     /**

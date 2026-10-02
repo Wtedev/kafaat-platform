@@ -8,6 +8,7 @@ enum TrainingProgramKind: string
     case Session = 'session';
     case Workshop = 'workshop';
     case Event = 'event';
+    case Forum = 'forum';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum TrainingProgramKind: string
             self::Session => 'لقاء',
             self::Workshop => 'ورشة عمل',
             self::Event => 'فعالية',
+            self::Forum => 'ملتقى',
         };
     }
 

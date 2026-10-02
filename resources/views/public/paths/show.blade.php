@@ -62,7 +62,7 @@ $alreadyRegisteredPath = $userRegistration !== null;
                                 <div class="min-w-0 flex-1">
                                     <div class="mb-1 flex flex-wrap items-center gap-2">
                                         <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold" style="background:#e9eff6; color:#335483">
-                                            {{ $program->program_kind->label() }}
+                                            {{ $program->program_kind?->label() }}
                                         </span>
                                         @if ($userProgReg)
                                             <span class="rounded-full px-2 py-0.5 text-xs font-medium {{ $regColor }}">{{ $regLabel }}</span>
