@@ -144,6 +144,48 @@ class ManualCertificateEligibilityTest extends TestCase
         $this->assertSame(2, Certificate::query()->count());
     }
 
+    public function test_bulk_eligibility_modal_warns_when_rows_miss_the_template_rules(): void
+    {
+        $admin = $this->admin();
+        $program = $this->program();
+        $this->designedTemplate($program, minScore: 90);
+        $low = $this->registration($program, 'منخفض', 5);
+        $high = $this->registration($program, 'مرتفع', 95);
+        $this->withSession(['otp_verified' => true]);
+
+        $warning = '1 من المحددين لا يحققون شروط الأحقية في القالب. سيُصدر لهم أيضاً لأن التأهيل يدوي.';
+        $current = 'ستُصدر الشهادة لكل صف محدد باستخدام تصميم النشاط، دون التحقق من شروط الأحقية.';
+
+        Livewire::actingAs($admin)
+            ->test(ProgramRegistrationsRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->selectTableRecords([$low->id, $high->id])
+            ->mountAction(TestAction::make('markCertificateEligibleBulk')->table()->bulk())
+            ->assertMountedActionModalSee($warning);
+
+        Livewire::actingAs($admin)
+            ->test(ProgramRegistrationsRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->selectTableRecords([$high->id])
+            ->mountAction(TestAction::make('markCertificateEligibleBulk')->table()->bulk())
+            ->assertMountedActionModalSee($current)
+            ->assertMountedActionModalDontSee('لا يحققون شروط الأحقية');
+
+        Livewire::actingAs($admin)
+            ->test(ProgramRegistrationsRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->selectTableRecords([$low->id, $high->id])
+            ->callAction(TestAction::make('markCertificateEligibleBulk')->table()->bulk());
+
+        $this->assertSame(2, Certificate::query()->count());
+    }
+
     public function test_backfilled_template_stays_a_draft_and_cannot_be_issued(): void
     {
         $admin = $this->admin();

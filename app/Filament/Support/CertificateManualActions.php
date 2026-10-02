@@ -2,10 +2,12 @@
 
 namespace App\Filament\Support;
 
+use App\Data\Certificates\EligibilityResult;
 use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
 use App\Models\User;
 use App\Models\VolunteerRegistration;
+use App\Services\Certificates\CertificateEligibilityService;
 use App\Services\Certificates\CertificateIssuanceService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
@@ -116,7 +118,26 @@ class CertificateManualActions
             ->visible(fn (): bool => self::canUse())
             ->requiresConfirmation()
             ->modalHeading('تأهيل المحددين للشهادة')
-            ->modalDescription('ستُصدر الشهادة لكل صف محدد باستخدام تصميم النشاط، دون التحقق من شروط الأحقية.')
+            ->modalDescription(function (Collection $records): string {
+                $current = 'ستُصدر الشهادة لكل صف محدد باستخدام تصميم النشاط، دون التحقق من شروط الأحقية.';
+                $selected = $records->filter(fn (mixed $record): bool => $record instanceof Model)->values();
+                if ($selected->isEmpty()) {
+                    return $current;
+                }
+
+                $results = app(CertificateEligibilityService::class)->evaluateMany($selected);
+                $outside = $selected->filter(function (Model $record) use ($results): bool {
+                    $result = $results->get($record->getKey());
+
+                    return ! $result instanceof EligibilityResult || ! $result->eligible;
+                })->count();
+
+                if ($outside === 0) {
+                    return $current;
+                }
+
+                return $outside.' من المحددين لا يحققون شروط الأحقية في القالب. سيُصدر لهم أيضاً لأن التأهيل يدوي.';
+            })
             ->modalSubmitActionLabel('إصدار الشهادات')
             ->action(function (Collection $records): void {
                 $issued = 0;
