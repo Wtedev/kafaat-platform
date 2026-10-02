@@ -17,9 +17,11 @@ use App\Filament\Support\TrainingProgramInlineEditSupport;
 use App\Filament\Support\TrainingProgramViewPresenter;
 use App\Models\TrainingProgram;
 use App\Services\Media\PublicMediaLifecycleService;
+use App\Services\Staff\StaffSettingsTab;
 use App\Support\ProgramAcceptanceConditions;
 use App\Support\RichContentSupport;
 use App\Support\TrainingProgramExtrasSupport;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -230,7 +232,7 @@ class ViewTrainingProgram extends BaseViewRecord
 
     protected function canAccessSettingsTab(): bool
     {
-        return false;
+        return StaffSettingsTab::visibleOnView();
     }
 
     /**
@@ -337,6 +339,10 @@ class ViewTrainingProgram extends BaseViewRecord
     protected function getViewPageToolbarActions(): array
     {
         return [
+            Action::make('certificateDesign')
+                ->label('تعيين تصميم الشهادة')
+                ->url(fn (): string => ManageCertificateDesign::getUrl(['record' => $this->getRecord()]))
+                ->visible(fn (): bool => auth()->user() !== null && ManageCertificateDesign::canAccess(['record' => $this->getRecord()])),
             ExportProgramRegistrantsAction::make(
                 fn (): TrainingProgram => $this->getRecord(),
             ),

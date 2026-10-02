@@ -98,7 +98,7 @@
 - **Admin Panel** مبني على Filament v5 مع Custom Actions وWidgets مخصصة
 - **Certificate verification flow** — كود تحقق عشوائي 32 حرفاً، صفحة عامة مستقلة
 - **Arabic-first interface** — RTL كامل في الواجهة الأمامية ولوحة التحكم
-- **PostgreSQL** عبر Supabase مع Connection Pooling
+- **PostgreSQL** في الإنتاج (Railway) مع Connection Pooling عند الحاجة
 
 ---
 
@@ -106,13 +106,16 @@
 
 | الطبقة              | التقنية                    |
 | ------------------- | -------------------------- |
-| **Backend**         | Laravel 11 / PHP 8.4       |
-| **Admin Panel**     | Filament v5                |
-| **Database**        | PostgreSQL / Supabase      |
-| **Frontend**        | Blade + Tailwind CSS (CDN) |
-| **PDF Generation**  | barryvdh/laravel-dompdf    |
+| **Backend**         | Laravel 13 / PHP 8.4       |
+| **Admin Panel**     | Filament 5                 |
+| **Livewire**        | Livewire 4 (via Filament)  |
+| **Database**        | PostgreSQL (production) · SQLite (local tests default) |
+| **Frontend**        | Blade + Tailwind CSS 4 + Vite 8 |
+| **PDF Generation**  | barryvdh/laravel-dompdf, mpdf |
 | **Permissions**     | spatie/laravel-permission  |
+| **Activity log**    | spatie/laravel-activitylog |
 | **Package Manager** | Composer / NPM             |
+| **Deploy**          | Railway (web + worker + scheduler) |
 
 ---
 
@@ -140,17 +143,48 @@
 ## Setup
 
 ```bash
+# 1. PHP dependencies
 composer install
-npm install
+
+# 2. Application env (never commit .env)
 cp .env.example .env
 php artisan key:generate
-# اضبط DB_* في .env ثم:
+
+# 3. Testing env (optional locally; auto-created from example on composer install / phpunit bootstrap)
+cp .env.testing.example .env.testing
+php artisan key:generate --env=testing --force
+
+# 4. Database (configure DB_* in .env first)
 php artisan migrate --seed
+
+# 5. Frontend (Tailwind 4 via Vite — required for public/portal/Filament theme assets)
+npm ci
 npm run build
-php artisan serve
+
+# 6. Local dev (app + queue + scheduler + Vite HMR)
+composer dev
+# or: php artisan serve
 ```
 
-المتصفح: `http://localhost:8000` — لوحة التحكم: `http://localhost:8000/admin`
+المتصفح: `http://127.0.0.1:8000` — لوحة التحكم: `/admin` — بوابة المستفيد: `/portal`
+
+### الاختبارات
+
+```bash
+# SQLite in-memory (default — see phpunit.xml)
+php artisan test
+
+# PostgreSQL (مطابقة CI — راجع TESTING.md)
+export DB_CONNECTION=pgsql DB_HOST=127.0.0.1 DB_PORT=5432
+export DB_DATABASE=kafaat_testing DB_USERNAME=kafaat DB_PASSWORD=your_local_password
+composer test:pgsql
+```
+
+### Queue و Scheduler (إنتاج / Railway)
+
+- **Queue:** خدمة worker منفصلة (`php artisan queue:work`) — راجع `docs/deployment/railway-services.md`
+- **Scheduler:** `php artisan schedule:work` أو cron يستدعي `schedule:run` كل دقيقة
+- أوامر مجدولة: `privacy:purge-expired-exports`, `privacy:apply-retention` — `routes/console.php`
 
 ---
 
@@ -175,6 +209,6 @@ php artisan serve
 - [ ] تحسين تصميم شهادات PDF
 - [ ] إشعارات داخلية عند الموافقة أو رفض الطلبات
 - [ ] صلاحيات أكثر تفصيلاً لموظفي كفاءات
-- [ ] توحيد نظام الأدوار (دمج `role_type` مع Spatie Roles)
+- [ ] توحيد نظام الأدوار (دمج `role_type` مع Spatie Roles) — خطة انتقال آمنة في `docs/rbac/role-type-spatie-transition.md`
 
 </div>

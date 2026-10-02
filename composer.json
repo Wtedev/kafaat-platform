@@ -52,9 +52,11 @@
         "setup": [
             "composer install",
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+            "@php -r \"file_exists('.env.testing') || copy('.env.testing.example', '.env.testing');\"",
             "@php artisan key:generate",
             "@php artisan migrate --force",
             "npm install --ignore-scripts",
+            "@sync-fonts",
             "npm run build"
         ],
         "dev": [
@@ -71,6 +73,7 @@
             "@php artisan config:clear --ansi",
             "@php artisan test"
         ],
+        "sync-fonts": "@php scripts/sync-shamel-fonts.php",
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi",
@@ -80,7 +83,8 @@
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
         ],
         "post-root-package-install": [
-            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+            "@php -r \"file_exists('.env.testing') || copy('.env.testing.example', '.env.testing');\""
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi",

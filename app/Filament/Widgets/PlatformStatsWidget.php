@@ -2,13 +2,8 @@
 
 namespace App\Filament\Widgets;
 
-use App\Enums\RegistrationStatus;
-use App\Models\Certificate;
-use App\Models\PathRegistration;
-use App\Models\ProgramRegistration;
 use App\Models\User;
-use App\Models\VolunteerRegistration;
-use App\Support\Format\LocaleFormat;
+use App\Services\Staff\PlatformDashboardStats;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -25,28 +20,21 @@ class PlatformStatsWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        $pendingPaths = PathRegistration::where('status', RegistrationStatus::Pending)->count();
-        $pendingPrograms = ProgramRegistration::where('status', RegistrationStatus::Pending)->count();
-        $pendingVolunteers = VolunteerRegistration::where('status', RegistrationStatus::Pending)->count();
-        $totalPending = $pendingPaths + $pendingPrograms + $pendingVolunteers;
-
-        $certificatesThisMonth = Certificate::whereYear('issued_at', now()->year)
-            ->whereMonth('issued_at', now()->month)
-            ->count();
+        $stats = app(PlatformDashboardStats::class)->snapshot();
 
         return [
-            Stat::make('إجمالي المستخدمين', User::count())
+            Stat::make('إجمالي المستخدمين', $stats['users'])
                 ->description('مسجّلون في المنصة')
                 ->color('primary')
                 ->icon('heroicon-o-users'),
 
-            Stat::make('طلبات معلّقة', $totalPending)
-                ->description("مسارات: {$pendingPaths} | برامج: {$pendingPrograms} | تطوع: {$pendingVolunteers}")
-                ->color($totalPending > 0 ? 'warning' : 'success')
+            Stat::make('طلبات معلّقة', $stats['pending_total'])
+                ->description("مسارات: {$stats['pending_paths']} | برامج: {$stats['pending_programs']} | تطوع: {$stats['pending_volunteers']}")
+                ->color($stats['pending_color'])
                 ->icon('heroicon-o-clock'),
 
-            Stat::make('شهادات هذا الشهر', $certificatesThisMonth)
-                ->description(LocaleFormat::date(now(), 'MMMM y'))
+            Stat::make('شهادات هذا الشهر', $stats['certificates_this_month'])
+                ->description($stats['month_label'])
                 ->color('success')
                 ->icon('heroicon-o-academic-cap'),
         ];

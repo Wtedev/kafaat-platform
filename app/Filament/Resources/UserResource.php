@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\IdentityType;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\Concerns\EntityNotesRelationManager;
@@ -11,7 +12,9 @@ use App\Filament\Resources\UserResource\RelationManagers\UserTechnicalLogRelatio
 use App\Filament\Resources\UserResource\RelationManagers\UserTrainingRegistrationsRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\UserVolunteerRegistrationsRelationManager;
 use App\Models\User;
+use App\Services\Staff\BeneficiaryCvPdfDownload;
 use App\Support\Privacy\SensitiveContactMasker;
+use App\Support\StaffUi\StaffUiModule;
 use App\Support\UserAccountRoleForm;
 use App\Support\UserDirectoryTabs;
 use Filament\Forms\Components\Select;
@@ -32,8 +35,14 @@ use Livewire\Component as LivewireComponent;
 
 class UserResource extends Resource
 {
+    use BelongsToStaffUiModule;
     use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::USERS;
+    }
 
     protected static ?string $model = User::class;
 
@@ -340,6 +349,6 @@ class UserResource extends Resource
 
     public static function beneficiaryCvPdfUrl(User $user): string
     {
-        return route('admin.beneficiaries.cv-pdf', ['user' => $user]);
+        return BeneficiaryCvPdfDownload::pdfUrl($user);
     }
 }

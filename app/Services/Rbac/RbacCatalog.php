@@ -75,7 +75,7 @@ final class RbacCatalog
             'registrations.view', 'registrations.approve', 'registrations.reject',
             'progress.view', 'progress.update',
             'volunteer_hours.view', 'volunteer_hours.create', 'volunteer_hours.approve', 'volunteer_hours.reject',
-            'certificates.view', 'certificates.issue', 'certificates.download',
+            'certificates.view', 'certificates.issue', 'certificates.download', 'certificate_templates.manage',
             'emails.send', 'statistics.view',
         ];
     }
@@ -198,6 +198,7 @@ final class RbacCatalog
             'volunteer_hours.view' => 'عرض ساعات التطوع', 'volunteer_hours.create' => 'تسجيل ساعات تطوع',
             'volunteer_hours.approve' => 'اعتماد ساعات التطوع', 'volunteer_hours.reject' => 'رفض ساعات التطوع',
             'certificates.view' => 'عرض الشهادات', 'certificates.issue' => 'إصدار الشهادات', 'certificates.download' => 'تحميل الشهادات',
+            'certificate_templates.manage' => 'إدارة قوالب الشهادات',
             'emails.send' => 'إرسال البريد', 'statistics.view' => 'عرض الإحصاءات',
         ];
 

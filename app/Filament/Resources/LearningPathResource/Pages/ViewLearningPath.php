@@ -15,6 +15,7 @@ use App\Filament\Support\LearningPathInlineEditSupport;
 use App\Filament\Support\LearningPathViewPresenter;
 use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\LearningPath;
+use App\Services\Staff\StaffSettingsTab;
 use App\Support\RichContentSupport;
 use Filament\Actions\DeleteAction;
 use Filament\Schemas\Components\Html;
@@ -122,7 +123,7 @@ class ViewLearningPath extends BaseViewRecord
 
     protected function canAccessSettingsTab(): bool
     {
-        return false;
+        return StaffSettingsTab::visibleOnView();
     }
 
     /**

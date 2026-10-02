@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use App\Enums\RegistrationStatus;
+use App\Services\Certificates\CertificateEligibilityService;
 use App\Services\Inbox\InboxNotificationService;
 use App\Services\PathAttendanceService;
 use App\Support\FilamentAssignmentVisibility;
-use App\Support\RegistrationEligibilitySupport;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -127,17 +127,7 @@ class PathRegistration extends Model
 
     public function isEligibleForCertificate(): bool
     {
-        if (! in_array($this->status, [
-            RegistrationStatus::Approved,
-            RegistrationStatus::Completed,
-        ], true)) {
-            return false;
-        }
-
-        return RegistrationEligibilitySupport::isEligible(
-            $this->effectiveAttendancePercentage(),
-            $this->score !== null ? (float) $this->score : null,
-        );
+        return app(CertificateEligibilityService::class)->evaluate($this)->eligible;
     }
 
     public function certificateForEntity(): ?Certificate
@@ -146,6 +136,7 @@ class PathRegistration extends Model
             ->where('user_id', $this->user_id)
             ->where('certificateable_type', LearningPath::class)
             ->where('certificateable_id', $this->learning_path_id)
+            ->whereNull('revoked_at')
             ->first();
     }
 }

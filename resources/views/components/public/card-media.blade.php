@@ -11,7 +11,7 @@
      * path | learning_path → مسار، volunteer → تطوع، program (افتراضي) → برنامج حسب programKind
      */
     'mediaContext' => 'program',
-    /** قيمة TrainingProgramKind: course | session | workshop | event (عند mediaContext=program) */
+    /** قيمة TrainingProgramKind: course | session | workshop | event | forum (عند mediaContext=program) */
     'programKind' => null,
     /**
      * cover (always for catalog/thumb cards) | contain (optional on detail hero only).
@@ -39,7 +39,7 @@
         default => match ($pk) {
             'session' => 'session',
             'workshop' => 'workshop',
-            'event' => 'event',
+            'event', 'forum' => 'event',
             default => 'course',
         },
     };

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Concerns;
 
+use App\Services\Training\TrainingEntityPublication;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Support\Exceptions\Halt;
@@ -27,13 +28,13 @@ trait HasTrainingEntityPublicationActions
 
     protected function canPublishEntityNow(): bool
     {
-        if (! $this->canInlineEditEntityView()) {
-            return false;
-        }
+        $tracksPublishedState = method_exists($this, 'recordIsPublishedForPublicationActions');
 
-        return method_exists($this, 'recordIsPublishedForPublicationActions')
-            ? ! $this->recordIsPublishedForPublicationActions()
-            : true;
+        return TrainingEntityPublication::canPublishNow(
+            $this->canInlineEditEntityView(),
+            $tracksPublishedState,
+            $tracksPublishedState ? $this->recordIsPublishedForPublicationActions() : false,
+        );
     }
 
     protected function publishEntityNow(): void

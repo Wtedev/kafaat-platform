@@ -59,7 +59,17 @@ php artisan roles:sync-from-role-type --apply
 
 To undo an apply without DB restore: use `roles:sync-to-role-type --apply` if Spatie is correct, or restore from backup / reverse the planned changes listed in `role-sync.log`.
 
-## Acceptance
+## Transition phases (safe rollout)
+
+| Phase | Action | Status |
+| --- | --- | --- |
+| 1 | Spatie-first reads + dual-write on Filament/registration/seeders | ✅ In production code |
+| 2 | `roles:report-drift` in deploy checklist; fix drift with `roles:sync-from-role-type --apply` | Operational |
+| 3 | Stop new code from querying `users.role_type` directly (use User helpers / scopes) | Ongoing |
+| 4 | Backfill `role_type` from Spatie for legacy rows (`roles:sync-to-role-type`) | On demand |
+| 5 | Drop `users.role_type` column (migration) | **Not started** — requires drift = 0 + product sign-off |
+
+Do **not** drop the column until phase 5 is explicitly approved.
 
 1. After `--apply`, `roles:report-drift` shows `drift: 0` for users with known role types.
 2. Login, `/portal`, and Filament `/admin` still work (helpers still accept either source).

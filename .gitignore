@@ -30,3 +30,8 @@ database/seeders/assets/media-photos/**/*.CR3
 database/seeders/assets/media-photos/**/*.cr3
 database/seeders/assets/media-photos/**/*.HEIC
 database/seeders/assets/media-photos/**/*.heic
+/postgres
+*.sqlite
+*.sqlite3
+*.db
+database/*.sqlite

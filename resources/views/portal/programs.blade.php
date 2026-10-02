@@ -1,8 +1,10 @@
 @php
 use App\Enums\ProgramDeliveryMode;
 use App\Enums\RegistrationStatus;
-use App\Support\RegistrationEligibilitySupport;
 use App\Support\TrainingProgramExtrasSupport;
+
+$attendancePercentages = $attendancePercentages ?? [];
+$certificateProgress = $certificateProgress ?? [];
 
 $statusColors = RegistrationStatus::badgeClasses();
 
@@ -108,7 +110,9 @@ $statusLabels = [
                 RegistrationStatus::Approved->value,
                 RegistrationStatus::Completed->value,
             ], true);
-            $effectiveAttendance = $reg->effectiveAttendancePercentage();
+            $effectiveAttendance = array_key_exists($reg->id, $attendancePercentages)
+                ? $attendancePercentages[$reg->id]
+                : $reg->effectiveAttendancePercentage();
             $scoreValue = $reg->score !== null ? (float) $reg->score : null;
 
             $attendanceDisplay = $effectiveAttendance !== null
@@ -118,17 +122,9 @@ $statusLabels = [
                 ? number_format($scoreValue, 1)
                 : '—';
 
-            if ($showElig) {
-                $eligDisplay = RegistrationEligibilitySupport::eligibilityLabel($effectiveAttendance, $scoreValue);
-                if ($eligDisplay === 'مؤهل') {
-                    $eligDisplay = 'مؤهل ✓';
-                    $eligClass = config('brand.classes.badge_secondary');
-                } elseif ($eligDisplay === 'بانتظار البيانات') {
-                    $eligDisplay = '—';
-                    $eligClass = null;
-                } else {
-                    $eligClass = config('brand.classes.badge_danger');
-                }
+            if ($showElig && isset($certificateProgress[$reg->id])) {
+                $eligDisplay = $certificateProgress[$reg->id];
+                $eligClass = null;
             } else {
                 $eligDisplay = '—';
                 $eligClass = null;
@@ -318,9 +314,13 @@ $statusLabels = [
                                 <a href="{{ $reg->certificate->downloadUrl() }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-xl bg-brand px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:opacity-95">
                                     تحميل الشهادة
                                 </a>
+                                @elseif ($reg->certificate->pdf_status?->value === 'failed')
+                                <span class="inline-flex items-center rounded-xl bg-[#e9eff6] px-3.5 py-2 text-xs font-semibold text-[#335483] ring-1 ring-[#c5d4e4]/70">
+                                    تعذر تجهيز الشهادة
+                                </span>
                                 @else
                                 <span class="inline-flex items-center rounded-xl bg-[#e9eff6] px-3.5 py-2 text-xs font-semibold text-[#335483] ring-1 ring-[#c5d4e4]/70">
-                                    شهادة صادرة
+                                    جارٍ تجهيز الشهادة
                                 </span>
                                 @endif
                             @else

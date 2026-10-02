@@ -14,6 +14,8 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\SignupVerificationController;
 use App\Http\Controllers\CertificateDownloadController;
+use App\Http\Controllers\Certificates\CertificateExportDownloadController;
+use App\Http\Controllers\Certificates\CertificateTemplateAssetController;
 use App\Http\Controllers\Gate\GateAttendanceController;
 use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\Portal\PortalAccountDeletionController;
@@ -53,6 +55,8 @@ use App\Http\Controllers\Public\PublicTrainingProgramController;
 use App\Http\Controllers\Public\PublicVolunteerOpportunityController;
 use App\Http\Controllers\Public\SupportTicketController;
 use App\Http\Controllers\PublicPrivacyPolicyController;
+use App\Http\Controllers\StaffUi\StaffUiDemoController;
+use App\Support\StaffUi\StaffUiModule;
 use Illuminate\Support\Facades\Route;
 
 // ─── Authentication ───────────────────────────────────────────────────────────
@@ -94,20 +98,31 @@ Route::middleware(['auth', 'otp.verified', 'operational'])->group(function () {
     Route::get('/certificates/{certificate}/download', CertificateDownloadController::class)
         ->name('certificates.download');
 
-    Route::get('/admin/beneficiaries/{user}/cv-pdf', BeneficiaryCvPdfController::class)
-        ->name('admin.beneficiaries.cv-pdf');
+    Route::get('/certificates/exports/{export}', CertificateExportDownloadController::class)
+        ->middleware('signed')
+        ->name('certificates.exports.download');
 
-    Route::get('/admin/beneficiaries/{user}/cv/download', BeneficiaryCvFileDownloadController::class)
-        ->name('admin.beneficiaries.cv-file.download');
+    Route::middleware('staff-ui.maintenance:'.StaffUiModule::USERS)
+        ->group(function () {
+            Route::get('/admin/beneficiaries/{user}/cv-pdf', BeneficiaryCvPdfController::class)
+                ->name('admin.beneficiaries.cv-pdf');
 
-    Route::post('/admin/beneficiaries/{user}/identity/reveal', BeneficiaryIdentityRevealController::class)
-        ->middleware('throttle:10,1')
-        ->name('admin.beneficiaries.identity.reveal');
+            Route::get('/admin/beneficiaries/{user}/cv/download', BeneficiaryCvFileDownloadController::class)
+                ->name('admin.beneficiaries.cv-file.download');
+
+            Route::post('/admin/beneficiaries/{user}/identity/reveal', BeneficiaryIdentityRevealController::class)
+                ->middleware('throttle:10,1')
+                ->name('admin.beneficiaries.identity.reveal');
+        });
 
     // تفضيل إشعارات البريد (النافذة المنبثقة لمرة واحدة) — متاح لكل المستخدمين التشغيليين.
     Route::post('/notification-prefs/ack', [NotificationPreferenceController::class, 'acknowledge'])
         ->name('notification-prefs.ack');
 });
+
+Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.maintenance:'.StaffUiModule::SHELL])
+    ->get('/staff-ui/demo', StaffUiDemoController::class)
+    ->name('staff-ui.demo');
 
 // ─── Public website ───────────────────────────────────────────────────────────
 
@@ -121,6 +136,20 @@ Route::post('/support-tickets', [SupportTicketController::class, 'store'])
 Route::get('/certificates/verify/{code}', CertificateVerificationController::class)
     ->middleware('throttle:certificate-verify')
     ->name('certificates.verify');
+
+Route::get('/certificate-fonts/{font}', [CertificateTemplateAssetController::class, 'font'])
+    ->where('font', 'IBMPlexSansArabic-(Regular|Bold)\.ttf')
+    ->name('certificate-fonts.show');
+
+Route::middleware('signed')->group(function () {
+    Route::get('/certificate-templates/{template}/background', [CertificateTemplateAssetController::class, 'background'])
+        ->name('certificate-templates.background');
+    Route::get('/certificate-templates/{template}/elements/{filename}', [CertificateTemplateAssetController::class, 'elementImage'])
+        ->where('filename', '[A-Za-z0-9\-]+\.(png|jpe?g)')
+        ->name('certificate-templates.element-image');
+    Route::get('/certificate-templates/{template}/preview', [CertificateTemplateAssetController::class, 'preview'])
+        ->name('certificate-templates.preview');
+});
 
 // ─── Gate QR / prep-officer attendance ───────────────────────────────────────
 

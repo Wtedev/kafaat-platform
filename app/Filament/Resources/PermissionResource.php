@@ -2,9 +2,12 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\PermissionResource\Pages;
 use App\Services\Rbac\RbacCatalog;
+use App\Services\Rbac\StaffCatalogMutations;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -13,7 +16,13 @@ use Spatie\Permission\Models\Permission;
 
 class PermissionResource extends Resource
 {
+    use BelongsToStaffUiModule;
     use RegistersNavigationByPermission;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::ACCESS;
+    }
 
     protected static ?string $model = Permission::class;
 
@@ -78,16 +87,16 @@ class PermissionResource extends Resource
 
     public static function canCreate(): bool
     {
-        return false;
+        return StaffCatalogMutations::allowed();
     }
 
     public static function canEdit($record): bool
     {
-        return false;
+        return StaffCatalogMutations::allowed();
     }
 
     public static function canDelete($record): bool
     {
-        return false;
+        return StaffCatalogMutations::allowed();
     }
 }

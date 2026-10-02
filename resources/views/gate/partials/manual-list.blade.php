@@ -1,5 +1,5 @@
 @php
-    use App\Enums\AttendanceStatus;
+    use App\Services\Gate\GateAttendancePresentation;
 @endphp
 <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white">
     <table class="w-full table-fixed text-[11px] sm:text-sm" id="manual-list">
@@ -13,9 +13,8 @@
             @forelse ($registrations as $registration)
                 @php
                     $user = $registration->user;
-                    $fullName = $user?->fullName() ?: ($user?->name ?? '—');
-                    $isPresent = $registration->attendanceRecords
-                        ->contains(fn ($row) => $row->status === AttendanceStatus::Present);
+                    $fullName = GateAttendancePresentation::displayName($user);
+                    $isPresent = GateAttendancePresentation::isPresent($registration);
                 @endphp
                 <tr
                     class="hover:bg-gray-50/80 transition"

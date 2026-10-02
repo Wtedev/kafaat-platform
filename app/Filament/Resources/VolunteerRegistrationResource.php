@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\OpportunityStatus;
 use App\Enums\RegistrationStatus;
 use App\Exceptions\OpportunityCapacityExceededException;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerRegistrationResource\Pages;
@@ -12,8 +13,9 @@ use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\Certificate;
 use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
-use App\Services\CertificateService;
+use App\Services\Certificates\CertificateIssuanceService;
 use App\Services\VolunteerRegistrationService;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -31,8 +33,14 @@ use Illuminate\Database\Eloquent\Builder;
 
 class VolunteerRegistrationResource extends Resource
 {
+    use BelongsToStaffUiModule;
     use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::VOLUNTEERING;
+    }
 
     protected static ?string $model = VolunteerRegistration::class;
 
@@ -234,6 +242,7 @@ class VolunteerRegistrationResource extends Resource
                     ->action(function (VolunteerRegistration $record): void {
                         $record->loadMissing(['user', 'opportunity']);
                         $existing = Certificate::query()
+                            ->active()
                             ->where('user_id', $record->user_id)
                             ->where('certificateable_type', VolunteerOpportunity::class)
                             ->where('certificateable_id', $record->opportunity_id)
@@ -247,7 +256,12 @@ class VolunteerRegistrationResource extends Resource
 
                             return;
                         }
-                        app(CertificateService::class)->issue($record->user, $record->opportunity, auth()->user());
+                        $certificate = app(CertificateIssuanceService::class)->issue($record->user, $record->opportunity, auth()->user());
+                        if ($certificate === null) {
+                            Notification::make()->title('لم تُصدر الشهادة. تحقق من اعتماد التصميم وشروط الأحقية.')->danger()->send();
+
+                            return;
+                        }
                         Notification::make()
                             ->title('تم إصدار شهادة التطوع بنجاح')
                             ->success()

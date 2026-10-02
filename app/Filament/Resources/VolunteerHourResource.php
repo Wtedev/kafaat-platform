@@ -3,12 +3,15 @@
 namespace App\Filament\Resources;
 
 use App\Enums\VolunteerHoursStatus;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerHourResource\Pages;
 use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\VolunteerHour;
+use App\Services\Rbac\StaffResourceNavigation;
 use App\Services\VolunteerHoursService;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -26,8 +29,14 @@ use Filament\Tables\Table;
 
 class VolunteerHourResource extends Resource
 {
+    use BelongsToStaffUiModule;
     use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::VOLUNTEERING;
+    }
 
     protected static ?string $model = VolunteerHour::class;
 
@@ -45,7 +54,7 @@ class VolunteerHourResource extends Resource
 
     protected static function requiredNavigationPermissions(): array
     {
-        return ['roles.view'];
+        return StaffResourceNavigation::registrationMenu();
     }
 
     public static function form(Schema $schema): Schema

@@ -12,6 +12,7 @@ class PortalCertificateController extends Controller
         $user = $request->user();
 
         $certificates = $user->certificates()
+            ->active()
             ->with('certificateable')
             ->latest('issued_at')
             ->paginate(15);

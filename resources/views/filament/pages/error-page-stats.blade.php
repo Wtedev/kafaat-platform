@@ -2,18 +2,9 @@
     @php
         $stats = $this->stats;
         $fmt = static fn (int $n): string => number_format($n);
-        $maxDaily = max(1, ...array_map(fn ($d) => (int) $d['hits'], $stats['daily'] ?: [['hits' => 0]]));
-        $statusLabels = [
-            403 => 'غير مصرح',
-            404 => 'غير موجود',
-            419 => 'انتهت الجلسة',
-            429 => 'طلبات كثيرة',
-            500 => 'خطأ خادم',
-            502 => 'بوابة',
-            503 => 'غير متاح',
-            504 => 'انتهاء المهلة',
-            505 => 'إصدار HTTP',
-        ];
+        $presentation = app(\App\Services\Operations\ErrorPageStatsPresentation::class);
+        $maxDaily = $presentation->chartMax($stats['daily'] ?? []);
+        $statusLabels = $presentation->statusLabels();
     @endphp
 
     <div class="eps" dir="rtl">

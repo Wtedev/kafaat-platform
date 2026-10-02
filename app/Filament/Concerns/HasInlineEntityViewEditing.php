@@ -3,6 +3,8 @@
 namespace App\Filament\Concerns;
 
 use App\Filament\Support\TrainingEntityFormSupport;
+use App\Models\User;
+use App\Services\Staff\EntityInlineEditAccess;
 use App\Support\RichContentSupport;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -28,7 +30,9 @@ trait HasInlineEntityViewEditing
 
     public function canInlineEditEntityView(): bool
     {
-        return auth()->user()?->can('update', $this->getRecord()) ?? false;
+        $user = auth()->user();
+
+        return EntityInlineEditAccess::canUpdate($user instanceof User ? $user : null, $this->getRecord());
     }
 
     /**

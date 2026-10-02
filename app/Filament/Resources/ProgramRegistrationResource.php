@@ -6,6 +6,7 @@ use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Exceptions\RegistrationNotApprovedException;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\ProgramRegistrationResource\Pages;
@@ -14,9 +15,11 @@ use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\Certificate;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
-use App\Services\CertificateService;
+use App\Services\Certificates\CertificateEligibilityService;
+use App\Services\Certificates\CertificateIssuanceService;
 use App\Services\ProgramRegistrationService;
-use App\Support\RegistrationEligibilitySupport;
+use App\Services\Rbac\StaffResourceNavigation;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -35,8 +38,14 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ProgramRegistrationResource extends Resource
 {
+    use BelongsToStaffUiModule;
     use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::TRAINING;
+    }
 
     protected static ?string $model = ProgramRegistration::class;
 
@@ -54,7 +63,7 @@ class ProgramRegistrationResource extends Resource
 
     protected static function requiredNavigationPermissions(): array
     {
-        return ['roles.view'];
+        return StaffResourceNavigation::registrationMenu();
     }
 
     public static function shouldRegisterNavigation(): bool
@@ -189,14 +198,11 @@ class ProgramRegistrationResource extends Resource
                             return '—';
                         }
 
-                        return RegistrationEligibilitySupport::eligibilityLabel(
-                            $record->effectiveAttendancePercentage(),
-                            $record->score !== null ? (float) $record->score : null,
-                        );
+                        return app(CertificateEligibilityService::class)->evaluate($record)->label();
                     })
                     ->color(fn (string $state): string => match ($state) {
                         'مؤهل' => 'success',
-                        'غير مؤهل حتى الآن', 'غير مؤهل بعد' => 'danger',
+                        'غير مؤهل' => 'danger',
                         'بانتظار البيانات' => 'warning',
                         default => 'gray',
                     })
@@ -349,7 +355,7 @@ class ProgramRegistrationResource extends Resource
                             ->numeric()
                             ->minValue(0)
                             ->maxValue(100)
-                            ->helperText('الحد الأدنى لإصدار الشهادة: 60'),
+                            ->helperText('تُحتسب الأحقية من شروط تصميم الشهادة'),
                     ])
                     ->action(function (ProgramRegistration $record, array $data): void {
                         try {
@@ -363,6 +369,7 @@ class ProgramRegistrationResource extends Resource
                             );
 
                             $hasCert = Certificate::query()
+                                ->active()
                                 ->where('user_id', $record->user_id)
                                 ->where('certificateable_type', TrainingProgram::class)
                                 ->where('certificateable_id', $record->training_program_id)
@@ -374,9 +381,10 @@ class ProgramRegistrationResource extends Resource
                                     ->success()
                                     ->send();
                             } else {
+                                $reasons = app(CertificateEligibilityService::class)->evaluate($record->fresh())->reasons;
                                 Notification::make()
                                     ->title('تم تحديد التسجيل كمكتمل')
-                                    ->body('لم تُصدر شهادة — يجب أن يكون الحضور ≥ 80% والدرجة ≥ 60')
+                                    ->body($reasons !== [] ? implode(' — ', $reasons) : 'لم تُصدر شهادة')
                                     ->warning()
                                     ->send();
                             }
@@ -396,17 +404,18 @@ class ProgramRegistrationResource extends Resource
                     ->requiresConfirmation()
                     ->authorize('update')
                     ->action(function (ProgramRegistration $record): void {
-                        if (! $record->isEligibleForCertificate()) {
+                        $record->loadMissing(['user', 'trainingProgram']);
+                        $result = app(CertificateEligibilityService::class)->evaluate($record);
+                        $certificate = app(CertificateIssuanceService::class)->issueForProgramRegistration($record, auth()->user());
+                        if ($certificate === null) {
                             Notification::make()
                                 ->title('غير مؤهل للحصول على شهادة')
-                                ->body('يجب أن يكون الحضور ≥ 80% والدرجة ≥ 60')
+                                ->body($result->reasons !== [] ? implode(' — ', $result->reasons) : 'لم تُصدر شهادة')
                                 ->danger()
                                 ->send();
 
                             return;
                         }
-                        $record->loadMissing(['user', 'trainingProgram']);
-                        app(CertificateService::class)->issue($record->user, $record->trainingProgram, auth()->user());
                         Notification::make()
                             ->title('تم إصدار الشهادة بنجاح')
                             ->success()

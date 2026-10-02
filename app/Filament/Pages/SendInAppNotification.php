@@ -4,11 +4,13 @@ namespace App\Filament\Pages;
 
 use App\Enums\NotificationTargetType;
 use App\Enums\RegistrationStatus;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerTeam;
 use App\Policies\SendInAppNotificationPolicy;
 use App\Services\Inbox\InboxNotificationService;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -33,7 +35,13 @@ use Throwable;
  */
 class SendInAppNotification extends Page
 {
+    use BelongsToStaffUiModule;
     use CanUseDatabaseTransactions;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::SUPPORT;
+    }
 
     protected static bool $shouldRegisterNavigation = false;
 

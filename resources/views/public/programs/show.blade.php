@@ -40,7 +40,7 @@ $ackLabel = $inPerson
 <x-public.entity-show-layout :backHref="$trainingProgram->competency_track ? route('public.programs.track', $trainingProgram->competency_track) : route('public.tracks.index')" :backLabel="$trainingProgram->competency_track?->shortLabel() ?? 'مسارات الكفاءة'" :title="$trainingProgram->title" :description="$trainingProgram->description" descriptionHeading="نبذة عن البرنامج" mediaContext="program" :programKind="$trainingProgram->program_kind" :hasImage="filled($trainingProgram->image)" :imageUrl="$trainingProgram->imagePublicUrl()" :objectFit="$trainingProgram->imageUsesContainFit() ? 'contain' : 'cover'" :surfaceColor="$trainingProgram->imageHeroSurfaceColor()">
     <x-slot:mediaBadges>
         <span class="inline-flex items-center rounded-lg bg-white/95 px-2.5 py-1 text-xs font-medium text-[#335483] shadow-sm ring-1 ring-white/60 backdrop-blur-sm">
-            {{ $trainingProgram->program_kind->label() }}
+            {{ $trainingProgram->program_kind?->label() }}
         </span>
         @if ($trainingProgram->competency_track)
         <span class="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium text-gray-900 shadow-sm ring-1 ring-black/5" style="background:#FCB420">
@@ -51,9 +51,15 @@ $ackLabel = $inPerson
     </x-slot:mediaBadges>
 
     <x-slot:afterDescription>
+        @php
+            $isDataForum = $trainingProgram->slug === 'multaqa-tahlil-al-bayanat-2';
+        @endphp
         <x-public.program-session-topics
             :enabled="(bool) $trainingProgram->session_topics_enabled"
             :topics="$trainingProgram->session_topics"
+            :heading="$isDataForum ? 'مراحل الملتقى' : 'محاور البرنامج'"
+            :intro="$isDataForum ? '' : 'مراحل البرنامج ومحاوره.'"
+            :detail-label="$isDataForum ? '' : 'المسؤولون / المدربون'"
             @class([
                 'mt-8 border-t border-[#c5d4e4]/70 pt-8' => filled($trainingProgram->description),
                 'mt-0 border-0 pt-0' => blank($trainingProgram->description),

@@ -16,6 +16,7 @@ final class ProgramRegistrationSuccessPresenter
      * @return array{
      *     approved: bool,
      *     pending: bool,
+     *     pending_message: string,
      *     in_person: bool,
      *     venue_label: string|null,
      *     whatsapp_url: string|null,
@@ -46,6 +47,8 @@ final class ProgramRegistrationSuccessPresenter
         return [
             'approved' => $approved,
             'pending' => $registration->status === RegistrationStatus::Pending,
+            'pending_message' => TrainingProgramExtrasSupport::registrationReceivedNotice($program)
+                ?? 'طلبك قيد المراجعة. سنُبلغك بنتيجة القبول عبر المنصة والبريد الإلكتروني.',
             'in_person' => $inPerson,
             'venue_label' => $inPerson
                 ? (filled($program->venue) ? (string) $program->venue : null)

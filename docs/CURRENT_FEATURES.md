@@ -62,7 +62,7 @@
 | حذف الحساب (طلب) | ✅ | `PortalAccountDeletionController` · `web.php:244-245` |
 | مركز الدعم الفني (قائمة/إنشاء/محادثة/رد) | 🟡 | `PortalSupportController` + `SupportTicketService` — شارة غير المقروء تُحدَّث كل 30ث؛ المحادثة لا تُحدَّث تلقائياً (بدون WebSockets) |
 
-> **مركز الخصوصية للمستفيد:** توجد متحكمات كاملة (`PortalPrivacyCenterController`, `PortalPrivacyAccessRequestController`, `PortalPrivacyCorrectionRequestController`, `PortalPrivacyExportRequestController`, `PortalPrivacyExportDownloadController`, `PortalPrivacyRequestCancelController`) — لكنها **غير مربوطة بمسارات في `routes/web.php`** ضمن العينة المرصودة. راجع `BUG_AUDIT.md` (ميزة قد تكون غير مُفعّلة عبر الويب).
+| مركز الخصوصية (وصول/تصحيح/تصدير ذاتي) | 🔧 | متحكمات + Blade + اختبارات موجودة؛ **المسارات أُزيلت عمداً** (`335c4c7`) — البديل الحالي: حذف الحساب من الإعدادات + معالجة الطلبات عبر Filament `PrivacyRequestResource`. راجع `docs/privacy/privacy-center.md`. |
 
 ---
 

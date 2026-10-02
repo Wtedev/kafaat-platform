@@ -10,6 +10,7 @@ use App\Filament\Resources\UserResource\Concerns\ManagesUserAccountForm;
 use App\Filament\Support\UserInlineEditSupport;
 use App\Filament\Support\UserViewPresenter;
 use App\Models\User;
+use App\Services\Staff\StaffSettingsTab;
 use App\Services\UserActivityLogger;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Html;
@@ -150,7 +151,7 @@ class ViewUser extends BaseViewRecord
 
     protected function canAccessSettingsTab(): bool
     {
-        return false;
+        return StaffSettingsTab::visibleOnView();
     }
 
     public function canInlineEditEntityView(): bool

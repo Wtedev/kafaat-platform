@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Resources\MediaPhotoResource\Pages;
 use App\Models\MediaPhoto;
 use App\Support\MediaPhotoLibrarySupport;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -25,7 +27,13 @@ use Filament\Tables\Table;
 
 class MediaPhotoResource extends Resource
 {
+    use BelongsToStaffUiModule;
     use ConfiguresEditOnlyResourceTable;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::CONTENT;
+    }
 
     protected static ?string $model = MediaPhoto::class;
 

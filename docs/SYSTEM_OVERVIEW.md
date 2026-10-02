@@ -88,8 +88,7 @@ kafaat_platform/
 ├── public/                نقطة الدخول والأصول المبنية
 ├── railway/ , railpack.json , railway.json   إعداد النشر على Railway
 ├── emergency-fallback/    صفحات/أصول احتياطية للطوارئ
-├── scripts/               نصوص تشغيلية
-└── postgres/ (ملف)        مخرجات/أداة PostgreSQL محلية
+└── scripts/               نصوص تشغيلية
 ```
 
 ### طبقة الخدمات `app/Services/` (أبرز المجالات)

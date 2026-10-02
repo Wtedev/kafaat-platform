@@ -33,7 +33,7 @@
                 </p>
             @elseif ($pending)
                 <p class="mx-auto mt-3 max-w-md text-sm leading-relaxed text-gray-500">
-                    طلبك قيد المراجعة. سنُبلغك بنتيجة القبول عبر المنصة والبريد الإلكتروني.
+                    {{ $success['pending_message'] ?? 'طلبك قيد المراجعة. سنُبلغك بنتيجة القبول عبر المنصة والبريد الإلكتروني.' }}
                 </p>
             @endif
         </div>

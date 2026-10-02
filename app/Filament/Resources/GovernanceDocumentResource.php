@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Resources\GovernanceDocumentResource\Pages;
 use App\Models\GovernanceDocument;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -26,7 +28,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 class GovernanceDocumentResource extends Resource
 {
+    use BelongsToStaffUiModule;
     use ConfiguresEditOnlyResourceTable;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::GOVERNANCE;
+    }
 
     protected static ?string $model = GovernanceDocument::class;
 

@@ -62,9 +62,13 @@
         <a href="{{ $cert->downloadUrl() }}" target="_blank" rel="noopener noreferrer" class="mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95" style="background:#335483">
             تحميل الشهادة
         </a>
+        @elseif ($cert->pdf_status?->value === 'failed')
+        <span class="mt-auto inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm text-gray-400 border border-dashed border-gray-200">
+            تعذر تجهيز الشهادة
+        </span>
         @else
         <span class="mt-auto inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm text-gray-400 border border-dashed border-gray-200">
-            جاري إعداد الملف…
+            جارٍ تجهيز الشهادة
         </span>
         @endif
 

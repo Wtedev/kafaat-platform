@@ -6,9 +6,9 @@ use App\Enums\AttendanceStatus;
 use App\Enums\RegistrationStatus;
 use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
+use App\Services\Certificates\CertificateEligibilityService;
 use App\Services\PathAttendanceService;
 use App\Services\ProgramAttendanceService;
-use App\Support\RegistrationEligibilitySupport;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -66,10 +66,7 @@ class RegistrationFilamentTableSupport
                     return '—';
                 }
 
-                return RegistrationEligibilitySupport::eligibilityLabel(
-                    $record->effectiveAttendancePercentage(),
-                    $record->score !== null ? (float) $record->score : null,
-                );
+                return app(CertificateEligibilityService::class)->evaluate($record)->label();
             })
             ->color(function (ProgramRegistration|PathRegistration $record): string {
                 if (in_array($record->status, [
@@ -80,10 +77,7 @@ class RegistrationFilamentTableSupport
                     return 'gray';
                 }
 
-                return RegistrationEligibilitySupport::eligibilityColor(
-                    $record->effectiveAttendancePercentage(),
-                    $record->score !== null ? (float) $record->score : null,
-                );
+                return app(CertificateEligibilityService::class)->evaluate($record)->color();
             });
     }
 

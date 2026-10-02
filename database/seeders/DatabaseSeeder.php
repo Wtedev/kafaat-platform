@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
         // Idempotent VL prep-day backfill (safe if program created later / re-run).
         $this->call(VolunteerLeadersProgramPrepDaysSeeder::class);
         $this->call(VolunteerOpportunitySeeder::class);
+        $this->call(CertificateSeeder::class);
         $this->call(ProgramRegistrationSeeder::class);
         $this->call(NewsSeeder::class);
         $this->call(NewsCoverAssetsSeeder::class);

@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Resources\SecurityLogResource\Pages\ListSecurityLogs;
 use App\Models\SecurityLog;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Resources\Resource;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -11,6 +13,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 class SecurityLogResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::SUPPORT;
+    }
+
     protected static ?string $model = SecurityLog::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shield-check';

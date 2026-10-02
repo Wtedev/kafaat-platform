@@ -4,19 +4,15 @@ declare(strict_types=1);
 
 namespace App\Filament\Support;
 
-use App\Enums\RegistrationStatus;
 use App\Exceptions\OpportunityCapacityExceededException;
 use App\Exceptions\PathCapacityExceededException;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Models\InboxNotification;
-use App\Models\LearningPath;
-use App\Models\News;
 use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
-use App\Models\TrainingProgram;
 use App\Models\User;
-use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
+use App\Services\Inbox\InboxRegistrationDecisions;
 use App\Services\PathRegistrationService;
 use App\Services\ProgramRegistrationService;
 use App\Services\VolunteerRegistrationService;
@@ -227,29 +223,9 @@ final class InboxNotificationRecordActions
         ];
     }
 
-    private static function ctx(InboxNotification $record): ?array
-    {
-        $c = $record->context;
-
-        return is_array($c) && isset($c['resource'], $c['id']) ? $c : null;
-    }
-
     public static function publicUrl(InboxNotification $record): ?string
     {
-        $c = self::ctx($record);
-        if ($c === null) {
-            return null;
-        }
-
-        $id = (int) $c['id'];
-
-        return match ($c['resource']) {
-            'news' => ($m = News::find($id)) ? route('public.news.show', $m) : null,
-            'training_program' => ($m = TrainingProgram::find($id)) ? route('public.programs.show', $m) : null,
-            'learning_path' => null,
-            'volunteer_opportunity' => ($m = VolunteerOpportunity::find($id)) ? route('public.volunteering.show', $m) : null,
-            default => null,
-        };
+        return InboxRegistrationDecisions::publicUrl($record);
     }
 
     /**
@@ -257,165 +233,66 @@ final class InboxNotificationRecordActions
      */
     public static function portalUrl(?User $user, InboxNotification $record): ?string
     {
-        if ($user === null) {
-            return null;
-        }
-
-        $c = self::ctx($record);
-        if ($c === null) {
-            return null;
-        }
-
-        $id = (int) $c['id'];
-
-        return match ($c['resource']) {
-            'training_program' => null,
-            'learning_path' => ($path = LearningPath::find($id)) !== null
-                && PathRegistration::query()
-                    ->where('user_id', $user->id)
-                    ->where('learning_path_id', $path->id)
-                    ->exists()
-                ? route('portal.paths.show', $path)
-                : null,
-            'program_registration' => ($r = ProgramRegistration::find($id)) !== null
-                && (int) $r->user_id === (int) $user->id
-                && $r->trainingProgram !== null
-                ? route('portal.programs', ['open_attendance' => $r->trainingProgram->id])
-                : null,
-            'path_registration' => ($r = PathRegistration::find($id)) !== null
-                && (int) $r->user_id === (int) $user->id
-                && $r->learningPath !== null
-                ? route('portal.paths.show', $r->learningPath)
-                : null,
-            'volunteer_opportunity' => ($opp = VolunteerOpportunity::find($id)) !== null
-                && VolunteerRegistration::query()
-                    ->where('user_id', $user->id)
-                    ->where('opportunity_id', $opp->id)
-                    ->exists()
-                ? route('portal.volunteering')
-                : null,
-            'volunteer_registration' => ($r = VolunteerRegistration::find($id)) !== null
-                && (int) $r->user_id === (int) $user->id
-                ? route('portal.volunteering')
-                : null,
-            'certificate' => route('portal.certificates'),
-            default => null,
-        };
+        return InboxRegistrationDecisions::portalUrl($user, $record);
     }
 
     public static function inboxOpenUrl(?User $user, InboxNotification $record): ?string
     {
-        if ($user !== null && $user->isPortalUser()) {
-            return self::portalUrl($user, $record) ?? self::publicUrl($record);
-        }
-
-        return self::publicUrl($record);
+        return InboxRegistrationDecisions::openUrl($user, $record);
     }
 
     public static function inboxOpenLabel(?User $user, InboxNotification $record): string
     {
-        if ($user !== null && $user->isPortalUser() && self::portalUrl($user, $record) !== null) {
-            $resource = (self::ctx($record) ?? [])['resource'] ?? '';
-
-            return match ($resource) {
-                'training_program', 'program_registration' => 'عرض البرنامج',
-                'learning_path', 'path_registration' => 'عرض المسار',
-                'volunteer_opportunity', 'volunteer_registration' => 'عرض التطوع',
-                'certificate' => 'شهاداتي',
-                default => 'عرض في البوابة',
-            };
-        }
-
-        return 'عرض على الموقع';
+        return InboxRegistrationDecisions::openLabel($user, $record);
     }
 
     public static function inboxOpenIcon(?User $user, InboxNotification $record): string
     {
-        if ($user !== null && $user->isPortalUser() && self::portalUrl($user, $record) !== null) {
-            return 'heroicon-o-home';
-        }
-
-        return 'heroicon-o-globe-alt';
+        return InboxRegistrationDecisions::openIcon($user, $record);
     }
 
     public static function programRegistration(InboxNotification $record): ?ProgramRegistration
     {
-        $c = self::ctx($record);
-
-        return ($c !== null && $c['resource'] === 'program_registration')
-            ? ProgramRegistration::find((int) $c['id'])
-            : null;
+        return InboxRegistrationDecisions::programRegistration($record);
     }
 
     public static function pathRegistration(InboxNotification $record): ?PathRegistration
     {
-        $c = self::ctx($record);
-
-        return ($c !== null && $c['resource'] === 'path_registration')
-            ? PathRegistration::find((int) $c['id'])
-            : null;
+        return InboxRegistrationDecisions::pathRegistration($record);
     }
 
     public static function volunteerRegistration(InboxNotification $record): ?VolunteerRegistration
     {
-        $c = self::ctx($record);
-
-        return ($c !== null && $c['resource'] === 'volunteer_registration')
-            ? VolunteerRegistration::find((int) $c['id'])
-            : null;
+        return InboxRegistrationDecisions::volunteerRegistration($record);
     }
 
     public static function canApproveProgramRegistration(InboxNotification $record): bool
     {
-        $reg = self::programRegistration($record);
-
-        return $reg !== null
-            && $reg->status === RegistrationStatus::Pending
-            && Gate::allows('approve', $reg);
+        return InboxRegistrationDecisions::canApproveProgramRegistration($record);
     }
 
     public static function canRejectProgramRegistration(InboxNotification $record): bool
     {
-        $reg = self::programRegistration($record);
-
-        return $reg !== null
-            && $reg->status === RegistrationStatus::Pending
-            && Gate::allows('reject', $reg);
+        return InboxRegistrationDecisions::canRejectProgramRegistration($record);
     }
 
     public static function canApprovePathRegistration(InboxNotification $record): bool
     {
-        $reg = self::pathRegistration($record);
-
-        return $reg !== null
-            && $reg->status === RegistrationStatus::Pending
-            && Gate::allows('approve', $reg);
+        return InboxRegistrationDecisions::canApprovePathRegistration($record);
     }
 
     public static function canRejectPathRegistration(InboxNotification $record): bool
     {
-        $reg = self::pathRegistration($record);
-
-        return $reg !== null
-            && $reg->status === RegistrationStatus::Pending
-            && Gate::allows('reject', $reg);
+        return InboxRegistrationDecisions::canRejectPathRegistration($record);
     }
 
     public static function canApproveVolunteerRegistration(InboxNotification $record): bool
     {
-        $reg = self::volunteerRegistration($record);
-
-        return $reg !== null
-            && $reg->status === RegistrationStatus::Pending
-            && Gate::allows('approve', $reg);
+        return InboxRegistrationDecisions::canApproveVolunteerRegistration($record);
     }
 
     public static function canRejectVolunteerRegistration(InboxNotification $record): bool
     {
-        $reg = self::volunteerRegistration($record);
-
-        return $reg !== null
-            && $reg->status === RegistrationStatus::Pending
-            && Gate::allows('reject', $reg);
+        return InboxRegistrationDecisions::canRejectVolunteerRegistration($record);
     }
 }

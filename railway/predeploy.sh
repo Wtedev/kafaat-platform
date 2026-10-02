@@ -49,6 +49,7 @@ php artisan db:seed --class=VolunteerLeadersProgramPresentersSeeder --force
 php artisan db:seed --class=VolunteerLeadersProgramWhatsappSeeder --force
 php artisan db:seed --class=VolunteerLeadersProgramFemaleCapacitySeeder --force
 php artisan db:seed --class=FaeqoonProgramArchiveSeeder --force
+php artisan db:seed --class=DataForumProgramSeeder --force
 php artisan db:seed --class=NewsCoverAssetsSeeder --force
 php artisan permission:cache-reset
 php artisan cache:clear

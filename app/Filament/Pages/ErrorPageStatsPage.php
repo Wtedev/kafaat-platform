@@ -2,9 +2,11 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Models\ErrorPageVisit;
 use App\Models\User;
-use App\Services\Operations\ErrorPageVisitRecorder;
+use App\Services\Operations\ErrorPageStatsPresentation;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -15,7 +17,13 @@ use Livewire\WithPagination;
 
 class ErrorPageStatsPage extends Page
 {
+    use BelongsToStaffUiModule;
     use WithPagination;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::SUPPORT;
+    }
 
     protected static ?string $slug = 'error-page-stats';
 
@@ -57,7 +65,7 @@ class ErrorPageStatsPage extends Page
     {
         $user = auth()->user();
 
-        return $user instanceof User && $user->canAccessFilamentAdmin();
+        return app(ErrorPageStatsPresentation::class)->canAccess($user instanceof User ? $user : null);
     }
 
     public static function shouldRegisterNavigation(): bool
@@ -123,16 +131,9 @@ class ErrorPageStatsPage extends Page
     {
         abort_unless(static::canAccess(), 403);
 
-        $recorder = app(ErrorPageVisitRecorder::class);
         [$from, $to, $status, $url] = $this->parsedFilters();
 
-        $this->stats = $recorder->summarize(
-            now: now(),
-            from: $from,
-            to: $to,
-            status: $status,
-            url: $url,
-        );
+        $this->stats = app(ErrorPageStatsPresentation::class)->summarize($from, $to, $status, $url);
     }
 
     /**
@@ -140,15 +141,9 @@ class ErrorPageStatsPage extends Page
      */
     public function getRecentVisitsProperty(): LengthAwarePaginator
     {
-        $recorder = app(ErrorPageVisitRecorder::class);
         [$from, $to, $status, $url] = $this->parsedFilters();
 
-        $query = ErrorPageVisit::query()->with(['user:id,name,email']);
-        $recorder->applyFilters($query, $from, $to, $status, $url);
-
-        return $query
-            ->orderByDesc('created_at')
-            ->paginate(15);
+        return app(ErrorPageStatsPresentation::class)->recentVisits($from, $to, $status, $url);
     }
 
     /**
@@ -156,12 +151,12 @@ class ErrorPageStatsPage extends Page
      */
     private function parsedFilters(): array
     {
-        $from = filled($this->filterFrom) ? Carbon::parse($this->filterFrom) : null;
-        $to = filled($this->filterTo) ? Carbon::parse($this->filterTo) : null;
-        $status = filled($this->filterStatus) ? (int) $this->filterStatus : null;
-        $url = filled($this->filterUrl) ? trim($this->filterUrl) : null;
-
-        return [$from, $to, $status, $url];
+        return app(ErrorPageStatsPresentation::class)->parseFilters(
+            $this->filterFrom,
+            $this->filterTo,
+            $this->filterStatus,
+            $this->filterUrl,
+        );
     }
 
     protected function getHeaderActions(): array
@@ -183,7 +178,7 @@ class ErrorPageStatsPage extends Page
                 ->action(function (): void {
                     abort_unless(static::canAccess(), 403);
 
-                    $deleted = app(ErrorPageVisitRecorder::class)->pruneOlderThan(90);
+                    $deleted = app(ErrorPageStatsPresentation::class)->pruneOlderThanDays(90);
 
                     Notification::make()
                         ->title('تم حذف السجلات القديمة')

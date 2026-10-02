@@ -11,6 +11,7 @@ use App\Http\Middleware\EnsureOtpVerified;
 use App\Http\Middleware\RecordErrorPageHit;
 use App\Http\Middleware\RedirectToCanonicalHost;
 use App\Http\Middleware\RedirectToHttps;
+use App\Http\Middleware\StaffUiMaintenance;
 use App\Services\Operations\ErrorPageVisitRecorder;
 use App\Support\Http\PrefersJsonErrorResponse;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
@@ -73,6 +74,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'otp.verified' => EnsureOtpVerified::class,
             'privacy.acknowledged' => EnsureCurrentPrivacyPolicyAcknowledged::class,
             'gate.attendance' => EnsureGateAttendanceAccess::class,
+            'staff-ui.maintenance' => StaffUiMaintenance::class,
         ]);
 
         // Run before Authenticate (interface + concrete) so non-operational sessions

@@ -2,11 +2,14 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\CertificateResource\Pages;
 use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\Certificate;
+use App\Services\Rbac\StaffResourceNavigation;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -22,8 +25,14 @@ use Filament\Tables\Table;
 
 class CertificateResource extends Resource
 {
+    use BelongsToStaffUiModule;
     use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::CERTIFICATES;
+    }
 
     protected static ?string $model = Certificate::class;
 
@@ -41,7 +50,7 @@ class CertificateResource extends Resource
 
     protected static function requiredNavigationPermissions(): array
     {
-        return ['certificates.view', 'roles.view'];
+        return StaffResourceNavigation::certificatesMenu();
     }
 
     /**

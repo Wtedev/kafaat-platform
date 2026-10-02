@@ -2,25 +2,33 @@
 
 namespace App\Filament\Pages;
 
-use App\Enums\SupportMessageSenderType;
 use App\Enums\SupportTicketStatus;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketInternalNote;
 use App\Models\SupportTicketMessage;
 use App\Models\User;
+use App\Services\Support\SupportInboxListing;
 use App\Services\Support\SupportTicketService;
 use App\Services\Support\SupportUnreadService;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Enums\Width;
 use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Url;
 
 class SupportInbox extends Page
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::SUPPORT;
+    }
+
     protected static ?string $slug = 'support-inbox';
 
     protected static ?string $navigationLabel = 'صندوق الدعم';
@@ -408,21 +416,21 @@ class SupportInbox extends Page
     {
         $user = auth()->user();
 
-        return $user instanceof User && ($user->isAdmin() || $user->can('support_tickets.reply'));
+        return app(SupportInboxListing::class)->canReply($user instanceof User ? $user : null);
     }
 
     public function canManageStatus(): bool
     {
         $user = auth()->user();
 
-        return $user instanceof User && ($user->isAdmin() || $user->can('support_tickets.manage_status'));
+        return app(SupportInboxListing::class)->canManageStatus($user instanceof User ? $user : null);
     }
 
     public function canInternalNotes(): bool
     {
         $user = auth()->user();
 
-        return $user instanceof User && ($user->isAdmin() || $user->can('support_tickets.internal_notes'));
+        return app(SupportInboxListing::class)->canInternalNotes($user instanceof User ? $user : null);
     }
 
     /**
@@ -435,15 +443,7 @@ class SupportInbox extends Page
             return collect();
         }
 
-        $query = $this->baseTicketQuery($user);
-        $this->applyFilterTab($query, $user);
-        $this->applySearch($query);
-
-        return $query
-            ->orderByDesc('last_message_at')
-            ->orderByDesc('id')
-            ->limit(200)
-            ->get();
+        return app(SupportInboxListing::class)->tickets($user, $this->filterTab, $this->search);
     }
 
     /**
@@ -453,26 +453,10 @@ class SupportInbox extends Page
     {
         $user = auth()->user();
         if (! $user instanceof User) {
-            return ['all' => 0, 'unread' => 0, 'open' => 0, 'in_progress' => 0, 'closed' => 0];
+            return app(SupportInboxListing::class)->emptyTabCounts();
         }
 
-        $make = function () use ($user): Builder {
-            $q = $this->baseTicketQuery($user);
-            $this->applySearch($q);
-
-            return $q;
-        };
-
-        return [
-            'all' => (clone $make())->count(),
-            'unread' => $this->applyUnreadFilter(clone $make(), $user)->count(),
-            'open' => (clone $make())->where('status', SupportTicketStatus::Open->value)->count(),
-            'in_progress' => (clone $make())->where('status', SupportTicketStatus::InProgress->value)->count(),
-            'closed' => (clone $make())->whereIn('status', [
-                SupportTicketStatus::Closed->value,
-                SupportTicketStatus::Resolved->value,
-            ])->count(),
-        ];
+        return app(SupportInboxListing::class)->tabCounts($user, $this->search);
     }
 
     public function selectedTicket(): ?SupportTicket
@@ -527,51 +511,5 @@ class SupportInbox extends Page
             ->success()
             ->title('تم النسخ')
             ->send();
-    }
-
-    private function baseTicketQuery(User $staff): Builder
-    {
-        $query = SupportTicket::query()->with(['assignee:id,name', 'latestMessage']);
-        app(SupportUnreadService::class)->attachUnreadBeneficiarySelect($query, $staff);
-
-        return $query;
-    }
-
-    private function applySearch(Builder $query): void
-    {
-        $search = trim($this->search);
-        if ($search === '') {
-            return;
-        }
-
-        $like = '%'.$search.'%';
-        $query->where(function (Builder $q) use ($like): void {
-            $q->where('ticket_number', 'like', $like)
-                ->orWhere('subject', 'like', $like)
-                ->orWhere('name', 'like', $like)
-                ->orWhere('email', 'like', $like);
-        });
-    }
-
-    private function applyFilterTab(Builder $query, User $staff): void
-    {
-        match ($this->filterTab) {
-            'unread' => $this->applyUnreadFilter($query, $staff),
-            'open' => $query->where('status', SupportTicketStatus::Open->value),
-            'in_progress' => $query->where('status', SupportTicketStatus::InProgress->value),
-            'closed' => $query->whereIn('status', [
-                SupportTicketStatus::Closed->value,
-                SupportTicketStatus::Resolved->value,
-            ]),
-            default => $query,
-        };
-    }
-
-    private function applyUnreadFilter(Builder $query, User $staff): Builder
-    {
-        return $query->whereRaw(
-            '(SELECT COUNT(*) FROM support_ticket_messages m WHERE m.support_ticket_id = support_tickets.id AND m.sender_type = ? AND m.id > COALESCE((SELECT c.last_read_message_id FROM support_ticket_read_cursors c WHERE c.support_ticket_id = support_tickets.id AND c.user_id = ?), 0)) > 0',
-            [SupportMessageSenderType::Beneficiary->value, $staff->id]
-        );
     }
 }

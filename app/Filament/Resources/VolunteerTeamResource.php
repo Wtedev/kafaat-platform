@@ -2,14 +2,18 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerTeamResource\Pages;
 use App\Filament\Resources\VolunteerTeamResource\RelationManagers\TeamMembersRelationManager;
 use App\Filament\Resources\VolunteerTeamResource\RelationManagers\TeamNotificationsRelationManager;
+use App\Models\User;
 use App\Models\VolunteerTeam;
+use App\Services\Volunteering\VolunteerTeamStaffAccess;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\StaffFilamentRoles;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -24,8 +28,14 @@ use Illuminate\Database\Eloquent\Builder;
 
 class VolunteerTeamResource extends Resource
 {
+    use BelongsToStaffUiModule;
     use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::VOLUNTEERING;
+    }
 
     protected static ?string $model = VolunteerTeam::class;
 
@@ -135,7 +145,7 @@ class VolunteerTeamResource extends Resource
             ->actions([
                 static::makeTableEditAction(),
             ])
-            ->modifyQueryUsing(fn (Builder $query) => $query->forFilamentAssignmentAccess(auth()->user()))
+            ->modifyQueryUsing(fn (Builder $query) => VolunteerTeamStaffAccess::constrain($query, auth()->user()))
             ->defaultSort('created_at', 'desc');
     }
 
@@ -159,16 +169,14 @@ class VolunteerTeamResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->forFilamentAssignmentAccess(auth()->user());
+        return VolunteerTeamStaffAccess::constrain(parent::getEloquentQuery(), auth()->user());
     }
 
     public static function canCreate(): bool
     {
         $user = auth()->user();
 
-        return $user !== null
-            && FilamentAssignmentVisibility::bypasses($user)
-            && VolunteerTeam::canonical() === null;
+        return VolunteerTeamStaffAccess::canCreate($user instanceof User ? $user : null);
     }
 
     public static function canDelete($record): bool

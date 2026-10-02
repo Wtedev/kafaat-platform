@@ -20,6 +20,7 @@ composer install
 # 2. Testing env (disposable CI-style credentials are fine locally)
 cp .env.testing.example .env.testing
 # Edit DB_USERNAME / DB_PASSWORD (and APP_KEY via key:generate below).
+# Note: composer install and phpunit bootstrap also copy .env* from *.example when missing.
 # Optional Docker:
 #   export POSTGRES_PASSWORD=local_dev_only
 #   docker compose up -d postgres

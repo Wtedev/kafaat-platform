@@ -1,6 +1,7 @@
 @props(['trainingProgram'])
 
 @php
+use App\Support\ProgramAcceptanceConditions;
 use App\Support\TrainingProgramExtrasSupport;
 use App\Support\VolunteerLeadersProgramPeriod;
 
@@ -22,6 +23,18 @@ $venueMapUrl = filled($trainingProgram->venue)
     : null;
 
 $benefits = TrainingProgramExtrasSupport::publicBenefits($trainingProgram);
+$acceptance = ProgramAcceptanceConditions::normalize(
+    is_array($trainingProgram->acceptance_conditions) ? $trainingProgram->acceptance_conditions : null
+);
+$saudiOnly = is_array($acceptance) && $acceptance['require_saudi_national'];
+$ageLabel = null;
+if (is_array($acceptance) && ($acceptance['min_age'] !== null || $acceptance['max_age'] !== null)) {
+    $min = $acceptance['min_age'];
+    $max = $acceptance['max_age'];
+    $ageLabel = $min !== null && $max !== null
+        ? 'من '.$min.' إلى '.$max.' سنة'
+        : ($min !== null ? 'من '.$min.' سنة فأكثر' : 'حتى '.$max.' سنة');
+}
 @endphp
 
 <div @class(['space-y-4', 'md:sticky md:top-24' => $isVolunteerLeaders])>
@@ -41,6 +54,22 @@ $benefits = TrainingProgramExtrasSupport::publicBenefits($trainingProgram);
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </x-slot:icon>
         </x-public.info-sidebar-item>
+
+        @if ($ageLabel)
+        <x-public.info-sidebar-item dense label="العمر" :value="en_digits($ageLabel)">
+            <x-slot:icon>
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            </x-slot:icon>
+        </x-public.info-sidebar-item>
+        @endif
+
+        @if ($saudiOnly)
+        <x-public.info-sidebar-item dense label="الجنسية" value="سعوديون وسعوديات">
+            <x-slot:icon>
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg>
+            </x-slot:icon>
+        </x-public.info-sidebar-item>
+        @endif
 
         <x-public.info-sidebar-item dense label="الجنس" value="ذكور وإناث">
             <x-slot:icon>

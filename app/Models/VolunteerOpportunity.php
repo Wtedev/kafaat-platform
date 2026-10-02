@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -192,6 +193,11 @@ class VolunteerOpportunity extends Model
     public function certificates(): MorphMany
     {
         return $this->morphMany(Certificate::class, 'certificateable');
+    }
+
+    public function certificateTemplate(): MorphOne
+    {
+        return $this->morphOne(CertificateTemplate::class, 'owner');
     }
 
     public function assignee(): BelongsTo

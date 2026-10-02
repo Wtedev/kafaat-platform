@@ -2,6 +2,9 @@
 
 namespace App\Filament\Concerns;
 
+use App\Models\User;
+use App\Services\Rbac\StaffNavigationAuthorization;
+
 /**
  * يضبط ظهور عنصر القائمة الجانبية وصلاحية الوصول للمورد عبر Gate (صلاحيات Spatie).
  */
@@ -25,17 +28,8 @@ trait RegistersNavigationByPermission
         }
 
         $user = auth()->user();
-        if ($user === null) {
-            return false;
-        }
 
-        foreach ($permissions as $permission) {
-            if (! $user->can($permission)) {
-                return false;
-            }
-        }
-
-        return true;
+        return StaffNavigationAuthorization::allowsAll($user instanceof User ? $user : null, $permissions);
     }
 
     public static function shouldRegisterNavigation(): bool
