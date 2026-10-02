@@ -37,6 +37,9 @@ class DataForumProgramSeederTest extends TestCase
         $this->assertSame(TrainingProgramKind::Forum, $program->program_kind);
         $this->assertSame(DataForumProgramSeeder::DESCRIPTION, $program->description);
         $this->assertStringNotContainsString('عبد الله العمير', (string) $program->description);
+        $this->assertStringNotContainsString('4:00', (string) $program->description);
+        $this->assertSame(DataForumProgramSeeder::START_DATE, $program->start_date?->toDateString());
+        $this->assertSame(DataForumProgramSeeder::END_DATE, $program->end_date?->toDateString());
         $this->assertStringContainsString('هندسة الأوامر.', (string) $program->description);
         $this->assertStringContainsString('تحليل البيانات باستخدام لغة Python.', (string) $program->description);
         $this->assertTrue($program->session_topics_enabled);
