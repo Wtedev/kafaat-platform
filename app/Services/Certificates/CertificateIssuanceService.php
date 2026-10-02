@@ -105,7 +105,7 @@ class CertificateIssuanceService
     {
         if (! $this->canDecide($actor)) {
             throw ValidationException::withMessages([
-                'design' => 'تأهيل الشهادة متاح للمدير فقط.',
+                'permission' => 'تأهيل الشهادة متاح للمدير فقط.',
             ]);
         }
 

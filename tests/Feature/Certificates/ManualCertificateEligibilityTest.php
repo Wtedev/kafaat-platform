@@ -307,7 +307,8 @@ class ManualCertificateEligibilityTest extends TestCase
         try {
             $service->markEligible($registration, $staff);
             $this->fail('الموظف بلا الصلاحية كان يجب أن يُرفض.');
-        } catch (ValidationException) {
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('permission', $exception->errors());
             $this->assertSame(0, Certificate::query()->count());
         }
 
