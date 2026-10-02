@@ -67,7 +67,9 @@ class StaffUiMaintenanceTest extends TestCase
             ->assertSee('staff-ui.css', false)
             ->assertSee('لوحة التحكم الجديدة قيد البناء')
             ->assertSee('سيتم إضافة الأقسام تدريجياً')
-            ->assertSee('aria-disabled="true"', false)
+            ->assertDontSee('aria-disabled="true"', false)
+            ->assertDontSee('البرنامج الحالي')
+            ->assertDontSee('البرامج')
             ->assertSee('تسجيل الخروج')
             ->assertSee(route('logout'), false);
     }

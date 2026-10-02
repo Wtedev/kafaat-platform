@@ -30,27 +30,29 @@
                 </button>
             </div>
 
-            <div class="sui-switcher">
-                <x-staff-ui.dropdown>
-                    <x-slot:trigger>
-                        <button type="button" class="sui-switcher__btn">
-                            <i data-lucide="layers" class="sui-icon"></i>
-                            <span class="sui-switcher__text">
-                                <span class="sui-switcher__kicker">البرنامج الحالي</span>
-                                <span class="sui-switcher__value">برنامج تجريبي</span>
-                            </span>
-                            <i data-lucide="chevrons-up-down" class="sui-icon sui-collapse-when-open"></i>
-                        </button>
-                    </x-slot:trigger>
-                    <button type="button" class="sui-menu-item">برنامج تجريبي</button>
-                    <button type="button" class="sui-menu-item">مسار المهارات</button>
-                    <button type="button" class="sui-menu-item">ملتقى البيانات</button>
-                </x-staff-ui.dropdown>
-            </div>
+            @if ($preview)
+                <div class="sui-switcher">
+                    <x-staff-ui.dropdown>
+                        <x-slot:trigger>
+                            <button type="button" class="sui-switcher__btn">
+                                <i data-lucide="layers" class="sui-icon"></i>
+                                <span class="sui-switcher__text">
+                                    <span class="sui-switcher__kicker">البرنامج الحالي</span>
+                                    <span class="sui-switcher__value">برنامج تجريبي</span>
+                                </span>
+                                <i data-lucide="chevrons-up-down" class="sui-icon sui-collapse-when-open"></i>
+                            </button>
+                        </x-slot:trigger>
+                        <button type="button" class="sui-menu-item">برنامج تجريبي</button>
+                        <button type="button" class="sui-menu-item">مسار المهارات</button>
+                        <button type="button" class="sui-menu-item">ملتقى البيانات</button>
+                    </x-staff-ui.dropdown>
+                </div>
+            @endif
 
             <nav class="sui-nav">
-                <p class="sui-nav__label">عام</p>
                 @if ($preview)
+                    <p class="sui-nav__label">عام</p>
                     <x-staff-ui.nav-item icon="layout-dashboard" :href="route('staff-ui.demo')" active>لوحة التحكم</x-staff-ui.nav-item>
                     <x-staff-ui.nav-item icon="graduation-cap" count="6">البرامج</x-staff-ui.nav-item>
                     <x-staff-ui.nav-item icon="clipboard-list" count="18">التسجيلات</x-staff-ui.nav-item>
@@ -65,17 +67,6 @@
                     <x-staff-ui.nav-item icon="settings">الإعدادات</x-staff-ui.nav-item>
                 @else
                     <x-staff-ui.nav-item icon="layout-dashboard" :href="route('filament.admin.pages.dashboard')" active>لوحة التحكم</x-staff-ui.nav-item>
-                    <x-staff-ui.nav-item icon="graduation-cap" disabled>البرامج</x-staff-ui.nav-item>
-                    <x-staff-ui.nav-item icon="clipboard-list" disabled>التسجيلات</x-staff-ui.nav-item>
-                    <x-staff-ui.nav-item icon="award" disabled>الشهادات</x-staff-ui.nav-item>
-
-                    <p class="sui-nav__label">الأدوات</p>
-                    <x-staff-ui.nav-item icon="bar-chart-3" disabled>التقارير</x-staff-ui.nav-item>
-                    <x-staff-ui.nav-item icon="bell" disabled>الإشعارات</x-staff-ui.nav-item>
-
-                    <p class="sui-nav__label">الحساب</p>
-                    <x-staff-ui.nav-item icon="user" disabled>الملف الشخصي</x-staff-ui.nav-item>
-                    <x-staff-ui.nav-item icon="settings" disabled>الإعدادات</x-staff-ui.nav-item>
                 @endif
             </nav>
 
