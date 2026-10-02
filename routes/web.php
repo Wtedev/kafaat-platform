@@ -53,6 +53,8 @@ use App\Http\Controllers\Public\PublicTrainingProgramController;
 use App\Http\Controllers\Public\PublicVolunteerOpportunityController;
 use App\Http\Controllers\Public\SupportTicketController;
 use App\Http\Controllers\PublicPrivacyPolicyController;
+use App\Http\Controllers\StaffUi\StaffInboxController;
+use App\Http\Controllers\StaffUi\StaffProfileController;
 use App\Http\Controllers\StaffUi\StaffUiDemoController;
 use App\Support\StaffUi\StaffUiModule;
 use Illuminate\Support\Facades\Route;
@@ -115,8 +117,22 @@ Route::middleware(['auth', 'otp.verified', 'operational'])->group(function () {
 });
 
 Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.maintenance:'.StaffUiModule::SHELL])
-    ->get('/staff-ui/demo', StaffUiDemoController::class)
-    ->name('staff-ui.demo');
+    ->prefix('staff-ui')
+    ->name('staff-ui.')
+    ->group(function () {
+        Route::get('/demo', StaffUiDemoController::class)->name('demo');
+
+        Route::get('/profile', [StaffProfileController::class, 'show'])->name('profile');
+        Route::post('/profile', [StaffProfileController::class, 'update'])->name('profile.update');
+        Route::post('/profile/email', [StaffProfileController::class, 'requestEmailChange'])->name('profile.email');
+        Route::post('/profile/email/verify', [StaffProfileController::class, 'verifyEmailChange'])->name('profile.email.verify');
+        Route::post('/profile/email/resend', [StaffProfileController::class, 'resendEmailChange'])->name('profile.email.resend');
+        Route::post('/profile/email/cancel', [StaffProfileController::class, 'cancelEmailChange'])->name('profile.email.cancel');
+        Route::post('/profile/password', [StaffProfileController::class, 'changePassword'])->name('profile.password');
+
+        Route::post('/notifications/read-all', [StaffInboxController::class, 'markAllRead'])->name('notifications.read-all');
+        Route::post('/notifications/{notification}/read', [StaffInboxController::class, 'markRead'])->name('notifications.read');
+    });
 
 // ─── Public website ───────────────────────────────────────────────────────────
 

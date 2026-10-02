@@ -3,6 +3,7 @@
     'email' => 'admin@kafaat.org.sa',
     'crumb' => 'لوحة التحكم',
     'preview' => false,
+    'dashboardActive' => true,
 ])
 
 <!DOCTYPE html>
@@ -66,23 +67,25 @@
                     <x-staff-ui.nav-item icon="user">الملف الشخصي</x-staff-ui.nav-item>
                     <x-staff-ui.nav-item icon="settings">الإعدادات</x-staff-ui.nav-item>
                 @else
-                    <x-staff-ui.nav-item icon="layout-dashboard" :href="route('filament.admin.pages.dashboard')" active>لوحة التحكم</x-staff-ui.nav-item>
+                    <x-staff-ui.nav-item icon="layout-dashboard" :href="route('filament.admin.pages.dashboard')" :active="$dashboardActive">لوحة التحكم</x-staff-ui.nav-item>
                 @endif
             </nav>
 
             <div class="sui-sidebar__user">
-                <x-staff-ui.avatar :name="$name" />
-                <span class="sui-sidebar__user-meta">
-                    <span class="sui-sidebar__user-name">{{ $name }}</span>
-                    <span class="sui-sidebar__user-email">{{ $email }}</span>
-                </span>
+                <a class="sui-sidebar__user-link" href="{{ route('staff-ui.profile') }}">
+                    <x-staff-ui.avatar :name="$name" />
+                    <span class="sui-sidebar__user-meta">
+                        <span class="sui-sidebar__user-name">{{ $name }}</span>
+                        <span class="sui-sidebar__user-email">{{ $email }}</span>
+                    </span>
+                </a>
                 <x-staff-ui.dropdown align="end">
                     <x-slot:trigger>
                         <button type="button" class="sui-icon-btn" aria-label="قائمة الحساب">
                             <i data-lucide="chevron-up" class="sui-icon"></i>
                         </button>
                     </x-slot:trigger>
-                    <span class="sui-menu-item">{{ $name }}</span>
+                    <a class="sui-menu-item" href="{{ route('staff-ui.profile') }}">الملف الشخصي</a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="sui-menu-item">تسجيل الخروج</button>
@@ -110,19 +113,60 @@
                     </nav>
                 </div>
                 <div class="sui-topbar__cluster sui-topbar__end">
-                    <label class="sui-search">
-                        <i data-lucide="search" class="sui-icon"></i>
-                        <input type="search" data-sui-global-search placeholder="ابحث..." aria-label="ابحث">
-                    </label>
-                    <button type="button" class="sui-icon-btn" data-sui-toast data-tone="info" data-title="المساعدة" data-body="هذه أيقونة للمعاينة." aria-label="مساعدة">
-                        <i data-lucide="circle-help" class="sui-icon"></i>
-                    </button>
-                    <button type="button" class="sui-icon-btn" data-sui-toast data-tone="info" data-title="الإشعارات" data-body="لا توجد إشعارات جديدة." aria-label="الإشعارات">
-                        <i data-lucide="bell" class="sui-icon"></i>
-                    </button>
-                    <button type="button" class="sui-icon-btn" data-sui-toast data-tone="info" data-title="الإعدادات" data-body="صفحة الإعدادات لم تُبنَ بعد." aria-label="الإعدادات">
-                        <i data-lucide="settings" class="sui-icon"></i>
-                    </button>
+                    @if (config('staff_ui.topbar.search'))
+                        <label class="sui-search">
+                            <i data-lucide="search" class="sui-icon"></i>
+                            <input type="search" data-sui-global-search placeholder="ابحث..." aria-label="ابحث">
+                        </label>
+                    @endif
+                    @if (config('staff_ui.topbar.help'))
+                        <button type="button" class="sui-icon-btn" data-sui-toast data-tone="info" data-title="المساعدة" data-body="هذه أيقونة للمعاينة." aria-label="مساعدة">
+                            <i data-lucide="circle-help" class="sui-icon"></i>
+                        </button>
+                    @endif
+                    <x-staff-ui.dropdown align="end" class="sui-inbox">
+                        <x-slot:trigger>
+                            <button type="button" class="sui-icon-btn sui-bell" aria-label="الإشعارات">
+                                <i data-lucide="bell" class="sui-icon"></i>
+                                @if (($staffInboxUnreadCount ?? 0) > 0)
+                                    <span class="sui-badge">{{ ($staffInboxUnreadCount ?? 0) > 99 ? '99+' : $staffInboxUnreadCount }}</span>
+                                @endif
+                            </button>
+                        </x-slot:trigger>
+                        <div class="sui-inbox__head">
+                            <strong>الإشعارات</strong>
+                            @if (($staffInboxUnreadCount ?? 0) > 0)
+                                <form method="POST" action="{{ route('staff-ui.notifications.read-all') }}">
+                                    @csrf
+                                    <button type="submit" class="sui-inbox__mark">تعليم الكل كمقروء</button>
+                                </form>
+                            @endif
+                        </div>
+                        @forelse (($staffInboxNotifications ?? collect()) as $notification)
+                            <div @class(['sui-inbox__item', 'is-unread' => $notification->read_at === null])>
+                                <p class="sui-inbox__title">{{ \App\Support\InboxNotificationDisplay::heading($notification) }}</p>
+                                @if (filled($notification->message))
+                                    <p class="sui-inbox__body">{{ \Illuminate\Support\Str::limit(trim((string) $notification->message), 80) }}</p>
+                                @endif
+                                <div class="sui-inbox__meta">
+                                    <time datetime="{{ $notification->created_at?->toIso8601String() }}">{{ $notification->created_at?->timezone(config('app.timezone'))->format('Y-m-d H:i') }}</time>
+                                    @if ($notification->read_at === null)
+                                        <form method="POST" action="{{ route('staff-ui.notifications.read', $notification) }}">
+                                            @csrf
+                                            <button type="submit" class="sui-inbox__mark">تعليم كمقروء</button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
+                        @empty
+                            <p class="sui-inbox__empty">لا توجد إشعارات.</p>
+                        @endforelse
+                    </x-staff-ui.dropdown>
+                    @if (config('staff_ui.topbar.settings'))
+                        <button type="button" class="sui-icon-btn" data-sui-toast data-tone="info" data-title="الإعدادات" data-body="صفحة الإعدادات لم تُبنَ بعد." aria-label="الإعدادات">
+                            <i data-lucide="settings" class="sui-icon"></i>
+                        </button>
+                    @endif
                     <x-staff-ui.dropdown align="end">
                         <x-slot:trigger>
                             <button type="button" class="sui-icon-btn" aria-label="حسابك" style="width: auto; padding-inline: 4px;">
@@ -130,6 +174,7 @@
                             </button>
                         </x-slot:trigger>
                         <span class="sui-menu-item">{{ $email }}</span>
+                        <a class="sui-menu-item" href="{{ route('staff-ui.profile') }}">الملف الشخصي</a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="sui-menu-item">تسجيل الخروج</button>

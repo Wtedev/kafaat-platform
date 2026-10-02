@@ -16,4 +16,14 @@ return [
     */
     'ready_modules' => [],
 
+    /*
+    | Top-bar tools kept in the layout and switched off until each one is built.
+    | Set a flag to true to show it again.
+    */
+    'topbar' => [
+        'search' => false,
+        'help' => false,
+        'settings' => false,
+    ],
+
 ];

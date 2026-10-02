@@ -54,9 +54,33 @@ class StaffUiDemoTest extends TestCase
             ->assertSee('dir="rtl"', false)
             ->assertSee('كفاءات')
             ->assertSee('لوحة التحكم')
-            ->assertSee('ابحث...')
+            ->assertDontSee('data-sui-global-search', false)
+            ->assertDontSee('aria-label="مساعدة"', false)
+            ->assertDontSee('aria-label="الإعدادات"', false)
             ->assertSee('آخر 30 يوم')
             ->assertSee('IBM+Plex+Sans+Arabic', false)
             ->assertSee('staff-ui.css', false);
+    }
+
+    public function test_topbar_tools_return_when_config_enables_them(): void
+    {
+        config([
+            'staff_ui.topbar.search' => true,
+            'staff_ui.topbar.help' => true,
+            'staff_ui.topbar.settings' => true,
+        ]);
+
+        $admin = User::factory()->create([
+            'role_type' => 'admin',
+            'is_active' => true,
+        ]);
+        $admin->assignRole(RbacCatalog::ROLE_ADMIN);
+
+        $this->actingAsOtpVerified($admin)
+            ->get(route('staff-ui.demo'))
+            ->assertOk()
+            ->assertSee('data-sui-global-search', false)
+            ->assertSee('aria-label="مساعدة"', false)
+            ->assertSee('aria-label="الإعدادات"', false);
     }
 }

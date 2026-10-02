@@ -36,7 +36,7 @@ class StaffUiMaintenanceTest extends TestCase
         ]);
         $staff->assignRole(RbacCatalog::ROLE_STAFF);
 
-        foreach (['/admin', '/admin/users', '/staff-ui/demo'] as $url) {
+        foreach (['/admin', '/admin/users', '/staff-ui/demo', '/staff-ui/profile'] as $url) {
             $this->actingAsOtpVerified($staff)
                 ->get($url)
                 ->assertServiceUnavailable()
@@ -71,7 +71,11 @@ class StaffUiMaintenanceTest extends TestCase
             ->assertDontSee('البرنامج الحالي')
             ->assertDontSee('البرامج')
             ->assertSee('تسجيل الخروج')
-            ->assertSee(route('logout'), false);
+            ->assertSee(route('logout'), false)
+            ->assertSee(route('staff-ui.profile'), false)
+            ->assertDontSee('data-sui-global-search', false)
+            ->assertDontSee('aria-label="مساعدة"', false)
+            ->assertDontSee('aria-label="الإعدادات"', false);
     }
 
     public function test_ready_module_stays_open_for_staff(): void
