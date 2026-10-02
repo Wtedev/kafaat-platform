@@ -2,6 +2,7 @@
 
 namespace App\Services\Certificates;
 
+use App\Enums\CertificateTemplateStatus;
 use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Models\VolunteerOpportunity;
@@ -41,7 +42,7 @@ class CertificateTemplateBackfill
                             'page_height_mm' => 210,
                             'elements' => '[]',
                             'eligibility' => $eligibility,
-                            'status' => 'ready',
+                            'status' => CertificateTemplateStatus::Draft->value,
                             'version' => 1,
                             'created_by' => $program->created_by,
                             'updated_by' => $program->created_by,
@@ -176,7 +177,7 @@ class CertificateTemplateBackfill
                 'page_height_mm' => 210,
                 'elements' => '[]',
                 'eligibility' => $eligibility,
-                'status' => 'ready',
+                'status' => CertificateTemplateStatus::Draft->value,
                 'version' => 1,
                 'created_by' => $createdBy,
                 'updated_by' => $createdBy,

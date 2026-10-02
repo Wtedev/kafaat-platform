@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\Certificates;
 
+use App\Enums\CertificateTemplateStatus;
 use App\Enums\OpportunityStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\VolunteerHoursStatus;
 use App\Filament\Resources\TrainingProgramResource\Pages\ViewTrainingProgram;
+use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramCertificatesRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationsRelationManager;
 use App\Models\Certificate;
 use App\Models\CertificateTemplate;
@@ -18,6 +20,7 @@ use App\Models\VolunteerHour;
 use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
 use App\Services\Certificates\CertificateIssuanceService;
+use App\Services\Certificates\CertificateTemplateBackfill;
 use App\Services\Certificates\CertificateRenderer;
 use App\Services\ProgramRegistrationService;
 use App\Services\VolunteerHoursService;
@@ -139,6 +142,47 @@ class ManualCertificateEligibilityTest extends TestCase
             ->callAction(TestAction::make('markCertificateEligibleBulk')->table()->bulk());
 
         $this->assertSame(2, Certificate::query()->count());
+    }
+
+    public function test_backfilled_template_stays_a_draft_and_cannot_be_issued(): void
+    {
+        $admin = $this->admin();
+        $program = $this->program();
+        $registration = $this->registration($program, 'مسودة الترحيل', 100);
+
+        app(CertificateTemplateBackfill::class)->backfillTrainingPrograms();
+
+        $template = $program->certificateTemplate()->first();
+        $this->assertNotNull($template);
+        $this->assertSame(CertificateTemplateStatus::Draft, $template->status);
+        $this->assertNotSame([], app(CertificateIssuanceService::class)->designGaps($template));
+
+        try {
+            app(CertificateIssuanceService::class)->markEligible($registration, $admin);
+            $this->fail('A backfilled draft must not be issued.');
+        } catch (ValidationException $exception) {
+            $this->assertStringContainsString('لا يمكن إصدار الشهادة قبل حفظ التصميم', $exception->getMessage());
+        }
+
+        $this->assertSame(0, Certificate::query()->count());
+
+        $this->actingAs($admin);
+
+        Livewire::test(ProgramCertificatesRelationManager::class, [
+            'ownerRecord' => $program,
+            'pageClass' => ViewTrainingProgram::class,
+        ])
+            ->assertSee('لم يُعتمد تصميم الشهادة بعد')
+            ->assertDontSee('بلغ متوسط حضوره ودرجته 75% فأكثر');
+
+        $template->update(['status' => CertificateTemplateStatus::Ready]);
+
+        Livewire::test(ProgramCertificatesRelationManager::class, [
+            'ownerRecord' => $program->fresh(),
+            'pageClass' => ViewTrainingProgram::class,
+        ])
+            ->assertSee('لم يُعتمد تصميم الشهادة بعد')
+            ->assertDontSee('بلغ متوسط حضوره ودرجته 75% فأكثر');
     }
 
     public function test_issue_is_blocked_when_the_template_has_no_saved_design(): void

@@ -130,7 +130,8 @@ class ProgramCertificatesRelationManager extends RelationManager
     {
         $program = $this->activity();
         $template = $program->certificateTemplate;
-        $ready = $this->templateIsReady($template);
+        $ready = $this->templateIsReady($template)
+            && app(CertificateIssuanceService::class)->designGaps($template) === [];
         $counts = $ready ? $this->bannerCounts() : ['eligible' => 0, 'issued' => 0, 'awaiting' => 0];
 
         return [

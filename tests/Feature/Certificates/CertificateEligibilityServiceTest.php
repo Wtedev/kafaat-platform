@@ -4,6 +4,7 @@ namespace Tests\Feature\Certificates;
 
 use App\Data\Certificates\EligibilityRules;
 use App\Enums\CertificateEligibilityMode;
+use App\Enums\CertificateTemplateStatus;
 use App\Enums\CertificateEligibilityStatus;
 use App\Enums\CertificatePdfStatus;
 use App\Enums\ProgramStatus;
@@ -154,7 +155,7 @@ class CertificateEligibilityServiceTest extends TestCase
 
         $template = $program->certificateTemplate()->first();
         $this->assertNotNull($template);
-        $this->assertSame('ready', $template->status->value);
+        $this->assertSame(CertificateTemplateStatus::Draft, $template->status);
         $this->assertNull($template->background_path);
         $this->assertSame(CertificateEligibilityMode::Average, $template->eligibility->mode);
         $this->assertSame(75.0, $template->eligibility->minAverage);
