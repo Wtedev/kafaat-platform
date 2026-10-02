@@ -183,6 +183,63 @@ class ProgramAttendanceService
         return round($attended / $totalDays * 100, 2);
     }
 
+    /**
+     * نسب الحضور لدفعة تسجيلات باستعلامين ثابتين (أيام التحضير + سجلات الحضور).
+     *
+     * @param  Collection<int, ProgramRegistration>  $registrations
+     * @return array<int, float|null>
+     */
+    public function percentagesForRegistrations(Collection $registrations): array
+    {
+        if ($registrations->isEmpty()) {
+            return [];
+        }
+
+        $programIds = $registrations->pluck('training_program_id')->filter()->unique()->values();
+        $registrationIds = $registrations->pluck('id')->filter()->values();
+
+        $datesByProgram = ProgramPrepDay::query()
+            ->whereIn('training_program_id', $programIds)
+            ->orderBy('prep_date')
+            ->get()
+            ->groupBy('training_program_id')
+            ->map(fn (Collection $days): array => $days
+                ->map(fn (ProgramPrepDay $day): string => $day->dateString())
+                ->values()
+                ->all());
+
+        $presentByRegistration = ProgramAttendance::query()
+            ->whereIn('program_registration_id', $registrationIds)
+            ->where('status', AttendanceStatus::Present->value)
+            ->get(['program_registration_id', 'training_date'])
+            ->groupBy('program_registration_id');
+
+        $percentages = [];
+
+        foreach ($registrations as $registration) {
+            $dates = $datesByProgram->get($registration->training_program_id, []);
+
+            if ($dates === []) {
+                $percentages[$registration->getKey()] = null;
+
+                continue;
+            }
+
+            $attended = $presentByRegistration
+                ->get($registration->getKey(), collect())
+                ->filter(fn (ProgramAttendance $row): bool => in_array(
+                    $row->training_date->toDateString(),
+                    $dates,
+                    true,
+                ))
+                ->count();
+
+            $percentages[$registration->getKey()] = round($attended / count($dates) * 100, 2);
+        }
+
+        return $percentages;
+    }
+
     public function countExpectedTrainingDays(TrainingProgram $program): int
     {
         return count($this->attendancePrepDateStrings($program));

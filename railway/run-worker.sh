@@ -14,7 +14,7 @@ php artisan optimize:clear
 # --timeout=120: long enough for export ZIP generation
 # --max-time=3600: recycle the process hourly (Railway restarts the service)
 exec php artisan queue:work \
-  --queue=default \
+  --queue=certificates,default \
   --sleep=1 \
   --tries=3 \
   --timeout=120 \

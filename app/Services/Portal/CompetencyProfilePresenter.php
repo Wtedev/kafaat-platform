@@ -45,6 +45,7 @@ final class CompetencyProfilePresenter
             ->get();
 
         $platformCertificates = $user->certificates()
+            ->active()
             ->with('certificateable')
             ->latest('issued_at')
             ->get();

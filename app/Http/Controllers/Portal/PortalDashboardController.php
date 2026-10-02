@@ -23,7 +23,7 @@ class PortalDashboardController extends Controller
                 ->where('status', RegistrationStatus::Completed)
                 ->count();
         $approvedHours = $user->totalApprovedVolunteerHours();
-        $certificatesCount = $user->certificates()->count();
+        $certificatesCount = $user->certificates()->active()->count();
 
         $composed = PortalDashboardComposer::compose($user);
         $activities = $composed['activities'];

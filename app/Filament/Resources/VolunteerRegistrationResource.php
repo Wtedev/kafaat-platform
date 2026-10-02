@@ -12,7 +12,7 @@ use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\Certificate;
 use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
-use App\Services\CertificateService;
+use App\Services\Certificates\CertificateIssuanceService;
 use App\Services\VolunteerRegistrationService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -234,6 +234,7 @@ class VolunteerRegistrationResource extends Resource
                     ->action(function (VolunteerRegistration $record): void {
                         $record->loadMissing(['user', 'opportunity']);
                         $existing = Certificate::query()
+                            ->active()
                             ->where('user_id', $record->user_id)
                             ->where('certificateable_type', VolunteerOpportunity::class)
                             ->where('certificateable_id', $record->opportunity_id)
@@ -247,7 +248,12 @@ class VolunteerRegistrationResource extends Resource
 
                             return;
                         }
-                        app(CertificateService::class)->issue($record->user, $record->opportunity, auth()->user());
+                        $certificate = app(CertificateIssuanceService::class)->issue($record->user, $record->opportunity, auth()->user());
+                        if ($certificate === null) {
+                            Notification::make()->title('لم تُصدر الشهادة. تحقق من اعتماد التصميم وشروط الأحقية.')->danger()->send();
+
+                            return;
+                        }
                         Notification::make()
                             ->title('تم إصدار شهادة التطوع بنجاح')
                             ->success()

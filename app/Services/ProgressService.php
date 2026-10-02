@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Data\Certificates\EligibilityRules;
+use App\Enums\CertificateTemplateStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Models\LearningPath;
@@ -9,13 +11,16 @@ use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Services\Certificates\CertificateEligibilityService;
+use App\Services\Certificates\CertificateIssuanceService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ProgressService
 {
     public function __construct(
-        private readonly CertificateService $certificateService,
+        private readonly CertificateIssuanceService $certificateIssuance,
+        private readonly CertificateEligibilityService $eligibility,
     ) {}
 
     /**
@@ -89,10 +94,6 @@ class ProgressService
      */
     public function completePathIfEligible(User $user, LearningPath $path): void
     {
-        if (! $this->isPathCompleted($user, $path)) {
-            return;
-        }
-
         $registration = PathRegistration::where('user_id', $user->id)
             ->where('learning_path_id', $path->id)
             ->whereIn('status', [
@@ -105,16 +106,30 @@ class ProgressService
             return;
         }
 
-        DB::transaction(function () use ($registration, $user, $path) {
+        $path->loadMissing('certificateTemplate');
+        $result = $this->eligibility->evaluateRegistration(
+            $registration,
+            EligibilityRules::legacyPathCourses(),
+        );
+        if (! $result->eligible) {
+            return;
+        }
+
+        DB::transaction(function () use ($registration): void {
             if ($registration->status !== RegistrationStatus::Completed) {
                 $registration->update([
                     'status' => RegistrationStatus::Completed,
                     'completed_at' => now(),
                 ]);
             }
-
-            $this->certificateService->issue($user, $path);
         });
+
+        $template = $path->certificateTemplate;
+        if ($template !== null
+            && $template->status === CertificateTemplateStatus::Ready
+            && $template->auto_issue) {
+            $this->certificateIssuance->issue($user, $path, automatic: true);
+        }
     }
 
     /**

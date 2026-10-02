@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use App\Enums\RegistrationStatus;
+use App\Services\Certificates\CertificateEligibilityService;
 use App\Services\Inbox\InboxNotificationService;
 use App\Services\ProgramAttendanceService;
 use App\Support\FilamentAssignmentVisibility;
-use App\Support\RegistrationEligibilitySupport;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -87,17 +87,7 @@ class ProgramRegistration extends Model
      */
     public function isEligibleForCertificate(): bool
     {
-        if (! in_array($this->status, [
-            RegistrationStatus::Approved,
-            RegistrationStatus::Completed,
-        ], true)) {
-            return false;
-        }
-
-        return RegistrationEligibilitySupport::isEligible(
-            $this->effectiveAttendancePercentage(),
-            $this->score !== null ? (float) $this->score : null,
-        );
+        return app(CertificateEligibilityService::class)->evaluate($this)->eligible;
     }
 
     public function effectiveAttendancePercentage(): ?float
@@ -112,6 +102,7 @@ class ProgramRegistration extends Model
             ->where('user_id', $this->user_id)
             ->where('certificateable_type', TrainingProgram::class)
             ->where('certificateable_id', $this->training_program_id)
+            ->whereNull('revoked_at')
             ->first();
     }
 

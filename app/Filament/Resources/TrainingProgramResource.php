@@ -14,16 +14,16 @@ use App\Filament\Resources\TrainingProgramResource\Pages;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramAttendanceCheckersRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramAttendanceRegistrationsRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramBroadcastsRelationManager;
+use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramCertificatesRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramGradesRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramPrepDaysRelationManager;
-use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationCertificatesRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationsRelationManager;
 use App\Filament\Support\EntityTwoColumnFormLayout;
 use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\LearningPath;
 use App\Models\TrainingProgram;
+use App\Services\Training\TrainingProgramImageUrl;
 use App\Support\Format\LocaleFormat;
-use App\Support\PublicDiskPath;
 use Carbon\Carbon;
 use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\FileUpload;
@@ -73,7 +73,7 @@ class TrainingProgramResource extends Resource
      */
     public static function resolveTrainingProgramImagePublicUrl(?string $path): string
     {
-        return PublicDiskPath::urlOrPlaceholder($path, PublicDiskPath::PLACEHOLDER_TRAINING_CATALOG);
+        return TrainingProgramImageUrl::publicUrl($path);
     }
 
     /**
@@ -503,7 +503,7 @@ class TrainingProgramResource extends Resource
             ProgramPrepDaysRelationManager::class,
             ProgramAttendanceCheckersRelationManager::class,
             ProgramGradesRelationManager::class,
-            ProgramRegistrationCertificatesRelationManager::class,
+            ProgramCertificatesRelationManager::class,
             EntityNotesRelationManager::class,
         ];
     }
@@ -515,6 +515,7 @@ class TrainingProgramResource extends Resource
             'create' => Pages\CreateTrainingProgram::route('/create'),
             'view' => Pages\ViewTrainingProgram::route('/{record}'),
             'edit' => Pages\EditTrainingProgram::route('/{record}/edit'),
+            'certificate-design' => Pages\ManageCertificateDesign::route('/{record}/certificate-design'),
         ];
     }
 }

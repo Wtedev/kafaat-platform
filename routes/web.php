@@ -14,6 +14,8 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\SignupVerificationController;
 use App\Http\Controllers\CertificateDownloadController;
+use App\Http\Controllers\Certificates\CertificateExportDownloadController;
+use App\Http\Controllers\Certificates\CertificateTemplateAssetController;
 use App\Http\Controllers\Gate\GateAttendanceController;
 use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\Portal\PortalAccountDeletionController;
@@ -94,6 +96,10 @@ Route::middleware(['auth', 'otp.verified', 'operational'])->group(function () {
     Route::get('/certificates/{certificate}/download', CertificateDownloadController::class)
         ->name('certificates.download');
 
+    Route::get('/certificates/exports/{export}', CertificateExportDownloadController::class)
+        ->middleware('signed')
+        ->name('certificates.exports.download');
+
     Route::get('/admin/beneficiaries/{user}/cv-pdf', BeneficiaryCvPdfController::class)
         ->name('admin.beneficiaries.cv-pdf');
 
@@ -121,6 +127,20 @@ Route::post('/support-tickets', [SupportTicketController::class, 'store'])
 Route::get('/certificates/verify/{code}', CertificateVerificationController::class)
     ->middleware('throttle:certificate-verify')
     ->name('certificates.verify');
+
+Route::get('/certificate-fonts/{font}', [CertificateTemplateAssetController::class, 'font'])
+    ->where('font', 'IBMPlexSansArabic-(Regular|Bold)\.ttf')
+    ->name('certificate-fonts.show');
+
+Route::middleware('signed')->group(function () {
+    Route::get('/certificate-templates/{template}/background', [CertificateTemplateAssetController::class, 'background'])
+        ->name('certificate-templates.background');
+    Route::get('/certificate-templates/{template}/elements/{filename}', [CertificateTemplateAssetController::class, 'elementImage'])
+        ->where('filename', '[A-Za-z0-9\-]+\.(png|jpe?g)')
+        ->name('certificate-templates.element-image');
+    Route::get('/certificate-templates/{template}/preview', [CertificateTemplateAssetController::class, 'preview'])
+        ->name('certificate-templates.preview');
+});
 
 // ─── Gate QR / prep-officer attendance ───────────────────────────────────────
 

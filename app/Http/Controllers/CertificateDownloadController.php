@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Certificate;
 use App\Services\UserActivityLogger;
-use App\Support\PublicDiskPath;
+use App\Support\Certificates\CertificateStoredFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -18,12 +18,13 @@ class CertificateDownloadController extends Controller
     {
         $this->authorize('download', $certificate);
 
-        $relative = PublicDiskPath::normalize($certificate->file_path);
-        if ($relative === null || str_starts_with($relative, 'http://') || str_starts_with($relative, 'https://')) {
+        if ($certificate->isRevoked()) {
             abort(404);
         }
 
-        if (! Storage::disk('public')->exists($relative)) {
+        $relative = CertificateStoredFile::relative($certificate->file_path);
+        $disk = CertificateStoredFile::diskFor($certificate->file_path);
+        if ($relative === null || $disk === null) {
             abort(404);
         }
 
@@ -34,7 +35,7 @@ class CertificateDownloadController extends Controller
 
         $filename = $certificate->certificate_number.'.pdf';
 
-        return Storage::disk('public')->download($relative, $filename, [
+        return Storage::disk($disk)->download($relative, $filename, [
             'Content-Type' => 'application/pdf',
         ]);
     }

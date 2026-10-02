@@ -93,7 +93,7 @@ final class PermissionMatrixCatalog
                 'actions' => [
                     'view' => ['certificates.view', 'certificates.download'],
                     'create' => ['certificates.issue', 'issue_certificates'],
-                    'update' => null,
+                    'update' => ['certificate_templates.manage'],
                     'delete' => null,
                 ],
             ],

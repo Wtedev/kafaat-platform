@@ -2,9 +2,15 @@
 @section('title', 'التحقق من الشهادة')
 @section('content')
 
+@php
+    $found = (bool) ($display['found'] ?? false);
+    $revoked = (bool) ($display['revoked'] ?? false);
+    $heading = ! $found ? 'الشهادة غير صالحة' : ($revoked ? 'هذه الشهادة ملغاة' : 'شهادة صحيحة ✓');
+@endphp
+
 <div class="text-center mb-6">
-    <div class="inline-flex items-center justify-center w-14 h-14 rounded-full {{ $certificate ? 'bg-[#e6f5f6]' : 'bg-[#fdeeed]' }} mb-4">
-        @if($certificate)
+    <div class="inline-flex items-center justify-center w-14 h-14 rounded-full {{ $found && ! $revoked ? 'bg-[#e6f5f6]' : 'bg-[#fdeeed]' }} mb-4">
+        @if($found && ! $revoked)
         <svg class="w-7 h-7 text-brand-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
@@ -14,38 +20,32 @@
         </svg>
         @endif
     </div>
-    <h1 class="text-xl font-bold {{ $certificate ? 'text-brand-secondary' : 'text-brand-danger' }}">
-        {{ $certificate ? 'شهادة صحيحة ✓' : 'الشهادة غير صالحة' }}
+    <h1 class="text-xl font-bold {{ $found && ! $revoked ? 'text-brand-secondary' : 'text-brand-danger' }}">
+        {{ $heading }}
     </h1>
 </div>
 
-@if($certificate)
-@php
-$certTypeLabel = match(class_basename($certificate->certificateable_type ?? '')) {
-'TrainingProgram' => 'البرنامج التدريبي',
-'LearningPath' => 'المسار التعليمي',
-'VolunteerOpportunity' => 'الفرصة التطوعية',
-default => 'الموضوع',
-};
-@endphp
+@if($found)
 <div class="divide-y divide-gray-100 rounded-xl border border-gray-200 overflow-hidden text-sm">
     <div class="flex items-center justify-between px-4 py-3 bg-gray-50">
         <span class="text-gray-500">اسم المستفيد</span>
-        <span class="font-semibold text-gray-800">{{ $certificate->user->certificateName() }}</span>
+        <span class="font-semibold text-gray-800">{{ $display['name'] ?: '—' }}</span>
     </div>
     <div class="flex items-center justify-between px-4 py-3">
-        <span class="text-gray-500">{{ $certTypeLabel }}</span>
-        <span class="font-semibold text-gray-800">
-            {{ $certificate->certificateable?->title ?? '—' }}
-        </span>
+        <span class="text-gray-500">النشاط</span>
+        <span class="font-semibold text-gray-800">{{ $display['activity'] ?: '—' }}</span>
     </div>
     <div class="flex items-center justify-between px-4 py-3 bg-gray-50">
         <span class="text-gray-500">رقم الشهادة</span>
-        <span class="font-mono text-gray-700">{{ $certificate->certificate_number }}</span>
+        <span class="font-mono text-gray-700">{{ $display['number'] }}</span>
     </div>
     <div class="flex items-center justify-between px-4 py-3">
         <span class="text-gray-500">تاريخ الإصدار</span>
-        <span class="text-gray-700">{{ $certificate->issued_at->format('Y/m/d') }}</span>
+        <span class="text-gray-700">{{ $display['issuedAt'] ?: '—' }}</span>
+    </div>
+    <div class="flex items-center justify-between px-4 py-3 bg-gray-50">
+        <span class="text-gray-500">الحالة</span>
+        <span class="font-semibold {{ $revoked ? 'text-brand-danger' : 'text-brand-secondary' }}">{{ $display['status'] }}</span>
     </div>
 </div>
 
