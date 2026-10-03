@@ -4,7 +4,6 @@ namespace App\Services\Certificates;
 
 use App\Data\Certificates\CertificateElement;
 use App\Enums\CertificatePdfStatus;
-use App\Enums\CertificateTemplateStatus;
 use App\Enums\RegistrationStatus;
 use App\Jobs\GenerateCertificatePdfJob;
 use App\Models\Certificate;
@@ -30,76 +29,8 @@ use Illuminate\Validation\ValidationException;
 class CertificateIssuanceService
 {
     public function __construct(
-        private readonly CertificateEligibilityService $eligibility,
         private readonly InboxNotificationService $inboxNotifications,
     ) {}
-
-    public function issueForProgramRegistration(
-        ProgramRegistration $registration,
-        ?User $issuedBy = null,
-        bool $exceptional = false,
-        ?string $overrideReason = null,
-        bool $automatic = false,
-    ): ?Certificate {
-        return $this->issueForRegistration($registration, $issuedBy, $exceptional, $overrideReason, $automatic);
-    }
-
-    public function issueForRegistration(
-        Model $registration,
-        ?User $issuedBy = null,
-        bool $exceptional = false,
-        ?string $overrideReason = null,
-        bool $automatic = false,
-    ): ?Certificate {
-        $owner = $this->ownerOf($registration);
-        $user = $registration->getAttribute('user') ?? $registration->user()->first();
-
-        if (! $user instanceof User || ! $owner instanceof Model) {
-            return null;
-        }
-
-        return $this->issue(
-            $user,
-            $owner,
-            $issuedBy,
-            $exceptional,
-            $overrideReason,
-            $automatic,
-        );
-    }
-
-    public function issueExceptional(Model $registration, User $admin, string $reason): Certificate
-    {
-        $reason = trim($reason);
-        if (! $admin->isAdmin()) {
-            throw ValidationException::withMessages([
-                'reason' => 'الإصدار الاستثنائي للمدير فقط.',
-            ]);
-        }
-
-        if ($reason === '') {
-            throw ValidationException::withMessages([
-                'reason' => 'سبب الإصدار الاستثنائي مطلوب.',
-            ]);
-        }
-
-        $owner = $this->ownerOf($registration);
-        $template = $owner?->certificateTemplate;
-        if (! $this->templateIsReady($template)) {
-            throw ValidationException::withMessages([
-                'reason' => 'لم يُعتمد تصميم الشهادة بعد.',
-            ]);
-        }
-
-        $certificate = $this->issueForRegistration($registration, $admin, true, $reason);
-        if (! $certificate instanceof Certificate) {
-            throw ValidationException::withMessages([
-                'reason' => 'تعذر إصدار الشهادة.',
-            ]);
-        }
-
-        return $certificate;
-    }
 
     public function markEligible(Model $registration, User $actor): Certificate
     {
@@ -128,7 +59,7 @@ class CertificateIssuanceService
         }
 
         $already = $this->activeCertificate($user, $owner);
-        $certificate = $this->issue($user, $owner, $actor, manual: true);
+        $certificate = $this->issue($user, $owner, $actor);
         if (! $certificate instanceof Certificate) {
             throw ValidationException::withMessages([
                 'design' => 'تعذر إصدار الشهادة.',
@@ -225,39 +156,13 @@ class CertificateIssuanceService
             ->log('أُلغيت الشهادة');
     }
 
-    public function issue(
-        User $user,
-        Model $certificateable,
-        ?User $issuedBy = null,
-        bool $exceptional = false,
-        ?string $overrideReason = null,
-        bool $automatic = false,
-        bool $manual = false,
-    ): ?Certificate {
-        if ($exceptional && ($issuedBy === null || ! $issuedBy->isAdmin() || trim((string) $overrideReason) === '')) {
-            return null;
-        }
-
+    private function issue(User $user, Model $certificateable, User $issuedBy): ?Certificate
+    {
         $template = method_exists($certificateable, 'certificateTemplate')
             ? $certificateable->certificateTemplate
             : null;
-        if ($manual) {
-            if ($this->designGaps($template) !== []) {
-                return null;
-            }
-        } elseif (! $this->templateIsReady($template)) {
+        if (! $template instanceof CertificateTemplate || $this->designGaps($template) !== []) {
             return null;
-        }
-
-        if ($automatic) {
-            return null;
-        }
-
-        if (! $exceptional && ! $manual) {
-            $registration = $this->registrationFor($user, $certificateable);
-            if ($registration === null || ! $this->eligibility->evaluate($registration)->eligible) {
-                return null;
-            }
         }
 
         $existing = $this->activeCertificate($user, $certificateable);
@@ -265,18 +170,9 @@ class CertificateIssuanceService
             return $existing;
         }
 
-        $overrideReason = $exceptional ? trim((string) $overrideReason) : null;
-
         for ($attempt = 0; $attempt < 5; $attempt++) {
             try {
-                return $this->createCertificate(
-                    $user,
-                    $certificateable,
-                    $issuedBy,
-                    $template,
-                    $exceptional,
-                    $overrideReason,
-                );
+                return $this->createCertificate($user, $certificateable, $issuedBy, $template);
             } catch (UniqueConstraintViolationException) {
                 $existing = $this->activeCertificate($user, $certificateable);
                 if ($existing instanceof Certificate) {
@@ -291,12 +187,10 @@ class CertificateIssuanceService
     private function createCertificate(
         User $user,
         Model $certificateable,
-        ?User $issuedBy,
-        ?CertificateTemplate $template,
-        bool $exceptional,
-        ?string $overrideReason,
+        User $issuedBy,
+        CertificateTemplate $template,
     ): Certificate {
-        return DB::transaction(function () use ($user, $certificateable, $issuedBy, $template, $exceptional, $overrideReason): Certificate {
+        return DB::transaction(function () use ($user, $certificateable, $issuedBy, $template): Certificate {
             $existing = $this->activeCertificate($user, $certificateable);
             if ($existing instanceof Certificate) {
                 return $existing;
@@ -306,14 +200,14 @@ class CertificateIssuanceService
                 'user_id' => $user->id,
                 'certificateable_type' => $certificateable->getMorphClass(),
                 'certificateable_id' => $certificateable->getKey(),
-                'certificate_template_id' => $template?->id,
-                'template_version' => $template?->version,
+                'certificate_template_id' => $template->id,
+                'template_version' => $template->version,
                 'certificate_number' => $this->generateCertificateNumber(),
                 'verification_code' => $this->generateVerificationCode(),
                 'pdf_status' => CertificatePdfStatus::Pending,
                 'issued_at' => now(),
-                'override_reason' => $exceptional ? $overrideReason : null,
-                'overridden_by' => $exceptional ? $issuedBy?->id : null,
+                'override_reason' => null,
+                'overridden_by' => null,
             ];
             $draft = new Certificate($attributes);
             $draft->setRelation('user', $user);
@@ -325,17 +219,8 @@ class CertificateIssuanceService
 
             $this->completeApprovedRegistration($user, $certificateable);
 
-            if ($exceptional) {
-                activity()
-                    ->causedBy($issuedBy)
-                    ->performedOn($certificate)
-                    ->event('exceptional_issue')
-                    ->withProperties(['override_reason' => $overrideReason])
-                    ->log('إصدار استثنائي للشهادة');
-            }
-
             $certificateId = (int) $certificate->getKey();
-            $issuedById = $issuedBy?->id;
+            $issuedById = $issuedBy->id;
             DB::afterCommit(function () use ($certificateId, $issuedById): void {
                 GenerateCertificatePdfJob::dispatch($certificateId);
 
@@ -347,44 +232,12 @@ class CertificateIssuanceService
                 $this->inboxNotifications->certificateIssued(
                     $fresh->user,
                     $fresh,
-                    $issuedById !== null ? User::query()->find($issuedById) : null,
+                    User::query()->find($issuedById),
                 );
             });
 
             return $certificate;
         });
-    }
-
-    private function templateIsReady(?CertificateTemplate $template): bool
-    {
-        return $template instanceof CertificateTemplate
-            && $template->status === CertificateTemplateStatus::Ready;
-    }
-
-    private function registrationFor(User $user, Model $certificateable): ?Model
-    {
-        if ($certificateable instanceof TrainingProgram) {
-            return ProgramRegistration::query()
-                ->where('user_id', $user->id)
-                ->where('training_program_id', $certificateable->getKey())
-                ->first();
-        }
-
-        if ($certificateable instanceof LearningPath) {
-            return PathRegistration::query()
-                ->where('user_id', $user->id)
-                ->where('learning_path_id', $certificateable->getKey())
-                ->first();
-        }
-
-        if ($certificateable instanceof VolunteerOpportunity) {
-            return VolunteerRegistration::query()
-                ->where('user_id', $user->id)
-                ->where('opportunity_id', $certificateable->getKey())
-                ->first();
-        }
-
-        return null;
     }
 
     private function ownerOf(Model $registration): ?Model

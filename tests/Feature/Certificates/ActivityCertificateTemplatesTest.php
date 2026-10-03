@@ -16,7 +16,6 @@ use App\Filament\Resources\LearningPathResource\RelationManagers\PathCertificate
 use App\Filament\Resources\VolunteerOpportunityResource\Pages\ManageVolunteerCertificateDesign;
 use App\Filament\Resources\VolunteerOpportunityResource\Pages\ViewVolunteerOpportunity;
 use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\VolunteerCertificatesRelationManager;
-use App\Jobs\IssueEligibleCertificatesJob;
 use App\Models\Certificate;
 use App\Models\CertificateTemplate;
 use App\Models\EmailLog;
@@ -34,12 +33,11 @@ use App\Services\Certificates\CertificateTemplateBackfill;
 use App\Services\CertificateService;
 use App\Services\ProgressService;
 use App\Services\VolunteerHoursService;
-use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\SeedsRbacRoles;
@@ -111,7 +109,7 @@ class ActivityCertificateTemplatesTest extends TestCase
         $this->assertSame(0, Certificate::query()->count());
     }
 
-    public function test_path_batch_issues_only_learners_who_finished_every_course(): void
+    public function test_path_certificates_tab_does_not_issue(): void
     {
         $admin = $this->admin();
         $path = $this->path();
@@ -127,7 +125,6 @@ class ActivityCertificateTemplatesTest extends TestCase
         $this->pathRegistration($path, $done);
         $this->pathRegistration($path, $waiting);
 
-        Bus::fake();
         $this->withSession(['otp_verified' => true]);
 
         Livewire::actingAs($admin)
@@ -136,13 +133,9 @@ class ActivityCertificateTemplatesTest extends TestCase
                 'pageClass' => ViewLearningPath::class,
             ])
             ->assertSee('الدورات المكتملة')
-            ->callAction(TestAction::make('issueEligible')->table());
+            ->assertDontSee('إصدار الشهادات للمؤهلين');
 
-        Bus::assertBatched(function ($batch): bool {
-            return collect($batch->jobs)->flatten()->filter(
-                fn ($job): bool => $job instanceof IssueEligibleCertificatesJob,
-            )->count() === 1;
-        });
+        $this->assertSame(0, Certificate::query()->count());
     }
 
     public function test_completing_a_path_does_not_issue_a_certificate(): void
@@ -200,7 +193,7 @@ class ActivityCertificateTemplatesTest extends TestCase
         $this->assertSame(0, Certificate::query()->count());
     }
 
-    public function test_volunteer_hours_approval_does_not_issue_until_the_tab_action(): void
+    public function test_volunteer_certificates_tab_does_not_issue(): void
     {
         $admin = $this->admin();
         $opportunity = $this->opportunity(5);
@@ -234,26 +227,52 @@ class ActivityCertificateTemplatesTest extends TestCase
                 'pageClass' => ViewVolunteerOpportunity::class,
             ])
             ->assertSee('الساعات المعتمدة')
-            ->callAction(TestAction::make('issueEligible')->table());
+            ->assertDontSee('إصدار الشهادات للمؤهلين');
 
-        $this->assertSame(1, Certificate::query()->count());
+        $this->assertSame(0, Certificate::query()->count());
     }
 
-    public function test_exceptional_path_issue_and_revoke_follow_the_program_rules(): void
+    public function test_manual_path_issue_and_revoke_follow_the_program_rules(): void
     {
         $admin = $this->admin();
         $path = $this->path();
-        $this->readyTemplate($path, [
+        $template = $this->readyTemplate($path, [
             'mode' => CertificateEligibilityMode::CompletedAllCourses->value,
             'require_completed_status' => true,
             'require_activity_ended' => false,
         ]);
+        $background = 'certificate-backgrounds/path-'.uniqid().'.png';
+        Storage::disk('local')->put($background, 'png');
+        $template->update([
+            'background_disk' => 'local',
+            'background_path' => $background,
+            'elements' => [[
+                'id' => (string) Str::uuid(),
+                'type' => 'field',
+                'key' => 'recipient_name',
+                'text' => null,
+                'prefix' => null,
+                'suffix' => null,
+                'x' => 10,
+                'y' => 10,
+                'width' => 40,
+                'height' => 8,
+                'font_family' => 'ibmplexsansarabic',
+                'font_size_pt' => 18,
+                'font_weight' => 'regular',
+                'color' => '#1a1a1a',
+                'align' => 'center',
+                'auto_shrink' => false,
+                'min_font_size_pt' => null,
+                'image_path' => null,
+            ]],
+        ]);
         $this->publishedProgram($path);
-        $user = $this->beneficiary('استثنائي');
+        $user = $this->beneficiary('مؤهل يدوياً');
         $user->assignRole('beneficiary');
         $registration = $this->pathRegistration($path, $user);
 
-        $certificate = app(CertificateIssuanceService::class)->issueExceptional($registration, $admin, 'موافقة الإدارة');
+        $certificate = app(CertificateIssuanceService::class)->markEligible($registration, $admin);
         $this->assertSame(CertificatePdfStatus::Generated, $certificate->fresh()->pdf_status);
 
         app(CertificateIssuanceService::class)->revoke($certificate, $admin, 'بيانات غير صحيحة');
@@ -264,7 +283,7 @@ class ActivityCertificateTemplatesTest extends TestCase
         ]);
         $this->assertDatabaseHas('activity_log', [
             'subject_id' => $certificate->id,
-            'event' => 'exceptional_issue',
+            'event' => 'certificate_marked_eligible',
         ]);
 
         $this->get(route('certificates.verify', $certificate->verification_code))

@@ -20,7 +20,6 @@ use App\Models\User;
 use App\Services\Certificates\CertificateDesignService;
 use App\Services\Certificates\CertificateEligibilityService;
 use App\Services\Certificates\CertificateIssuanceService;
-use App\Services\Certificates\CertificateIssueBatch;
 use App\Services\ProgramAttendanceService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
@@ -41,8 +40,6 @@ use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\Cache;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProgramCertificatesRelationManager extends RelationManager
@@ -50,8 +47,6 @@ class ProgramCertificatesRelationManager extends RelationManager
     protected static string $relationship = 'registrations';
 
     protected static ?string $title = 'الشهادات';
-
-    public ?string $activeBatchId = null;
 
     private bool $pageHydrated = false;
 
@@ -91,26 +86,6 @@ class ProgramCertificatesRelationManager extends RelationManager
         return ManageCertificateDesign::class;
     }
 
-    public function mount(): void
-    {
-        parent::mount();
-        $this->activeBatchId = Cache::get($this->batchCacheKey());
-        $this->refreshBatch();
-    }
-
-    public function refreshBatch(): void
-    {
-        if ($this->activeBatchId === null) {
-            return;
-        }
-
-        $batch = Bus::findBatch($this->activeBatchId);
-        if ($batch === null || $batch->finished()) {
-            Cache::forget($this->batchCacheKey());
-            $this->activeBatchId = null;
-        }
-    }
-
     public function content(Schema $schema): Schema
     {
         return $schema->components([
@@ -142,8 +117,6 @@ class ProgramCertificatesRelationManager extends RelationManager
             'eligible' => $counts['eligible'],
             'issued' => $counts['issued'],
             'awaiting' => $counts['awaiting'],
-            'polling' => $this->activeBatchId !== null,
-            'progress' => $this->batchProgressLabel(),
         ];
     }
 
@@ -232,20 +205,6 @@ class ProgramCertificatesRelationManager extends RelationManager
                 Action::make('design')
                     ->label(fn (): string => $this->templateIsReady() ? 'تعديل التصميم' : 'تعيين التصميم')
                     ->url(fn (): string => $this->designPageClass()::getUrl(['record' => $this->activity()])),
-                Action::make('issueEligible')
-                    ->label('إصدار الشهادات للمؤهلين')
-                    ->color('success')
-                    ->disabled(fn (): bool => ! $this->templateIsReady())
-                    ->tooltip(fn (): ?string => $this->templateIsReady() ? null : 'لم يُعتمد تصميم الشهادة بعد')
-                    ->requiresConfirmation()
-                    ->modalDescription(function (): string {
-                        $preview = app(CertificateIssueBatch::class)->preview($this->activity());
-
-                        return 'سيتم إصدار '.$preview['new'].' شهادة جديدة. '.$preview['existing'].' مستفيد لديهم شهادة مسبقاً ولن يتأثروا';
-                    })
-                    ->action(function (): void {
-                        $this->startIssueBatch();
-                    }),
                 Action::make('exportZip')
                     ->label('تصدير الشهادات (ZIP)')
                     ->action(function (): void {
@@ -276,40 +235,6 @@ class ProgramCertificatesRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
-                Action::make('issue')
-                    ->label('إصدار')
-                    ->visible(fn (Model $record): bool => $this->certificateFor($record) === null && $this->resultFor($record)->eligible)
-                    ->disabled(fn (): bool => ! $this->templateIsReady())
-                    ->tooltip(fn (): ?string => $this->templateIsReady() ? null : 'لم يُعتمد تصميم الشهادة بعد')
-                    ->action(function (Model $record): void {
-                        $certificate = app(CertificateIssuanceService::class)->issueForRegistration($record, auth()->user());
-                        if ($certificate === null) {
-                            Notification::make()
-                                ->title('لم تُصدر الشهادة')
-                                ->body(implode(' — ', $this->resultFor($record)->reasons))
-                                ->danger()
-                                ->send();
-
-                            return;
-                        }
-
-                        Notification::make()->title('تم إصدار الشهادة')->success()->send();
-                    }),
-                Action::make('issueExceptional')
-                    ->label('إصدار استثنائي')
-                    ->color('warning')
-                    ->visible(fn (Model $record): bool => auth()->user()?->isAdmin() === true
-                        && $this->certificateFor($record) === null
-                        && ! $this->resultFor($record)->eligible)
-                    ->disabled(fn (): bool => ! $this->templateIsReady())
-                    ->tooltip(fn (): ?string => $this->templateIsReady() ? null : 'لم يُعتمد تصميم الشهادة بعد')
-                    ->schema([
-                        Textarea::make('reason')->label('سبب الإصدار الاستثنائي')->required(),
-                    ])
-                    ->action(function (Model $record, array $data): void {
-                        app(CertificateIssuanceService::class)->issueExceptional($record, auth()->user(), (string) $data['reason']);
-                        Notification::make()->title('تم الإصدار الاستثنائي')->success()->send();
-                    }),
                 Action::make('download')
                     ->label('تحميل')
                     ->url(fn (Model $record): ?string => ($certificate = $this->certificateFor($record))
@@ -356,16 +281,6 @@ class ProgramCertificatesRelationManager extends RelationManager
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    BulkAction::make('bulkIssue')
-                        ->label('إصدار')
-                        ->disabled(fn (): bool => ! $this->templateIsReady())
-                        ->tooltip(fn (): ?string => $this->templateIsReady() ? null : 'لم يُعتمد تصميم الشهادة بعد')
-                        ->requiresConfirmation()
-                        ->action(function (Collection $records): void {
-                            $batchId = app(CertificateIssueBatch::class)->dispatch($this->activity(), auth()->user(), $records);
-                            $this->rememberBatch($batchId);
-                            Notification::make()->title($batchId ? 'بدأ إصدار الشهادات المحددة' : 'لا توجد شهادات جديدة للإصدار')->send();
-                        }),
                     BulkAction::make('bulkZip')
                         ->label('تصدير ZIP')
                         ->action(function (Collection $records): void {
@@ -392,49 +307,6 @@ class ProgramCertificatesRelationManager extends RelationManager
                         }),
                 ]),
             ]);
-    }
-
-    private function startIssueBatch(): void
-    {
-        $preview = app(CertificateIssueBatch::class)->preview($this->activity());
-        if ($preview['new'] === 0) {
-            Notification::make()->title('لا توجد شهادات جديدة للإصدار')->warning()->send();
-
-            return;
-        }
-
-        $batchId = app(CertificateIssueBatch::class)->dispatch($this->activity(), auth()->user());
-        $this->rememberBatch($batchId);
-        Notification::make()->title('بدأ إصدار الشهادات للمؤهلين')->success()->send();
-    }
-
-    private function rememberBatch(?string $batchId): void
-    {
-        if ($batchId === null) {
-            return;
-        }
-
-        Cache::put($this->batchCacheKey(), $batchId, now()->addHour());
-        $this->activeBatchId = $batchId;
-    }
-
-    private function batchCacheKey(): string
-    {
-        return 'certificate-issue-batch:'.$this->activity()->getKey().':'.auth()->id();
-    }
-
-    private function batchProgressLabel(): ?string
-    {
-        if ($this->activeBatchId === null) {
-            return null;
-        }
-
-        $batch = Bus::findBatch($this->activeBatchId);
-        if ($batch === null) {
-            return null;
-        }
-
-        return 'تقدم الإصدار: '.$batch->processedJobs().' / '.$batch->totalJobs;
     }
 
     /**

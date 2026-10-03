@@ -1,8 +1,4 @@
-<div @if ($banner['polling']) wire:poll.4s="refreshBatch" @endif class="mb-4 rounded-xl border border-gray-200 bg-white p-4 text-sm dark:border-gray-700 dark:bg-gray-900">
-    @if ($banner['progress'])
-        <p class="mb-3 font-medium text-amber-700 dark:text-amber-300">{{ $banner['progress'] }}</p>
-    @endif
-
+<div class="mb-4 rounded-xl border border-gray-200 bg-white p-4 text-sm dark:border-gray-700 dark:bg-gray-900">
     @unless ($banner['ready'])
         <div class="flex flex-wrap items-center justify-between gap-3">
             <p class="font-semibold text-amber-800 dark:text-amber-200">لم يُعتمد تصميم الشهادة بعد</p>

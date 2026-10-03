@@ -9,7 +9,6 @@ use App\Enums\RegistrationStatus;
 use App\Filament\Resources\TrainingProgramResource\Pages\ViewTrainingProgram;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramCertificatesRelationManager;
 use App\Jobs\ExportCertificatesZipJob;
-use App\Jobs\IssueEligibleCertificatesJob;
 use App\Models\Certificate;
 use App\Models\CertificateTemplate;
 use App\Models\EmailLog;
@@ -17,17 +16,15 @@ use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Certificates\CertificateIssuanceService;
-use App\Services\Certificates\CertificateIssueBatch;
 use App\Services\Certificates\CertificateRenderer;
 use App\Services\CertificateService;
-use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use RuntimeException;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
@@ -71,17 +68,11 @@ class ProgramCertificatesTabTest extends TestCase
         $this->assertFalse(ProgramCertificatesRelationManager::canViewForRecord($program, ViewTrainingProgram::class));
     }
 
-    public function test_bulk_issue_queues_only_eligible_beneficiaries_and_does_not_duplicate(): void
+    public function test_certificates_tab_has_no_issuance_action(): void
     {
         $admin = $this->admin();
         $program = $this->program();
-        $this->readyTemplate($program, 60);
-        $eligible = $this->registration($program, 'مؤهل', 80);
-        $alsoEligible = $this->registration($program, 'مؤهل آخر', 90);
-        $this->registration($program, 'غير مؤهل', 40);
-        app(CertificateIssuanceService::class)->issueForProgramRegistration($eligible, $admin);
-
-        Bus::fake();
+        $this->registration($program, 'بلا قالب', 90);
         $this->withSession(['otp_verified' => true]);
 
         Livewire::actingAs($admin)
@@ -89,97 +80,11 @@ class ProgramCertificatesTabTest extends TestCase
                 'ownerRecord' => $program,
                 'pageClass' => ViewTrainingProgram::class,
             ])
-            ->callAction(TestAction::make('issueEligible')->table());
-
-        Bus::assertBatched(function ($batch): bool {
-            return collect($batch->jobs)->flatten()->filter(
-                fn ($job): bool => $job instanceof IssueEligibleCertificatesJob,
-            )->count() === 1;
-        });
-
-        app(CertificateIssuanceService::class)->issueForProgramRegistration($alsoEligible, $admin);
-        app(CertificateIssuanceService::class)->issueForProgramRegistration($alsoEligible, $admin);
-
-        $this->assertSame(2, Certificate::query()->count());
-        $this->assertSame(1, Certificate::query()->where('user_id', $alsoEligible->user_id)->count());
-    }
-
-    public function test_real_batch_notifies_the_user_and_issues_once(): void
-    {
-        Mail::fake();
-        $admin = $this->admin();
-        $program = $this->program();
-        $this->readyTemplate($program, 60);
-        $this->registration($program, 'مستفيد دفعة', 85);
-
-        $batchId = app(CertificateIssueBatch::class)->dispatch($program, $admin);
-
-        $this->assertNotNull($batchId);
-        $this->assertSame(1, Certificate::query()->count());
-        $this->assertNotNull(Certificate::query()->first()?->data_snapshot);
-        $body = json_encode($admin->notifications()->first()?->data, JSON_UNESCAPED_UNICODE);
-        $this->assertIsString($body);
-        $this->assertStringContainsString('1 نجحت، 0 فشلت', $body);
-
-        app(CertificateIssueBatch::class)->dispatch($program, $admin);
-        $this->assertSame(1, Certificate::query()->count());
-    }
-
-    public function test_issue_is_disabled_without_a_ready_template(): void
-    {
-        $admin = $this->admin();
-        $program = $this->program();
-        $registration = $this->registration($program, 'بلا قالب', 90);
-        $this->withSession(['otp_verified' => true]);
-
-        Livewire::actingAs($admin)
-            ->test(ProgramCertificatesRelationManager::class, [
-                'ownerRecord' => $program,
-                'pageClass' => ViewTrainingProgram::class,
-            ])
-            ->assertActionDisabled(TestAction::make('issueEligible')->table())
+            ->assertDontSee('إصدار الشهادات للمؤهلين')
+            ->assertDontSee('إصدار استثنائي')
             ->assertSee('لم يُعتمد تصميم الشهادة بعد');
 
-        $this->assertNull(app(CertificateIssuanceService::class)->issueForProgramRegistration($registration, $admin));
         $this->assertSame(0, Certificate::query()->count());
-    }
-
-    public function test_exceptional_issue_requires_an_admin_and_a_reason(): void
-    {
-        $admin = $this->admin();
-        $staff = $this->staffOwner();
-        $program = $this->program($staff);
-        $this->readyTemplate($program, 80);
-        $registration = $this->registration($program, 'استثناء', 50);
-        $this->withSession(['otp_verified' => true]);
-
-        Livewire::actingAs($staff)
-            ->test(ProgramCertificatesRelationManager::class, [
-                'ownerRecord' => $program,
-                'pageClass' => ViewTrainingProgram::class,
-            ])
-            ->assertActionHidden(TestAction::make('issueExceptional')->table($registration));
-
-        $this->assertSame(0, Certificate::query()->count());
-
-        Livewire::actingAs($admin)
-            ->test(ProgramCertificatesRelationManager::class, [
-                'ownerRecord' => $program,
-                'pageClass' => ViewTrainingProgram::class,
-            ])
-            ->callAction(TestAction::make('issueExceptional')->table($registration), [
-                'reason' => 'موافقة المدير لظروف خاصة',
-            ]);
-
-        $certificate = Certificate::query()->first();
-        $this->assertNotNull($certificate);
-        $this->assertSame('موافقة المدير لظروف خاصة', $certificate->override_reason);
-        $this->assertSame($admin->id, $certificate->overridden_by);
-        $this->assertDatabaseHas('activity_log', [
-            'subject_type' => Certificate::class,
-            'subject_id' => $certificate->id,
-            'event' => 'exceptional_issue',
-        ]);
     }
 
     public function test_revoke_shows_on_verification_and_hides_the_certificate_from_the_portal(): void
@@ -201,7 +106,7 @@ class ProgramCertificatesTabTest extends TestCase
             'status' => RegistrationStatus::Approved,
             'score' => 90,
         ]);
-        $certificate = app(CertificateIssuanceService::class)->issueForProgramRegistration($registration, $admin);
+        $certificate = app(CertificateIssuanceService::class)->markEligible($registration, $admin);
         $this->assertInstanceOf(Certificate::class, $certificate);
 
         app(CertificateIssuanceService::class)->revoke($certificate, $admin, 'بيانات غير صحيحة');
@@ -220,7 +125,7 @@ class ProgramCertificatesTabTest extends TestCase
             ->get(route('certificates.download', $certificate))
             ->assertNotFound();
 
-        $reissued = app(CertificateIssuanceService::class)->issueForProgramRegistration($registration->fresh(), $admin);
+        $reissued = app(CertificateIssuanceService::class)->markEligible($registration->fresh(), $admin);
         $this->assertNotSame($certificate->id, $reissued?->id);
         $this->assertSame(1, Certificate::query()->active()->count());
     }
@@ -251,7 +156,7 @@ class ProgramCertificatesTabTest extends TestCase
             ->assertOk()
             ->assertSee('درجتك 70 — المطلوب 80');
 
-        $certificate = app(CertificateIssuanceService::class)->issueExceptional($registration, $admin, 'إظهار حالة التجهيز');
+        $certificate = app(CertificateIssuanceService::class)->markEligible($registration, $admin);
         $this->assertSame(CertificatePdfStatus::Pending, $certificate->pdf_status);
 
         $this->actingAsOtpVerified($beneficiary)
@@ -267,7 +172,7 @@ class ProgramCertificatesTabTest extends TestCase
         $program = $this->program();
         $this->readyTemplate($program, 60);
         $registration = $this->registration($program, 'ملف مضغوط', 88);
-        $certificate = app(CertificateIssuanceService::class)->issueForProgramRegistration($registration, $admin);
+        $certificate = app(CertificateIssuanceService::class)->markEligible($registration, $admin);
         $this->assertSame(CertificatePdfStatus::Generated, $certificate?->fresh()->pdf_status);
 
         (new ExportCertificatesZipJob($program->id, $admin->id))->handle();
@@ -308,7 +213,7 @@ class ProgramCertificatesTabTest extends TestCase
         $program = $this->program();
         $this->readyTemplate($program, 60);
         $registration = $this->registration($program, 'بريد', 91);
-        $certificate = app(CertificateIssuanceService::class)->issueForProgramRegistration($registration, $admin);
+        $certificate = app(CertificateIssuanceService::class)->markEligible($registration, $admin);
         $this->assertInstanceOf(Certificate::class, $certificate);
 
         $mailer = app(CertificateService::class);
@@ -360,7 +265,7 @@ class ProgramCertificatesTabTest extends TestCase
 
         try {
             DB::transaction(function () use ($registration, $admin): void {
-                app(CertificateIssuanceService::class)->issueForProgramRegistration($registration, $admin);
+                app(CertificateIssuanceService::class)->markEligible($registration, $admin);
                 throw new RuntimeException('fail');
             });
         } catch (RuntimeException) {
@@ -405,18 +310,6 @@ class ProgramCertificatesTabTest extends TestCase
         return $admin;
     }
 
-    private function staffOwner(): User
-    {
-        $staff = User::factory()->create([
-            'role_type' => 'staff',
-            'is_active' => true,
-            'email_verified_at' => now(),
-        ]);
-        $staff->assignRole('staff');
-
-        return $staff;
-    }
-
     private function program(?User $owner = null): TrainingProgram
     {
         return TrainingProgram::query()->create([
@@ -431,9 +324,14 @@ class ProgramCertificatesTabTest extends TestCase
 
     private function readyTemplate(TrainingProgram $program, float $minScore): CertificateTemplate
     {
+        $path = 'certificate-backgrounds/tab-'.uniqid().'.png';
+        Storage::disk('local')->put($path, 'png');
+
         return CertificateTemplate::query()->create([
             'owner_type' => $program->getMorphClass(),
             'owner_id' => $program->id,
+            'background_disk' => 'local',
+            'background_path' => $path,
             'status' => CertificateTemplateStatus::Ready,
             'eligibility' => [
                 'mode' => 'score_only',
@@ -441,7 +339,26 @@ class ProgramCertificatesTabTest extends TestCase
                 'require_completed_status' => true,
                 'require_activity_ended' => false,
             ],
-            'elements' => [],
+            'elements' => [[
+                'id' => (string) Str::uuid(),
+                'type' => 'field',
+                'key' => 'recipient_name',
+                'text' => null,
+                'prefix' => null,
+                'suffix' => null,
+                'x' => 10,
+                'y' => 10,
+                'width' => 40,
+                'height' => 8,
+                'font_family' => 'ibmplexsansarabic',
+                'font_size_pt' => 18,
+                'font_weight' => 'regular',
+                'color' => '#1a1a1a',
+                'align' => 'center',
+                'auto_shrink' => false,
+                'min_font_size_pt' => null,
+                'image_path' => null,
+            ]],
             'version' => 1,
         ]);
     }
