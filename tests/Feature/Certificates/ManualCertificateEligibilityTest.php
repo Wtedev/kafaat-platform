@@ -10,6 +10,7 @@ use App\Enums\VolunteerHoursStatus;
 use App\Filament\Resources\TrainingProgramResource\Pages\ViewTrainingProgram;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramCertificatesRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationsRelationManager;
+use App\Jobs\IssueEligibleCertificatesJob;
 use App\Models\Certificate;
 use App\Models\CertificateTemplate;
 use App\Models\InboxNotification;
@@ -20,8 +21,9 @@ use App\Models\VolunteerHour;
 use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
 use App\Services\Certificates\CertificateIssuanceService;
-use App\Services\Certificates\CertificateTemplateBackfill;
+use App\Services\Certificates\CertificateIssueBatch;
 use App\Services\Certificates\CertificateRenderer;
+use App\Services\Certificates\CertificateTemplateBackfill;
 use App\Services\ProgramRegistrationService;
 use App\Services\VolunteerHoursService;
 use Filament\Actions\Testing\TestAction;
@@ -288,6 +290,63 @@ class ManualCertificateEligibilityTest extends TestCase
         $this->get(route('certificates.verify', $certificate->verification_code))
             ->assertOk()
             ->assertSee('ملغاة');
+    }
+
+    public function test_mark_eligible_is_the_only_code_path_that_issues_a_certificate(): void
+    {
+        $creators = [];
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(app_path()));
+        foreach ($iterator as $file) {
+            if (! $file->isFile() || $file->getExtension() !== 'php') {
+                continue;
+            }
+
+            $contents = file_get_contents($file->getPathname());
+            if (! is_string($contents) || ! preg_match('/Certificate::(?:query\(\)->)?create\s*\(/', $contents)) {
+                continue;
+            }
+
+            $creators[] = ltrim(str_replace(app_path(), '', $file->getPathname()), DIRECTORY_SEPARATOR);
+        }
+
+        $this->assertSame(['Services/Certificates/CertificateIssuanceService.php'], $creators);
+
+        $publicIssuers = [];
+        $reflection = new \ReflectionClass(CertificateIssuanceService::class);
+        foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+            if ($method->getDeclaringClass()->getName() !== CertificateIssuanceService::class) {
+                continue;
+            }
+
+            $file = file($method->getFileName());
+            $body = implode('', array_slice($file, $method->getStartLine() - 1, $method->getEndLine() - $method->getStartLine() + 1));
+            if (str_contains($body, '$this->issue(') || str_contains($body, '$this->createCertificate(') || str_contains($body, 'Certificate::create')) {
+                $publicIssuers[] = $method->getName();
+            }
+        }
+
+        $this->assertSame(['markEligible'], $publicIssuers);
+        $this->assertFalse(class_exists(IssueEligibleCertificatesJob::class));
+        $this->assertFalse(class_exists(CertificateIssueBatch::class));
+
+        $manager = file_get_contents(app_path('Filament/Resources/TrainingProgramResource/RelationManagers/ProgramCertificatesRelationManager.php'));
+        $this->assertIsString($manager);
+        $this->assertStringNotContainsString('issueEligible', $manager);
+        $this->assertStringNotContainsString('issueExceptional', $manager);
+        $this->assertStringNotContainsString("Action::make('issue')", $manager);
+        $this->assertStringNotContainsString('bulkIssue', $manager);
+
+        $admin = $this->admin();
+        $program = $this->program();
+        $this->designedTemplate($program, 90);
+        $registration = $this->registration($program, 'المسار الوحيد', 10);
+        $registration->update(['status' => RegistrationStatus::Completed]);
+
+        $this->assertSame(0, Certificate::query()->count());
+
+        $certificate = app(CertificateIssuanceService::class)->markEligible($registration, $admin);
+        $this->assertInstanceOf(Certificate::class, $certificate);
+        $this->assertSame(1, Certificate::query()->count());
     }
 
     public function test_only_admin_or_the_dedicated_permission_can_mark_eligible(): void
