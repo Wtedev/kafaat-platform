@@ -4,9 +4,9 @@ namespace Tests\Feature\Certificates;
 
 use App\Data\Certificates\EligibilityRules;
 use App\Enums\CertificateEligibilityMode;
-use App\Enums\CertificateTemplateStatus;
 use App\Enums\CertificateEligibilityStatus;
 use App\Enums\CertificatePdfStatus;
+use App\Enums\CertificateTemplateStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Models\Certificate;
@@ -177,7 +177,7 @@ class CertificateEligibilityServiceTest extends TestCase
         $this->assertSame(CertificateEligibilityStatus::AwaitingData, $missing->status);
     }
 
-    public function test_data_forum_backfill_requires_full_attendance(): void
+    public function test_data_forum_backfill_uses_the_same_average_rule_as_other_programs(): void
     {
         $forum = TrainingProgram::query()->create([
             'title' => 'ملتقى تحليل البيانات 2',
@@ -192,10 +192,12 @@ class CertificateEligibilityServiceTest extends TestCase
         $forumTemplate = $forum->certificateTemplate()->first();
         $otherTemplate = $other->certificateTemplate()->first();
 
-        $this->assertSame(CertificateEligibilityMode::AttendanceOnly, $forumTemplate->eligibility->mode);
-        $this->assertSame(100.0, $forumTemplate->eligibility->minAttendance);
-        $this->assertSame(CertificateEligibilityMode::Average, $otherTemplate->eligibility->mode);
-        $this->assertSame(75.0, $otherTemplate->eligibility->minAverage);
+        $this->assertNotNull($forumTemplate);
+        $this->assertNotNull($otherTemplate);
+        $this->assertSame(CertificateEligibilityMode::Average, $forumTemplate->eligibility->mode);
+        $this->assertSame(75.0, $forumTemplate->eligibility->minAverage);
+        $this->assertSame($otherTemplate->eligibility->mode, $forumTemplate->eligibility->mode);
+        $this->assertSame($otherTemplate->eligibility->minAverage, $forumTemplate->eligibility->minAverage);
     }
 
     public function test_evaluate_many_uses_a_constant_query_count(): void

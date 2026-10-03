@@ -22,11 +22,11 @@ class CertificateTemplateBackfill
         $created = 0;
 
         DB::table('training_programs')
-            ->select(['id', 'created_by', 'slug'])
+            ->select(['id', 'created_by'])
             ->orderBy('id')
             ->chunkById(200, function ($programs) use ($type, $now, &$created): void {
                 foreach ($programs as $program) {
-                    $eligibility = $this->programEligibilityJson((string) $program->slug);
+                    $eligibility = $this->programEligibilityJson();
                     $existingId = DB::table('certificate_templates')
                         ->where('owner_type', $type)
                         ->where('owner_id', $program->id)
@@ -67,22 +67,10 @@ class CertificateTemplateBackfill
     }
 
     /**
-     * البرامج الحالية: متوسط الحضور والدرجة 75.
-     * ملتقى البيانات: حضور كل أيام البرنامج، كما في نص الشهادة الظاهر على main.
+     * كل البرامج، بما فيها ملتقى البيانات: متوسط الحضور والدرجة 75. الشرط مرجع فقط.
      */
-    private function programEligibilityJson(string $slug): string
+    private function programEligibilityJson(): string
     {
-        if ($slug === self::DATA_FORUM_SLUG) {
-            return json_encode([
-                'mode' => 'attendance_only',
-                'min_attendance' => 100,
-                'min_score' => null,
-                'min_average' => null,
-                'require_completed_status' => true,
-                'require_activity_ended' => false,
-            ], JSON_UNESCAPED_UNICODE);
-        }
-
         return json_encode([
             'mode' => 'average',
             'min_attendance' => null,
