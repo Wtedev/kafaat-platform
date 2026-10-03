@@ -4,6 +4,7 @@
     'crumb' => 'لوحة التحكم',
     'preview' => false,
     'dashboardActive' => true,
+    'activeNav' => null,
 ])
 
 <!DOCTYPE html>
@@ -67,7 +68,17 @@
                     <x-staff-ui.nav-item icon="user">الملف الشخصي</x-staff-ui.nav-item>
                     <x-staff-ui.nav-item icon="settings">الإعدادات</x-staff-ui.nav-item>
                 @else
-                    <x-staff-ui.nav-item icon="layout-dashboard" :href="route('filament.admin.pages.dashboard')" :active="$dashboardActive">لوحة التحكم</x-staff-ui.nav-item>
+                    @php
+                        $currentNav = $activeNav ?? ($dashboardActive ? 'dashboard' : null);
+                    @endphp
+                    @foreach (config('staff_ui.nav', []) as $item)
+                        @continue(isset($item['ability'], $item['model']) && ! auth()->user()?->can($item['ability'], $item['model']))
+                        <x-staff-ui.nav-item
+                            :icon="$item['icon']"
+                            :href="route($item['route'])"
+                            :active="$currentNav === $item['key']"
+                        >{{ $item['label'] }}</x-staff-ui.nav-item>
+                    @endforeach
                 @endif
             </nav>
 

@@ -694,6 +694,12 @@ a:hover {
     font-size: 13px;
 }
 
+.sui-tab:disabled,
+.sui-tab.is-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
 .sui-tab.is-active {
     color: var(--sui-text);
     font-weight: 600;
@@ -733,6 +739,29 @@ a:hover {
 
 .sui-table__search {
     width: 240px;
+}
+
+.sui-table__filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--sui-space-3);
+    width: 100%;
+}
+
+.sui-table__filters .sui-field {
+    min-width: 180px;
+    margin: 0;
+}
+
+a.sui-icon-btn {
+    text-decoration: none;
+    color: inherit;
+}
+
+.sui-icon-btn[aria-disabled="true"] {
+    opacity: 0.4;
+    pointer-events: none;
 }
 
 .sui-bulk {

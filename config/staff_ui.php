@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+
 return [
 
     /*
@@ -24,6 +26,26 @@ return [
         'search' => false,
         'help' => false,
         'settings' => false,
+    ],
+
+    /*
+    | Sidebar entries for the live staff shell. Preview mode keeps its own menu.
+    */
+    'nav' => [
+        [
+            'label' => 'لوحة التحكم',
+            'icon' => 'layout-dashboard',
+            'route' => 'filament.admin.pages.dashboard',
+            'key' => 'dashboard',
+        ],
+        [
+            'label' => 'المستخدمين',
+            'icon' => 'users',
+            'route' => 'staff-ui.users.index',
+            'key' => 'users',
+            'ability' => 'viewAny',
+            'model' => User::class,
+        ],
     ],
 
 ];

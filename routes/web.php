@@ -53,6 +53,7 @@ use App\Http\Controllers\Public\PublicTrainingProgramController;
 use App\Http\Controllers\Public\PublicVolunteerOpportunityController;
 use App\Http\Controllers\Public\SupportTicketController;
 use App\Http\Controllers\PublicPrivacyPolicyController;
+use App\Http\Controllers\StaffUi\StaffBeneficiaryController;
 use App\Http\Controllers\StaffUi\StaffInboxController;
 use App\Http\Controllers\StaffUi\StaffProfileController;
 use App\Http\Controllers\StaffUi\StaffUiDemoController;
@@ -115,6 +116,13 @@ Route::middleware(['auth', 'otp.verified', 'operational'])->group(function () {
     Route::post('/notification-prefs/ack', [NotificationPreferenceController::class, 'acknowledge'])
         ->name('notification-prefs.ack');
 });
+
+Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.maintenance:'.StaffUiModule::USERS])
+    ->prefix('staff-ui')
+    ->name('staff-ui.')
+    ->group(function () {
+        Route::get('/users', [StaffBeneficiaryController::class, 'index'])->name('users.index');
+    });
 
 Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.maintenance:'.StaffUiModule::SHELL])
     ->prefix('staff-ui')
