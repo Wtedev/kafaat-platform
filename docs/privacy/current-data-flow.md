@@ -81,13 +81,13 @@ flowchart TB
 ## 5. البرامج والحضور
 
 1. التسجيل العام → جداول registrations (pending افتراضياً).
-2. الموافقة من Filament → إشعارات + حضور + شهادة محتملة.
+2. الموافقة من Filament → إشعارات + حضور. الموافقة لا تصدر شهادة.
 3. حضور عن بُعد: جلسة live + self check-in من البوابة.
 4. حضور حضوري: QR token على `program_registrations`.
 
 ## 6. الشهادات
 
-1. الإصدار من Filament → `certificates` + PDF على `public`.
+1. الإصدار من «مؤهل للشهادة» فقط (`CertificateIssuanceService::markEligible`) → `certificates` + PDF.
 2. التحميل: `CertificateDownloadController` + `CertificatePolicy`.
 3. التحقق العام `/certificates/verify/{code}` — **يعرض اسم المستفيد الكامل** بدون auth.
 

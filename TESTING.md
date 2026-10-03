@@ -113,21 +113,18 @@ Path progress is tracked per course. After a beneficiary's registration is appro
 
 ---
 
-## 6. Triggering Certificate Generation
+## 6. Issuing a Certificate
 
-Certificates are issued automatically when:
-
-- **Training program**: Registration is marked **Completed** AND the beneficiary meets the completion criteria (attendance / score thresholds)
-- **Learning path**: Registration is marked **Completed** after all courses are finished
+Certificates are issued only when an admin marks a participant eligible. Completing a registration, approving volunteer hours, or meeting the template rules does not issue one. The rules stay on the certificate tab as a reference.
 
 ### Steps (Training Program example)
 
-1. Open a program registration record in the admin panel
-2. Ensure status is `approved` and the beneficiary has a passing attendance/score
-3. Click the **"إتمام البرنامج"** (Mark Completed) action
-4. `CertificateService::issue()` is called automatically
-5. A certificate record appears in the **"الشهادات"** resource
-6. The beneficiary sees the certificate at **http://localhost:8000/portal/certificates**
+1. Open the program, path, or volunteer opportunity and approve a saved certificate design (background plus the recipient name). A backfilled template starts as a draft and issues nothing.
+2. Open the registration list for that activity.
+3. On the participant row, click **"مؤهل للشهادة"**. The same action exists as a bulk action. The bulk confirmation warns how many selected rows miss the template rules, and still issues for them.
+4. `CertificateIssuanceService::markEligible()` writes the certificate. It is the only issuance path.
+5. The beneficiary sees the certificate at **http://localhost:8000/portal/certificates**
+6. **"إلغاء الأهلية"** revokes the active certificate and requires a reason.
 
 ---
 
@@ -180,7 +177,7 @@ The seeder creates the following sample state for `beneficiary@example.com`:
 [ ] Admin can reject with reason → status changes + email queued
 [ ] Volunteer hours can be added and approved
 [ ] Completing volunteer hours (total ≥ expected) auto-completes the registration
-[ ] Marking a program complete (with eligibility) issues a certificate
+[ ] "مؤهل للشهادة" issues a certificate; completing a program does not
 [ ] Certificate appears in /portal/certificates
 [ ] Portal sidebar shows correct counts on dashboard
 ```
