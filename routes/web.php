@@ -122,6 +122,10 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.maintenance:
     ->name('staff-ui.')
     ->group(function () {
         Route::get('/users', [StaffBeneficiaryController::class, 'index'])->name('users.index');
+        Route::get('/users/{user}', [StaffBeneficiaryController::class, 'show'])->name('users.show');
+        Route::post('/users/{user}', [StaffBeneficiaryController::class, 'update'])->name('users.update');
+        Route::post('/users/{user}/activation', [StaffBeneficiaryController::class, 'activation'])->name('users.activation');
+        Route::post('/users/{user}/notes', [StaffBeneficiaryController::class, 'storeNote'])->name('users.notes.store');
     });
 
 Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.maintenance:'.StaffUiModule::SHELL])

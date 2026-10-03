@@ -17,5 +17,5 @@
         @if ($placeholder) placeholder="{{ $placeholder }}" @endif
         @if ($error) aria-invalid="true" @endif
         {{ $attributes }}
-    ></textarea>
+    >{{ $slot }}</textarea>
 </x-staff-ui.field>
