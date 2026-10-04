@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\StaffUi;
 
 use App\Enums\AccountStatus;
+use App\Enums\AuditLogResult;
 use App\Enums\ProfileGender;
 use App\Http\Controllers\Controller;
 use App\Models\Certificate;
 use App\Models\User;
+use App\Services\Audit\AuditLogger;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\Identity\PersonNameService;
 use App\Services\Privacy\AccountDeactivationService;
@@ -97,7 +99,23 @@ class StaffBeneficiaryController extends Controller
         $canSensitive = $actor->can('updateSensitive', $user);
         abort_unless($canBasic || $canSensitive, 403);
 
-        DB::transaction(function () use ($request, $user, $canBasic, $canSensitive): void {
+        $field = (string) $request->input('field', '');
+
+        DB::transaction(function () use ($request, $user, $canBasic, $canSensitive, $field): void {
+            if ($field !== '') {
+                if ($field === 'email') {
+                    abort_unless($canSensitive, 403);
+                    $this->saveEmail($request, $user);
+
+                    return;
+                }
+
+                abort_unless($canBasic, 403);
+                $this->saveBasicField($request, $user, $field);
+
+                return;
+            }
+
             if ($canBasic && $request->boolean('basic')) {
                 $this->saveBasicProfile($request, $user);
             }
@@ -112,7 +130,7 @@ class StaffBeneficiaryController extends Controller
             ->with('status', 'تم حفظ البيانات.');
     }
 
-    public function activation(Request $request, User $user, AccountDeactivationService $deactivation): RedirectResponse
+    public function activation(Request $request, User $user, AccountDeactivationService $deactivation, AuditLogger $auditLogger): RedirectResponse
     {
         $this->ensureStaff($request);
         $this->authorize('view', $user);
@@ -124,7 +142,16 @@ class StaffBeneficiaryController extends Controller
             $deactivation->deactivate($user, $request->user(), request: $request);
             $message = 'تم تعطيل الحساب.';
         } elseif ($request->input('action') === 'activate') {
-            $user->update(['is_active' => true]);
+            if (! $user->is_active) {
+                $user->update(['is_active' => true]);
+                $auditLogger->recordOrFail(
+                    $request->user(),
+                    'account.reactivated',
+                    AuditLogResult::Success,
+                    $user,
+                    request: $request,
+                );
+            }
             $message = 'تم تفعيل الحساب.';
         } else {
             abort(422);
@@ -178,6 +205,84 @@ class StaffBeneficiaryController extends Controller
             AccountStatus::Anonymized,
             AccountStatus::DeletionProcessing,
         ], true), 404);
+    }
+
+    private function saveBasicField(Request $request, User $user, string $field): void
+    {
+        match ($field) {
+            'name' => $this->saveName($request, $user),
+            'phone' => $this->savePhone($request, $user),
+            'notify_email' => $user->fill([
+                'notify_email' => $request->boolean('notify_email'),
+            ])->save(),
+            'gender', 'birth_date', 'city', 'job_title', 'bio' => $this->saveProfileField($request, $user, $field),
+            default => abort(422),
+        };
+    }
+
+    private function saveName(Request $request, User $user): void
+    {
+        $data = $request->validate([
+            'first_name' => ['required', 'string', 'max:100'],
+            'father_name' => ['required', 'string', 'max:100'],
+            'grandfather_name' => ['required', 'string', 'max:100'],
+            'family_name' => ['required', 'string', 'max:100'],
+        ], [
+            'first_name.required' => 'الاسم مطلوب.',
+            'father_name.required' => 'اسم الأب مطلوب.',
+            'grandfather_name.required' => 'اسم الجد مطلوب.',
+            'family_name.required' => 'اسم العائلة مطلوب.',
+        ]);
+
+        try {
+            $parts = PersonNameService::normalizedParts($data);
+        } catch (\InvalidArgumentException) {
+            throw ValidationException::withMessages([
+                'first_name' => 'أدخل الاسم الرباعي بأحرف عربية أو إنجليزية.',
+            ]);
+        }
+
+        $user->fill([
+            ...$parts,
+            'name' => PersonNameService::buildFullName($parts),
+        ])->save();
+    }
+
+    private function savePhone(Request $request, User $user): void
+    {
+        $data = $request->validate([
+            'phone' => ['nullable', 'string', 'max:20'],
+        ]);
+
+        $user->fill([
+            'phone' => filled($data['phone'] ?? null) ? trim((string) $data['phone']) : null,
+        ])->save();
+    }
+
+    private function saveProfileField(Request $request, User $user, string $field): void
+    {
+        $rules = [
+            'gender' => ['nullable', Rule::enum(ProfileGender::class)],
+            'birth_date' => ['nullable', 'date', 'before:today'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'job_title' => ['nullable', 'string', 'max:150'],
+            'bio' => ['nullable', 'string', 'max:5000'],
+        ];
+
+        $data = $request->validate([
+            $field => $rules[$field],
+        ]);
+
+        $value = $data[$field] ?? null;
+        if (is_string($value)) {
+            $value = trim($value);
+            $value = $value === '' ? null : $value;
+        }
+
+        $user->profile()->updateOrCreate(
+            ['user_id' => $user->id],
+            [$field => $value],
+        );
     }
 
     private function saveBasicProfile(Request $request, User $user): void

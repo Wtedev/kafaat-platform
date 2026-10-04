@@ -39,10 +39,12 @@
                     :selected="$completeness"
                     :options="['' => 'الكل', 'complete' => 'مكتمل', 'incomplete' => 'غير مكتمل']"
                 />
-                <x-staff-ui.button type="submit" variant="secondary" size="sm">تطبيق</x-staff-ui.button>
-                @if ($search !== '' || $status !== '' || $completeness !== '')
-                    <x-staff-ui.button variant="ghost" size="sm" :href="route('staff-ui.users.index')">مسح</x-staff-ui.button>
-                @endif
+                <div class="sui-table__filters-actions">
+                    <x-staff-ui.button type="submit" variant="secondary" size="sm">تطبيق</x-staff-ui.button>
+                    @if ($search !== '' || $status !== '' || $completeness !== '')
+                        <x-staff-ui.button variant="ghost" size="sm" :href="route('staff-ui.users.index')">مسح</x-staff-ui.button>
+                    @endif
+                </div>
             </form>
         </x-slot:filters>
 

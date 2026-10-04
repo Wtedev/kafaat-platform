@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Foundation\Vite;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -37,7 +38,7 @@ class ApplySecurityHeaders
             $response->headers->set('Cross-Origin-Resource-Policy', $corp);
         }
 
-        $csp = (string) config('security.headers.content_security_policy');
+        $csp = $this->contentSecurityPolicy();
         if ($csp !== '') {
             $header = config('security.headers.content_security_policy_report_only', false)
                 ? 'Content-Security-Policy-Report-Only'
@@ -58,5 +59,78 @@ class ApplySecurityHeaders
         }
 
         return $response;
+    }
+
+    private function contentSecurityPolicy(): string
+    {
+        $csp = (string) config('security.headers.content_security_policy');
+        $vite = $this->localViteOrigin();
+        if ($csp === '' || $vite === null) {
+            return $csp;
+        }
+
+        $ws = preg_replace('#^http:#', 'ws:', $vite) ?? $vite;
+
+        foreach ([
+            'style-src' => $vite,
+            'script-src' => $vite,
+            'font-src' => $vite,
+            'img-src' => $vite,
+            'connect-src' => $vite.' '.$ws,
+        ] as $directive => $source) {
+            $csp = $this->appendCspSource($csp, $directive, $source);
+        }
+
+        return $csp;
+    }
+
+    private function localViteOrigin(): ?string
+    {
+        if (! $this->isLocal() || ! $this->isRunningHot()) {
+            return null;
+        }
+
+        $hot = public_path('hot');
+
+        $parts = parse_url(trim((string) file_get_contents($hot)));
+        if (! is_array($parts) || ! isset($parts['host']) || $parts['host'] === '') {
+            return null;
+        }
+
+        $origin = ($parts['scheme'] ?? 'http').'://'.$parts['host'];
+        if (isset($parts['port'])) {
+            $origin .= ':'.$parts['port'];
+        }
+
+        return $origin;
+    }
+
+    private function isLocal(): bool
+    {
+        return app()->environment('local');
+    }
+
+    private function isRunningHot(): bool
+    {
+        return app(Vite::class)->isRunningHot();
+    }
+
+    private function appendCspSource(string $csp, string $directive, string $source): string
+    {
+        $pattern = '/(?:^|; )'.preg_quote($directive, '/').' [^;]*/';
+        $count = 0;
+        $updated = preg_replace_callback($pattern, function (array $match) use ($source): string {
+            if (str_contains($match[0], $source)) {
+                return $match[0];
+            }
+
+            return $match[0].' '.$source;
+        }, $csp, 1, $count);
+
+        if ($count > 0) {
+            return $updated ?? $csp;
+        }
+
+        return rtrim($csp, '; ').'; '.$directive.' '.$source;
     }
 }

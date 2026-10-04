@@ -13,38 +13,27 @@
     $skills = $profile?->cvSkillsStructured() ?? [];
     $education = $profile?->cvEducationStructured() ?? [];
     $hasCvFile = $profile?->currentCvDocument?->isActive() ?? false;
-    $editOpen = $errors->hasAny([
-        'first_name', 'father_name', 'grandfather_name', 'family_name',
-        'phone', 'gender', 'birth_date', 'city', 'job_title', 'bio', 'email',
-    ]);
+    $openField = match (true) {
+        $errors->hasAny(['first_name', 'father_name', 'grandfather_name', 'family_name']) => 'name',
+        $errors->has('phone') => 'phone',
+        $errors->has('gender') => 'gender',
+        $errors->has('birth_date') => 'birth_date',
+        $errors->has('city') => 'city',
+        $errors->has('job_title') => 'job_title',
+        $errors->has('bio') => 'bio',
+        $errors->has('notify_email') => 'notify_email',
+        $errors->has('email') => 'email',
+        default => null,
+    };
 @endphp
 
 <x-staff-ui.layout :name="$staffName" :email="$staffEmail" crumb="المستخدمين" :dashboard-active="false" active-nav="users">
-    <header class="sui-page-head sui-page-head--row">
-        <div>
-            <a class="sui-back" href="{{ route('staff-ui.users.index') }}">المستفيدين</a>
+    <header class="sui-page-head">
+        <a class="sui-back" href="{{ route('staff-ui.users.index') }}">المستفيدين</a>
+        <div class="sui-page-head__name">
             <h1>{{ $beneficiary->fullName() }}</h1>
-        </div>
-        <div class="sui-profile-actions">
-            @if ($canUpdate || $canUpdateSensitive)
-                <x-staff-ui.button type="button" variant="secondary" size="sm" data-sui-open-modal="edit-beneficiary">تعديل البيانات</x-staff-ui.button>
-            @endif
-            @if ($canDeactivate && ! $beneficiary->isAnonymized())
-                @if ($beneficiary->is_active)
-                    <x-staff-ui.button type="button" variant="danger" size="sm" data-sui-open-modal="deactivate-beneficiary">تعطيل الحساب</x-staff-ui.button>
-                @else
-                    <form method="POST" action="{{ route('staff-ui.users.activation', $beneficiary) }}">
-                        @csrf
-                        <input type="hidden" name="action" value="activate">
-                        <x-staff-ui.button type="submit" variant="primary" size="sm">تفعيل الحساب</x-staff-ui.button>
-                    </form>
-                @endif
-            @endif
             @if ($canDownloadCv)
-                <x-staff-ui.button variant="secondary" size="sm" :href="route('admin.beneficiaries.cv-pdf', $beneficiary)">تحميل السيرة الذاتية</x-staff-ui.button>
-                @if ($hasCvFile)
-                    <x-staff-ui.button variant="ghost" size="sm" :href="route('admin.beneficiaries.cv-file.download', $beneficiary)">تحميل الملف المرفوع</x-staff-ui.button>
-                @endif
+                <x-staff-ui.button variant="ghost" size="sm" icon="download" icon-only aria-label="تحميل السيرة الذاتية" :href="route('admin.beneficiaries.cv-pdf', $beneficiary)" />
             @endif
         </div>
     </header>
@@ -60,19 +49,54 @@
             </div>
             <dl class="sui-facts">
                 <dt>الاسم</dt>
-                <dd>{{ $beneficiary->fullName() }}</dd>
+                <dd class="sui-fact">
+                    <span class="sui-fact__value">{{ $beneficiary->fullName() }}</span>
+                    @if ($canUpdate)
+                        <x-staff-ui.button type="button" variant="ghost" size="sm" icon="pencil" icon-only aria-label="تعديل الاسم" data-sui-open-modal="edit-name" />
+                    @endif
+                </dd>
                 <dt>البريد</dt>
-                <dd>{{ $email ?: '—' }}</dd>
+                <dd class="sui-fact">
+                    <span class="sui-fact__value">{{ $email ?: '—' }}</span>
+                    @if ($canUpdateSensitive)
+                        <x-staff-ui.button type="button" variant="ghost" size="sm" icon="pencil" icon-only aria-label="تعديل البريد" data-sui-open-modal="edit-email" />
+                    @endif
+                </dd>
                 <dt>الجوال</dt>
-                <dd>{{ $phone }}</dd>
+                <dd class="sui-fact">
+                    <span class="sui-fact__value">{{ $phone }}</span>
+                    @if ($canUpdate)
+                        <x-staff-ui.button type="button" variant="ghost" size="sm" icon="pencil" icon-only aria-label="تعديل الجوال" data-sui-open-modal="edit-phone" />
+                    @endif
+                </dd>
                 <dt>الجنس</dt>
-                <dd>{{ $profile?->gender?->label() ?? '—' }}</dd>
+                <dd class="sui-fact">
+                    <span class="sui-fact__value">{{ $profile?->gender?->label() ?? '—' }}</span>
+                    @if ($canUpdate)
+                        <x-staff-ui.button type="button" variant="ghost" size="sm" icon="pencil" icon-only aria-label="تعديل الجنس" data-sui-open-modal="edit-gender" />
+                    @endif
+                </dd>
                 <dt>تاريخ الميلاد</dt>
-                <dd>{{ $profile?->birth_date?->toDateString() ?? '—' }}</dd>
+                <dd class="sui-fact">
+                    <span class="sui-fact__value">{{ $profile?->birth_date?->toDateString() ?? '—' }}</span>
+                    @if ($canUpdate)
+                        <x-staff-ui.button type="button" variant="ghost" size="sm" icon="pencil" icon-only aria-label="تعديل تاريخ الميلاد" data-sui-open-modal="edit-birth-date" />
+                    @endif
+                </dd>
                 <dt>المدينة</dt>
-                <dd>{{ $profile?->city ?: '—' }}</dd>
+                <dd class="sui-fact">
+                    <span class="sui-fact__value">{{ $profile?->city ?: '—' }}</span>
+                    @if ($canUpdate)
+                        <x-staff-ui.button type="button" variant="ghost" size="sm" icon="pencil" icon-only aria-label="تعديل المدينة" data-sui-open-modal="edit-city" />
+                    @endif
+                </dd>
                 <dt>المسمى الوظيفي</dt>
-                <dd>{{ $profile?->job_title ?: '—' }}</dd>
+                <dd class="sui-fact">
+                    <span class="sui-fact__value">{{ $profile?->job_title ?: '—' }}</span>
+                    @if ($canUpdate)
+                        <x-staff-ui.button type="button" variant="ghost" size="sm" icon="pencil" icon-only aria-label="تعديل المسمى الوظيفي" data-sui-open-modal="edit-job-title" />
+                    @endif
+                </dd>
                 <dt>الحالة</dt>
                 <dd>
                     @if ($active)
@@ -85,15 +109,27 @@
                     <dt>نوع الهوية</dt>
                     <dd>{{ $beneficiary->identity_type?->label() ?? '—' }}</dd>
                     <dt>رقم الهوية</dt>
-                    <dd>
-                        <span data-identity-masked>{{ $maskedIdentity ?: '—' }}</span>
+                    <dd class="sui-fact">
+                        <span class="sui-fact__value" data-identity-masked>{{ $maskedIdentity ?: '—' }}</span>
                         @if ($canRevealIdentity)
-                            <x-staff-ui.button type="button" variant="ghost" size="sm" data-sui-open-modal="reveal-identity">إظهار رقم الهوية</x-staff-ui.button>
+                            <x-staff-ui.button type="button" variant="ghost" size="sm" icon="eye" icon-only aria-label="إظهار رقم الهوية" data-sui-open-modal="reveal-identity" />
                         @endif
                     </dd>
                 @endif
                 <dt>النبذة</dt>
-                <dd>{{ $profile?->bio ?: '—' }}</dd>
+                <dd class="sui-fact">
+                    <span class="sui-fact__value">{{ $profile?->bio ?: '—' }}</span>
+                    @if ($canUpdate)
+                        <x-staff-ui.button type="button" variant="ghost" size="sm" icon="pencil" icon-only aria-label="تعديل النبذة" data-sui-open-modal="edit-bio" />
+                    @endif
+                </dd>
+                @if ($canUpdate)
+                    <dt>إشعارات البريد</dt>
+                    <dd class="sui-fact">
+                        <span class="sui-fact__value">{{ $beneficiary->notify_email ? 'مفعّلة' : 'متوقفة' }}</span>
+                        <x-staff-ui.button type="button" variant="ghost" size="sm" icon="pencil" icon-only aria-label="تعديل إشعارات البريد" data-sui-open-modal="edit-notify-email" />
+                    </dd>
+                @endif
             </dl>
         </section>
 
@@ -208,40 +244,141 @@
                 @endforelse
 
                 @if ($canUpdate)
-                    <form class="sui-form-grid" method="POST" action="{{ route('staff-ui.users.notes.store', $beneficiary) }}" style="margin-top: 16px;">
+                    <form class="sui-note-form" method="POST" action="{{ route('staff-ui.users.notes.store', $beneficiary) }}">
                         @csrf
-                        <x-staff-ui.textarea name="body" label="ملاحظة جديدة" rows="4" placeholder="اكتب ملاحظة داخلية لفريق العمل…">{{ old('body') }}</x-staff-ui.textarea>
+                        <label class="sui-field__label" for="note-body">ملاحظة جديدة</label>
+                        <div class="sui-note-compose">
+                            <textarea class="sui-control" id="note-body" name="body" rows="4" placeholder="اكتب ملاحظة داخلية لفريق العمل…">{{ old('body') }}</textarea>
+                            <x-staff-ui.button type="submit" variant="primary" size="sm" icon="plus" icon-only class="sui-note-compose__add" aria-label="إضافة ملاحظة" />
+                        </div>
                         @error('body')
                             <p class="sui-field__error">{{ $message }}</p>
                         @enderror
-                        <x-staff-ui.button type="submit" size="sm">إضافة ملاحظة</x-staff-ui.button>
                     </form>
                 @endif
             </div>
         </section>
+
+        @if ($canDeactivate && ! $beneficiary->isAnonymized())
+            <div class="sui-account-action">
+                @if ($beneficiary->is_active)
+                    <x-staff-ui.button type="button" variant="danger" data-sui-open-modal="deactivate-beneficiary">تعطيل الحساب</x-staff-ui.button>
+                @else
+                    <form method="POST" action="{{ route('staff-ui.users.activation', $beneficiary) }}">
+                        @csrf
+                        <input type="hidden" name="action" value="activate">
+                        <x-staff-ui.button type="submit" variant="primary">تفعيل الحساب</x-staff-ui.button>
+                    </form>
+                @endif
+            </div>
+        @endif
     </div>
 
-    @if ($canUpdate || $canUpdateSensitive)
-        <x-staff-ui.modal name="edit-beneficiary" title="تعديل البيانات" :open="$editOpen">
-            <form class="sui-form-grid" method="POST" action="{{ route('staff-ui.users.update', $beneficiary) }}">
+    @if ($canUpdate)
+        <x-staff-ui.modal name="edit-name" title="تعديل الاسم" :open="$openField === 'name'">
+            <form method="POST" action="{{ route('staff-ui.users.update', $beneficiary) }}">
                 @csrf
-                @if ($canUpdate)
-                    <input type="hidden" name="basic" value="1">
+                <input type="hidden" name="field" value="name">
+                <div class="sui-form-grid">
                     <x-staff-ui.input name="first_name" label="الاسم" :value="old('first_name', $beneficiary->first_name)" :error="$errors->first('first_name')" />
                     <x-staff-ui.input name="father_name" label="اسم الأب" :value="old('father_name', $beneficiary->father_name)" :error="$errors->first('father_name')" />
                     <x-staff-ui.input name="grandfather_name" label="اسم الجد" :value="old('grandfather_name', $beneficiary->grandfather_name)" :error="$errors->first('grandfather_name')" />
                     <x-staff-ui.input name="family_name" label="اسم العائلة" :value="old('family_name', $beneficiary->family_name)" :error="$errors->first('family_name')" />
-                    <x-staff-ui.input name="phone" label="الجوال" :value="old('phone', $beneficiary->phone)" :error="$errors->first('phone')" />
-                    <x-staff-ui.select name="gender" label="الجنس" :selected="old('gender', $profile?->gender?->value)" :options="['' => '—'] + \App\Enums\ProfileGender::options()" :error="$errors->first('gender')" />
-                    <x-staff-ui.date name="birth_date" label="تاريخ الميلاد" :value="old('birth_date', $profile?->birth_date?->toDateString())" :error="$errors->first('birth_date')" />
-                    <x-staff-ui.input name="city" label="المدينة" :value="old('city', $profile?->city)" :error="$errors->first('city')" />
-                    <x-staff-ui.input name="job_title" label="المسمى الوظيفي" :value="old('job_title', $profile?->job_title)" :error="$errors->first('job_title')" />
-                    <x-staff-ui.textarea name="bio" label="النبذة" rows="3">{{ old('bio', $profile?->bio) }}</x-staff-ui.textarea>
-                    <x-staff-ui.checkbox name="notify_email" label="إشعارات البريد" value="1" :checked="old('notify_email', $beneficiary->notify_email)" />
-                @endif
-                @if ($canUpdateSensitive)
-                    <x-staff-ui.input name="email" type="email" label="البريد الإلكتروني" :value="old('email', $beneficiary->email)" :error="$errors->first('email')" />
-                @endif
+                </div>
+                <div class="sui-modal__actions">
+                    <x-staff-ui.button type="submit" size="sm">حفظ</x-staff-ui.button>
+                    <x-staff-ui.button type="button" variant="ghost" size="sm" data-sui-modal-close>إلغاء</x-staff-ui.button>
+                </div>
+            </form>
+        </x-staff-ui.modal>
+        <x-staff-ui.modal name="edit-phone" title="تعديل الجوال" :open="$openField === 'phone'">
+            <form method="POST" action="{{ route('staff-ui.users.update', $beneficiary) }}">
+                @csrf
+                <input type="hidden" name="field" value="phone">
+                <x-staff-ui.input name="phone" label="الجوال" :value="old('phone', $beneficiary->phone)" :error="$errors->first('phone')" />
+                <div class="sui-modal__actions">
+                    <x-staff-ui.button type="submit" size="sm">حفظ</x-staff-ui.button>
+                    <x-staff-ui.button type="button" variant="ghost" size="sm" data-sui-modal-close>إلغاء</x-staff-ui.button>
+                </div>
+            </form>
+        </x-staff-ui.modal>
+        <x-staff-ui.modal name="edit-gender" title="تعديل الجنس" :open="$openField === 'gender'">
+            <form method="POST" action="{{ route('staff-ui.users.update', $beneficiary) }}">
+                @csrf
+                <input type="hidden" name="field" value="gender">
+                <x-staff-ui.select name="gender" label="الجنس" :selected="old('gender', $profile?->gender?->value)" :options="['' => '—'] + \App\Enums\ProfileGender::options()" :error="$errors->first('gender')" />
+                <div class="sui-modal__actions">
+                    <x-staff-ui.button type="submit" size="sm">حفظ</x-staff-ui.button>
+                    <x-staff-ui.button type="button" variant="ghost" size="sm" data-sui-modal-close>إلغاء</x-staff-ui.button>
+                </div>
+            </form>
+        </x-staff-ui.modal>
+        <x-staff-ui.modal name="edit-birth-date" title="تعديل تاريخ الميلاد" :open="$openField === 'birth_date'">
+            <form method="POST" action="{{ route('staff-ui.users.update', $beneficiary) }}">
+                @csrf
+                <input type="hidden" name="field" value="birth_date">
+                <x-staff-ui.date name="birth_date" label="تاريخ الميلاد" :value="old('birth_date', $profile?->birth_date?->toDateString())" :error="$errors->first('birth_date')" />
+                <div class="sui-modal__actions">
+                    <x-staff-ui.button type="submit" size="sm">حفظ</x-staff-ui.button>
+                    <x-staff-ui.button type="button" variant="ghost" size="sm" data-sui-modal-close>إلغاء</x-staff-ui.button>
+                </div>
+            </form>
+        </x-staff-ui.modal>
+        <x-staff-ui.modal name="edit-city" title="تعديل المدينة" :open="$openField === 'city'">
+            <form method="POST" action="{{ route('staff-ui.users.update', $beneficiary) }}">
+                @csrf
+                <input type="hidden" name="field" value="city">
+                <x-staff-ui.input name="city" label="المدينة" :value="old('city', $profile?->city)" :error="$errors->first('city')" />
+                <div class="sui-modal__actions">
+                    <x-staff-ui.button type="submit" size="sm">حفظ</x-staff-ui.button>
+                    <x-staff-ui.button type="button" variant="ghost" size="sm" data-sui-modal-close>إلغاء</x-staff-ui.button>
+                </div>
+            </form>
+        </x-staff-ui.modal>
+        <x-staff-ui.modal name="edit-job-title" title="تعديل المسمى الوظيفي" :open="$openField === 'job_title'">
+            <form method="POST" action="{{ route('staff-ui.users.update', $beneficiary) }}">
+                @csrf
+                <input type="hidden" name="field" value="job_title">
+                <x-staff-ui.input name="job_title" label="المسمى الوظيفي" :value="old('job_title', $profile?->job_title)" :error="$errors->first('job_title')" />
+                <div class="sui-modal__actions">
+                    <x-staff-ui.button type="submit" size="sm">حفظ</x-staff-ui.button>
+                    <x-staff-ui.button type="button" variant="ghost" size="sm" data-sui-modal-close>إلغاء</x-staff-ui.button>
+                </div>
+            </form>
+        </x-staff-ui.modal>
+        <x-staff-ui.modal name="edit-bio" title="تعديل النبذة" :open="$openField === 'bio'">
+            <form method="POST" action="{{ route('staff-ui.users.update', $beneficiary) }}">
+                @csrf
+                <input type="hidden" name="field" value="bio">
+                <x-staff-ui.textarea name="bio" label="النبذة" rows="3">{{ old('bio', $profile?->bio) }}</x-staff-ui.textarea>
+                @error('bio')
+                    <p class="sui-field__error">{{ $message }}</p>
+                @enderror
+                <div class="sui-modal__actions">
+                    <x-staff-ui.button type="submit" size="sm">حفظ</x-staff-ui.button>
+                    <x-staff-ui.button type="button" variant="ghost" size="sm" data-sui-modal-close>إلغاء</x-staff-ui.button>
+                </div>
+            </form>
+        </x-staff-ui.modal>
+        <x-staff-ui.modal name="edit-notify-email" title="تعديل إشعارات البريد" :open="$openField === 'notify_email'">
+            <form method="POST" action="{{ route('staff-ui.users.update', $beneficiary) }}">
+                @csrf
+                <input type="hidden" name="field" value="notify_email">
+                <x-staff-ui.checkbox name="notify_email" label="إشعارات البريد" value="1" :checked="old('notify_email', $beneficiary->notify_email)" />
+                <div class="sui-modal__actions">
+                    <x-staff-ui.button type="submit" size="sm">حفظ</x-staff-ui.button>
+                    <x-staff-ui.button type="button" variant="ghost" size="sm" data-sui-modal-close>إلغاء</x-staff-ui.button>
+                </div>
+            </form>
+        </x-staff-ui.modal>
+    @endif
+
+    @if ($canUpdateSensitive)
+        <x-staff-ui.modal name="edit-email" title="تعديل البريد" :open="$openField === 'email'">
+            <form method="POST" action="{{ route('staff-ui.users.update', $beneficiary) }}">
+                @csrf
+                <input type="hidden" name="field" value="email">
+                <x-staff-ui.input name="email" type="email" label="البريد الإلكتروني" :value="old('email', $beneficiary->email)" :error="$errors->first('email')" />
                 <div class="sui-modal__actions">
                     <x-staff-ui.button type="submit" size="sm">حفظ</x-staff-ui.button>
                     <x-staff-ui.button type="button" variant="ghost" size="sm" data-sui-modal-close>إلغاء</x-staff-ui.button>

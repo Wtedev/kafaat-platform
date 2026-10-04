@@ -517,16 +517,91 @@ a:hover {
 
 .sui-page-head--row {
     display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
     gap: var(--sui-space-3);
 }
 
-.sui-profile-actions {
+.sui-page-head__title,
+.sui-page-head__name {
+    min-width: 0;
+}
+
+.sui-page-head__name {
+    display: flex;
+    align-items: center;
+    gap: var(--sui-space-2);
+}
+
+.sui-page-head__name h1 {
+    min-width: 0;
+}
+
+.sui-fact {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+}
+
+.sui-fact__value {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.sui-fact .sui-btn {
+    flex: 0 0 auto;
+}
+
+.sui-account-action {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.sui-account-action form {
+    margin: 0;
+}
+
+.sui-actions {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
     gap: var(--sui-space-2);
+    padding: var(--sui-space-3);
+    background: var(--sui-surface);
+    border: 1px solid var(--sui-border);
+    border-radius: var(--sui-radius);
+}
+
+.sui-actions__main,
+.sui-actions__end {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sui-space-2);
+}
+
+.sui-actions__main {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+.sui-actions__end {
+    margin-inline-start: var(--sui-space-2);
+    padding-inline-start: var(--sui-space-3);
+    border-inline-start: 1px solid var(--sui-border);
+}
+
+.sui-actions__main:not(:has(.sui-btn)):not(:has(form)) + .sui-actions__end {
+    margin-inline-start: 0;
+    padding-inline-start: 0;
+    border-inline-start: 0;
+}
+
+.sui-actions form {
+    display: flex;
+    margin: 0;
 }
 
 .sui-back {
@@ -561,7 +636,9 @@ a:hover {
 
 .sui-facts dd {
     margin: 0;
+    min-width: 0;
     font-size: 13px;
+    overflow-wrap: anywhere;
 }
 
 .sui-subhead {
@@ -603,6 +680,32 @@ a:hover {
 .sui-note small {
     color: var(--sui-text-secondary);
     font-size: 12px;
+}
+
+.sui-note-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: var(--sui-space-4);
+}
+
+.sui-note-compose {
+    position: relative;
+}
+
+.sui-note-compose textarea.sui-control {
+    display: block;
+    margin: 0;
+    padding-bottom: 48px;
+}
+
+.sui-note-compose__add {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
 }
 
 .sui-table a {
@@ -852,6 +955,12 @@ a:hover {
 .sui-table__filters .sui-field {
     min-width: 180px;
     margin: 0;
+}
+
+.sui-table__filters-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sui-space-2);
 }
 
 a.sui-icon-btn {
@@ -1220,6 +1329,10 @@ textarea.sui-control {
     padding: var(--sui-space-4);
 }
 
+.sui-modal .sui-form-grid {
+    padding: 0;
+}
+
 .sui-form-grid .sui-span-2 {
     grid-column: 1 / -1;
 }
@@ -1440,6 +1553,8 @@ a.sui-menu-item {
 .sui-modal__panel {
     position: relative;
     width: min(440px, 100%);
+    max-height: calc(100dvh - 32px);
+    overflow: auto;
     padding: var(--sui-space-5);
     background: var(--sui-surface);
     border: 1px solid var(--sui-border);
@@ -1462,6 +1577,12 @@ a.sui-menu-item {
     display: flex;
     justify-content: flex-start;
     gap: var(--sui-space-2);
+    position: sticky;
+    bottom: 0;
+    margin-top: var(--sui-space-4);
+    padding-top: var(--sui-space-3);
+    background: var(--sui-surface);
+    border-top: 1px solid var(--sui-border);
 }
 
 .sui-toasts {
@@ -1577,6 +1698,50 @@ a.sui-menu-item {
     }
     .sui-search { width: 140px; }
     .sui-form-grid { grid-template-columns: 1fr; }
+    .sui-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: stretch;
+    }
+    .sui-actions__main,
+    .sui-actions__end {
+        display: contents;
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+    .sui-actions form,
+    .sui-actions .sui-btn {
+        width: 100%;
+    }
+    .sui-actions__main:has(> :nth-child(even):last-child) + .sui-actions__end .sui-btn,
+    .sui-actions__main:has(> :nth-child(even):last-child) + .sui-actions__end form,
+    .sui-actions__main:not(:has(.sui-btn)):not(:has(form)) + .sui-actions__end .sui-btn,
+    .sui-actions__main:not(:has(.sui-btn)):not(:has(form)) + .sui-actions__end form {
+        grid-column: 1 / -1;
+    }
+    .sui-facts {
+        grid-template-columns: minmax(96px, 120px) minmax(0, 1fr);
+    }
+    .sui-table__filters .sui-field {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+    .sui-table__filters-actions {
+        width: 100%;
+    }
+    .sui-table__filters-actions .sui-btn {
+        flex: 1 1 0;
+    }
+    .sui-form-grid > .sui-btn,
+    .sui-account-action,
+    .sui-account-action form,
+    .sui-account-action .sui-btn {
+        width: 100%;
+    }
+    .sui-modal__actions .sui-btn {
+        flex: 1 1 0;
+    }
     .sui-banner { flex-direction: column; align-items: stretch; }
     .sui-banner .sui-btn--inverse { margin-inline-start: 0; align-self: flex-start; }
 }

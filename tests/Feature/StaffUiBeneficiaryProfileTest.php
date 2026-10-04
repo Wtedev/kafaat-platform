@@ -123,6 +123,18 @@ class StaffUiBeneficiaryProfileTest extends TestCase
         $this->assertSame('0555000111', $beneficiary->phone);
         $this->assertSame('جدة', $beneficiary->profile->city);
         $this->assertNotSame('changed-by-basic@example.com', $beneficiary->email);
+
+        $this->actingAsOtpVerified($editor)
+            ->post(route('staff-ui.users.update', $beneficiary), [
+                'field' => 'city',
+                'city' => 'الرياض',
+            ])
+            ->assertRedirect(route('staff-ui.users.show', $beneficiary));
+
+        $beneficiary->refresh();
+        $this->assertSame('الرياض', $beneficiary->profile->city);
+        $this->assertSame('0555000111', $beneficiary->phone);
+        $this->assertSame('نورة سعد محمد القحطاني', $beneficiary->fullName());
     }
 
     public function test_sensitive_update_changes_only_email(): void
@@ -211,6 +223,11 @@ class StaffUiBeneficiaryProfileTest extends TestCase
             ->assertRedirect(route('staff-ui.users.show', $beneficiary));
 
         $this->assertTrue($beneficiary->fresh()->is_active);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'account.reactivated',
+            'actor_id' => $staff->id,
+            'target_user_id' => $beneficiary->id,
+        ]);
     }
 
     public function test_cv_download_links_follow_the_existing_permission(): void
@@ -253,7 +270,7 @@ class StaffUiBeneficiaryProfileTest extends TestCase
             ->get(route('staff-ui.users.show', $beneficiary))
             ->assertOk()
             ->assertSee(route('admin.beneficiaries.cv-pdf', $beneficiary), false)
-            ->assertSee(route('admin.beneficiaries.cv-file.download', $beneficiary), false);
+            ->assertDontSee(route('admin.beneficiaries.cv-file.download', $beneficiary), false);
 
         $this->actingAsOtpVerified($downloader)
             ->get(route('admin.beneficiaries.cv-file.download', $beneficiary))
