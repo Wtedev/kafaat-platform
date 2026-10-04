@@ -9,8 +9,10 @@
     </header>
 
     <x-staff-ui.tabs group="users" :tabs="[
-        ['id' => 'beneficiaries', 'label' => 'المستفيدين', 'active' => true, 'count' => $beneficiaries->total()],
-        ['id' => 'staff', 'label' => 'الموظفين', 'disabled' => true],
+        ['id' => 'beneficiaries', 'label' => 'المستفيدين', 'active' => true, 'count' => $beneficiaries->total(), 'href' => route('staff-ui.users.index')],
+        $canViewStaff
+            ? ['id' => 'staff', 'label' => 'الموظفين', 'href' => route('staff-ui.users.staff.index'), 'count' => $staffCount]
+            : ['id' => 'staff', 'label' => 'الموظفين', 'disabled' => true],
     ]" />
 
     <x-staff-ui.data-table

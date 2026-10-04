@@ -14,6 +14,7 @@ use App\Services\Identity\PersonNameService;
 use App\Services\Privacy\AccountDeactivationService;
 use App\Services\Rbac\RbacCatalog;
 use App\Services\StaffUi\StaffBeneficiaryIndex;
+use App\Services\StaffUi\StaffDirectoryIndex;
 use App\Support\Auth\EmailNormalizer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,7 +25,7 @@ use Illuminate\View\View;
 
 class StaffBeneficiaryController extends Controller
 {
-    public function index(Request $request, StaffBeneficiaryIndex $index): View
+    public function index(Request $request, StaffBeneficiaryIndex $index, StaffDirectoryIndex $staff): View
     {
         $this->ensureStaff($request);
         $this->authorize('viewAny', User::class);
@@ -51,6 +52,8 @@ class StaffBeneficiaryController extends Controller
             'status' => $status,
             'completeness' => $completeness,
             'canViewContact' => $user->can('beneficiaries.view_contact'),
+            'canViewStaff' => $user->can('users.view'),
+            'staffCount' => $user->can('users.view') ? $staff->count() : null,
         ]);
     }
 

@@ -54,6 +54,7 @@ use App\Http\Controllers\Public\PublicVolunteerOpportunityController;
 use App\Http\Controllers\Public\SupportTicketController;
 use App\Http\Controllers\PublicPrivacyPolicyController;
 use App\Http\Controllers\StaffUi\StaffBeneficiaryController;
+use App\Http\Controllers\StaffUi\StaffDirectoryController;
 use App\Http\Controllers\StaffUi\StaffInboxController;
 use App\Http\Controllers\StaffUi\StaffProfileController;
 use App\Http\Controllers\StaffUi\StaffUiDemoController;
@@ -122,6 +123,11 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.maintenance:
     ->name('staff-ui.')
     ->group(function () {
         Route::get('/users', [StaffBeneficiaryController::class, 'index'])->name('users.index');
+        Route::get('/users/staff', [StaffDirectoryController::class, 'index'])->name('users.staff.index');
+        Route::post('/users/staff', [StaffDirectoryController::class, 'store'])->name('users.staff.store');
+        Route::post('/users/staff/{user}/role', [StaffDirectoryController::class, 'updateRole'])->name('users.staff.role');
+        Route::post('/users/staff/{user}/activation', [StaffDirectoryController::class, 'activation'])->name('users.staff.activation');
+        Route::post('/users/staff/{user}/invitation', [StaffDirectoryController::class, 'invitation'])->name('users.staff.invitation');
         Route::get('/users/{user}', [StaffBeneficiaryController::class, 'show'])->name('users.show');
         Route::post('/users/{user}', [StaffBeneficiaryController::class, 'update'])->name('users.update');
         Route::post('/users/{user}/activation', [StaffBeneficiaryController::class, 'activation'])->name('users.activation');
