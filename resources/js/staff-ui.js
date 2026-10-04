@@ -77,6 +77,91 @@
 
     window.suiToast = toast;
 
+    document.querySelectorAll("[data-sui-flash]").forEach((node) => {
+        toast(node.dataset.tone || "info", node.dataset.title || "تم", node.dataset.body || "");
+    });
+
+    const roleNotes = {
+        admin: "وصول كامل لإدارة المنصة والموظفين والأدوار.",
+        staff: "صلاحيات العمل اليومية الممنوحة لهذا الحساب، دون إدارة الأدوار.",
+    };
+
+    function showRoleNote(role) {
+        const note = document.querySelector("[data-sui-role-note]");
+        if (note) note.textContent = roleNotes[role] || "";
+    }
+
+    document.querySelector("[data-sui-role-select]")?.addEventListener("change", (event) => {
+        showRoleNote(event.target.value);
+    });
+
+    document.querySelectorAll("[data-sui-staff-action]").forEach((button) => {
+        button.addEventListener("click", () => {
+            if (button.dataset.suiStaffAction === "role") {
+                const form = document.querySelector("[data-sui-role-form]");
+                if (!form) return;
+                form.action = button.dataset.action || "";
+                const select = form.querySelector("[data-sui-role-select]");
+                if (select) select.value = button.dataset.role || "staff";
+                const current = form.querySelector("[data-sui-role-current]");
+                if (current) current.textContent = button.dataset.roleLabel || "";
+                showRoleNote(select?.value || "");
+            }
+
+            if (button.dataset.suiStaffAction === "activation") {
+                const form = document.querySelector("[data-sui-activation-form]");
+                if (!form) return;
+                const deactivate = button.dataset.activation === "deactivate";
+                form.action = button.dataset.action || "";
+                const action = form.querySelector("[name=action]");
+                if (action) action.value = deactivate ? "deactivate" : "activate";
+                const text = form.querySelector("[data-sui-activation-text]");
+                const name = button.dataset.name || "";
+                if (text) {
+                    text.textContent = deactivate
+                        ? "سيتم تسجيل خروج " + name + " فورًا، ولن يتمكن من الدخول حتى يُفعّل الحساب."
+                        : "سيتمكن " + name + " من تسجيل الدخول من جديد.";
+                }
+                const title = document.getElementById("sui-modal-staff-activation");
+                if (title) title.textContent = deactivate ? "تعطيل الحساب" : "تفعيل الحساب";
+                const confirm = form.querySelector("[data-sui-activation-confirm]");
+                if (confirm) {
+                    confirm.textContent = deactivate ? "تعطيل الحساب" : "تفعيل الحساب";
+                    confirm.classList.toggle("sui-btn--danger", deactivate);
+                    confirm.classList.toggle("sui-btn--primary", !deactivate);
+                }
+            }
+        });
+    });
+
+    const staffFilters = document.querySelector("[data-sui-staff-filters]");
+    if (staffFilters) {
+        let searchTimer = 0;
+        const markLoading = () => {
+            document.querySelector("[data-sui-staff-directory]")?.classList.add("is-loading");
+        };
+        staffFilters.querySelectorAll("select").forEach((select) => {
+            select.addEventListener("change", () => {
+                markLoading();
+                staffFilters.requestSubmit();
+            });
+        });
+        staffFilters.querySelector("[data-sui-staff-search]")?.addEventListener("input", () => {
+            window.clearTimeout(searchTimer);
+            searchTimer = window.setTimeout(() => {
+                markLoading();
+                staffFilters.requestSubmit();
+            }, 300);
+        });
+        staffFilters.addEventListener("submit", markLoading);
+    }
+
+    document.querySelectorAll("[data-sui-staff-form]").forEach((form) => {
+        form.addEventListener("submit", () => {
+            document.querySelector("[data-sui-staff-directory]")?.classList.add("is-loading");
+        });
+    });
+
     document.querySelectorAll("[data-sui-toast]").forEach((button) => {
         button.addEventListener("click", () => {
             toast(button.dataset.tone || "info", button.dataset.title || "تم", button.dataset.body || "");

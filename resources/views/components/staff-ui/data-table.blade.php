@@ -57,8 +57,12 @@
         </table>
     </div>
     <div class="sui-table__empty">
-        <i data-lucide="search-x" class="sui-icon"></i>
-        <p>لا توجد نتائج مطابقة.</p>
+        @if (isset($emptyState))
+            {{ $emptyState }}
+        @else
+            <i data-lucide="search-x" class="sui-icon"></i>
+            <p>لا توجد نتائج مطابقة.</p>
+        @endif
     </div>
     <div class="sui-table__loading" aria-hidden="true">
         <div class="sui-skel"></div>

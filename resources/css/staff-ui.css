@@ -1123,6 +1123,7 @@ a.sui-icon-btn {
 .sui-status--warning { color: var(--sui-warning); background: var(--sui-warning-bg); }
 .sui-status--info { color: var(--sui-info); background: var(--sui-info-bg); }
 .sui-status--danger { color: var(--sui-danger); background: var(--sui-danger-bg); }
+.sui-status--muted { color: var(--sui-text-secondary); background: #f3f4f6; }
 
 .sui-btn {
     display: inline-flex;
@@ -1744,6 +1745,198 @@ a.sui-menu-item {
     }
     .sui-banner { flex-direction: column; align-items: stretch; }
     .sui-banner .sui-btn--inverse { margin-inline-start: 0; align-self: flex-start; }
+}
+
+.sui-staff-head {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sui-space-3);
+}
+
+.sui-staff-filters {
+    display: grid;
+    grid-template-columns: minmax(160px, 1.4fr) minmax(130px, 1fr) minmax(130px, 1fr) auto auto;
+    align-items: end;
+}
+
+.sui-staff-filters .sui-staff-search {
+    width: auto;
+    height: 36px;
+    align-self: end;
+}
+
+.sui-staff-clear {
+    align-self: flex-end;
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    color: var(--sui-primary-dark);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.sui-staff-clear:hover { color: #0f686c; }
+
+.sui-staff-count {
+    grid-column: -1;
+    align-self: end;
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    color: var(--sui-text-secondary);
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.sui-staff-directory.sui-table-card,
+.sui-staff-directory .sui-table-wrap {
+    overflow: visible;
+}
+
+.sui-staff-directory .sui-table td {
+    padding: 14px var(--sui-space-4);
+    vertical-align: middle;
+}
+
+.sui-staff-directory .sui-table tbody tr:hover {
+    background: #fafafa;
+}
+
+.sui-staff-directory .sui-table tbody tr:hover td {
+    background: transparent;
+}
+
+.sui-staff-directory .sui-dropdown:has(.sui-dropdown__menu:not([hidden])) {
+    z-index: 30;
+}
+
+.sui-person {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.sui-person__text { min-width: 0; }
+
+.sui-person__name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--sui-text);
+    font-weight: 600;
+}
+
+.sui-person__name strong {
+    font-weight: 600;
+}
+
+.sui-person__email,
+.sui-login-never {
+    color: var(--sui-text-muted);
+    font-size: 12px;
+}
+
+.sui-you {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--sui-primary-tint);
+    color: var(--sui-primary-dark);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.7;
+}
+
+.sui-role-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: var(--sui-text);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.6;
+}
+
+.sui-staff-menu form { margin: 0; }
+
+.sui-staff-menu .sui-dropdown__menu { min-width: 210px; }
+
+.sui-staff-menu .sui-tip { display: block; }
+
+.sui-menu-item:disabled {
+    color: var(--sui-text-muted);
+    cursor: not-allowed;
+}
+
+.sui-menu-item:disabled:hover { background: transparent; }
+
+.sui-menu-item--danger:disabled { color: #f1a8a8; }
+
+.sui-staff-current {
+    margin: 0 0 var(--sui-space-3);
+    color: var(--sui-text);
+}
+
+.sui-staff-role-note {
+    margin: var(--sui-space-3) 0 0;
+    color: var(--sui-text-secondary);
+    font-size: 13px;
+}
+
+.sui-table__empty .sui-staff-clear {
+    height: auto;
+    margin-top: var(--sui-space-2);
+}
+
+@media (max-width: 960px) {
+    .sui-staff-directory .sui-table thead { display: none; }
+
+    .sui-staff-directory .sui-table,
+    .sui-staff-directory .sui-table tbody { display: block; }
+
+    .sui-staff-directory .sui-table tr {
+        display: grid;
+        grid-template-columns: auto auto minmax(0, 1fr);
+        grid-template-areas:
+            "person person actions"
+            "role status ."
+            "login login login";
+        gap: 8px 12px;
+        padding: 14px var(--sui-space-4);
+        border-bottom: 1px solid var(--sui-border);
+    }
+
+    .sui-staff-directory .sui-table td {
+        display: block;
+        width: auto;
+        padding: 0;
+        border: 0;
+    }
+
+    .sui-staff-directory .sui-staff-person { grid-area: person; }
+    .sui-staff-directory .sui-staff-actions { grid-area: actions; justify-self: end; }
+    .sui-staff-directory .sui-staff-role { grid-area: role; }
+    .sui-staff-directory .sui-staff-status { grid-area: status; justify-self: start; }
+    .sui-staff-directory .sui-staff-login { grid-area: login; }
+
+    .sui-table__filters.sui-staff-filters {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .sui-staff-count { grid-column: auto; }
+
+    .sui-staff-filters .sui-staff-search,
+    .sui-staff-count,
+    .sui-staff-clear { width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

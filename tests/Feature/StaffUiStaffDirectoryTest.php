@@ -47,21 +47,30 @@ class StaffUiStaffDirectoryTest extends TestCase
             ->assertOk()
             ->assertSee('الموظفين')
             ->assertSee('المستفيدين')
+            ->assertSee('الموظف')
             ->assertSee('ليان سعد')
             ->assertSee('layan@example.com')
             ->assertSee('موظف')
             ->assertSee('نشط')
-            ->assertSee('2026-09-01');
+            ->assertSee('2026-09-01')
+            ->assertSee('أنت')
+            ->assertSee('لم يسجل دخول بعد')
+            ->assertSee('3 موظف')
+            ->assertDontSee('تطبيق');
 
         $this->actingAsOtpVerified($viewer)
             ->get(route('staff-ui.users.staff.index', ['q' => 'ليان', 'role' => 'staff', 'status' => 'active']))
             ->assertOk()
             ->assertSee('ليان سعد')
+            ->assertSee('مسح الفلاتر')
+            ->assertSee('1 موظف')
             ->assertDontSee('ماجد بعيد');
 
         $this->actingAsOtpVerified($viewer)
             ->get(route('staff-ui.users.staff.index', ['q' => 'missing-person']))
             ->assertOk()
+            ->assertSee('لا توجد نتائج مطابقة.')
+            ->assertSee('مسح الفلاتر')
             ->assertDontSee('ليان سعد');
 
         $this->assertNotNull($member->id);
