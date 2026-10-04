@@ -8,12 +8,12 @@ use Tests\TestCase;
 
 class StaffUiPreviewSeederTest extends TestCase
 {
-    public function test_preview_seeder_refuses_to_run_outside_local(): void
+    public function test_preview_seeder_refuses_to_run_in_production(): void
     {
-        $this->assertNotSame('local', app()->environment());
+        $this->app['env'] = 'production';
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('APP_ENV=local');
+        $this->expectExceptionMessage('APP_ENV=local أو APP_ENV=staging');
 
         (new StaffUiPreviewSeeder)->run();
     }

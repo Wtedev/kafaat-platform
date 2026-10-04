@@ -39,7 +39,7 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * بيانات معاينة عربية للواجهة المحلية فقط. لا يُستدعى من DatabaseSeeder.
+ * بيانات معاينة عربية للواجهة. يعمل في local أو staging فقط، ولا يُستدعى من DatabaseSeeder.
  *
  * php artisan db:seed --class=StaffUiPreviewSeeder
  */
@@ -51,8 +51,8 @@ class StaffUiPreviewSeeder extends Seeder
 
     public function run(): void
     {
-        if (! app()->environment('local')) {
-            throw new RuntimeException('StaffUiPreviewSeeder يعمل فقط عندما تكون APP_ENV=local.');
+        if (! app()->environment(['local', 'staging'])) {
+            throw new RuntimeException('StaffUiPreviewSeeder يعمل فقط عندما تكون APP_ENV=local أو APP_ENV=staging.');
         }
 
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
