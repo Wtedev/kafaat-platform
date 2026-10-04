@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/staff-ui.css') }}">
+    @vite(['resources/css/staff-ui.css'])
 </head>
 <body class="sui-body">
     <div class="sui-shell" data-sui-shell>
@@ -201,6 +201,6 @@
     <x-staff-ui.toast-stack />
     <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
     <script src="{{ asset('js/chart.umd.min.js') }}"></script>
-    <script src="{{ asset('js/staff-ui.js') }}"></script>
+    @vite(['resources/js/staff-ui.js'])
 </body>
 </html>

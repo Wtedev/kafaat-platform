@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Services\Rbac\RbacCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Vite;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
@@ -43,7 +44,7 @@ class StaffUiMaintenanceTest extends TestCase
                 ->assertSee(self::MAINTENANCE_HEADING)
                 ->assertSee('نعمل على تطوير الواجهة وسنعود قريباً')
                 ->assertSee('تسجيل الخروج')
-                ->assertSee('staff-ui.css', false)
+                ->assertSee(Vite::asset('resources/css/staff-ui.css'), false)
                 ->assertSee('IBM+Plex+Sans+Arabic', false)
                 ->assertSee('dir="rtl"', false)
                 ->assertDontSee('البرنامج الحالي');
@@ -64,7 +65,7 @@ class StaffUiMaintenanceTest extends TestCase
             ->assertOk()
             ->assertDontSee(self::MAINTENANCE_HEADING)
             ->assertSee('dir="rtl"', false)
-            ->assertSee('staff-ui.css', false)
+            ->assertSee(Vite::asset('resources/css/staff-ui.css'), false)
             ->assertSee('لوحة التحكم الجديدة قيد البناء')
             ->assertSee('سيتم إضافة الأقسام تدريجياً')
             ->assertDontSee('aria-disabled="true"', false)

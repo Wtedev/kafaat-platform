@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Services\Rbac\RbacCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Vite;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
@@ -59,7 +60,9 @@ class StaffUiDemoTest extends TestCase
             ->assertDontSee('aria-label="الإعدادات"', false)
             ->assertSee('آخر 30 يوم')
             ->assertSee('IBM+Plex+Sans+Arabic', false)
-            ->assertSee('staff-ui.css', false);
+            ->assertSee(Vite::asset('resources/css/staff-ui.css'), false)
+            ->assertSee(Vite::asset('resources/js/staff-ui.js'), false)
+            ->assertSee('js/chart.umd.min.js', false);
     }
 
     public function test_topbar_tools_return_when_config_enables_them(): void
