@@ -8,6 +8,9 @@ return [
     | When true, staff/admin routes show the maintenance page.
     | Super Admin (role `admin` or `super_admin`) still gets through.
     | Modules listed in ready_modules stay open for every staff user.
+    |
+    | A missing STAFF_UI_MAINTENANCE variable is off in every environment,
+    | including testing. Tests that need the page turn this flag on themselves.
     */
     'maintenance' => (bool) env('STAFF_UI_MAINTENANCE', false),
 
