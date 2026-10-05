@@ -156,6 +156,14 @@
         staffFilters.addEventListener("submit", markLoading);
     }
 
+    document.querySelectorAll("[data-sui-row-href]").forEach((row) => {
+        row.addEventListener("click", (event) => {
+            if (event.target.closest("a, button, input, form, [data-sui-dropdown]")) return;
+            const href = row.getAttribute("data-sui-row-href");
+            if (href) window.location.assign(href);
+        });
+    });
+
     document.querySelectorAll("[data-sui-staff-form]").forEach((form) => {
         form.addEventListener("submit", () => {
             document.querySelector("[data-sui-staff-directory]")?.classList.add("is-loading");

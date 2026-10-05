@@ -125,9 +125,12 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.St
         Route::get('/users', [StaffBeneficiaryController::class, 'index'])->name('users.index');
         Route::get('/users/staff', [StaffDirectoryController::class, 'index'])->name('users.staff.index');
         Route::post('/users/staff', [StaffDirectoryController::class, 'store'])->name('users.staff.store');
+        Route::get('/users/staff/{user}', [StaffDirectoryController::class, 'show'])->name('users.staff.show');
+        Route::post('/users/staff/{user}', [StaffDirectoryController::class, 'update'])->name('users.staff.update');
         Route::post('/users/staff/{user}/role', [StaffDirectoryController::class, 'updateRole'])->name('users.staff.role');
         Route::post('/users/staff/{user}/activation', [StaffDirectoryController::class, 'activation'])->name('users.staff.activation');
         Route::post('/users/staff/{user}/invitation', [StaffDirectoryController::class, 'invitation'])->name('users.staff.invitation');
+        Route::post('/users/staff/{user}/password-reset', [StaffDirectoryController::class, 'sendPasswordReset'])->name('users.staff.password-reset');
         Route::get('/users/{user}', [StaffBeneficiaryController::class, 'show'])->name('users.show');
         Route::post('/users/{user}', [StaffBeneficiaryController::class, 'update'])->name('users.update');
         Route::post('/users/{user}/activation', [StaffBeneficiaryController::class, 'activation'])->name('users.activation');
