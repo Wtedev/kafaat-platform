@@ -11,6 +11,7 @@ use App\Http\Middleware\EnsureOtpVerified;
 use App\Http\Middleware\RecordErrorPageHit;
 use App\Http\Middleware\RedirectToCanonicalHost;
 use App\Http\Middleware\RedirectToHttps;
+use App\Http\Middleware\EnsureStaffUiPreview;
 use App\Http\Middleware\StaffUiMaintenance;
 use App\Services\Operations\ErrorPageVisitRecorder;
 use App\Support\Http\PrefersJsonErrorResponse;
@@ -74,6 +75,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'otp.verified' => EnsureOtpVerified::class,
             'privacy.acknowledged' => EnsureCurrentPrivacyPolicyAcknowledged::class,
             'gate.attendance' => EnsureGateAttendanceAccess::class,
+            'staff-ui.preview' => EnsureStaffUiPreview::class,
             'staff-ui.maintenance' => StaffUiMaintenance::class,
         ]);
 

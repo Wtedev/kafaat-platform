@@ -5,7 +5,7 @@ namespace App\Filament\Support;
 use App\Enums\ProfileGender;
 use App\Models\Profile;
 use App\Models\User;
-use App\Models\VolunteerTeam;
+use App\Services\Audit\BeneficiaryEditAudit;
 use App\Support\Auth\EmailNormalizer;
 use App\Support\UserAccountRoleForm;
 use Filament\Forms\Components\CheckboxList;
@@ -236,6 +236,13 @@ final class UserInlineEditSupport
         )->validate();
 
         $emailChanged = strcasecmp((string) $target->email, $email) !== 0;
+        $before = [
+            'name' => (string) $target->name,
+            'email' => (string) $target->email,
+            'phone' => $target->phone,
+            'is_active' => (bool) $target->is_active,
+            'notify_email' => (bool) $target->notify_email,
+        ];
 
         $canEditRole = UserAccountRoleForm::canActorEditRoleSection($actor, $target)
             && ! $target->isProtectedAdminUser();
@@ -266,6 +273,7 @@ final class UserInlineEditSupport
                 $emailChanged,
                 $roleChanged,
                 $resolvedRole,
+                $actor,
             ): void {
                 $attributes = [
                     'name' => $name,
@@ -280,10 +288,6 @@ final class UserInlineEditSupport
                     $attributes['password'] = $password;
                 }
 
-                if ($roleChanged && $resolvedRole !== null) {
-                    $attributes['role_type'] = $resolvedRole['role_type'];
-                }
-
                 $target->fill($attributes);
 
                 if ($emailChanged) {
@@ -293,12 +297,7 @@ final class UserInlineEditSupport
                 $target->save();
 
                 if ($roleChanged && $resolvedRole !== null) {
-                    $target->syncRoles([$resolvedRole['spatie']]);
-                    UserAccountRoleForm::applyRoleSideEffects($target, $resolvedRole['spatie']);
-
-                    if ($resolvedRole['spatie'] === UserAccountRoleForm::TYPE_VOLUNTEER) {
-                        VolunteerTeam::ensureMember($target);
-                    }
+                    UserAccountRoleForm::syncAssignedRole($actor, $target, $resolvedRole['spatie'], request());
                 }
             });
         } catch (ValidationException $exception) {
@@ -313,6 +312,32 @@ final class UserInlineEditSupport
             ]);
 
             throw $exception;
+        }
+
+        if ($target->isPortalUser()) {
+            $target->refresh();
+            $fields = [];
+
+            if ($before['name'] !== (string) $target->name) {
+                $fields[] = 'name';
+            }
+            if (strcasecmp($before['email'], (string) $target->email) !== 0) {
+                $fields[] = 'email';
+            }
+            if ((string) ($before['phone'] ?? '') !== (string) ($target->phone ?? '')) {
+                $fields[] = 'phone';
+            }
+            if ($before['is_active'] !== (bool) $target->is_active) {
+                $fields[] = 'is_active';
+            }
+            if ($before['notify_email'] !== (bool) $target->notify_email) {
+                $fields[] = 'notify_email';
+            }
+            if ($password !== '') {
+                $fields[] = 'password';
+            }
+
+            BeneficiaryEditAudit::record($actor, $target, $fields, request());
         }
     }
 

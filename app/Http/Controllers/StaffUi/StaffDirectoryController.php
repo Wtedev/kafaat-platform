@@ -10,6 +10,8 @@ use App\Services\Privacy\AccountDeactivationService;
 use App\Services\Rbac\RbacCatalog;
 use App\Services\StaffUi\StaffDirectoryIndex;
 use App\Services\StaffUi\StaffInvitationService;
+use App\Support\StaffUi\StaffUiAccess;
+use App\Support\UserAccountRoleForm;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -42,7 +44,7 @@ class StaffDirectoryController extends Controller
             'search' => $search,
             'role' => $role,
             'status' => $status,
-            'canInvite' => $actor->can('users.create'),
+            'canInvite' => $actor->can('users.create') && StaffUiAccess::invitesEnabled(),
             'canAssignAdmin' => $actor->can('updateRole'),
             'canChangeRole' => $actor->can('updateRole'),
             'canActivate' => $actor->can('users.activate'),
@@ -53,6 +55,7 @@ class StaffDirectoryController extends Controller
     public function store(Request $request, StaffInvitationService $invitations): RedirectResponse
     {
         $actor = $this->actor($request);
+        abort_unless(StaffUiAccess::invitesEnabled(), 403);
         abort_unless($actor->can('users.create'), 403);
 
         $data = $request->validate([
@@ -92,8 +95,7 @@ class StaffDirectoryController extends Controller
             'role.in' => 'الدور غير معروف.',
         ]);
 
-        $user->syncRoles([$data['role']]);
-        $user->forceFill(['role_type' => $data['role']])->save();
+        UserAccountRoleForm::syncAssignedRole($actor, $user, $data['role'], $request);
 
         return redirect()
             ->route('staff-ui.users.staff.index')
@@ -142,6 +144,7 @@ class StaffDirectoryController extends Controller
     {
         $actor = $this->actor($request);
         $this->assertStaffMember($user);
+        abort_unless(StaffUiAccess::invitesEnabled(), 403);
         abort_unless($actor->can('users.create'), 403);
 
         $action = (string) $request->input('action');

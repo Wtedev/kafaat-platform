@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Certificate;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
+use App\Services\Audit\BeneficiaryEditAudit;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\Identity\PersonNameService;
 use App\Services\Privacy\AccountDeactivationService;
@@ -103,30 +104,33 @@ class StaffBeneficiaryController extends Controller
         abort_unless($canBasic || $canSensitive, 403);
 
         $field = (string) $request->input('field', '');
+        $changed = [];
 
-        DB::transaction(function () use ($request, $user, $canBasic, $canSensitive, $field): void {
+        DB::transaction(function () use ($request, $user, $canBasic, $canSensitive, $field, &$changed): void {
             if ($field !== '') {
                 if ($field === 'email') {
                     abort_unless($canSensitive, 403);
-                    $this->saveEmail($request, $user);
+                    $changed = $this->saveEmail($request, $user);
 
                     return;
                 }
 
                 abort_unless($canBasic, 403);
-                $this->saveBasicField($request, $user, $field);
+                $changed = $this->saveBasicField($request, $user, $field);
 
                 return;
             }
 
             if ($canBasic && $request->boolean('basic')) {
-                $this->saveBasicProfile($request, $user);
+                $changed = array_merge($changed, $this->saveBasicProfile($request, $user));
             }
 
             if ($canSensitive && $request->exists('email')) {
-                $this->saveEmail($request, $user);
+                $changed = array_merge($changed, $this->saveEmail($request, $user));
             }
         });
+
+        BeneficiaryEditAudit::record($actor, $user, $changed, $request);
 
         return redirect()
             ->route('staff-ui.users.show', $user)
@@ -210,20 +214,24 @@ class StaffBeneficiaryController extends Controller
         ], true), 404);
     }
 
-    private function saveBasicField(Request $request, User $user, string $field): void
+    /**
+     * @return list<string>
+     */
+    private function saveBasicField(Request $request, User $user, string $field): array
     {
-        match ($field) {
+        return match ($field) {
             'name' => $this->saveName($request, $user),
             'phone' => $this->savePhone($request, $user),
-            'notify_email' => $user->fill([
-                'notify_email' => $request->boolean('notify_email'),
-            ])->save(),
+            'notify_email' => $this->saveNotifyEmail($request, $user),
             'gender', 'birth_date', 'city', 'job_title', 'bio' => $this->saveProfileField($request, $user, $field),
             default => abort(422),
         };
     }
 
-    private function saveName(Request $request, User $user): void
+    /**
+     * @return list<string>
+     */
+    private function saveName(Request $request, User $user): array
     {
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:100'],
@@ -245,24 +253,48 @@ class StaffBeneficiaryController extends Controller
             ]);
         }
 
-        $user->fill([
+        $next = [
             ...$parts,
             'name' => PersonNameService::buildFullName($parts),
-        ])->save();
+        ];
+        $changed = $this->changedKeys($user, $next);
+        $user->fill($next)->save();
+
+        return $changed;
     }
 
-    private function savePhone(Request $request, User $user): void
+    /**
+     * @return list<string>
+     */
+    private function savePhone(Request $request, User $user): array
     {
         $data = $request->validate([
             'phone' => ['nullable', 'string', 'max:20'],
         ]);
 
-        $user->fill([
-            'phone' => filled($data['phone'] ?? null) ? trim((string) $data['phone']) : null,
-        ])->save();
+        $phone = filled($data['phone'] ?? null) ? trim((string) $data['phone']) : null;
+        $changed = $this->changedKeys($user, ['phone' => $phone]);
+        $user->fill(['phone' => $phone])->save();
+
+        return $changed;
     }
 
-    private function saveProfileField(Request $request, User $user, string $field): void
+    /**
+     * @return list<string>
+     */
+    private function saveNotifyEmail(Request $request, User $user): array
+    {
+        $notify = $request->boolean('notify_email');
+        $changed = (bool) $user->notify_email === $notify ? [] : ['notify_email'];
+        $user->fill(['notify_email' => $notify])->save();
+
+        return $changed;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function saveProfileField(Request $request, User $user, string $field): array
     {
         $rules = [
             'gender' => ['nullable', Rule::enum(ProfileGender::class)],
@@ -282,13 +314,19 @@ class StaffBeneficiaryController extends Controller
             $value = $value === '' ? null : $value;
         }
 
+        $changed = $this->changedKeys($user->profile, [$field => $value]);
         $user->profile()->updateOrCreate(
             ['user_id' => $user->id],
             [$field => $value],
         );
+
+        return $changed;
     }
 
-    private function saveBasicProfile(Request $request, User $user): void
+    /**
+     * @return list<string>
+     */
+    private function saveBasicProfile(Request $request, User $user): array
     {
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:100'],
@@ -322,26 +360,71 @@ class StaffBeneficiaryController extends Controller
             ]);
         }
 
-        $user->fill([
+        $account = [
             ...$parts,
             'name' => PersonNameService::buildFullName($parts),
             'phone' => filled($data['phone'] ?? null) ? trim((string) $data['phone']) : null,
             'notify_email' => $request->boolean('notify_email'),
-        ])->save();
+        ];
+        $profileValues = [
+            'gender' => filled($data['gender'] ?? null) ? $data['gender'] : null,
+            'birth_date' => $data['birth_date'] ?? null,
+            'city' => filled($data['city'] ?? null) ? trim((string) $data['city']) : null,
+            'job_title' => filled($data['job_title'] ?? null) ? trim((string) $data['job_title']) : null,
+            'bio' => filled($data['bio'] ?? null) ? trim((string) $data['bio']) : null,
+        ];
+        $changed = array_merge(
+            $this->changedKeys($user, $account),
+            $this->changedKeys($user->profile, $profileValues),
+        );
 
+        $user->fill($account)->save();
         $user->profile()->updateOrCreate(
             ['user_id' => $user->id],
-            [
-                'gender' => filled($data['gender'] ?? null) ? $data['gender'] : null,
-                'birth_date' => $data['birth_date'] ?? null,
-                'city' => filled($data['city'] ?? null) ? trim((string) $data['city']) : null,
-                'job_title' => filled($data['job_title'] ?? null) ? trim((string) $data['job_title']) : null,
-                'bio' => filled($data['bio'] ?? null) ? trim((string) $data['bio']) : null,
-            ],
+            $profileValues,
         );
+
+        return $changed;
     }
 
-    private function saveEmail(Request $request, User $user): void
+    /**
+     * @param  array<string, mixed>  $next
+     * @return list<string>
+     */
+    private function changedKeys(?object $current, array $next): array
+    {
+        $changed = [];
+
+        foreach ($next as $key => $value) {
+            $before = $current?->{$key} ?? null;
+            if ($before instanceof \BackedEnum) {
+                $before = $before->value;
+            }
+            if ($value instanceof \BackedEnum) {
+                $value = $value->value;
+            }
+            if ($before instanceof \DateTimeInterface) {
+                $before = $before->format('Y-m-d');
+            }
+            if (is_bool($value) || is_bool($before)) {
+                if ((bool) $before !== (bool) $value) {
+                    $changed[] = $key;
+                }
+
+                continue;
+            }
+            if ((string) ($before ?? '') !== (string) ($value ?? '')) {
+                $changed[] = $key;
+            }
+        }
+
+        return $changed;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function saveEmail(Request $request, User $user): array
     {
         $email = EmailNormalizer::normalize((string) $request->input('email'));
 
@@ -371,5 +454,7 @@ class StaffBeneficiaryController extends Controller
             $user->email_verified_at = null;
         }
         $user->save();
+
+        return $changed ? ['email'] : [];
     }
 }

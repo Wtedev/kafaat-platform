@@ -40,11 +40,19 @@ class StaffUiMaintenanceDefaultTest extends TestCase
                 'email_verified_at' => now(),
             ]);
             $staff->assignRole(RbacCatalog::ROLE_STAFF);
+            $staff->givePermissionTo(['users.view', 'statistics.view']);
 
             $this->actingAsOtpVerified($staff)
                 ->get('/admin')
                 ->assertOk()
-                ->assertDontSee('واجهة الموظفين قيد العمل حالياً');
+                ->assertDontSee('واجهة الموظفين قيد العمل حالياً')
+                ->assertDontSee('لوحة التحكم الجديدة قيد البناء')
+                ->assertSee('PlatformStatsWidget', false)
+                ->assertSee('fi-sidebar', false);
+
+            $this->actingAsOtpVerified($staff)
+                ->get(route('staff-ui.users.index'))
+                ->assertForbidden();
         } finally {
             $this->restoreMaintenanceEnv($previous);
         }

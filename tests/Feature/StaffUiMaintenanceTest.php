@@ -37,7 +37,7 @@ class StaffUiMaintenanceTest extends TestCase
         ]);
         $staff->assignRole(RbacCatalog::ROLE_STAFF);
 
-        foreach (['/admin', '/admin/users', '/staff-ui/demo', '/staff-ui/profile'] as $url) {
+        foreach (['/admin', '/admin/users'] as $url) {
             $this->actingAsOtpVerified($staff)
                 ->get($url)
                 ->assertServiceUnavailable()
@@ -48,6 +48,12 @@ class StaffUiMaintenanceTest extends TestCase
                 ->assertSee('IBM+Plex+Sans+Arabic', false)
                 ->assertSee('dir="rtl"', false)
                 ->assertDontSee('البرنامج الحالي');
+        }
+
+        foreach (['/staff-ui/demo', '/staff-ui/profile', '/staff-ui/users'] as $url) {
+            $this->actingAsOtpVerified($staff)
+                ->get($url)
+                ->assertForbidden();
         }
     }
 

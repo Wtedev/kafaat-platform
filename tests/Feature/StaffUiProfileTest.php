@@ -27,7 +27,10 @@ class StaffUiProfileTest extends TestCase
     {
         parent::setUp();
         $this->seedRbacRoles();
-        config(['staff_ui.maintenance' => false]);
+        config([
+            'staff_ui.maintenance' => false,
+            'staff_ui.ready_modules' => ['shell'],
+        ]);
     }
 
     public function test_guest_is_redirected_and_trainees_are_forbidden(): void
@@ -79,11 +82,14 @@ class StaffUiProfileTest extends TestCase
 
     public function test_maintenance_hides_the_profile_from_staff(): void
     {
-        config(['staff_ui.maintenance' => true]);
+        config([
+            'staff_ui.maintenance' => true,
+            'staff_ui.ready_modules' => [],
+        ]);
 
         $this->actingAsOtpVerified($this->staff())
             ->get(route('staff-ui.profile'))
-            ->assertServiceUnavailable();
+            ->assertForbidden();
 
         $this->actingAsOtpVerified($this->admin())
             ->get(route('staff-ui.profile'))

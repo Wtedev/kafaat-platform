@@ -6,6 +6,7 @@ use App\Enums\IdentityType;
 use App\Enums\ProfileGender;
 use App\Enums\UserDocumentStatus;
 use App\Enums\UserDocumentType;
+use App\Models\AuditLog;
 use App\Models\EntityNote;
 use App\Models\User;
 use App\Models\UserDocument;
@@ -33,7 +34,7 @@ class StaffUiBeneficiaryProfileTest extends TestCase
         $this->seedRbacRoles();
         config([
             'staff_ui.maintenance' => false,
-            'staff_ui.ready_modules' => [],
+            'staff_ui.ready_modules' => ['users'],
         ]);
     }
 
@@ -123,6 +124,14 @@ class StaffUiBeneficiaryProfileTest extends TestCase
         $this->assertSame('0555000111', $beneficiary->phone);
         $this->assertSame('جدة', $beneficiary->profile->city);
         $this->assertNotSame('changed-by-basic@example.com', $beneficiary->email);
+
+        $audit = AuditLog::query()->where('action', 'beneficiary.updated')->where('target_user_id', $beneficiary->id)->first();
+        $this->assertNotNull($audit);
+        $this->assertSame($editor->id, $audit->actor_id);
+        $this->assertContains('phone', $audit->metadata['fields']);
+        $this->assertContains('city', $audit->metadata['fields']);
+        $this->assertStringNotContainsString('0555000111', (string) json_encode($audit->metadata, JSON_UNESCAPED_UNICODE));
+        $this->assertNotContains('email', $audit->metadata['fields']);
 
         $this->actingAsOtpVerified($editor)
             ->post(route('staff-ui.users.update', $beneficiary), [
@@ -322,13 +331,16 @@ class StaffUiBeneficiaryProfileTest extends TestCase
 
     public function test_maintenance_keeps_the_profile_closed_for_staff(): void
     {
-        config(['staff_ui.maintenance' => true]);
+        config([
+            'staff_ui.maintenance' => true,
+            'staff_ui.ready_modules' => [],
+        ]);
         $beneficiary = $this->beneficiary();
         $staff = $this->staff(['users.view']);
 
         $this->actingAsOtpVerified($staff)
             ->get(route('staff-ui.users.show', $beneficiary))
-            ->assertServiceUnavailable();
+            ->assertForbidden();
 
         $this->assertNotContains('users', config('staff_ui.ready_modules'));
     }

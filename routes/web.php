@@ -118,7 +118,7 @@ Route::middleware(['auth', 'otp.verified', 'operational'])->group(function () {
         ->name('notification-prefs.ack');
 });
 
-Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.maintenance:'.StaffUiModule::USERS])
+Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.StaffUiModule::USERS, 'staff-ui.maintenance:'.StaffUiModule::USERS])
     ->prefix('staff-ui')
     ->name('staff-ui.')
     ->group(function () {
@@ -134,7 +134,7 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.maintenance:
         Route::post('/users/{user}/notes', [StaffBeneficiaryController::class, 'storeNote'])->name('users.notes.store');
     });
 
-Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.maintenance:'.StaffUiModule::SHELL])
+Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.StaffUiModule::SHELL, 'staff-ui.maintenance:'.StaffUiModule::SHELL])
     ->prefix('staff-ui')
     ->name('staff-ui.')
     ->group(function () {

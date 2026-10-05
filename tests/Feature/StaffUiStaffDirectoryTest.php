@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Support\UserInlineEditSupport;
+use App\Models\AuditLog;
 use App\Models\User;
+use App\Services\Rbac\PermissionMatrixCatalog;
 use App\Notifications\StaffInvitationNotification;
 use App\Services\Rbac\RbacCatalog;
 use App\Services\StaffUi\StaffInvitationService;
@@ -27,7 +30,8 @@ class StaffUiStaffDirectoryTest extends TestCase
         $this->seedRbacRoles();
         config([
             'staff_ui.maintenance' => false,
-            'staff_ui.ready_modules' => [],
+            'staff_ui.ready_modules' => ['users'],
+            'staff_ui.invites_enabled' => true,
         ]);
     }
 
@@ -223,6 +227,74 @@ class StaffUiStaffDirectoryTest extends TestCase
             ->assertForbidden();
 
         $this->assertTrue($admin->fresh()->hasRole(RbacCatalog::ROLE_ADMIN));
+
+        $audit = AuditLog::query()->where('action', 'user.role_changed')->where('target_user_id', $member->id)->first();
+        $this->assertNotNull($audit);
+        $this->assertSame($admin->id, $audit->actor_id);
+        $this->assertSame(RbacCatalog::ROLE_STAFF, $audit->metadata['old_role']);
+        $this->assertSame(RbacCatalog::ROLE_ADMIN, $audit->metadata['new_role']);
+    }
+
+    public function test_staff_directory_and_filament_role_changes_grant_the_same_permissions(): void
+    {
+        $admin = $this->admin();
+        $throughDirectory = $this->staff([], ['email' => 'directory-role@example.com']);
+        $throughFilament = $this->beneficiary(['email' => 'filament-role@example.com']);
+        $throughDirectory->syncPermissions([]);
+
+        $this->actingAsOtpVerified($admin)
+            ->post(route('staff-ui.users.staff.role', $throughDirectory), ['role' => RbacCatalog::ROLE_ADMIN])
+            ->assertRedirect();
+
+        $this->actingAsOtpVerified($admin)
+            ->post(route('staff-ui.users.staff.role', $throughDirectory), ['role' => RbacCatalog::ROLE_STAFF])
+            ->assertRedirect();
+
+        UserInlineEditSupport::persistAccountSection($throughFilament, [
+            'name' => $throughFilament->name,
+            'email' => $throughFilament->email,
+            'phone' => $throughFilament->phone,
+            'is_active' => true,
+            'notify_email' => false,
+            'platform_role' => RbacCatalog::ROLE_STAFF,
+        ], $admin);
+
+        $expected = collect(PermissionMatrixCatalog::assignablePermissionNames())->sort()->values()->all();
+        $directoryPermissions = $throughDirectory->fresh()->getPermissionNames()->sort()->values()->all();
+        $filamentPermissions = $throughFilament->fresh()->getPermissionNames()->sort()->values()->all();
+
+        $this->assertSame($expected, $directoryPermissions);
+        $this->assertSame($directoryPermissions, $filamentPermissions);
+    }
+
+    public function test_invites_stay_hidden_and_blocked_when_the_flag_is_off(): void
+    {
+        config(['staff_ui.invites_enabled' => false]);
+        $admin = $this->admin();
+        $invited = $this->staff([], [
+            'email' => 'pending-hidden@example.com',
+            'is_active' => false,
+        ]);
+        $invited->forceFill(['remember_token' => StaffInvitationService::MARKER.'pending'])->save();
+
+        $this->actingAsOtpVerified($admin)
+            ->get(route('staff-ui.users.staff.index'))
+            ->assertOk()
+            ->assertDontSee('دعوة موظف')
+            ->assertDontSee('إعادة إرسال الدعوة')
+            ->assertDontSee('إلغاء الدعوة');
+
+        $this->actingAsOtpVerified($admin)
+            ->post(route('staff-ui.users.staff.store'), [
+                'name' => 'لا دعوة',
+                'email' => 'no-invite@example.com',
+                'role' => RbacCatalog::ROLE_STAFF,
+            ])
+            ->assertForbidden();
+
+        $this->actingAsOtpVerified($admin)
+            ->post(route('staff-ui.users.staff.invitation', $invited), ['action' => 'resend'])
+            ->assertForbidden();
     }
 
     public function test_staff_cannot_deactivate_themselves_and_deactivation_logs_out_and_blocks_login(): void

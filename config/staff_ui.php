@@ -15,6 +15,12 @@ return [
     'maintenance' => (bool) env('STAFF_UI_MAINTENANCE', false),
 
     /*
+    | Staff invitations send a real set-password email. Off everywhere unless
+    | STAFF_UI_INVITES_ENABLED is set. Staging turns this on; production stays off.
+    */
+    'invites_enabled' => (bool) env('STAFF_UI_INVITES_ENABLED', false),
+
+    /*
     | Module names attached to staff route groups, for example:
     | shell, users, training, certificates, volunteering,
     | content, governance, access, support.

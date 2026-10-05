@@ -4,31 +4,29 @@ namespace App\Filament\Pages;
 
 use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Http\Controllers\StaffUi\StaffDashboardController;
+use App\Models\User;
+use App\Support\StaffUi\StaffUiAccess;
 use App\Support\StaffUi\StaffUiModule;
 use Filament\Pages\Dashboard as BaseDashboard;
-use Filament\Pages\PageConfiguration;
-use Filament\Panel;
-use Illuminate\Support\Facades\Route;
+use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\Response;
 
 class Dashboard extends BaseDashboard
 {
     use BelongsToStaffUiModule;
 
-    public static function routes(Panel $panel, ?PageConfiguration $configuration = null): void
+    /**
+     * Admins see the new shell. Every other staff user keeps the Filament dashboard.
+     */
+    public function __invoke(): Response|View
     {
-        $middleware = static::getRouteMiddleware($panel);
+        $user = auth()->user();
 
-        if ($configuration) {
-            $middleware = [
-                ...$middleware,
-                "page-configuration:{$configuration->getKey()}",
-            ];
+        if ($user instanceof User && StaffUiAccess::seesNewUi($user)) {
+            return app(StaffDashboardController::class)(request());
         }
 
-        Route::get(static::getRoutePath($panel), StaffDashboardController::class)
-            ->middleware($middleware)
-            ->withoutMiddleware(static::getWithoutRouteMiddleware($panel))
-            ->name(static::getRelativeRouteName($panel));
+        return parent::__invoke();
     }
 
     protected static function staffUiModule(): string

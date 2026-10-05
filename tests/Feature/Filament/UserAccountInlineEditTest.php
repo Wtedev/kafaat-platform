@@ -4,6 +4,7 @@ namespace Tests\Feature\Filament;
 
 use App\Filament\Resources\UserResource\Pages\ViewUser;
 use App\Filament\Support\UserInlineEditSupport;
+use App\Models\AuditLog;
 use App\Models\Profile;
 use App\Models\User;
 use App\Support\UserAccountRoleForm;
@@ -74,6 +75,11 @@ class UserAccountInlineEditTest extends TestCase
             $beneficiary->getAllPermissions()->pluck('name')->sort()->values()->all(),
         );
         $this->assertTrue($beneficiary->hasRole('beneficiary'));
+
+        $audit = AuditLog::query()->where('action', 'beneficiary.updated')->where('target_user_id', $beneficiary->id)->first();
+        $this->assertNotNull($audit);
+        $this->assertSame(['email'], $audit->metadata['fields']);
+        $this->assertStringNotContainsString('beneficiary-after@example.com', json_encode($audit->metadata));
     }
 
     public function test_staff_with_users_update_can_change_email(): void

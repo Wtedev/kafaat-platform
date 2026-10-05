@@ -26,7 +26,7 @@ class StaffUiBeneficiariesTest extends TestCase
         $this->seedRbacRoles();
         config([
             'staff_ui.maintenance' => false,
-            'staff_ui.ready_modules' => [],
+            'staff_ui.ready_modules' => ['users'],
         ]);
     }
 
@@ -174,19 +174,19 @@ class StaffUiBeneficiariesTest extends TestCase
 
     public function test_sidebar_link_follows_the_current_list_permission(): void
     {
-        $allowed = $this->staff(['users.view']);
-        $denied = $this->staff();
+        $admin = $this->admin();
 
-        $this->actingAsOtpVerified($allowed)
+        $this->actingAsOtpVerified($admin)
             ->get('/admin')
             ->assertOk()
             ->assertSee('المستخدمين')
             ->assertSee(route('staff-ui.users.index'), false);
 
-        $this->actingAsOtpVerified($denied)
+        $this->actingAsOtpVerified($this->staff(['users.view', 'statistics.view']))
             ->get('/admin')
             ->assertOk()
-            ->assertDontSee(route('staff-ui.users.index'), false);
+            ->assertDontSee(route('staff-ui.users.index'), false)
+            ->assertDontSee('لوحة التحكم الجديدة قيد البناء');
     }
 
     public function test_pagination_keeps_the_search(): void
@@ -210,7 +210,10 @@ class StaffUiBeneficiariesTest extends TestCase
 
     public function test_maintenance_keeps_the_page_closed_for_staff(): void
     {
-        config(['staff_ui.maintenance' => true]);
+        config([
+            'staff_ui.maintenance' => true,
+            'staff_ui.ready_modules' => [],
+        ]);
 
         $staff = $this->staff(['users.view']);
         $admin = $this->admin();
@@ -218,8 +221,7 @@ class StaffUiBeneficiariesTest extends TestCase
 
         $this->actingAsOtpVerified($staff)
             ->get(route('staff-ui.users.index'))
-            ->assertServiceUnavailable()
-            ->assertSee(self::MAINTENANCE_HEADING);
+            ->assertForbidden();
 
         $this->actingAsOtpVerified($admin)
             ->get(route('staff-ui.users.index'))
