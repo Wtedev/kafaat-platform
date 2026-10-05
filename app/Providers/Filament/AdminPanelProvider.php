@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\Login;
+use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\LatestInAppNotificationsWidget;
 use App\Filament\Widgets\PlatformStatsWidget;
 use App\Http\Middleware\EnsureOperationalAccount;
@@ -12,7 +13,6 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -149,6 +149,15 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                EnsureOtpVerified::class,
+            ])
+            // Livewire component updates hit /livewire/update, not the panel routes, so
+            // only middleware marked persistent runs for them. Without this a session
+            // invalidated elsewhere (password change, logoutOtherDevices) keeps driving
+            // Livewire actions until the next full page load.
+            ->persistentMiddleware([
+                AuthenticateSession::class,
+                EnsureOperationalAccount::class,
                 EnsureOtpVerified::class,
             ])
             ->authGuard('web');

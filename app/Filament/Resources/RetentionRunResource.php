@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Resources\RetentionRunResource\Pages;
 use App\Models\RetentionRun;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -12,6 +14,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class RetentionRunResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::GOVERNANCE;
+    }
+
     protected static ?string $model = RetentionRun::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-play';

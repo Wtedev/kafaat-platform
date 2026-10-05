@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Resources\NewsResource\Pages;
 use App\Filament\Resources\NewsResource\Pages\EditNews;
@@ -12,6 +13,7 @@ use App\Services\News\NewsImageSyncService;
 use App\Support\NewsFormSupport;
 use App\Support\PublicDiskPath;
 use App\Support\RichContentSupport;
+use App\Support\StaffUi\StaffUiModule;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -49,6 +51,13 @@ use Illuminate\Support\Str;
 
 class NewsResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::CONTENT;
+    }
+
     use ConfiguresEditOnlyResourceTable;
 
     protected static ?string $model = News::class;

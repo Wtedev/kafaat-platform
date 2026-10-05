@@ -2,10 +2,13 @@
 
 namespace App\Support;
 
+use App\Enums\AuditLogResult;
 use App\Models\User;
 use App\Models\VolunteerTeam;
+use App\Services\Audit\AuditLogger;
 use App\Services\Rbac\RbacCatalog;
 use App\Services\Rbac\StaffPermissionService;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -177,6 +180,31 @@ final class UserAccountRoleForm
     public static function staffSpatieRoleNames(): array
     {
         return RbacCatalog::staffRoleNames();
+    }
+
+    public static function syncAssignedRole(User $actor, User $target, string $spatieRole, ?Request $request = null): void
+    {
+        $oldRole = self::platformRoleFromUser($target);
+
+        if ($oldRole === $spatieRole && (string) $target->role_type === $spatieRole) {
+            return;
+        }
+
+        $target->syncRoles([$spatieRole]);
+        $target->forceFill(['role_type' => $spatieRole])->save();
+        self::applyRoleSideEffects($target, $spatieRole);
+
+        app(AuditLogger::class)->recordOrFail(
+            $actor,
+            'user.role_changed',
+            AuditLogResult::Success,
+            $target,
+            metadata: [
+                'old_role' => $oldRole,
+                'new_role' => $spatieRole,
+            ],
+            request: $request,
+        );
     }
 
     public static function applyRoleSideEffects(User $record, string $spatieRole): void

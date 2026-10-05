@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\CompetencyTrack;
 use App\Enums\LearningPathKind;
 use App\Enums\PathStatus;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\ConfiguresViewFirstTrainingResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
@@ -20,6 +21,7 @@ use App\Filament\Support\EntityTwoColumnFormLayout;
 use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\LearningPath;
 use App\Support\PublicDiskPath;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -35,6 +37,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 class LearningPathResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::TRAINING;
+    }
+
     use ConfiguresEditOnlyResourceTable;
     use ConfiguresViewFirstTrainingResourceTable;
     use RegistersNavigationByPermission;

@@ -5,10 +5,12 @@ namespace App\Filament\Resources;
 use App\Enums\RetentionPolicyAction;
 use App\Enums\RetentionPolicyStatus;
 use App\Enums\RetentionTriggerEvent;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Resources\RetentionPolicyResource\Pages;
 use App\Models\RetentionPolicy;
 use App\Services\Privacy\Retention\RetentionPolicyEngine;
 use App\Services\Privacy\Retention\RetentionResourceCatalog;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -23,6 +25,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class RetentionPolicyResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::GOVERNANCE;
+    }
+
     protected static ?string $model = RetentionPolicy::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clock';

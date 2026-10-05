@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\AccountStatus;
 use App\Http\Controllers\Controller;
+use App\Services\StaffUi\StaffInvitationService;
 use App\Support\Auth\EmailNormalizer;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
@@ -43,10 +45,20 @@ class ResetPasswordController extends Controller
         $status = Password::reset(
             $credentials,
             function ($user, string $password) {
-                $user->forceFill([
+                $acceptingInvite = app(StaffInvitationService::class)->accepting($user);
+
+                $attributes = [
                     'password' => Hash::make($password),
                     'remember_token' => Str::random(60),
-                ])->save();
+                ];
+
+                if ($acceptingInvite) {
+                    $attributes['is_active'] = true;
+                    $attributes['email_verified_at'] = now();
+                    $attributes['account_status'] = AccountStatus::Active;
+                }
+
+                $user->forceFill($attributes)->save();
 
                 event(new PasswordReset($user));
             }

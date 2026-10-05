@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerTeamResource\Pages;
@@ -10,6 +11,7 @@ use App\Filament\Resources\VolunteerTeamResource\RelationManagers\TeamNotificati
 use App\Models\VolunteerTeam;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\StaffFilamentRoles;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -24,6 +26,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 class VolunteerTeamResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::VOLUNTEERING;
+    }
+
     use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
 

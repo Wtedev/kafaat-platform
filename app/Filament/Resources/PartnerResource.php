@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\PartnerResource\Pages;
 use App\Models\Partner;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -27,6 +29,13 @@ use Illuminate\Support\HtmlString;
 
 class PartnerResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::CONTENT;
+    }
+
     use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
 

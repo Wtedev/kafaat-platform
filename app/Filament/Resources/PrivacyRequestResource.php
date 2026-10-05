@@ -4,8 +4,10 @@ namespace App\Filament\Resources;
 
 use App\Enums\PrivacyRequestStatus;
 use App\Enums\PrivacyRequestType;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Resources\PrivacyRequestResource\Pages;
 use App\Models\PrivacyRequest;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -14,6 +16,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class PrivacyRequestResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::GOVERNANCE;
+    }
+
     protected static ?string $model = PrivacyRequest::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';

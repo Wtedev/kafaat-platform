@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Resources\AuditLogResource\Pages\ListAuditLogs;
 use App\Models\AuditLog;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Resources\Resource;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -12,6 +14,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 class AuditLogResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::SUPPORT;
+    }
+
     protected static ?string $model = AuditLog::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';

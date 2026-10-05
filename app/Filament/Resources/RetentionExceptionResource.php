@@ -5,10 +5,12 @@ namespace App\Filament\Resources;
 use App\Enums\RetentionExceptionReasonCode;
 use App\Enums\RetentionExceptionScope;
 use App\Enums\RetentionExceptionStatus;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Resources\RetentionExceptionResource\Pages;
 use App\Models\RetentionException;
 use App\Services\Privacy\Retention\RetentionExceptionManagementService;
 use App\Services\Privacy\Retention\RetentionResourceCatalog;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -23,6 +25,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class RetentionExceptionResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::GOVERNANCE;
+    }
+
     protected static ?string $model = RetentionException::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shield-exclamation';
