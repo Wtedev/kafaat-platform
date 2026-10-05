@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\OpportunityStatus;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresViewFirstResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerOpportunityResource\Pages;
@@ -13,6 +14,7 @@ use App\Filament\Support\EntityTwoColumnFormLayout;
 use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\VolunteerOpportunity;
 use App\Support\PublicDiskPath;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -33,6 +35,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 class VolunteerOpportunityResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::VOLUNTEERING;
+    }
+
     use ConfiguresViewFirstResourceTable;
     use RegistersNavigationByPermission;
 

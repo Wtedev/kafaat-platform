@@ -2,9 +2,11 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Models\ErrorPageVisit;
 use App\Models\User;
 use App\Services\Operations\ErrorPageVisitRecorder;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -15,6 +17,13 @@ use Livewire\WithPagination;
 
 class ErrorPageStatsPage extends Page
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::SUPPORT;
+    }
+
     use WithPagination;
 
     protected static ?string $slug = 'error-page-stats';

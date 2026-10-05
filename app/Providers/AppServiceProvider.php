@@ -128,6 +128,20 @@ class AppServiceProvider extends ServiceProvider
             return app(SendInAppNotificationPolicy::class)->accessPage($user);
         });
 
+        View::composer('components.staff-ui.layout', function ($view): void {
+            $user = auth()->user();
+            if (! $user instanceof User || ! $user->canAccessFilamentAdmin()) {
+                $view->with('staffInboxNotifications', collect());
+                $view->with('staffInboxUnreadCount', 0);
+
+                return;
+            }
+
+            $inbox = app(InboxNotificationService::class);
+            $view->with('staffInboxNotifications', $inbox->latestForUser($user, 10));
+            $view->with('staffInboxUnreadCount', $inbox->unreadCount($user));
+        });
+
         View::composer('layouts.portal', function ($view): void {
             if (! auth()->check()) {
                 return;

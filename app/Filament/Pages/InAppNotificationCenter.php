@@ -2,9 +2,11 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Support\InboxNotificationRecordActions;
 use App\Models\InboxNotification;
 use App\Services\Inbox\InboxNotificationService;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
@@ -25,6 +27,13 @@ use Livewire\Attributes\Url;
 
 class InAppNotificationCenter extends Page implements HasTable
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::SUPPORT;
+    }
+
     use Tables\Concerns\InteractsWithTable;
 
     protected static bool $shouldRegisterNavigation = false;

@@ -3,9 +3,11 @@
 namespace App\Filament\Resources;
 
 use App\Enums\PrivacyPolicyVersionStatus;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Resources\CandidatePoolConsentVersionResource\Pages;
 use App\Models\CandidatePoolConsentVersion;
 use App\Services\CandidatePool\CandidatePoolConsentPublisher;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -26,6 +28,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class CandidatePoolConsentVersionResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::GOVERNANCE;
+    }
+
     protected static ?string $model = CandidatePoolConsentVersion::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-check';

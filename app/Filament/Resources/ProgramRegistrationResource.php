@@ -6,6 +6,7 @@ use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Exceptions\RegistrationNotApprovedException;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\ProgramRegistrationResource\Pages;
@@ -17,6 +18,7 @@ use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Services\Certificates\CertificateEligibilityService;
 use App\Services\ProgramRegistrationService;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -35,6 +37,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ProgramRegistrationResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::TRAINING;
+    }
+
     use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
 

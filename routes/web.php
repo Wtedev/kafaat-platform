@@ -55,6 +55,12 @@ use App\Http\Controllers\Public\PublicTrainingProgramController;
 use App\Http\Controllers\Public\PublicVolunteerOpportunityController;
 use App\Http\Controllers\Public\SupportTicketController;
 use App\Http\Controllers\PublicPrivacyPolicyController;
+use App\Http\Controllers\StaffUi\StaffBeneficiaryController;
+use App\Http\Controllers\StaffUi\StaffDirectoryController;
+use App\Http\Controllers\StaffUi\StaffInboxController;
+use App\Http\Controllers\StaffUi\StaffProfileController;
+use App\Http\Controllers\StaffUi\StaffUiDemoController;
+use App\Support\StaffUi\StaffUiModule;
 use Illuminate\Support\Facades\Route;
 
 // ─── Authentication ───────────────────────────────────────────────────────────
@@ -100,20 +106,57 @@ Route::middleware(['auth', 'otp.verified', 'operational'])->group(function () {
         ->middleware('signed')
         ->name('certificates.exports.download');
 
-    Route::get('/admin/beneficiaries/{user}/cv-pdf', BeneficiaryCvPdfController::class)
-        ->name('admin.beneficiaries.cv-pdf');
+    Route::middleware('staff-ui.maintenance:'.StaffUiModule::USERS)
+        ->group(function () {
+            Route::get('/admin/beneficiaries/{user}/cv-pdf', BeneficiaryCvPdfController::class)
+                ->name('admin.beneficiaries.cv-pdf');
 
-    Route::get('/admin/beneficiaries/{user}/cv/download', BeneficiaryCvFileDownloadController::class)
-        ->name('admin.beneficiaries.cv-file.download');
+            Route::get('/admin/beneficiaries/{user}/cv/download', BeneficiaryCvFileDownloadController::class)
+                ->name('admin.beneficiaries.cv-file.download');
 
-    Route::post('/admin/beneficiaries/{user}/identity/reveal', BeneficiaryIdentityRevealController::class)
-        ->middleware('throttle:10,1')
-        ->name('admin.beneficiaries.identity.reveal');
+            Route::post('/admin/beneficiaries/{user}/identity/reveal', BeneficiaryIdentityRevealController::class)
+                ->middleware('throttle:10,1')
+                ->name('admin.beneficiaries.identity.reveal');
+        });
 
     // تفضيل إشعارات البريد (النافذة المنبثقة لمرة واحدة) — متاح لكل المستخدمين التشغيليين.
     Route::post('/notification-prefs/ack', [NotificationPreferenceController::class, 'acknowledge'])
         ->name('notification-prefs.ack');
 });
+
+Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.StaffUiModule::USERS, 'staff-ui.maintenance:'.StaffUiModule::USERS])
+    ->prefix('staff-ui')
+    ->name('staff-ui.')
+    ->group(function () {
+        Route::get('/users', [StaffBeneficiaryController::class, 'index'])->name('users.index');
+        Route::get('/users/staff', [StaffDirectoryController::class, 'index'])->name('users.staff.index');
+        Route::post('/users/staff', [StaffDirectoryController::class, 'store'])->name('users.staff.store');
+        Route::post('/users/staff/{user}/role', [StaffDirectoryController::class, 'updateRole'])->name('users.staff.role');
+        Route::post('/users/staff/{user}/activation', [StaffDirectoryController::class, 'activation'])->name('users.staff.activation');
+        Route::post('/users/staff/{user}/invitation', [StaffDirectoryController::class, 'invitation'])->name('users.staff.invitation');
+        Route::get('/users/{user}', [StaffBeneficiaryController::class, 'show'])->name('users.show');
+        Route::post('/users/{user}', [StaffBeneficiaryController::class, 'update'])->name('users.update');
+        Route::post('/users/{user}/activation', [StaffBeneficiaryController::class, 'activation'])->name('users.activation');
+        Route::post('/users/{user}/notes', [StaffBeneficiaryController::class, 'storeNote'])->name('users.notes.store');
+    });
+
+Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.StaffUiModule::SHELL, 'staff-ui.maintenance:'.StaffUiModule::SHELL])
+    ->prefix('staff-ui')
+    ->name('staff-ui.')
+    ->group(function () {
+        Route::get('/demo', StaffUiDemoController::class)->name('demo');
+
+        Route::get('/profile', [StaffProfileController::class, 'show'])->name('profile');
+        Route::post('/profile', [StaffProfileController::class, 'update'])->name('profile.update');
+        Route::post('/profile/email', [StaffProfileController::class, 'requestEmailChange'])->name('profile.email');
+        Route::post('/profile/email/verify', [StaffProfileController::class, 'verifyEmailChange'])->name('profile.email.verify');
+        Route::post('/profile/email/resend', [StaffProfileController::class, 'resendEmailChange'])->name('profile.email.resend');
+        Route::post('/profile/email/cancel', [StaffProfileController::class, 'cancelEmailChange'])->name('profile.email.cancel');
+        Route::post('/profile/password', [StaffProfileController::class, 'changePassword'])->name('profile.password');
+
+        Route::post('/notifications/read-all', [StaffInboxController::class, 'markAllRead'])->name('notifications.read-all');
+        Route::post('/notifications/{notification}/read', [StaffInboxController::class, 'markRead'])->name('notifications.read');
+    });
 
 // ─── Public website ───────────────────────────────────────────────────────────
 

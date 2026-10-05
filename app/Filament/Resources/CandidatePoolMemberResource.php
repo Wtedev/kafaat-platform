@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Resources\CandidatePoolMemberResource\Pages\ListCandidatePoolMembers;
 use App\Models\User;
 use App\Services\CandidatePool\CandidatePoolQuery;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Tables\Columns\TextColumn;
@@ -13,6 +15,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 class CandidatePoolMemberResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::USERS;
+    }
+
     protected static ?string $model = User::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-user-group';

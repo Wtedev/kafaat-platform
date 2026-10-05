@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\CompetencyTrack;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\ConfiguresViewFirstTrainingResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
@@ -24,6 +25,7 @@ use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Services\Training\TrainingProgramImageUrl;
 use App\Support\Format\LocaleFormat;
+use App\Support\StaffUi\StaffUiModule;
 use Carbon\Carbon;
 use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\FileUpload;
@@ -45,6 +47,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 class TrainingProgramResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::TRAINING;
+    }
+
     use ConfiguresEditOnlyResourceTable;
     use ConfiguresViewFirstTrainingResourceTable;
     use RegistersNavigationByPermission;
