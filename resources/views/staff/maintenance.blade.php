@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
     <title>واجهة الموظفين قيد العمل حالياً</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preload" href="{{ asset('fonts/shamel/FFShamelFamily-SansOneBook.woff2') }}" as="font" type="font/woff2" crossorigin>
     @vite(['resources/css/staff-ui.css'])
 </head>
 <body class="sui-body sui-maintenance">

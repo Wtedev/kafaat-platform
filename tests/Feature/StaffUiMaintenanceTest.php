@@ -45,7 +45,9 @@ class StaffUiMaintenanceTest extends TestCase
                 ->assertSee('نعمل على تطوير الواجهة وسنعود قريباً')
                 ->assertSee('تسجيل الخروج')
                 ->assertSee(Vite::asset('resources/css/staff-ui.css'), false)
-                ->assertSee('IBM+Plex+Sans+Arabic', false)
+                ->assertDontSee('fonts.googleapis.com', false)
+                ->assertDontSee('fonts.gstatic.com', false)
+                ->assertSee('FFShamelFamily-SansOneBook.woff2', false)
                 ->assertSee('dir="rtl"', false)
                 ->assertDontSee('البرنامج الحالي');
         }

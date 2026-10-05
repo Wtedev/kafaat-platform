@@ -1,3 +1,35 @@
+/*
+ * FF Shamel ships Book and Bold only. 400 and 500 use Book; 600 and 700 use Bold.
+ * Section labels, table headers, badges, and secondary buttons stay at 500 (Book)
+ * so they stay quieter than titles, KPI numbers, primary buttons, name links,
+ * and the active sidebar item, which stay at 600 (Bold).
+ * The source files declare a 1900-unit line box around ink that only spans
+ * about -250 to 734, which shoves text off center in fixed-height controls.
+ */
+@font-face {
+    font-family: "FF Shamel";
+    src: url("/fonts/shamel/FFShamelFamily-SansOneBook.woff2") format("woff2"),
+        url("/fonts/shamel/FFShamelFamily-SansOneBook.ttf") format("truetype");
+    font-weight: 400 500;
+    font-style: normal;
+    font-display: swap;
+    ascent-override: 78%;
+    descent-override: 28%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: "FF Shamel";
+    src: url("/fonts/shamel/FFShamelFamily-SansOneBold.woff2") format("woff2"),
+        url("/fonts/shamel/FFShamelFamily-SansOneBold.ttf") format("truetype");
+    font-weight: 600 700;
+    font-style: normal;
+    font-display: swap;
+    ascent-override: 78%;
+    descent-override: 28%;
+    line-gap-override: 0%;
+}
+
 :root {
     --sui-bg: #f5f5f7;
     --sui-surface: #ffffff;
@@ -20,7 +52,7 @@
     --sui-text: #111827;
     --sui-text-secondary: #6b7280;
     --sui-text-muted: #9ca3af;
-    --sui-font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+    --sui-font: "FF Shamel", system-ui, sans-serif;
     --sui-sidebar: 240px;
     --sui-sidebar-collapsed: 72px;
     --sui-space-1: 4px;
@@ -52,7 +84,8 @@ body.sui-body {
     color: var(--sui-text);
     font-family: var(--sui-font);
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.65;
+    font-synthesis: none;
     font-variant-numeric: lining-nums tabular-nums;
 }
 
@@ -234,6 +267,7 @@ a:hover {
     gap: var(--sui-space-2);
     min-height: 36px;
     padding: 0 var(--sui-space-3);
+    line-height: 1.4;
     margin-bottom: 2px;
     border-radius: var(--sui-radius-sm);
     color: var(--sui-text-secondary);
@@ -302,6 +336,7 @@ a:hover {
 .sui-sidebar__user-email {
     font-size: 12px;
     color: var(--sui-text-secondary);
+    font-family: system-ui, sans-serif;
 }
 
 .sui-sidebar__user-link {
@@ -1001,6 +1036,7 @@ a.sui-icon-btn {
     color: var(--sui-text-secondary);
     font-size: 12px;
     font-weight: 500;
+    line-height: 1.4;
     text-align: start;
     padding: 10px var(--sui-space-3);
     border-bottom: 1px solid var(--sui-border);
@@ -1011,6 +1047,7 @@ a.sui-icon-btn {
     padding: 10px var(--sui-space-3);
     border-bottom: 1px solid var(--sui-border);
     vertical-align: middle;
+    line-height: 1.5;
 }
 
 .sui-table tbody tr:hover td {
@@ -1134,7 +1171,7 @@ a.sui-icon-btn {
     border: 1px solid transparent;
     font-size: 13px;
     font-weight: 600;
-    line-height: 1;
+    line-height: 1.2;
     text-decoration: none;
     white-space: nowrap;
 }
@@ -1225,6 +1262,7 @@ a.sui-icon-btn {
     background: var(--sui-surface);
     color: var(--sui-text);
     font-size: 13px;
+    line-height: 34px;
     outline: none;
 }
 
@@ -1232,6 +1270,7 @@ textarea.sui-control {
     height: auto;
     min-height: 88px;
     padding: 10px 12px;
+    line-height: 1.65;
     resize: vertical;
 }
 
@@ -1839,6 +1878,12 @@ a.sui-menu-item {
 .sui-login-never {
     color: var(--sui-text-muted);
     font-size: 12px;
+}
+
+.sui-person__email,
+.sui-latin,
+input[type="email"] {
+    font-family: system-ui, sans-serif;
 }
 
 .sui-you {

@@ -59,7 +59,9 @@ class StaffUiDemoTest extends TestCase
             ->assertDontSee('aria-label="مساعدة"', false)
             ->assertDontSee('aria-label="الإعدادات"', false)
             ->assertSee('آخر 30 يوم')
-            ->assertSee('IBM+Plex+Sans+Arabic', false)
+            ->assertDontSee('fonts.googleapis.com', false)
+            ->assertDontSee('fonts.gstatic.com', false)
+            ->assertSee('FFShamelFamily-SansOneBook.woff2', false)
             ->assertSee(Vite::asset('resources/css/staff-ui.css'), false)
             ->assertSee(Vite::asset('resources/js/staff-ui.js'), false)
             ->assertSee('js/chart.umd.min.js', false);

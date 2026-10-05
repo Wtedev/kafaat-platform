@@ -73,12 +73,12 @@
         <div class="sui-form-grid">
             <div class="sui-span-2">
                 <p class="sui-field__label">البريد الحالي</p>
-                <p>{{ $user->email }}</p>
+                <p class="sui-latin">{{ $user->email }}</p>
             </div>
             @if ($pendingEmail)
                 <div class="sui-span-2">
                     <p class="sui-field__label">البريد الجديد (قيد التحقق)</p>
-                    <p>{{ $pendingEmail }}</p>
+                    <p class="sui-latin">{{ $pendingEmail }}</p>
                 </div>
                 <form class="sui-span-2 sui-form-grid" method="POST" action="{{ route('staff-ui.profile.email.verify') }}">
                     @csrf

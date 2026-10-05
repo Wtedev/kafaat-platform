@@ -57,7 +57,7 @@
                 </dd>
                 <dt>البريد</dt>
                 <dd class="sui-fact">
-                    <span class="sui-fact__value">{{ $email ?: '—' }}</span>
+                    <span class="sui-fact__value sui-latin">{{ $email ?: '—' }}</span>
                     @if ($canUpdateSensitive)
                         <x-staff-ui.button type="button" variant="ghost" size="sm" icon="pencil" icon-only aria-label="تعديل البريد" data-sui-open-modal="edit-email" />
                     @endif

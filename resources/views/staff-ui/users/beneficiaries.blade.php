@@ -63,7 +63,7 @@
             @endphp
             <tr>
                 <td><a href="{{ route('staff-ui.users.show', $beneficiary) }}">{{ $beneficiary->fullName() }}</a></td>
-                <td>{{ $email }}</td>
+                <td class="sui-latin">{{ $email }}</td>
                 <td>{{ $phone }}</td>
                 <td>
                     @if ($active)
