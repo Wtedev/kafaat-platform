@@ -4,12 +4,14 @@ namespace App\Filament\Resources;
 
 use App\Enums\RegistrationStatus;
 use App\Exceptions\PathCapacityExceededException;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\PathRegistrationResource\Pages;
 use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\PathRegistration;
 use App\Services\PathRegistrationService;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -27,6 +29,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PathRegistrationResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::TRAINING;
+    }
+
     use ConfiguresEditOnlyResourceTable;
     use RegistersNavigationByPermission;
 

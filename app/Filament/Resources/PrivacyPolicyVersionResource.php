@@ -3,10 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Enums\PrivacyPolicyVersionStatus;
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Resources\PrivacyPolicyVersionResource\Pages;
 use App\Filament\Resources\PrivacyPolicyVersionResource\RelationManagers\AcknowledgementsRelationManager;
 use App\Models\PrivacyPolicyVersion;
 use App\Services\Privacy\PrivacyPolicyPublisher;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -27,6 +29,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class PrivacyPolicyVersionResource extends Resource
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::GOVERNANCE;
+    }
+
     protected static ?string $model = PrivacyPolicyVersion::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shield-check';

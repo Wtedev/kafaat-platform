@@ -2,10 +2,12 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Models\User;
 use App\Services\Rbac\PermissionMatrixCatalog;
 use App\Services\Rbac\RbacCatalog;
 use App\Services\Rbac\StaffPermissionService;
+use App\Support\StaffUi\StaffUiModule;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
@@ -13,6 +15,13 @@ use Illuminate\Support\Collection;
 
 class StaffPermissionMatrix extends Page
 {
+    use BelongsToStaffUiModule;
+
+    protected static function staffUiModule(): string
+    {
+        return StaffUiModule::ACCESS;
+    }
+
     protected static ?string $slug = 'staff-permissions';
 
     protected static ?string $navigationLabel = 'مصفوفة صلاحيات الموظفين';
