@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Web service entrypoint — HTTP only; no queue worker or scheduler here.
+# Migrations and seeders run once in Railway preDeploy (railway/predeploy.sh).
+# Do not call that script again here: this process is the one /up times.
 set -euo pipefail
-
-bash railway/predeploy.sh
 
 if [[ -d public/governance/surveys ]]; then
   rm -rf public/governance

@@ -17,23 +17,17 @@ Legacy failed worker attempt (`poetic-reprieve`) is still recognized by `railway
 
 Minute-level schedules require the dedicated scheduler service (`schedule:work`). Railway Cron (5-minute minimum) is **not** sufficient.
 
-## Staging (parity)
+## Staging
 
-| Component | Decision |
-|-----------|----------|
-| Web | `kafaat-web-staging`, health `/up`, preDeploy `railway/predeploy.sh` |
-| Worker | `kafaat-worker-staging`, `railway/configs/worker.railway.json` |
-| Scheduler | `kafaat-scheduler-staging`, `railway/configs/scheduler.railway.json` |
-| PostgreSQL | Staging instance |
-| Private storage | Railway Bucket / volume; `PRIVATE_DOCUMENTS_DISK=s3` or volume path |
+Paused. See `docs/deployment/railway-staging.md`. Do not deploy there.
 
 ## Scripts
 
 | File | Purpose |
 |------|---------|
-| `railway/predeploy.sh` | Migrations + content seeders (**web preDeploy only**) |
+| `railway/predeploy.sh` | Migrations, role catalog, and content seeders when sources changed (**web preDeploy only**) |
 | `railway/start.sh` | Dispatch by `RAILWAY_START_MODE` or service name |
-| `railway/run-web.sh` | HTTP server + storage link |
+| `railway/run-web.sh` | HTTP server + storage link. Does not run predeploy |
 | `railway/run-worker.sh` | `queue:work` |
 | `railway/run-scheduler.sh` | `schedule:work` |
 | `railway/deploy-production.sh` | Redeploy web + worker + scheduler |
