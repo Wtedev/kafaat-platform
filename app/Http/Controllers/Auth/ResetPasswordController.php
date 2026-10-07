@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Enums\AccountStatus;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Services\StaffUi\StaffInvitationService;
 use App\Support\Auth\EmailNormalizer;
 use Illuminate\Auth\Events\PasswordReset;
@@ -41,8 +42,11 @@ class ResetPasswordController extends Controller
 
         $credentials = $request->only('email', 'password', 'password_confirmation', 'token');
         $credentials['email'] = EmailNormalizer::normalize((string) $credentials['email']);
+        $account = User::query()->whereEmailIgnoreCase($credentials['email'])->first();
+        $acceptingInvite = $account instanceof User && app(StaffInvitationService::class)->accepting($account);
+        $broker = $acceptingInvite ? StaffInvitationService::BROKER : 'users';
 
-        $status = Password::reset(
+        $status = Password::broker($broker)->reset(
             $credentials,
             function ($user, string $password) {
                 $acceptingInvite = app(StaffInvitationService::class)->accepting($user);
@@ -56,6 +60,7 @@ class ResetPasswordController extends Controller
                     $attributes['is_active'] = true;
                     $attributes['email_verified_at'] = now();
                     $attributes['account_status'] = AccountStatus::Active;
+                    $attributes['invited_at'] = null;
                 }
 
                 $user->forceFill($attributes)->save();

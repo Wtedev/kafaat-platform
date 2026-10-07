@@ -99,6 +99,13 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+
+        'staff_invitations' => [
+            'provider' => 'users',
+            'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => (int) env('STAFF_INVITATION_EXPIRE_MINUTES', 72 * 60),
+            'throttle' => 60,
+        ],
     ],
 
     /*

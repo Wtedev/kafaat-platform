@@ -156,6 +156,8 @@ class StaffDirectoryController extends Controller
                 abort(403);
             }
             $message = 'تم تعطيل الحساب.';
+        } elseif ($action === 'activate' && $invitations->requiresReinvite($user)) {
+            abort(422);
         } elseif ($action === 'activate') {
             if (! $user->is_active) {
                 $user->update(['is_active' => true]);
@@ -187,8 +189,16 @@ class StaffDirectoryController extends Controller
         if ($action === 'resend') {
             $invitations->resend($user);
             $message = 'تم إعادة إرسال الدعوة.';
+        } elseif ($action === 'reinvite') {
+            $invitations->reopen($user);
+            $message = 'تم إعادة إرسال الدعوة.';
         } elseif ($action === 'cancel') {
-            $invitations->cancel($user);
+            $deleted = $invitations->cancel($user, $actor, $request);
+            if ($deleted) {
+                return redirect()
+                    ->route('staff-ui.users.staff.index')
+                    ->with('status', 'تم إلغاء الدعوة.');
+            }
             $message = 'تم إلغاء الدعوة.';
         } else {
             abort(422);

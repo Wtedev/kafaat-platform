@@ -1,18 +1,23 @@
 @php
     use App\Services\Rbac\RbacCatalog;
     use App\Services\StaffUi\StaffInvitationService;
+    use App\Support\UserAccountRoleForm;
 
     $pending = $pending ?? app(StaffInvitationService::class)->isPending($member);
     $isSelf = $isSelf ?? auth()->id() === $member->id;
     $roleName = $member->isAdmin() ? 'admin' : 'staff';
     $roleLabel = RbacCatalog::roleArabicLabel($roleName);
     $showRole = $canChangeRole;
-    $showActivation = $canActivate && ! $pending && (! $member->isProtectedAdminUser() || $isSelf);
+    $reinvite = ($canInvite ?? false) && app(StaffInvitationService::class)->requiresReinvite($member);
+    $lastActiveAdmin = $member->is_active
+        && $member->isAdmin()
+        && UserAccountRoleForm::activeAdminCount() <= 1;
+    $showActivation = $canActivate && ! $pending && ! $reinvite && (! $member->isProtectedAdminUser() || $isSelf);
     $showInvite = $canInvite && $pending;
     $showAccount = (bool) ($includeAccountActions ?? false);
     $showReset = $showAccount && ($canResetPassword ?? false);
     $showResetDisabled = $showAccount && ! $pending && ! $member->is_active && ($canUpdate ?? false);
-    $showMenu = $showRole || $showActivation || $showInvite || ($showAccount && ($canUpdate ?? false));
+    $showMenu = $showRole || $showActivation || $showInvite || $reinvite || ($showAccount && ($canUpdate ?? false));
 @endphp
 
 @if ($showMenu)
@@ -61,9 +66,20 @@
                 <button type="submit" class="sui-menu-item">إلغاء الدعوة</button>
             </form>
         @endif
+        @if ($reinvite)
+            <form method="POST" action="{{ route('staff-ui.users.staff.invitation', $member) }}" data-sui-staff-form>
+                @csrf
+                <input type="hidden" name="action" value="reinvite">
+                <button type="submit" class="sui-menu-item">إعادة الدعوة</button>
+            </form>
+        @endif
         @if ($showActivation)
             @if ($isSelf)
                 <span class="sui-tip" title="لا يمكنك تعطيل حسابك.">
+                    <button type="button" class="sui-menu-item sui-menu-item--danger" disabled>تعطيل الحساب</button>
+                </span>
+            @elseif ($lastActiveAdmin)
+                <span class="sui-tip" title="لا يمكن تعطيل آخر مدير نشط.">
                     <button type="button" class="sui-menu-item sui-menu-item--danger" disabled>تعطيل الحساب</button>
                 </span>
             @else

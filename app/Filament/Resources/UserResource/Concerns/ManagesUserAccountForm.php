@@ -99,6 +99,7 @@ trait ManagesUserAccountForm
 
         UserAccountRoleForm::assertActorMayAssign(auth()->user(), $platformRole);
         $resolved = UserAccountRoleForm::resolvePlatformRole($platformRole);
+        UserAccountRoleForm::assertRoleChangeKeepsAnActiveAdmin($record, $resolved['spatie']);
 
         $this->pendingPlatformRole = $resolved['spatie'];
         $this->pendingRoleType = $resolved['role_type'];

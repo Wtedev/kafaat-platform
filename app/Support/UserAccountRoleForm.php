@@ -108,12 +108,6 @@ final class UserAccountRoleForm
             ]);
         }
 
-        if ($platformRole === self::TYPE_ADMIN) {
-            throw ValidationException::withMessages([
-                'data.platform_role' => 'لا يمكن تعيين حساب أدمن من الواجهة. يوجد أدمن واحد فقط.',
-            ]);
-        }
-
         if (self::actorCanManageAllPlatformRoles($actor)) {
             return;
         }
@@ -190,6 +184,8 @@ final class UserAccountRoleForm
             return;
         }
 
+        self::assertRoleChangeKeepsAnActiveAdmin($target, $spatieRole);
+
         $target->syncRoles([$spatieRole]);
         $target->forceFill(['role_type' => $spatieRole])->save();
         self::applyRoleSideEffects($target, $spatieRole);
@@ -205,6 +201,43 @@ final class UserAccountRoleForm
             ],
             request: $request,
         );
+    }
+
+    public static function activeAdminCount(): int
+    {
+        return User::query()
+            ->where('is_active', true)
+            ->where(function ($query): void {
+                $query->where('role_type', self::TYPE_ADMIN)
+                    ->orWhereHas('roles', fn ($roles) => $roles->where('name', self::TYPE_ADMIN));
+            })
+            ->count();
+    }
+
+    public static function assertRoleChangeKeepsAnActiveAdmin(User $target, string $nextRole): void
+    {
+        if ($target->isProtectedAdminUser()) {
+            self::rejectAdminChange('لا يمكن تغيير دور حساب المدير المحمي.');
+        }
+
+        if (! $target->is_active || ! $target->isAdmin() || $nextRole === self::TYPE_ADMIN) {
+            return;
+        }
+
+        if (self::activeAdminCount() <= 1) {
+            self::rejectAdminChange('لا يمكن تنزيل آخر مدير نشط.');
+        }
+    }
+
+    public static function assertDeactivationKeepsAnActiveAdmin(User $target): void
+    {
+        if (! $target->is_active || ! $target->isAdmin()) {
+            return;
+        }
+
+        if (self::activeAdminCount() <= 1) {
+            self::rejectAdminChange('لا يمكن تعطيل آخر مدير نشط.');
+        }
     }
 
     public static function applyRoleSideEffects(User $record, string $spatieRole): void
@@ -229,5 +262,14 @@ final class UserAccountRoleForm
         $key = self::platformRoleFromUser($user);
 
         return self::platformRoleLabelAr($key ?? self::TYPE_BENEFICIARY);
+    }
+
+    private static function rejectAdminChange(string $message): void
+    {
+        throw ValidationException::withMessages([
+            'role' => $message,
+            'activation' => $message,
+            'data.platform_role' => $message,
+        ]);
     }
 }

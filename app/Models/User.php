@@ -70,6 +70,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'notification_prefs_set_at',
         'notification_settings',
         'last_login_at',
+        'invited_at',
         'profile_completed_at',
     ];
 
@@ -85,6 +86,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'invited_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
             'account_status' => AccountStatus::class,
@@ -352,14 +354,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     }
 
     /**
-     * حساب مدير النظام المحمي من الحذف (دور admin أو نوع admin أو بريد المسؤول من البيئة).
+     * حساب المدير المحمي من التعطيل والحذف: بريد ADMIN_EMAIL فقط.
      */
     public function isProtectedAdminUser(): bool
     {
-        if ($this->hasRole(RbacCatalog::ROLE_ADMIN) || $this->role_type === 'admin') {
-            return true;
-        }
-
         $adminEmail = config('app.admin_email');
 
         return filled($adminEmail) && strcasecmp((string) $this->email, (string) $adminEmail) === 0;

@@ -178,7 +178,7 @@ final class RoleTypeSpatieSyncService
 
     /**
      * Sync Spatie from role_type (primary migration). Dual-writes normalized role_type.
-     * Does not grant staff permissions. Optionally demotes extra admins without expanding perms.
+     * Does not grant staff permissions and does not demote extra admins.
      *
      * @return array{
      *     mode: string,
@@ -190,7 +190,7 @@ final class RoleTypeSpatieSyncService
      *     changes: list<array<string, mixed>>
      * }
      */
-    public function syncFromRoleType(bool $dryRun = true, bool $enforceSingleAdmin = true): array
+    public function syncFromRoleType(bool $dryRun = true): array
     {
         $mode = $dryRun ? 'dry_run' : 'apply';
         $changes = [];
@@ -200,7 +200,6 @@ final class RoleTypeSpatieSyncService
 
         $this->audit($mode, 'sync_start', [
             'direction' => self::DIRECTION_ROLE_TYPE_TO_SPATIE,
-            'enforce_single_admin' => $enforceSingleAdmin,
         ]);
 
         User::query()->with(['roles', 'permissions'])->orderBy('id')->chunkById(100, function (Collection $users) use ($dryRun, $mode, &$changes, &$scanned, &$changed, &$skipped): void {
@@ -269,11 +268,6 @@ final class RoleTypeSpatieSyncService
             }
         });
 
-        $demoted = 0;
-        if ($enforceSingleAdmin) {
-            $demoted = $this->enforceSingleAdminWithoutPermissionExpansion($dryRun, $mode);
-        }
-
         if (! $dryRun) {
             app(PermissionRegistrar::class)->forgetCachedPermissions();
         }
@@ -284,7 +278,7 @@ final class RoleTypeSpatieSyncService
             'scanned' => $scanned,
             'changed' => $changed,
             'skipped' => $skipped,
-            'demoted_extra_admins' => $demoted,
+            'demoted_extra_admins' => 0,
             'changes' => $changes,
         ];
 
@@ -292,7 +286,7 @@ final class RoleTypeSpatieSyncService
             'scanned' => $scanned,
             'changed' => $changed,
             'skipped' => $skipped,
-            'demoted_extra_admins' => $demoted,
+            'demoted_extra_admins' => 0,
         ]);
 
         return $summary;
@@ -385,79 +379,6 @@ final class RoleTypeSpatieSyncService
         ]);
 
         return $summary;
-    }
-
-    /**
-     * Keep at most one protected admin. Demotes extras to staff without granting permissions.
-     */
-    public function enforceSingleAdminWithoutPermissionExpansion(bool $dryRun, string $mode = 'apply'): int
-    {
-        $adminEmail = config('app.admin_email');
-
-        $primary = null;
-        if (is_string($adminEmail) && $adminEmail !== '') {
-            $primary = User::query()->where('email', $adminEmail)->first();
-        }
-
-        if ($primary === null) {
-            $primary = User::query()
-                ->where(function ($q): void {
-                    $q->where('role_type', RbacCatalog::ROLE_ADMIN)
-                        ->orWhereHas('roles', fn ($r) => $r->where('name', RbacCatalog::ROLE_ADMIN));
-                })
-                ->orderBy('id')
-                ->first();
-        }
-
-        if ($primary === null) {
-            return 0;
-        }
-
-        $extras = User::query()
-            ->whereKeyNot($primary->id)
-            ->where(function ($q): void {
-                $q->where('role_type', RbacCatalog::ROLE_ADMIN)
-                    ->orWhereHas('roles', fn ($r) => $r->where('name', RbacCatalog::ROLE_ADMIN));
-            })
-            ->get();
-
-        $demoted = 0;
-
-        foreach ($extras as $user) {
-            $change = [
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'action' => 'demote_extra_admin_to_staff',
-                'primary_admin_id' => $primary->id,
-                'note' => 'no_permission_grant',
-            ];
-            $this->audit($mode, 'demote_extra_admin', $change);
-            $demoted++;
-
-            if ($dryRun) {
-                continue;
-            }
-
-            $user->syncRoles([RbacCatalog::ROLE_STAFF]);
-            $user->update(['role_type' => RbacCatalog::ROLE_STAFF]);
-            // Intentionally do NOT grantAllAssignable — preserve existing direct perms only.
-        }
-
-        if (! $dryRun) {
-            $primaryNeedsRole = ! $primary->hasRole(RbacCatalog::ROLE_ADMIN)
-                || (string) $primary->role_type !== RbacCatalog::ROLE_ADMIN;
-
-            if ($primaryNeedsRole || $primary->permissions()->exists()) {
-                $primary->syncRoles([RbacCatalog::ROLE_ADMIN]);
-                $primary->syncPermissions([]);
-                $primary->update([
-                    'role_type' => RbacCatalog::ROLE_ADMIN,
-                    'is_active' => true,
-                ]);
-            }
-        }
-
-        return $demoted;
     }
 
     /**

@@ -7,11 +7,15 @@ use App\Enums\AuditLogResult;
 use App\Enums\ProfileGender;
 use App\Http\Controllers\Controller;
 use App\Models\Certificate;
+use App\Models\EmailVerificationCode;
 use App\Models\User;
+use App\Notifications\StaffEmailChangedByAdminNotification;
+use App\Rules\ValidSaudiMobile;
 use App\Services\Audit\AuditLogger;
 use App\Services\Audit\BeneficiaryEditAudit;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\Identity\PersonNameService;
+use App\Services\Identity\SaudiPhoneService;
 use App\Services\Privacy\AccountDeactivationService;
 use App\Services\Rbac\RbacCatalog;
 use App\Services\StaffUi\StaffBeneficiaryIndex;
@@ -20,6 +24,7 @@ use App\Support\Auth\EmailNormalizer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -268,11 +273,7 @@ class StaffBeneficiaryController extends Controller
      */
     private function savePhone(Request $request, User $user): array
     {
-        $data = $request->validate([
-            'phone' => ['nullable', 'string', 'max:20'],
-        ]);
-
-        $phone = filled($data['phone'] ?? null) ? trim((string) $data['phone']) : null;
+        $phone = $this->validatedPhone($request);
         $changed = $this->changedKeys($user, ['phone' => $phone]);
         $user->fill(['phone' => $phone])->save();
 
@@ -333,7 +334,7 @@ class StaffBeneficiaryController extends Controller
             'father_name' => ['required', 'string', 'max:100'],
             'grandfather_name' => ['required', 'string', 'max:100'],
             'family_name' => ['required', 'string', 'max:100'],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'phone' => ['nullable', 'string', new ValidSaudiMobile(required: false)],
             'gender' => ['nullable', Rule::enum(ProfileGender::class)],
             'birth_date' => ['nullable', 'date', 'before:today'],
             'city' => ['nullable', 'string', 'max:100'],
@@ -363,7 +364,7 @@ class StaffBeneficiaryController extends Controller
         $account = [
             ...$parts,
             'name' => PersonNameService::buildFullName($parts),
-            'phone' => filled($data['phone'] ?? null) ? trim((string) $data['phone']) : null,
+            'phone' => SaudiPhoneService::normalize(isset($data['phone']) ? (string) $data['phone'] : null),
             'notify_email' => $request->boolean('notify_email'),
         ];
         $profileValues = [
@@ -449,12 +450,34 @@ class StaffBeneficiaryController extends Controller
         }
 
         $changed = strcasecmp((string) $user->email, $email) !== 0;
-        $user->email = $email;
-        if ($changed) {
-            $user->email_verified_at = null;
+        if (! $changed) {
+            return [];
         }
+
+        $oldEmail = (string) $user->email;
+        $this->endBeneficiarySessions($user, $oldEmail);
+        $user->email = $email;
+        $user->email_verified_at = null;
         $user->save();
 
-        return $changed ? ['email'] : [];
+        Notification::route('mail', $oldEmail)->notify(new StaffEmailChangedByAdminNotification($oldEmail, $email));
+
+        return ['email'];
+    }
+
+    private function validatedPhone(Request $request): ?string
+    {
+        $data = $request->validate([
+            'phone' => ['nullable', 'string', new ValidSaudiMobile(required: false)],
+        ]);
+
+        return SaudiPhoneService::normalize(isset($data['phone']) ? (string) $data['phone'] : null);
+    }
+
+    private function endBeneficiarySessions(User $user, string $oldEmail): void
+    {
+        DB::table('sessions')->where('user_id', $user->id)->delete();
+        EmailVerificationCode::query()->where('user_id', $user->id)->delete();
+        DB::table('password_reset_tokens')->where('email', $oldEmail)->delete();
     }
 }

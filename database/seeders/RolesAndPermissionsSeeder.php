@@ -42,9 +42,8 @@ class RolesAndPermissionsSeeder extends Seeder
             $role->syncPermissions($matrix[$roleName] ?? []);
         }
 
-        // احتفظ بالأدوار القديمة مؤقتاً حتى ترحيل المستخدمين، ثم احذفها
+        // مزامنة تعريفات الأدوار فقط. لا تنزيل للمدراء الإضافيين.
         app(StaffPermissionService::class)->migrateUsersToFourRoleModel();
-        app(StaffPermissionService::class)->enforceSingleAdmin();
 
         $obsoleteRoles = Role::query()
             ->where('guard_name', RbacCatalog::GUARD_WEB)

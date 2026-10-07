@@ -6,6 +6,7 @@ use App\Enums\AuditLogResult;
 use App\Models\EmailVerificationCode;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
+use App\Support\UserAccountRoleForm;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,8 @@ final class AccountDeactivationService
         if ($target->isProtectedAdminUser()) {
             throw new AuthorizationException('Protected admin accounts cannot be deactivated.');
         }
+
+        UserAccountRoleForm::assertDeactivationKeepsAnActiveAdmin($target);
 
         if (! $actor->can('deactivate', $target)) {
             throw new AuthorizationException('You are not allowed to deactivate this account.');

@@ -10,10 +10,13 @@ use App\Models\AuditLog;
 use App\Models\EntityNote;
 use App\Models\User;
 use App\Models\UserDocument;
+use App\Notifications\StaffEmailChangedByAdminNotification;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\Rbac\RbacCatalog;
 use App\Support\Privacy\SensitiveContactMasker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
@@ -121,7 +124,7 @@ class StaffUiBeneficiaryProfileTest extends TestCase
 
         $beneficiary->refresh();
         $this->assertSame('نورة سعد محمد القحطاني', $beneficiary->fullName());
-        $this->assertSame('0555000111', $beneficiary->phone);
+        $this->assertSame('+966555000111', $beneficiary->phone);
         $this->assertSame('جدة', $beneficiary->profile->city);
         $this->assertNotSame('changed-by-basic@example.com', $beneficiary->email);
 
@@ -142,7 +145,7 @@ class StaffUiBeneficiaryProfileTest extends TestCase
 
         $beneficiary->refresh();
         $this->assertSame('الرياض', $beneficiary->profile->city);
-        $this->assertSame('0555000111', $beneficiary->phone);
+        $this->assertSame('+966555000111', $beneficiary->phone);
         $this->assertSame('نورة سعد محمد القحطاني', $beneficiary->fullName());
     }
 
@@ -167,6 +170,69 @@ class StaffUiBeneficiaryProfileTest extends TestCase
         $this->assertSame($originalName, $beneficiary->fullName());
         $this->assertSame('sensitive.new@example.com', $beneficiary->email);
         $this->assertNull($beneficiary->email_verified_at);
+    }
+
+    public function test_email_change_notifies_the_old_address_and_ends_sessions_and_reset_tokens(): void
+    {
+        Notification::fake();
+        $beneficiary = $this->beneficiary(['email' => 'old.beneficiary@example.com']);
+        $editor = $this->staff(['users.view', 'beneficiaries.update_sensitive']);
+        DB::table('sessions')->insert([
+            'id' => 'beneficiary-session',
+            'user_id' => $beneficiary->id,
+            'payload' => 'test',
+            'last_activity' => time(),
+        ]);
+        DB::table('password_reset_tokens')->insert([
+            'email' => 'old.beneficiary@example.com',
+            'token' => 'existing-token',
+            'created_at' => now(),
+        ]);
+
+        $this->actingAsOtpVerified($editor)
+            ->post(route('staff-ui.users.update', $beneficiary), [
+                'field' => 'email',
+                'email' => 'new.beneficiary@example.com',
+            ])
+            ->assertRedirect(route('staff-ui.users.show', $beneficiary));
+
+        Notification::assertSentOnDemand(
+            StaffEmailChangedByAdminNotification::class,
+            function (StaffEmailChangedByAdminNotification $notification, array $channels, object $notifiable): bool {
+                return $notifiable->routes['mail'] === 'old.beneficiary@example.com'
+                    && in_array('إذا لم تكن تتوقع هذا التغيير، تواصل مع إدارة المنصة.', $notification->toMail($notifiable)->introLines, true);
+            },
+        );
+        $this->assertDatabaseMissing('sessions', ['id' => 'beneficiary-session']);
+        $this->assertDatabaseMissing('password_reset_tokens', ['email' => 'old.beneficiary@example.com']);
+        $this->assertSame('new.beneficiary@example.com', $beneficiary->fresh()->email);
+    }
+
+    public function test_phone_uses_the_registration_saudi_mobile_rule(): void
+    {
+        $beneficiary = $this->beneficiary(['phone' => null]);
+        $editor = $this->staff(['users.view', 'beneficiaries.update_basic']);
+
+        $this->actingAsOtpVerified($editor)
+            ->from(route('staff-ui.users.show', $beneficiary))
+            ->post(route('staff-ui.users.update', $beneficiary), [
+                'field' => 'phone',
+                'phone' => '12345',
+            ])
+            ->assertRedirect(route('staff-ui.users.show', $beneficiary))
+            ->assertSessionHasErrors('phone');
+
+        $this->assertNull($beneficiary->fresh()->phone);
+
+        $this->actingAsOtpVerified($editor)
+            ->post(route('staff-ui.users.update', $beneficiary), [
+                'field' => 'phone',
+                'phone' => '0555000111',
+            ])
+            ->assertRedirect(route('staff-ui.users.show', $beneficiary))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('+966555000111', $beneficiary->fresh()->phone);
     }
 
     public function test_notes_require_the_update_permission(): void
@@ -364,9 +430,12 @@ class StaffUiBeneficiaryProfileTest extends TestCase
         return $staff->fresh();
     }
 
-    private function beneficiary(): User
+    /**
+     * @param  array<string, mixed>  $overrides
+     */
+    private function beneficiary(array $overrides = []): User
     {
-        $user = User::factory()->create([
+        $user = User::factory()->create(array_merge([
             'name' => 'نورة سعد محمد القحطاني',
             'first_name' => 'نورة',
             'father_name' => 'سعد',
@@ -377,7 +446,7 @@ class StaffUiBeneficiaryProfileTest extends TestCase
             'role_type' => 'beneficiary',
             'is_active' => true,
             'email_verified_at' => now(),
-        ]);
+        ], $overrides));
         $user->assignRole(RbacCatalog::ROLE_BENEFICIARY);
         $user->forceFill(IdentityNumberService::prepareStoragePayload(self::IDENTITY, IdentityType::NationalId))->save();
         $user->profile()->create([

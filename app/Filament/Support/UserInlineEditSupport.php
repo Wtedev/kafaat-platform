@@ -256,9 +256,14 @@ final class UserInlineEditSupport
         if ($canEditRole && $requestedPlatformRole !== null && $requestedPlatformRole !== '') {
             UserAccountRoleForm::assertActorMayAssign($actor, $requestedPlatformRole);
             $resolvedRole = UserAccountRoleForm::resolvePlatformRole($requestedPlatformRole);
+            UserAccountRoleForm::assertRoleChangeKeepsAnActiveAdmin($target, $resolvedRole['spatie']);
             $currentPlatformRole = UserAccountRoleForm::platformRoleFromUser($target);
             $roleChanged = $resolvedRole['spatie'] !== $currentPlatformRole
                 || (string) $target->role_type !== $resolvedRole['role_type'];
+        }
+
+        if ($target->is_active && ! $isActive) {
+            UserAccountRoleForm::assertDeactivationKeepsAnActiveAdmin($target);
         }
 
         try {

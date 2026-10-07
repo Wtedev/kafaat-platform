@@ -77,10 +77,6 @@
                 $roleName = $member->isAdmin() ? 'admin' : 'staff';
                 $roleLabel = RbacCatalog::roleArabicLabel($roleName);
                 $loginAt = $member->last_login_at?->timezone(config('app.timezone'));
-                $showRole = $canChangeRole;
-                $showActivation = $canActivate && ! $pending && (! $member->isProtectedAdminUser() || $isSelf);
-                $showInvite = $canInvite && $pending;
-                $showMenu = $showRole || $showActivation || $showInvite;
             @endphp
             <tr class="sui-staff-row" data-sui-row-href="{{ route('staff-ui.users.staff.show', $member) }}">
                 <td class="sui-staff-person" data-label="الموظف">
