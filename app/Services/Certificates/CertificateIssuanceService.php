@@ -1,0 +1,327 @@
+<?php
+
+namespace App\Services\Certificates;
+
+use App\Data\Certificates\CertificateElement;
+use App\Enums\CertificatePdfStatus;
+use App\Enums\RegistrationStatus;
+use App\Jobs\GenerateCertificatePdfJob;
+use App\Models\Certificate;
+use App\Models\CertificateTemplate;
+use App\Models\LearningPath;
+use App\Models\PathRegistration;
+use App\Models\ProgramRegistration;
+use App\Models\TrainingProgram;
+use App\Models\User;
+use App\Models\VolunteerOpportunity;
+use App\Models\VolunteerRegistration;
+use App\Services\Inbox\InboxNotificationService;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+
+/**
+ * المكان الوحيد المسموح فيه إنشاء شهادة.
+ * السجل يُنشأ داخل معاملة قصيرة، وتوليد PDF وإشعار الوارد بعد الالتزام فقط.
+ */
+class CertificateIssuanceService
+{
+    public function __construct(
+        private readonly InboxNotificationService $inboxNotifications,
+    ) {}
+
+    public function markEligible(Model $registration, User $actor): Certificate
+    {
+        if (! $this->canDecide($actor)) {
+            throw ValidationException::withMessages([
+                'permission' => 'تأهيل الشهادة متاح للمدير فقط.',
+            ]);
+        }
+
+        $owner = $this->ownerOf($registration);
+        $user = $registration->getAttribute('user') ?? $registration->user()->first();
+        $template = $owner instanceof Model && method_exists($owner, 'certificateTemplate')
+            ? $owner->certificateTemplate
+            : null;
+        $gaps = $this->designGaps($template instanceof CertificateTemplate ? $template : null);
+        if ($gaps !== []) {
+            throw ValidationException::withMessages([
+                'design' => 'لا يمكن إصدار الشهادة قبل حفظ التصميم. '.implode(' ', $gaps),
+            ]);
+        }
+
+        if (! $user instanceof User || ! $owner instanceof Model) {
+            throw ValidationException::withMessages([
+                'design' => 'تعذر إصدار الشهادة.',
+            ]);
+        }
+
+        $already = $this->activeCertificate($user, $owner);
+        $certificate = $this->issue($user, $owner, $actor);
+        if (! $certificate instanceof Certificate) {
+            throw ValidationException::withMessages([
+                'design' => 'تعذر إصدار الشهادة.',
+            ]);
+        }
+
+        if (! $already instanceof Certificate) {
+            activity()
+                ->causedBy($actor)
+                ->performedOn($certificate)
+                ->event('certificate_marked_eligible')
+                ->withProperties(['reason' => null])
+                ->log('وُسم المستفيد مؤهلاً وصدرت الشهادة');
+        }
+
+        return $certificate;
+    }
+
+    public function revokeForRegistration(Model $registration, User $actor, string $reason): void
+    {
+        $owner = $this->ownerOf($registration);
+        $user = $registration->getAttribute('user') ?? $registration->user()->first();
+        if (! $user instanceof User || ! $owner instanceof Model) {
+            throw ValidationException::withMessages([
+                'reason' => 'لا توجد شهادة لإلغائها.',
+            ]);
+        }
+
+        $certificate = $this->activeCertificate($user, $owner);
+        if (! $certificate instanceof Certificate) {
+            throw ValidationException::withMessages([
+                'reason' => 'لا توجد شهادة لإلغائها.',
+            ]);
+        }
+
+        $this->revoke($certificate, $actor, $reason);
+    }
+
+    public function canDecide(User $user): bool
+    {
+        return $user->hasRole('super_admin')
+            || $user->isAdmin()
+            || $user->can('certificates.mark_eligible');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function designGaps(?CertificateTemplate $template): array
+    {
+        if (! $template instanceof CertificateTemplate) {
+            return ['لا يوجد قالب شهادة لهذا النشاط.'];
+        }
+
+        $elements = [];
+        foreach ($template->elements ?? [] as $element) {
+            $elements[] = $element instanceof CertificateElement
+                ? $element->toArray()
+                : (array) $element;
+        }
+
+        return app(CertificateDesignService::class)->approvalGaps($template, $elements);
+    }
+
+    public function revoke(Certificate $certificate, User $admin, string $reason): void
+    {
+        $reason = trim($reason);
+        if (! $this->canDecide($admin)) {
+            throw ValidationException::withMessages([
+                'reason' => 'إلغاء الشهادة للمدير فقط.',
+            ]);
+        }
+
+        if ($reason === '') {
+            throw ValidationException::withMessages([
+                'reason' => 'سبب الإلغاء مطلوب.',
+            ]);
+        }
+
+        if ($certificate->isRevoked()) {
+            return;
+        }
+
+        $certificate->update([
+            'revoked_at' => now(),
+            'revoke_reason' => $reason,
+        ]);
+
+        activity()
+            ->causedBy($admin)
+            ->performedOn($certificate)
+            ->event('certificate_revoked')
+            ->withProperties(['revoke_reason' => $reason])
+            ->log('أُلغيت الشهادة');
+    }
+
+    private function issue(User $user, Model $certificateable, User $issuedBy): ?Certificate
+    {
+        $template = method_exists($certificateable, 'certificateTemplate')
+            ? $certificateable->certificateTemplate
+            : null;
+        if (! $template instanceof CertificateTemplate || $this->designGaps($template) !== []) {
+            return null;
+        }
+
+        $existing = $this->activeCertificate($user, $certificateable);
+        if ($existing instanceof Certificate) {
+            return $existing;
+        }
+
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            try {
+                return $this->createCertificate($user, $certificateable, $issuedBy, $template);
+            } catch (UniqueConstraintViolationException) {
+                $existing = $this->activeCertificate($user, $certificateable);
+                if ($existing instanceof Certificate) {
+                    return $existing;
+                }
+            }
+        }
+
+        return $this->activeCertificate($user, $certificateable);
+    }
+
+    private function createCertificate(
+        User $user,
+        Model $certificateable,
+        User $issuedBy,
+        CertificateTemplate $template,
+    ): Certificate {
+        return DB::transaction(function () use ($user, $certificateable, $issuedBy, $template): Certificate {
+            $existing = $this->activeCertificate($user, $certificateable);
+            if ($existing instanceof Certificate) {
+                return $existing;
+            }
+
+            $attributes = [
+                'user_id' => $user->id,
+                'certificateable_type' => $certificateable->getMorphClass(),
+                'certificateable_id' => $certificateable->getKey(),
+                'certificate_template_id' => $template->id,
+                'template_version' => $template->version,
+                'certificate_number' => $this->generateCertificateNumber(),
+                'verification_code' => $this->generateVerificationCode(),
+                'pdf_status' => CertificatePdfStatus::Pending,
+                'issued_at' => now(),
+                'override_reason' => null,
+                'overridden_by' => null,
+            ];
+            $draft = new Certificate($attributes);
+            $draft->setRelation('user', $user);
+            $draft->setRelation('certificateable', $certificateable);
+            $attributes['data_snapshot'] = CertificateSnapshotBuilder::build($draft);
+            $certificate = Certificate::create($attributes);
+            $certificate->setRelation('user', $user);
+            $certificate->setRelation('certificateable', $certificateable);
+
+            $this->completeApprovedRegistration($user, $certificateable);
+
+            $certificateId = (int) $certificate->getKey();
+            $issuedById = $issuedBy->id;
+            DB::afterCommit(function () use ($certificateId, $issuedById): void {
+                GenerateCertificatePdfJob::dispatch($certificateId);
+
+                $fresh = Certificate::query()->with('user')->find($certificateId);
+                if ($fresh?->user === null) {
+                    return;
+                }
+
+                $this->inboxNotifications->certificateIssued(
+                    $fresh->user,
+                    $fresh,
+                    User::query()->find($issuedById),
+                );
+            });
+
+            return $certificate;
+        });
+    }
+
+    private function ownerOf(Model $registration): ?Model
+    {
+        if ($registration instanceof ProgramRegistration) {
+            $registration->loadMissing(['user', 'trainingProgram']);
+
+            return $registration->trainingProgram;
+        }
+
+        if ($registration instanceof PathRegistration) {
+            $registration->loadMissing(['user', 'learningPath']);
+
+            return $registration->learningPath;
+        }
+
+        if ($registration instanceof VolunteerRegistration) {
+            $registration->loadMissing(['user', 'opportunity']);
+
+            return $registration->opportunity;
+        }
+
+        return null;
+    }
+
+    private function completeApprovedRegistration(User $user, Model $certificateable): void
+    {
+        if ($certificateable instanceof TrainingProgram) {
+            ProgramRegistration::query()
+                ->where('user_id', $user->id)
+                ->where('training_program_id', $certificateable->getKey())
+                ->where('status', RegistrationStatus::Approved)
+                ->update(['status' => RegistrationStatus::Completed]);
+
+            return;
+        }
+
+        if ($certificateable instanceof LearningPath) {
+            PathRegistration::query()
+                ->where('user_id', $user->id)
+                ->where('learning_path_id', $certificateable->getKey())
+                ->where('status', RegistrationStatus::Approved)
+                ->update([
+                    'status' => RegistrationStatus::Completed,
+                    'completed_at' => now(),
+                ]);
+
+            return;
+        }
+
+        if ($certificateable instanceof VolunteerOpportunity) {
+            VolunteerRegistration::query()
+                ->where('user_id', $user->id)
+                ->where('opportunity_id', $certificateable->getKey())
+                ->where('status', RegistrationStatus::Approved)
+                ->update(['status' => RegistrationStatus::Completed]);
+        }
+    }
+
+    private function activeCertificate(User $user, Model $certificateable): ?Certificate
+    {
+        return Certificate::query()
+            ->active()
+            ->where('user_id', $user->id)
+            ->where('certificateable_type', $certificateable->getMorphClass())
+            ->where('certificateable_id', $certificateable->getKey())
+            ->first();
+    }
+
+    private function generateCertificateNumber(): string
+    {
+        do {
+            $number = 'CERT-'.now()->format('Ymd').'-'.strtoupper(Str::random(8));
+        } while (Certificate::query()->where('certificate_number', $number)->exists());
+
+        return $number;
+    }
+
+    private function generateVerificationCode(): string
+    {
+        do {
+            $code = bin2hex(random_bytes(16));
+        } while (Certificate::query()->where('verification_code', $code)->exists());
+
+        return $code;
+    }
+}

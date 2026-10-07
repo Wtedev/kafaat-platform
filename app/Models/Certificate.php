@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\CertificatePdfStatus;
 use App\Support\PublicDiskPath;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -14,24 +16,62 @@ class Certificate extends Model
         'user_id',
         'certificateable_type',
         'certificateable_id',
+        'certificate_template_id',
+        'template_version',
+        'data_snapshot',
         'certificate_number',
         'verification_code',
         'file_path',
+        'pdf_status',
+        'pdf_error',
         'issued_at',
+        'emailed_at',
+        'override_reason',
+        'overridden_by',
+        'revoked_at',
+        'revoke_reason',
     ];
 
     protected function casts(): array
     {
         return [
             'issued_at' => 'datetime',
+            'emailed_at' => 'datetime',
+            'revoked_at' => 'datetime',
+            'template_version' => 'integer',
+            'data_snapshot' => 'array',
+            'pdf_status' => CertificatePdfStatus::class,
         ];
     }
 
     // ─── Relationships ────────────────────────────────────────────────────────
 
+    /**
+     * @param  Builder<Certificate>  $query
+     */
+    public function scopeActive(Builder $query): void
+    {
+        $query->whereNull('revoked_at');
+    }
+
+    public function isRevoked(): bool
+    {
+        return $this->revoked_at !== null;
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function overriddenBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'overridden_by');
+    }
+
+    public function certificateTemplate(): BelongsTo
+    {
+        return $this->belongsTo(CertificateTemplate::class);
     }
 
     public function certificateable(): MorphTo
@@ -46,7 +86,7 @@ class Certificate extends Model
      */
     public function fileUrl(): ?string
     {
-        if ($this->file_path === null) {
+        if ($this->file_path === null || $this->isRevoked()) {
             return null;
         }
 
@@ -59,7 +99,7 @@ class Certificate extends Model
      */
     public function downloadUrl(): ?string
     {
-        if ($this->file_path === null) {
+        if ($this->file_path === null || $this->isRevoked()) {
             return null;
         }
 

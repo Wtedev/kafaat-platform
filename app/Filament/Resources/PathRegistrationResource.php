@@ -8,6 +8,7 @@ use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\PathRegistrationResource\Pages;
+use App\Filament\Support\CertificateManualActions;
 use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\PathRegistration;
 use App\Services\PathRegistrationService;
@@ -142,6 +143,7 @@ class PathRegistrationResource extends Resource
                     ->sortable()
                     ->toggleable(),
 
+                ...CertificateManualActions::helperColumns(),
                 TextColumn::make('created_at')
                     ->label('تاريخ الإنشاء')
                     ->dateTime()
@@ -230,9 +232,11 @@ class PathRegistrationResource extends Resource
                             ->success()
                             ->send();
                     }),
+                ...CertificateManualActions::recordActions(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
+                    CertificateManualActions::bulkMarkEligible(),
                     DeleteBulkAction::make()
                         ->authorizeIndividualRecords('delete'),
                 ]),

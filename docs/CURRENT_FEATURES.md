@@ -101,7 +101,7 @@
 
 | الميزة | الحالة | الدليل |
 | --- | --- | --- |
-| إصدار الشهادات (idempotent، polymorphic) | ✅ | `CertificateService`, `CertificatePdfService`, نموذج `Certificate` |
+| إصدار الشهادات يدوياً عبر «مؤهل للشهادة» | ✅ | `CertificateIssuanceService::markEligible` |
 | تنزيل الشهادة (محمي بـ OTP) | ✅ | `CertificateDownloadController` · `web.php:81-82` |
 | التحقق العام برمز 32 حرفاً | ✅ | `CertificateVerificationController` |
 | توليد PDF بـ RTL | ✅ | dompdf/mpdf |

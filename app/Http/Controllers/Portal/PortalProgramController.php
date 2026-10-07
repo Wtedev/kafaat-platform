@@ -4,9 +4,15 @@ namespace App\Http\Controllers\Portal;
 
 use App\Enums\AttendanceStatus;
 use App\Enums\ProgramPrepDayType;
+use App\Enums\RegistrationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AttendanceLiveSession;
+use App\Models\Certificate;
+use App\Models\CertificateTemplate;
+use App\Models\TrainingProgram;
 use App\Services\AttendanceLiveSessionService;
+use App\Services\Certificates\CertificateEligibilityService;
+use App\Services\Certificates\CertificateProgressCopy;
 use App\Services\ProgramAttendanceService;
 use App\Support\ProgramRegistrationSuccessPresenter;
 use Illuminate\Http\Request;
@@ -30,14 +36,39 @@ class PortalProgramController extends Controller
         $user->loadMissing('profile');
         $liveSessionService = app(AttendanceLiveSessionService::class);
         $attendanceService = app(ProgramAttendanceService::class);
+        $page = $registrations->getCollection();
+        $programIds = $page->pluck('training_program_id')->filter()->unique()->values();
+        $ownerType = (new TrainingProgram)->getMorphClass();
+        $certificatesByProgram = Certificate::query()
+            ->active()
+            ->where('user_id', $user->id)
+            ->where('certificateable_type', $ownerType)
+            ->whereIn('certificateable_id', $programIds)
+            ->get()
+            ->keyBy(fn (Certificate $certificate): int => (int) $certificate->certificateable_id);
+        $attendancePercentages = $attendanceService->percentagesForRegistrations($page);
+        $eligibility = app(CertificateEligibilityService::class)->evaluateMany($page);
+        $templates = CertificateTemplate::query()
+            ->where('owner_type', $ownerType)
+            ->whereIn('owner_id', $programIds)
+            ->get()
+            ->keyBy(fn (CertificateTemplate $template): int => (int) $template->owner_id);
+        $progressCopy = app(CertificateProgressCopy::class);
+        $certificateProgress = [];
 
         foreach ($registrations as $registration) {
             $program = $registration->trainingProgram;
             if ($program) {
-                $registration->certificate = $user->certificates()
-                    ->where('certificateable_type', get_class($program))
-                    ->where('certificateable_id', $program->id)
-                    ->first();
+                $registration->certificate = $certificatesByProgram->get((int) $program->id);
+                $accepted = in_array($registration->status, [RegistrationStatus::Approved, RegistrationStatus::Completed], true);
+                if ($accepted) {
+                    $template = $templates->get((int) $program->id);
+                    $attendance = $attendancePercentages[(int) $registration->getKey()] ?? $attendancePercentages[$registration->getKey()] ?? null;
+                    $score = $registration->score !== null ? (float) $registration->score : null;
+                    $certificateProgress[(int) $registration->getKey()] = $template
+                        ? $progressCopy->line($template->eligibility, $attendance, $score)
+                        : ($eligibility->get($registration->getKey())?->reasons[0] ?? 'لم يُضبط قالب الشهادة بعد');
+                }
                 $registration->attendance_pass = ProgramRegistrationSuccessPresenter::present(
                     $program,
                     $registration,
@@ -79,6 +110,8 @@ class PortalProgramController extends Controller
         return view('portal.programs', [
             'registrations' => $registrations,
             'openAttendanceProgramId' => $request->integer('open_attendance') ?: null,
+            'attendancePercentages' => $attendancePercentages,
+            'certificateProgress' => $certificateProgress,
         ]);
     }
 }

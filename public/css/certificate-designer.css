@@ -1,0 +1,321 @@
+.certificate-designer {
+    --cd-surface: #ffffff;
+    --cd-elevated: #f8fafc;
+    --cd-border: #e2e8f0;
+    --cd-text: #0f172a;
+    --cd-muted: #64748b;
+    --cd-canvas: #e8eef5;
+    --cd-brand: #335483;
+    --cd-danger: #ec6056;
+    color: var(--cd-text);
+    font-family: inherit;
+}
+
+html.fi.dark .certificate-designer {
+    --cd-surface: var(--admin-surface, #1e1e1e);
+    --cd-elevated: var(--admin-surface-elevated, #222);
+    --cd-border: var(--admin-border, rgba(255, 255, 255, 0.08));
+    --cd-text: var(--admin-text, #e5e5e5);
+    --cd-muted: var(--admin-muted, #888);
+    --cd-canvas: var(--admin-canvas, #121212);
+}
+
+.certificate-designer * {
+    box-sizing: border-box;
+}
+
+.cd-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.cd-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin-inline-end: auto;
+}
+
+.cd-title strong {
+    font-size: 1.05rem;
+}
+
+.cd-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--cd-muted);
+    font-size: 0.85rem;
+}
+
+.cd-status b {
+    color: var(--cd-text);
+    font-weight: 700;
+}
+
+.cd-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.cd-btn,
+.cd-file {
+    appearance: none;
+    border: 1px solid var(--cd-border);
+    background: var(--cd-surface);
+    color: var(--cd-text);
+    border-radius: 0.6rem;
+    padding: 0.45rem 0.75rem;
+    font: inherit;
+    cursor: pointer;
+}
+
+.cd-btn-primary {
+    background: var(--cd-brand);
+    border-color: var(--cd-brand);
+    color: #fff;
+}
+
+.cd-btn-danger {
+    background: transparent;
+    border-color: var(--cd-danger);
+    color: var(--cd-danger);
+}
+
+.cd-hidden-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}
+
+.cd-hint {
+    width: 100%;
+    color: var(--cd-muted);
+    font-size: 0.8rem;
+}
+
+.cd-errors {
+    margin: 0 0 0.75rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--cd-danger);
+    border-radius: 0.75rem;
+    background: rgba(236, 96, 86, 0.08);
+}
+
+.cd-layout {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 0.75rem;
+    min-height: 70vh;
+}
+
+.cd-side,
+.cd-workspace {
+    background: var(--cd-surface);
+    border: 1px solid var(--cd-border);
+    border-radius: 0.9rem;
+    min-width: 0;
+}
+
+.cd-side {
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: calc(100vh - 8rem);
+    overflow: auto;
+}
+
+.cd-side h3 {
+    margin: 0 0 0.4rem;
+    font-size: 0.95rem;
+}
+
+.cd-field-row,
+.cd-prop,
+.cd-rule {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    margin-bottom: 0.35rem;
+    font-size: 0.85rem;
+}
+
+.cd-prop,
+.cd-rule {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+}
+
+.cd-prop input,
+.cd-prop select,
+.cd-rule input,
+.cd-rule select,
+.cd-side select {
+    width: 100%;
+    border: 1px solid var(--cd-border);
+    background: var(--cd-elevated);
+    color: var(--cd-text);
+    border-radius: 0.45rem;
+    padding: 0.3rem 0.4rem;
+    font: inherit;
+}
+
+.cd-summary {
+    margin: 0.4rem 0 0;
+    color: var(--cd-muted);
+    font-size: 0.82rem;
+    line-height: 1.6;
+}
+
+.cd-align {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.cd-workspace {
+    background: var(--cd-canvas);
+    padding: 0.75rem;
+    overflow: auto;
+}
+
+.cd-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.82rem;
+}
+
+.cd-stage {
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem 0 2rem;
+}
+
+.cd-page {
+    position: relative;
+    width: min(100%, 920px);
+    background: #fff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+    transform-origin: top center;
+}
+
+.cd-page img.cd-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    pointer-events: none;
+}
+
+.cd-grid {
+    background-image:
+        linear-gradient(to right, rgba(51, 84, 131, 0.18) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(51, 84, 131, 0.18) 1px, transparent 1px);
+}
+
+.cd-ruler {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        repeating-linear-gradient(to left, rgba(51, 84, 131, 0.55) 0 1px, transparent 1px 100%),
+        repeating-linear-gradient(to bottom, rgba(51, 84, 131, 0.55) 0 1px, transparent 1px 100%);
+    background-repeat: repeat-x, repeat-y;
+    background-position: top right, top right;
+    -webkit-mask-image: linear-gradient(#000, #000), linear-gradient(#000, #000);
+}
+
+.cd-el {
+    position: absolute;
+    border: 1px dashed rgba(51, 84, 131, 0.7);
+    background: rgba(255, 255, 255, 0.28);
+    cursor: move;
+    overflow: hidden;
+    display: flex;
+}
+
+.cd-el.is-selected {
+    border: 2px solid var(--cd-brand);
+    z-index: 2;
+}
+
+.cd-el span {
+    width: 100%;
+    font-family: "IBM Plex Sans Arabic", sans-serif;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.cd-handle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: var(--cd-brand);
+    border: 1px solid #fff;
+}
+
+.cd-handle.nw { top: -4px; left: -4px; cursor: nwse-resize; }
+.cd-handle.ne { top: -4px; right: -4px; cursor: nesw-resize; }
+.cd-handle.sw { bottom: -4px; left: -4px; cursor: nesw-resize; }
+.cd-handle.se { bottom: -4px; right: -4px; cursor: nwse-resize; }
+
+.cd-guide-v,
+.cd-guide-h {
+    position: absolute;
+    background: #fbbb2e;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.cd-guide-v { top: 0; bottom: 0; width: 1px; }
+.cd-guide-h { left: 0; right: 0; height: 1px; }
+
+.cd-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 1rem;
+}
+
+.cd-modal-card {
+    width: min(100%, 32rem);
+    background: var(--cd-surface);
+    color: var(--cd-text);
+    border-radius: 0.9rem;
+    padding: 1.1rem;
+    border: 1px solid var(--cd-border);
+}
+
+.cd-modal-card p {
+    margin: 0 0 1rem;
+    line-height: 1.7;
+}
+
+@media (max-width: 960px) {
+    .cd-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .cd-side {
+        max-height: none;
+    }
+}

@@ -5,12 +5,12 @@ namespace App\Filament\Resources\VolunteerOpportunityResource\RelationManagers;
 use App\Enums\RegistrationStatus;
 use App\Exceptions\OpportunityCapacityExceededException;
 use App\Filament\Resources\VolunteerRegistrationResource;
+use App\Filament\Support\CertificateManualActions;
 use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Filament\Support\UserFilamentTableSupport;
 use App\Models\Certificate;
 use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
-use App\Services\CertificateService;
 use App\Services\VolunteerRegistrationService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -87,6 +87,8 @@ class RegistrationsRelationManager extends RelationManager
                     ->dateTime()
                     ->toggleable(),
 
+                ...CertificateManualActions::helperColumns(),
+
                 TextColumn::make('hours_progress')
                     ->label('تقدم الساعات')
                     ->getStateUsing(fn (VolunteerRegistration $record): string => number_format($record->getApprovedHours(), 1).' / '.
@@ -160,37 +162,11 @@ class RegistrationsRelationManager extends RelationManager
                         Notification::make()->title('تم رفض التسجيل')->warning()->send();
                     }),
 
-                Action::make('issueCertificate')
-                    ->label('إصدار شهادة تطوع')
-                    ->icon('heroicon-o-academic-cap')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->modalHeading('إصدار شهادة تطوع')
-                    ->modalDescription('سيتم إصدار شهادة PDF للمتطوع. تأكد من اعتماد جميع الساعات المطلوبة.')
-                    ->modalSubmitActionLabel('نعم، إصدار')
-                    ->visible(fn (VolunteerRegistration $record): bool => $record->isCompleted())
-                    ->action(function (VolunteerRegistration $record): void {
-                        $record->loadMissing(['user', 'opportunity']);
-                        $existing = Certificate::query()
-                            ->where('user_id', $record->user_id)
-                            ->where('certificateable_type', VolunteerOpportunity::class)
-                            ->where('certificateable_id', $record->opportunity_id)
-                            ->first();
-                        if ($existing !== null) {
-                            Notification::make()
-                                ->title('الشهادة موجودة مسبقاً')
-                                ->body('رقم الشهادة: '.$existing->certificate_number)
-                                ->warning()
-                                ->send();
-
-                            return;
-                        }
-                        app(CertificateService::class)->issue($record->user, $record->opportunity, auth()->user());
-                        Notification::make()->title('تم إصدار شهادة التطوع بنجاح')->success()->send();
-                    }),
+                ...CertificateManualActions::recordActions(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
+                    CertificateManualActions::bulkMarkEligible(),
                     DeleteBulkAction::make(),
                 ]),
             ]);

@@ -8,6 +8,7 @@ use App\Filament\Concerns\ConfiguresViewFirstResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerOpportunityResource\Pages;
 use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\RegistrationsRelationManager;
+use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\VolunteerCertificatesRelationManager;
 use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\VolunteerHoursRelationManager;
 use App\Filament\Support\EntityTwoColumnFormLayout;
 use App\Filament\Support\TrainingEntityFormSupport;
@@ -237,6 +238,7 @@ class VolunteerOpportunityResource extends Resource
         return [
             RegistrationsRelationManager::class,
             VolunteerHoursRelationManager::class,
+            VolunteerCertificatesRelationManager::class,
         ];
     }
 
@@ -246,6 +248,7 @@ class VolunteerOpportunityResource extends Resource
             'index' => Pages\ListVolunteerOpportunities::route('/'),
             'create' => Pages\CreateVolunteerOpportunity::route('/create'),
             'view' => Pages\ViewVolunteerOpportunity::route('/{record}'),
+            'certificate-design' => Pages\ManageVolunteerCertificateDesign::route('/{record}/certificate-design'),
             'edit' => Pages\EditVolunteerOpportunity::route('/{record}/edit'),
         ];
     }

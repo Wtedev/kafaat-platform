@@ -20,7 +20,7 @@ use Illuminate\Support\Collection;
 
 /**
  * Distributes program/path/volunteer registrations across seeded beneficiaries.
- * Issues certificates only via {@see ProgramRegistrationService::markCompleted()} for eligible rows.
+ * Completing a registration does not issue a certificate. Issuance is a manual admin action.
  */
 class ProgramRegistrationSeeder extends Seeder
 {

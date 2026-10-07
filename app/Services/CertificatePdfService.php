@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Certificate;
+use App\Support\Certificates\CertificateStoredFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Mpdf\Config\ConfigVariables;
@@ -13,20 +14,20 @@ use Mpdf\Output\Destination;
 class CertificatePdfService
 {
     /**
-     * Generate a PDF for the given certificate and persist it to the public disk at
-     * certificates/{certificate_number}.pdf (under storage/app/public).
+     * Generate a PDF for a certificate that has no template and persist it on the private disk at
+     * certificates/{certificate_number}.pdf.
      *
      * Uses mPDF (not DomPDF) for correct Arabic shaping, RTL, and IBM Plex Sans Arabic.
      *
-     * @return string Path relative to the public disk root (e.g. certificates/CERT-....pdf).
+     * @return string Path relative to the private disk root (e.g. certificates/CERT-....pdf).
      */
     public function generate(Certificate $certificate): string
     {
         $certificate->loadMissing(['user.profile', 'certificateable']);
 
         $storagePath = 'certificates/'.$certificate->certificate_number.'.pdf';
-        Storage::disk('public')->makeDirectory('certificates');
-        $fullPath = Storage::disk('public')->path($storagePath);
+        Storage::disk(CertificateStoredFile::DISK)->makeDirectory('certificates');
+        $fullPath = Storage::disk(CertificateStoredFile::DISK)->path($storagePath);
 
         try {
             $mpdf = $this->newMpdf();

@@ -13,8 +13,8 @@ use App\Filament\Resources\Concerns\EntityNotesRelationManager;
 use App\Filament\Resources\LearningPathResource\Pages;
 use App\Filament\Resources\LearningPathResource\RelationManagers\LearningPathEditorsRelationManager;
 use App\Filament\Resources\LearningPathResource\RelationManagers\PathAttendanceRegistrationsRelationManager;
+use App\Filament\Resources\LearningPathResource\RelationManagers\PathCertificatesRelationManager;
 use App\Filament\Resources\LearningPathResource\RelationManagers\PathGradesRelationManager;
-use App\Filament\Resources\LearningPathResource\RelationManagers\PathRegistrationCertificatesRelationManager;
 use App\Filament\Resources\LearningPathResource\RelationManagers\PathRegistrationsRelationManager;
 use App\Filament\Resources\LearningPathResource\RelationManagers\TrainingProgramsRelationManager;
 use App\Filament\Support\EntityTwoColumnFormLayout;
@@ -296,7 +296,7 @@ class LearningPathResource extends Resource
             PathRegistrationsRelationManager::class,
             PathAttendanceRegistrationsRelationManager::class,
             PathGradesRelationManager::class,
-            PathRegistrationCertificatesRelationManager::class,
+            PathCertificatesRelationManager::class,
             LearningPathEditorsRelationManager::class,
             EntityNotesRelationManager::class,
         ];
@@ -309,6 +309,7 @@ class LearningPathResource extends Resource
             'create' => Pages\CreateLearningPath::route('/create'),
             'view' => Pages\ViewLearningPath::route('/{record}'),
             'edit' => Pages\EditLearningPath::route('/{record}/edit'),
+            'certificate-design' => Pages\ManagePathCertificateDesign::route('/{record}/certificate-design'),
         ];
     }
 }

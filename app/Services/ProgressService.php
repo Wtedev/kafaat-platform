@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Data\Certificates\EligibilityRules;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Models\LearningPath;
@@ -9,13 +10,14 @@ use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Services\Certificates\CertificateEligibilityService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ProgressService
 {
     public function __construct(
-        private readonly CertificateService $certificateService,
+        private readonly CertificateEligibilityService $eligibility,
     ) {}
 
     /**
@@ -85,14 +87,11 @@ class ProgressService
     }
 
     /**
-     * When all path programs are completed for the user: path registration → Completed, issue path certificate.
+     * When all path programs are completed for the user, mark the path registration completed.
+     * This does not issue a certificate.
      */
     public function completePathIfEligible(User $user, LearningPath $path): void
     {
-        if (! $this->isPathCompleted($user, $path)) {
-            return;
-        }
-
         $registration = PathRegistration::where('user_id', $user->id)
             ->where('learning_path_id', $path->id)
             ->whereIn('status', [
@@ -105,16 +104,24 @@ class ProgressService
             return;
         }
 
-        DB::transaction(function () use ($registration, $user, $path) {
+        $path->loadMissing('certificateTemplate');
+        $result = $this->eligibility->evaluateRegistration(
+            $registration,
+            EligibilityRules::legacyPathCourses(),
+        );
+        if (! $result->eligible) {
+            return;
+        }
+
+        DB::transaction(function () use ($registration): void {
             if ($registration->status !== RegistrationStatus::Completed) {
                 $registration->update([
                     'status' => RegistrationStatus::Completed,
                     'completed_at' => now(),
                 ]);
             }
-
-            $this->certificateService->issue($user, $path);
         });
+
     }
 
     /**

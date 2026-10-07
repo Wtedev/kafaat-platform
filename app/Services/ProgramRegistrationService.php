@@ -23,7 +23,6 @@ class ProgramRegistrationService
 {
     public function __construct(
         private readonly EmailLogService $emailLogService,
-        private readonly CertificateService $certificateService,
         private readonly InboxNotificationService $inboxNotifications,
         private readonly ProgressService $progressService,
         private readonly ProgramAcceptanceConditionEvaluator $acceptanceEvaluator,
@@ -269,12 +268,8 @@ class ProgramRegistrationService
     }
 
     /**
-     * Mark an approved registration as completed, recording attendance and
-     * score, and automatically issue a certificate if eligibility conditions
-     * are met (average of attendance and score ≥ 75%).
-     *
-     * Certificate issuance is idempotent — calling this multiple times will
-     * not produce duplicate certificates.
+     * Mark an approved registration as completed, recording attendance and score.
+     * Completion does not issue a certificate. An admin marks eligibility separately.
      *
      * @throws RegistrationNotApprovedException
      */
@@ -299,14 +294,6 @@ class ProgramRegistrationService
         ]);
 
         $registration->refresh();
-
-        if ($registration->isEligibleForCertificate()) {
-            $this->certificateService->issue(
-                $registration->user,
-                $registration->trainingProgram,
-                $admin,
-            );
-        }
 
         $registration->loadMissing(['user', 'trainingProgram.learningPath']);
         $program = $registration->trainingProgram;

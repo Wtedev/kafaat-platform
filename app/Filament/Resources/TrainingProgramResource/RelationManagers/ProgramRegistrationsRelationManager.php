@@ -5,11 +5,13 @@ namespace App\Filament\Resources\TrainingProgramResource\RelationManagers;
 use App\Enums\RegistrationStatus;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Filament\Actions\ExportProgramRegistrantsAction;
+use App\Filament\Support\CertificateManualActions;
 use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Services\ProgramRegistrationService;
 use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -51,6 +53,7 @@ class ProgramRegistrationsRelationManager extends RelationManager
                 RegistrationFilamentTableSupport::beneficiaryNameColumn(),
                 RegistrationFilamentTableSupport::acceptanceStatusColumn(),
                 RegistrationFilamentTableSupport::certificateEligibilityColumn(),
+                ...CertificateManualActions::helperColumns(),
             ])
             ->filters([
                 SelectFilter::make('status')
@@ -103,6 +106,12 @@ class ProgramRegistrationsRelationManager extends RelationManager
                         app(ProgramRegistrationService::class)->reject($record, $data['rejected_reason'] ?? null);
                         Notification::make()->title('تم رفض التسجيل')->warning()->send();
                     }),
+                ...CertificateManualActions::recordActions(),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    CertificateManualActions::bulkMarkEligible(),
+                ]),
             ])
             ->defaultSort('created_at', 'desc');
     }

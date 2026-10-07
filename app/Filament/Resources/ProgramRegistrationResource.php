@@ -11,13 +11,13 @@ use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\ProgramRegistrationResource\Pages;
 use App\Filament\Resources\ProgramRegistrationResource\RelationManagers\AttendanceRelationManager;
+use App\Filament\Support\CertificateManualActions;
 use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\Certificate;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
-use App\Services\CertificateService;
+use App\Services\Certificates\CertificateEligibilityService;
 use App\Services\ProgramRegistrationService;
-use App\Support\RegistrationEligibilitySupport;
 use App\Support\StaffUi\StaffUiModule;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -198,14 +198,11 @@ class ProgramRegistrationResource extends Resource
                             return '—';
                         }
 
-                        return RegistrationEligibilitySupport::eligibilityLabel(
-                            $record->effectiveAttendancePercentage(),
-                            $record->score !== null ? (float) $record->score : null,
-                        );
+                        return app(CertificateEligibilityService::class)->evaluate($record)->label();
                     })
                     ->color(fn (string $state): string => match ($state) {
                         'مؤهل' => 'success',
-                        'غير مؤهل حتى الآن', 'غير مؤهل بعد' => 'danger',
+                        'غير مؤهل' => 'danger',
                         'بانتظار البيانات' => 'warning',
                         default => 'gray',
                     })
@@ -226,6 +223,7 @@ class ProgramRegistrationResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                ...CertificateManualActions::helperColumns(),
             ])
             ->filters([
                 SelectFilter::make('status')
@@ -358,7 +356,7 @@ class ProgramRegistrationResource extends Resource
                             ->numeric()
                             ->minValue(0)
                             ->maxValue(100)
-                            ->helperText('الحد الأدنى لإصدار الشهادة: 60'),
+                            ->helperText('للعرض فقط. إصدار الشهادة يتم من إجراء «مؤهل للشهادة».'),
                     ])
                     ->action(function (ProgramRegistration $record, array $data): void {
                         try {
@@ -371,24 +369,10 @@ class ProgramRegistrationResource extends Resource
                                 attendancePercentage: (float) $data['attendance_percentage'],
                             );
 
-                            $hasCert = Certificate::query()
-                                ->where('user_id', $record->user_id)
-                                ->where('certificateable_type', TrainingProgram::class)
-                                ->where('certificateable_id', $record->training_program_id)
-                                ->exists();
-
-                            if ($hasCert) {
-                                Notification::make()
-                                    ->title('تم تحديد التسجيل كمكتمل وصدرت الشهادة')
-                                    ->success()
-                                    ->send();
-                            } else {
-                                Notification::make()
-                                    ->title('تم تحديد التسجيل كمكتمل')
-                                    ->body('لم تُصدر شهادة — يجب أن يكون الحضور ≥ 80% والدرجة ≥ 60')
-                                    ->warning()
-                                    ->send();
-                            }
+                            Notification::make()
+                                ->title('تم تحديد التسجيل كمكتمل')
+                                ->success()
+                                ->send();
                         } catch (RegistrationNotApprovedException) {
                             Notification::make()
                                 ->title('لا يمكن إكمال تسجيل غير مقبول')
@@ -397,33 +381,11 @@ class ProgramRegistrationResource extends Resource
                         }
                     }),
 
-                Action::make('issueCertificate')
-                    ->label('إصدار شهادة')
-                    ->icon('heroicon-o-academic-cap')
-                    ->color('success')
-                    ->visible(fn (ProgramRegistration $record): bool => $record->isCompleted())
-                    ->requiresConfirmation()
-                    ->authorize('update')
-                    ->action(function (ProgramRegistration $record): void {
-                        if (! $record->isEligibleForCertificate()) {
-                            Notification::make()
-                                ->title('غير مؤهل للحصول على شهادة')
-                                ->body('يجب أن يكون الحضور ≥ 80% والدرجة ≥ 60')
-                                ->danger()
-                                ->send();
-
-                            return;
-                        }
-                        $record->loadMissing(['user', 'trainingProgram']);
-                        app(CertificateService::class)->issue($record->user, $record->trainingProgram, auth()->user());
-                        Notification::make()
-                            ->title('تم إصدار الشهادة بنجاح')
-                            ->success()
-                            ->send();
-                    }),
+                ...CertificateManualActions::recordActions(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
+                    CertificateManualActions::bulkMarkEligible(),
                     DeleteBulkAction::make()
                         ->authorizeIndividualRecords('delete'),
                 ]),
