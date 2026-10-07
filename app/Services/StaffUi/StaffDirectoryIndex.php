@@ -52,14 +52,9 @@ final class StaffDirectoryIndex
         if ($status === 'active') {
             $query->where('is_active', true);
         } elseif ($status === 'invited') {
-            $query->where('is_active', false)
-                ->where('remember_token', 'like', StaffInvitationService::MARKER.'%');
+            $query->where('is_active', false)->whereNotNull('invited_at');
         } elseif ($status === 'inactive') {
-            $query->where('is_active', false)
-                ->where(function (Builder $match): void {
-                    $match->whereNull('remember_token')
-                        ->orWhere('remember_token', 'not like', StaffInvitationService::MARKER.'%');
-                });
+            $query->where('is_active', false)->whereNull('invited_at');
         }
 
         $needle = trim($search);

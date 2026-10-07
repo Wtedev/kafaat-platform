@@ -77,18 +77,14 @@
                 $roleName = $member->isAdmin() ? 'admin' : 'staff';
                 $roleLabel = RbacCatalog::roleArabicLabel($roleName);
                 $loginAt = $member->last_login_at?->timezone(config('app.timezone'));
-                $showRole = $canChangeRole;
-                $showActivation = $canActivate && ! $pending && (! $member->isProtectedAdminUser() || $isSelf);
-                $showInvite = $canInvite && $pending;
-                $showMenu = $showRole || $showActivation || $showInvite;
             @endphp
-            <tr>
+            <tr class="sui-staff-row" data-sui-row-href="{{ route('staff-ui.users.staff.show', $member) }}">
                 <td class="sui-staff-person" data-label="الموظف">
                     <div class="sui-person">
                         <x-staff-ui.avatar :name="$member->name" />
                         <div class="sui-person__text">
                             <div class="sui-person__name">
-                                <strong>{{ $member->name }}</strong>
+                                <a class="sui-staff-rowlink" href="{{ route('staff-ui.users.staff.show', $member) }}">{{ $member->name }}</a>
                                 @if ($isSelf)
                                     <span class="sui-you">أنت</span>
                                 @endif
@@ -117,61 +113,7 @@
                     @endif
                 </td>
                 <td class="sui-staff-actions" data-label="إجراءات">
-                    @if ($showMenu)
-                        <x-staff-ui.dropdown class="sui-staff-menu" align="end">
-                            <x-slot:trigger>
-                                <button type="button" class="sui-icon-btn" aria-label="إجراءات {{ $member->name }}">
-                                    <i data-lucide="ellipsis" class="sui-icon"></i>
-                                </button>
-                            </x-slot:trigger>
-                            @if ($showRole)
-                                @if ($isSelf)
-                                    <span class="sui-tip" title="لا يمكنك تغيير دورك.">
-                                        <button type="button" class="sui-menu-item" disabled>تغيير الدور</button>
-                                    </span>
-                                @else
-                                    <button
-                                        type="button"
-                                        class="sui-menu-item"
-                                        data-sui-open-modal="staff-role"
-                                        data-sui-staff-action="role"
-                                        data-action="{{ route('staff-ui.users.staff.role', $member) }}"
-                                        data-role="{{ $roleName }}"
-                                        data-role-label="{{ $roleLabel }}"
-                                    >تغيير الدور</button>
-                                @endif
-                            @endif
-                            @if ($showInvite)
-                                <form method="POST" action="{{ route('staff-ui.users.staff.invitation', $member) }}" data-sui-staff-form>
-                                    @csrf
-                                    <input type="hidden" name="action" value="resend">
-                                    <button type="submit" class="sui-menu-item">إعادة إرسال الدعوة</button>
-                                </form>
-                                <form method="POST" action="{{ route('staff-ui.users.staff.invitation', $member) }}" data-sui-staff-form>
-                                    @csrf
-                                    <input type="hidden" name="action" value="cancel">
-                                    <button type="submit" class="sui-menu-item">إلغاء الدعوة</button>
-                                </form>
-                            @endif
-                            @if ($showActivation)
-                                @if ($isSelf)
-                                    <span class="sui-tip" title="لا يمكنك تعطيل حسابك.">
-                                        <button type="button" class="sui-menu-item sui-menu-item--danger" disabled>تعطيل الحساب</button>
-                                    </span>
-                                @else
-                                    <button
-                                        type="button"
-                                        @class(['sui-menu-item', 'sui-menu-item--danger' => $member->is_active])
-                                        data-sui-open-modal="staff-activation"
-                                        data-sui-staff-action="activation"
-                                        data-action="{{ route('staff-ui.users.staff.activation', $member) }}"
-                                        data-activation="{{ $member->is_active ? 'deactivate' : 'activate' }}"
-                                        data-name="{{ $member->name }}"
-                                    >{{ $member->is_active ? 'تعطيل الحساب' : 'تفعيل الحساب' }}</button>
-                                @endif
-                            @endif
-                        </x-staff-ui.dropdown>
-                    @endif
+                    @include('staff-ui.users.partials.staff-actions')
                 </td>
             </tr>
         @endforeach

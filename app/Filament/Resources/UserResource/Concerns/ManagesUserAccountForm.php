@@ -99,10 +99,10 @@ trait ManagesUserAccountForm
 
         UserAccountRoleForm::assertActorMayAssign(auth()->user(), $platformRole);
         $resolved = UserAccountRoleForm::resolvePlatformRole($platformRole);
+        UserAccountRoleForm::assertRoleChangeKeepsAnActiveAdmin($record, $resolved['spatie']);
 
         $this->pendingPlatformRole = $resolved['spatie'];
         $this->pendingRoleType = $resolved['role_type'];
-        $data['role_type'] = $resolved['role_type'];
         unset($data['platform_role']);
 
         return $data;
@@ -135,12 +135,10 @@ trait ManagesUserAccountForm
         }
 
         if ($this->pendingPlatformRole !== null && $this->pendingPlatformRole !== '') {
-            $record->syncRoles([$this->pendingPlatformRole]);
-            UserAccountRoleForm::applyRoleSideEffects($record, $this->pendingPlatformRole);
-        }
-
-        if ($this->pendingRoleType !== null && (string) $record->role_type !== $this->pendingRoleType) {
-            $record->update(['role_type' => $this->pendingRoleType]);
+            $actor = auth()->user();
+            if ($actor instanceof User) {
+                UserAccountRoleForm::syncAssignedRole($actor, $record, $this->pendingPlatformRole, request());
+            }
         }
 
         if ($record->hasRole(UserAccountRoleForm::TYPE_VOLUNTEER)) {

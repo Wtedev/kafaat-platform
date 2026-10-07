@@ -41,7 +41,7 @@
 - `grantAllAssignable()` — يمنح الموظف الجديد كل الصلاحيات القابلة للتعيين.
 - `syncAssignablePermissions()` (`:28`) — يزامن صلاحيات الموظف مع مجموعة، مقيّدة بـ `PermissionMatrixCatalog::assignablePermissionNames()` (الأدمن-فقط مستثناة)، مع تسجيل تدقيقي.
 - `migrateUsersToFourRoleModel()` (`:60`) — يُرحّل المستخدمين من الأدوار القديمة (`legacyRoleMigrationMap()`: `media_pr`, `training_manager`, `programs_management`, `technical_admin`, `privacy_officer`, `trainee` ... → `staff`/`beneficiary`).
-- `enforceSingleAdmin()` (`:144`) — يفرض **أدمن واحداً محمياً** (حساب `ADMIN_EMAIL` أو أقدم admin)، ويحوّل بقية الـ admins إلى `staff`.
+- يمكن وجود أكثر من أدمن. الحساب المحمي من التعطيل والحذف هو بريد `ADMIN_EMAIL` فقط، ولا يجوز أن يصبح عدد المدراء النشطين صفراً.
 
 واجهة إدارة الصلاحيات: صفحة `app/Filament/Pages/StaffPermissionMatrix.php` + `PermissionMatrixCatalog`.
 

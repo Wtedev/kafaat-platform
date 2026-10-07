@@ -159,7 +159,7 @@ class UserResource extends Resource
                             ->native(false)
                             ->searchable()
                             ->helperText(fn (): string => UserAccountRoleForm::actorCanManageAllPlatformRoles(auth()->user())
-                                ? 'الأنواع: موظف (لوحة الإدارة + مصفوفة الصلاحيات) · مستفيد · فريق تطوعي. حساب الأدمن واحد فقط ولا يُعيَّن من هنا.'
+                                ? 'الأنواع: موظف (لوحة الإدارة + مصفوفة الصلاحيات) · مستفيد · فريق تطوعي. دور الأدمن يُعيَّن من تبويب الموظفين.'
                                 : 'يمكنك تعيين مستفيد أو فريق تطوعي فقط.')
                             ->dehydrated(true),
                     ]),

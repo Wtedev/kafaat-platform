@@ -106,7 +106,7 @@ class RoleTypeSpatieSyncTest extends TestCase
         $staff = User::factory()->create(['role_type' => 'staff']);
         // No Spatie role yet, no direct permissions
 
-        $this->sync->syncFromRoleType(dryRun: false, enforceSingleAdmin: false);
+        $this->sync->syncFromRoleType(dryRun: false);
 
         $staff->refresh();
         $this->assertTrue($staff->hasRole(RbacCatalog::ROLE_STAFF));
@@ -139,10 +139,10 @@ class RoleTypeSpatieSyncTest extends TestCase
     {
         $user = User::factory()->create(['role_type' => 'beneficiary']);
 
-        $first = $this->sync->syncFromRoleType(dryRun: false, enforceSingleAdmin: false);
+        $first = $this->sync->syncFromRoleType(dryRun: false);
         $this->assertGreaterThanOrEqual(1, collect($first['changes'])->where('user_id', $user->id)->count());
 
-        $second = $this->sync->syncFromRoleType(dryRun: false, enforceSingleAdmin: false);
+        $second = $this->sync->syncFromRoleType(dryRun: false);
         $this->assertSame(0, collect($second['changes'])->where('user_id', $user->id)->count());
 
         $user->refresh();
@@ -154,7 +154,7 @@ class RoleTypeSpatieSyncTest extends TestCase
     {
         $user = User::factory()->create(['role_type' => 'volunteer']);
 
-        $summary = $this->sync->syncFromRoleType(dryRun: true, enforceSingleAdmin: false);
+        $summary = $this->sync->syncFromRoleType(dryRun: true);
 
         $this->assertSame('dry_run', $summary['mode']);
         $this->assertGreaterThanOrEqual(1, collect($summary['changes'])->where('user_id', $user->id)->count());
@@ -192,13 +192,12 @@ class RoleTypeSpatieSyncTest extends TestCase
         ]);
         $extra->assignRole(RbacCatalog::ROLE_ADMIN);
 
-        $this->sync->syncFromRoleType(dryRun: false, enforceSingleAdmin: true);
+        $this->sync->syncFromRoleType(dryRun: false);
 
         $extra->refresh();
-        $this->assertTrue($extra->hasRole(RbacCatalog::ROLE_STAFF));
-        $this->assertSame('staff', $extra->role_type);
-        $this->assertCount(0, $extra->getDirectPermissions());
-        $this->assertFalse($extra->can('manage_roles'));
+        $this->assertTrue($extra->hasRole(RbacCatalog::ROLE_ADMIN));
+        $this->assertSame('admin', $extra->role_type);
+        $this->assertFalse($extra->isProtectedAdminUser());
 
         $primary->refresh();
         $this->assertTrue($primary->hasRole(RbacCatalog::ROLE_ADMIN));
@@ -211,7 +210,7 @@ class RoleTypeSpatieSyncTest extends TestCase
         $this->assertSame(0, Artisan::call('roles:sync-from-role-type'));
         $this->assertStringContainsString('Dry Run', Artisan::output());
 
-        Artisan::call('roles:sync-from-role-type', ['--apply' => true, '--no-enforce-single-admin' => true]);
+        Artisan::call('roles:sync-from-role-type', ['--apply' => true]);
         $exit = Artisan::call('roles:report-drift');
         // May still fail if other no_role users exist from seeders — assert command runs
         $this->assertContains($exit, [0, 1]);

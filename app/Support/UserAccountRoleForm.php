@@ -9,6 +9,7 @@ use App\Services\Audit\AuditLogger;
 use App\Services\Rbac\RbacCatalog;
 use App\Services\Rbac\StaffPermissionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -108,12 +109,6 @@ final class UserAccountRoleForm
             ]);
         }
 
-        if ($platformRole === self::TYPE_ADMIN) {
-            throw ValidationException::withMessages([
-                'data.platform_role' => 'لا يمكن تعيين حساب أدمن من الواجهة. يوجد أدمن واحد فقط.',
-            ]);
-        }
-
         if (self::actorCanManageAllPlatformRoles($actor)) {
             return;
         }
@@ -190,21 +185,108 @@ final class UserAccountRoleForm
             return;
         }
 
-        $target->syncRoles([$spatieRole]);
-        $target->forceFill(['role_type' => $spatieRole])->save();
-        self::applyRoleSideEffects($target, $spatieRole);
+        self::assertRoleChangeKeepsAnActiveAdmin($target, $spatieRole, function () use ($actor, $target, $spatieRole, $oldRole, $request): void {
+            $target->syncRoles([$spatieRole]);
+            $target->forceFill(['role_type' => $spatieRole])->save();
+            self::applyRoleSideEffects($target, $spatieRole);
 
-        app(AuditLogger::class)->recordOrFail(
-            $actor,
-            'user.role_changed',
-            AuditLogResult::Success,
-            $target,
-            metadata: [
-                'old_role' => $oldRole,
-                'new_role' => $spatieRole,
-            ],
-            request: $request,
+            app(AuditLogger::class)->recordOrFail(
+                $actor,
+                'user.role_changed',
+                AuditLogResult::Success,
+                $target,
+                metadata: [
+                    'old_role' => $oldRole,
+                    'new_role' => $spatieRole,
+                ],
+                request: $request,
+            );
+        });
+    }
+
+    public static function activeAdminCount(): int
+    {
+        return User::query()
+            ->where('is_active', true)
+            ->where(function ($query): void {
+                $query->where('role_type', self::TYPE_ADMIN)
+                    ->orWhereHas('roles', fn ($roles) => $roles->where('name', self::TYPE_ADMIN));
+            })
+            ->count();
+    }
+
+    public static function assertRoleChangeKeepsAnActiveAdmin(User $target, string $nextRole, ?callable $change = null): void
+    {
+        if ($target->isProtectedAdminUser() && $nextRole !== self::TYPE_ADMIN) {
+            self::rejectAdminChange('لا يمكن تغيير دور حساب المدير المحمي.');
+        }
+
+        self::runWithActiveAdminLock(
+            lock: $target->is_active && $target->isAdmin() && $nextRole !== self::TYPE_ADMIN,
+            guard: function () use ($target, $nextRole): void {
+                if ($target->is_active && $target->isAdmin() && $nextRole !== self::TYPE_ADMIN && self::activeAdminCount() <= 1) {
+                    self::rejectAdminChange('لا يمكن تنزيل آخر مدير نشط.');
+                }
+            },
+            change: $change,
         );
+    }
+
+    public static function assertDeactivationKeepsAnActiveAdmin(User $target, ?callable $change = null): void
+    {
+        $wasActive = $target->isDirty('is_active')
+            ? (bool) $target->getOriginal('is_active')
+            : (bool) $target->is_active;
+
+        self::runWithActiveAdminLock(
+            lock: $wasActive && $target->isAdmin(),
+            guard: function () use ($target, $wasActive): void {
+                if ($wasActive && $target->isAdmin() && self::activeAdminCount() <= 1) {
+                    self::rejectAdminChange('لا يمكن تعطيل آخر مدير نشط.');
+                }
+            },
+            change: $change,
+        );
+    }
+
+    /**
+     * @param  callable(): void  $guard
+     * @param  (callable(): void)|null  $change
+     */
+    private static function runWithActiveAdminLock(bool $lock, callable $guard, ?callable $change): void
+    {
+        $run = function () use ($lock, $guard, $change): void {
+            if ($lock) {
+                self::lockActiveAdminRows();
+            }
+
+            $guard();
+
+            if ($change !== null) {
+                $change();
+            }
+        };
+
+        if (DB::transactionLevel() > 0) {
+            $run();
+
+            return;
+        }
+
+        DB::transaction($run);
+    }
+
+    private static function lockActiveAdminRows(): void
+    {
+        User::query()
+            ->where('is_active', true)
+            ->where(function ($query): void {
+                $query->where('role_type', self::TYPE_ADMIN)
+                    ->orWhereHas('roles', fn ($roles) => $roles->where('name', self::TYPE_ADMIN));
+            })
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->pluck('id');
     }
 
     public static function applyRoleSideEffects(User $record, string $spatieRole): void
@@ -229,5 +311,14 @@ final class UserAccountRoleForm
         $key = self::platformRoleFromUser($user);
 
         return self::platformRoleLabelAr($key ?? self::TYPE_BENEFICIARY);
+    }
+
+    private static function rejectAdminChange(string $message): void
+    {
+        throw ValidationException::withMessages([
+            'role' => $message,
+            'activation' => $message,
+            'data.platform_role' => $message,
+        ]);
     }
 }

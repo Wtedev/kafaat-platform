@@ -6,6 +6,7 @@ use App\Enums\AuditLogResult;
 use App\Models\EmailVerificationCode;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
+use App\Support\UserAccountRoleForm;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -30,21 +31,25 @@ final class AccountDeactivationService
             throw new AuthorizationException('You are not allowed to deactivate this account.');
         }
 
-        if (! $target->is_active) {
-            return;
-        }
+        UserAccountRoleForm::assertDeactivationKeepsAnActiveAdmin($target, function () use ($target, $actor, $reason, $request): void {
+            $target->refresh();
 
-        $target->update(['is_active' => false]);
-        $this->invalidateSessions($target);
+            if (! $target->is_active) {
+                return;
+            }
 
-        $this->auditLogger->recordOrFail(
-            $actor,
-            'account.deactivated',
-            AuditLogResult::Success,
-            $target,
-            reason: $reason,
-            request: $request,
-        );
+            $target->update(['is_active' => false]);
+            $this->invalidateSessions($target);
+
+            $this->auditLogger->recordOrFail(
+                $actor,
+                'account.deactivated',
+                AuditLogResult::Success,
+                $target,
+                reason: $reason,
+                request: $request,
+            );
+        });
     }
 
     public function invalidateSessions(User $user): void

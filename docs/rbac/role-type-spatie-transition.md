@@ -38,12 +38,6 @@ php artisan roles:report-drift
 
 Audit channel: `storage/logs/role-sync.log` (config key `role_sync`). Each line includes `mode=dry_run|apply`.
 
-Skip single-admin enforcement:
-
-```bash
-php artisan roles:sync-from-role-type --apply --no-enforce-single-admin
-```
-
 ## Rollback
 
 Dual-write kept, so either direction is reversible:
@@ -71,7 +65,7 @@ To undo an apply without DB restore: use `roles:sync-to-role-type --apply` if Sp
 | Area | What |
 | --- | --- |
 | `app/Models/User.php` | Helpers + `canAccessPanel` + scopes (Spatie-first reads) |
-| `app/Services/Rbac/StaffPermissionService.php` | Four-role migrate + `enforceSingleAdmin` (grants perms on demote — separate from this sync) |
+| `app/Services/Rbac/StaffPermissionService.php` | Four-role migrate. Extra admins are kept. |
 | `app/Support/UserAccountRoleForm.php` + Filament `UserResource` | Dual-write on create/edit |
 | `app/Services/Auth/UserRegistrationService.php` | Sets beneficiary Spatie + `role_type` |
 | Middleware / portal / Filament | Via User helpers |

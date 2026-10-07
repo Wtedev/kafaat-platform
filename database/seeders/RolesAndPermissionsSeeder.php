@@ -43,7 +43,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // لا ترحيل للمستخدمين ولا فرض أدمن واحد هنا.
         // كان ذلك يمس كل الحسابات في كل إقلاع. الترحيل لمرة واحدة عبر
-        // StaffPermissionService::migrateUsersToFourRoleModel() و enforceSingleAdmin().
+        // StaffPermissionService::migrateUsersToFourRoleModel().
 
         $obsoleteRoles = Role::query()
             ->where('guard_name', RbacCatalog::GUARD_WEB)

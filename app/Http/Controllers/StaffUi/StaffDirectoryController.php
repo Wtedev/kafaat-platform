@@ -9,7 +9,9 @@ use App\Services\Audit\AuditLogger;
 use App\Services\Privacy\AccountDeactivationService;
 use App\Services\Rbac\RbacCatalog;
 use App\Services\StaffUi\StaffDirectoryIndex;
+use App\Services\StaffUi\StaffEffectivePermissions;
 use App\Services\StaffUi\StaffInvitationService;
+use App\Services\StaffUi\StaffMemberProfile;
 use App\Support\StaffUi\StaffUiAccess;
 use App\Support\UserAccountRoleForm;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -97,9 +99,44 @@ class StaffDirectoryController extends Controller
 
         UserAccountRoleForm::syncAssignedRole($actor, $user, $data['role'], $request);
 
+        return $this->redirectToStaffPlace($request, $user, 'تم تغيير الدور.');
+    }
+
+    public function show(Request $request, User $user, StaffInvitationService $invitations, StaffEffectivePermissions $permissions): View
+    {
+        $actor = $this->actor($request);
+        abort_unless($actor->can('users.view'), 403);
+        $this->assertStaffMember($user);
+
+        return view('staff-ui.users.staff-show', $this->memberViewData($actor, $user, $invitations, $permissions));
+    }
+
+    public function update(Request $request, User $user, StaffMemberProfile $profile): RedirectResponse
+    {
+        $actor = $this->actor($request);
+        $this->assertStaffMember($user);
+        abort_unless($actor->can('users.update'), 403);
+
+        $changed = $profile->update($actor, $user, $request);
+
         return redirect()
-            ->route('staff-ui.users.staff.index')
-            ->with('status', 'تم تغيير الدور.');
+            ->route('staff-ui.users.staff.show', $user)
+            ->with('status', $changed === [] ? 'لم يجر أي تعديل.' : 'تم حفظ البيانات.');
+    }
+
+    public function sendPasswordReset(Request $request, User $user, StaffInvitationService $invitations, StaffMemberProfile $profile): RedirectResponse
+    {
+        $actor = $this->actor($request);
+        $this->assertStaffMember($user);
+        abort_unless($actor->can('users.update'), 403);
+        abort_if($invitations->isPending($user), 422);
+        abort_unless($user->is_active, 422);
+
+        $profile->sendPasswordReset($actor, $user, $request);
+
+        return redirect()
+            ->route('staff-ui.users.staff.show', $user)
+            ->with('status', 'تم إرسال رابط إعادة تعيين كلمة المرور.');
     }
 
     public function activation(Request $request, User $user, AccountDeactivationService $deactivation, AuditLogger $auditLogger, StaffInvitationService $invitations): RedirectResponse
@@ -119,6 +156,8 @@ class StaffDirectoryController extends Controller
                 abort(403);
             }
             $message = 'تم تعطيل الحساب.';
+        } elseif ($action === 'activate' && $invitations->requiresReinvite($user)) {
+            abort(422);
         } elseif ($action === 'activate') {
             if (! $user->is_active) {
                 $user->update(['is_active' => true]);
@@ -135,9 +174,7 @@ class StaffDirectoryController extends Controller
             abort(422);
         }
 
-        return redirect()
-            ->route('staff-ui.users.staff.index')
-            ->with('status', $message);
+        return $this->redirectToStaffPlace($request, $user, $message);
     }
 
     public function invitation(Request $request, User $user, StaffInvitationService $invitations): RedirectResponse
@@ -152,15 +189,54 @@ class StaffDirectoryController extends Controller
         if ($action === 'resend') {
             $invitations->resend($user);
             $message = 'تم إعادة إرسال الدعوة.';
+        } elseif ($action === 'reinvite') {
+            $invitations->reopen($user);
+            $message = 'تم إعادة إرسال الدعوة.';
         } elseif ($action === 'cancel') {
-            $invitations->cancel($user);
+            $deleted = $invitations->cancel($user, $actor, $request);
+            if ($deleted) {
+                return redirect()
+                    ->route('staff-ui.users.staff.index')
+                    ->with('status', 'تم إلغاء الدعوة.');
+            }
             $message = 'تم إلغاء الدعوة.';
         } else {
             abort(422);
         }
 
+        return $this->redirectToStaffPlace($request, $user, $message);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function memberViewData(User $actor, User $user, StaffInvitationService $invitations, StaffEffectivePermissions $permissions): array
+    {
+        $pending = $invitations->isPending($user);
+
+        return [
+            'staffName' => $actor->name,
+            'staffEmail' => $actor->email,
+            'member' => $user,
+            'pending' => $pending,
+            'isSelf' => $actor->is($user),
+            'canInvite' => $actor->can('users.create') && StaffUiAccess::invitesEnabled(),
+            'canChangeRole' => $actor->can('updateRole'),
+            'canActivate' => $actor->can('users.activate'),
+            'canUpdate' => $actor->can('users.update'),
+            'canResetPassword' => $actor->can('users.update') && $user->is_active && ! $pending,
+            'roles' => $this->roleOptions($actor),
+            'permissionGroups' => $permissions->grouped($user),
+        ];
+    }
+
+    private function redirectToStaffPlace(Request $request, User $user, string $message): RedirectResponse
+    {
+        $show = route('staff-ui.users.staff.show', $user);
+        $previous = url()->previous();
+
         return redirect()
-            ->route('staff-ui.users.staff.index')
+            ->to(str_starts_with($previous, $show) ? $show : route('staff-ui.users.staff.index'))
             ->with('status', $message);
     }
 

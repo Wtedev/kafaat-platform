@@ -68,6 +68,7 @@ erDiagram
 | first_name, father_name, grandfather_name, family_name | varchar nullable | الاسم المنظَّم (Phase Identity) |
 | email | varchar | **U** |
 | email_verified_at | datetime | |
+| invited_at | datetime nullable | وقت إرسال دعوة الموظف؛ يُفرَّغ عند قبولها |
 | password | varchar | hashed |
 | remember_token | varchar | |
 | role_type | varchar | افتراضي `beneficiary` — **نظام أدوار موازٍ** لـ Spatie |

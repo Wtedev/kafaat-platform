@@ -17,6 +17,7 @@ use App\Services\Rbac\RbacService;
 use App\Support\Auth\EmailNormalizer;
 use App\Support\Privacy\UserDeletionGuard;
 use App\Support\PublicDiskPath;
+use App\Support\UserAccountRoleForm;
 use Database\Factories\UserFactory;
 use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
@@ -30,6 +31,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
@@ -37,13 +39,47 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     /** @use HasFactory<UserFactory> */
     use HasEntityNotes, HasFactory, HasRoles, Notifiable;
 
+    /** @var array<int, true> */
+    private static array $adminDeactivationTransactions = [];
+
     protected static function booted(): void
     {
         static::deleting(function (User $user): void {
             UserDeletionGuard::assertAuthorized();
         });
 
+        static::updating(function (User $user): void {
+            if (! $user->isDirty('is_active') || $user->is_active || ! $user->getOriginal('is_active')) {
+                return;
+            }
+
+            $opened = false;
+            $key = spl_object_id($user);
+            if (DB::transactionLevel() === 0) {
+                DB::beginTransaction();
+                self::$adminDeactivationTransactions[$key] = true;
+                $opened = true;
+            }
+
+            try {
+                UserAccountRoleForm::assertDeactivationKeepsAnActiveAdmin($user);
+            } catch (\Throwable $exception) {
+                if ($opened) {
+                    unset(self::$adminDeactivationTransactions[$key]);
+                    DB::rollBack();
+                }
+
+                throw $exception;
+            }
+        });
+
         static::updated(function (User $user): void {
+            $key = spl_object_id($user);
+            if (isset(self::$adminDeactivationTransactions[$key])) {
+                unset(self::$adminDeactivationTransactions[$key]);
+                DB::commit();
+            }
+
             if ($user->wasChanged('is_active') && ! $user->is_active) {
                 app(AccountDeactivationService::class)->invalidateSessions($user);
             }
@@ -70,6 +106,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'notification_prefs_set_at',
         'notification_settings',
         'last_login_at',
+        'invited_at',
         'profile_completed_at',
     ];
 
@@ -85,6 +122,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'invited_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
             'account_status' => AccountStatus::class,
@@ -352,14 +390,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     }
 
     /**
-     * حساب مدير النظام المحمي من الحذف (دور admin أو نوع admin أو بريد المسؤول من البيئة).
+     * حساب المدير المحمي من التعطيل والحذف: بريد ADMIN_EMAIL فقط.
      */
     public function isProtectedAdminUser(): bool
     {
-        if ($this->hasRole(RbacCatalog::ROLE_ADMIN) || $this->role_type === 'admin') {
-            return true;
-        }
-
         $adminEmail = config('app.admin_email');
 
         return filled($adminEmail) && strcasecmp((string) $this->email, (string) $adminEmail) === 0;

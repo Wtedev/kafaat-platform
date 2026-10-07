@@ -9,11 +9,14 @@ use App\Notifications\StaffInvitationNotification;
 use App\Services\Rbac\PermissionMatrixCatalog;
 use App\Services\Rbac\RbacCatalog;
 use App\Services\StaffUi\StaffInvitationService;
+use App\Support\UserAccountRoleForm;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
@@ -105,6 +108,7 @@ class StaffUiStaffDirectoryTest extends TestCase
             $token = $notification->token;
             $this->assertSame('دعوة للانضمام إلى فريق كفاءات', $mail->subject);
             $this->assertSame('تعيين كلمة المرور', $mail->actionText);
+            $this->assertTrue(collect($mail->introLines)->contains(fn (string $line): bool => str_contains($line, '72 ساعة')));
 
             return str_contains($mail->actionUrl, $notification->token);
         });
@@ -127,6 +131,7 @@ class StaffUiStaffDirectoryTest extends TestCase
         $invited->refresh();
         $this->assertTrue($invited->is_active);
         $this->assertNotNull($invited->email_verified_at);
+        $this->assertNull($invited->invited_at);
         $this->assertFalse(app(StaffInvitationService::class)->isPending($invited));
         $this->assertTrue(Hash::check('New-password-1', $invited->password));
 
@@ -136,7 +141,7 @@ class StaffUiStaffDirectoryTest extends TestCase
         ])->assertRedirect(route('verification.notice'));
     }
 
-    public function test_resend_sends_another_link_and_cancel_keeps_the_account_inactive(): void
+    public function test_resend_sends_another_link_and_cancel_deletes_an_unused_account(): void
     {
         Notification::fake();
         $admin = $this->admin();
@@ -166,10 +171,11 @@ class StaffUiStaffDirectoryTest extends TestCase
             ->post(route('staff-ui.users.staff.invitation', $invited), ['action' => 'cancel'])
             ->assertRedirect(route('staff-ui.users.staff.index'));
 
-        $invited->refresh();
-        $this->assertFalse($invited->is_active);
-        $this->assertFalse(app(StaffInvitationService::class)->isPending($invited));
-        $this->assertNotNull(User::query()->where('email', 'reem.invite@example.com')->first());
+        $this->assertNull(User::query()->where('email', 'reem.invite@example.com')->first());
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'staff.invitation_cancelled',
+            'actor_id' => $admin->id,
+        ]);
 
         auth()->logout();
 
@@ -183,8 +189,7 @@ class StaffUiStaffDirectoryTest extends TestCase
         $this->actingAsOtpVerified($admin)
             ->get(route('staff-ui.users.staff.index', ['status' => 'inactive']))
             ->assertOk()
-            ->assertSee('معطّل')
-            ->assertSee('ريم الدعو');
+            ->assertDontSee('ريم الدعو');
     }
 
     public function test_invite_rejects_an_email_that_already_belongs_to_any_user(): void
@@ -275,7 +280,7 @@ class StaffUiStaffDirectoryTest extends TestCase
             'email' => 'pending-hidden@example.com',
             'is_active' => false,
         ]);
-        $invited->forceFill(['remember_token' => StaffInvitationService::MARKER.'pending'])->save();
+        $invited->forceFill(['invited_at' => now(), 'is_active' => false])->save();
 
         $this->actingAsOtpVerified($admin)
             ->get(route('staff-ui.users.staff.index'))
@@ -414,6 +419,205 @@ class StaffUiStaffDirectoryTest extends TestCase
 
         $this->assertTrue($member->fresh()->hasRole(RbacCatalog::ROLE_STAFF));
         $this->assertTrue($member->fresh()->is_active);
+    }
+
+    public function test_accepted_invitation_gets_the_same_permissions_as_filament_staff_creation(): void
+    {
+        Notification::fake();
+        $admin = $this->admin();
+        $invited = $this->invite($admin, 'سلمى الصلاحيات', 'salma.perms@example.com');
+        $token = $this->sentToken($invited);
+
+        auth()->logout();
+
+        $this->post(route('password.store'), [
+            'token' => $token,
+            'email' => 'salma.perms@example.com',
+            'password' => 'New-password-1',
+            'password_confirmation' => 'New-password-1',
+        ])->assertRedirect(route('login'));
+
+        $created = User::factory()->create([
+            'email' => 'filament.staff@example.com',
+            'role_type' => RbacCatalog::ROLE_STAFF,
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $created->syncRoles([RbacCatalog::ROLE_STAFF]);
+        UserAccountRoleForm::applyRoleSideEffects($created, RbacCatalog::ROLE_STAFF);
+
+        $expected = collect(PermissionMatrixCatalog::assignablePermissionNames())->sort()->values()->all();
+
+        $this->assertSame($expected, $invited->fresh()->getPermissionNames()->sort()->values()->all());
+        $this->assertSame($expected, $created->fresh()->getPermissionNames()->sort()->values()->all());
+    }
+
+    public function test_cancel_keeps_an_invited_account_that_has_records_and_blocks_manual_activation(): void
+    {
+        Notification::fake();
+        $admin = $this->admin();
+        $invited = $this->invite($admin, 'ليان السجل', 'layan.records@example.com');
+        $invited->profile()->create([]);
+
+        $this->actingAsOtpVerified($admin)
+            ->from(route('staff-ui.users.staff.show', $invited))
+            ->post(route('staff-ui.users.staff.invitation', $invited), ['action' => 'cancel'])
+            ->assertRedirect(route('staff-ui.users.staff.show', $invited));
+
+        $invited->refresh();
+        $this->assertFalse($invited->is_active);
+        $this->assertNull($invited->invited_at);
+        $this->assertTrue(app(StaffInvitationService::class)->requiresReinvite($invited));
+
+        $this->actingAsOtpVerified($admin)
+            ->get(route('staff-ui.users.staff.show', $invited))
+            ->assertOk()
+            ->assertSee('إعادة الدعوة')
+            ->assertDontSee('تفعيل الحساب');
+
+        $this->actingAsOtpVerified($admin)
+            ->post(route('staff-ui.users.staff.activation', $invited), ['action' => 'activate'])
+            ->assertStatus(422);
+
+        $this->actingAsOtpVerified($admin)
+            ->post(route('staff-ui.users.staff.invitation', $invited), ['action' => 'reinvite'])
+            ->assertRedirect();
+
+        $this->assertTrue(app(StaffInvitationService::class)->isPending($invited->fresh()));
+        Notification::assertSentTo($invited, StaffInvitationNotification::class);
+    }
+
+    public function test_invitation_link_lasts_seventy_two_hours_and_password_reset_stays_at_one_hour(): void
+    {
+        Notification::fake();
+        $admin = $this->admin();
+        $invited = $this->invite($admin, 'مدة الدعوة', 'invite.ttl@example.com');
+        $token = $this->sentToken($invited);
+
+        $this->assertSame(60, (int) config('auth.passwords.users.expire'));
+        $this->assertSame(72 * 60, (int) config('auth.passwords.staff_invitations.expire'));
+
+        $this->travel(71)->hours();
+        auth()->logout();
+
+        $this->post(route('password.store'), [
+            'token' => $token,
+            'email' => 'invite.ttl@example.com',
+            'password' => 'New-password-1',
+            'password_confirmation' => 'New-password-1',
+        ])->assertRedirect(route('login'));
+
+        $this->assertNull($invited->fresh()->invited_at);
+
+        $active = $this->staff([], ['email' => 'reset.ttl@example.com']);
+        $reset = Password::broker('users')->createToken($active);
+        $this->travel(61)->minutes();
+
+        $this->post(route('password.store'), [
+            'token' => $reset,
+            'email' => 'reset.ttl@example.com',
+            'password' => 'New-password-1',
+            'password_confirmation' => 'New-password-1',
+        ])->assertSessionHasErrors('email');
+        $this->assertTrue(Hash::check('password', $active->fresh()->password));
+    }
+
+    public function test_invitation_link_expires_after_seventy_two_hours(): void
+    {
+        Notification::fake();
+        $admin = $this->admin();
+        $invited = $this->invite($admin, 'دعوة منتهية', 'invite.expired@example.com');
+        $token = $this->sentToken($invited);
+
+        $this->travel(73)->hours();
+        auth()->logout();
+
+        $this->post(route('password.store'), [
+            'token' => $token,
+            'email' => 'invite.expired@example.com',
+            'password' => 'New-password-1',
+            'password_confirmation' => 'New-password-1',
+        ])->assertSessionHasErrors('email');
+
+        $this->assertFalse($invited->fresh()->is_active);
+        $this->assertNotNull($invited->fresh()->invited_at);
+    }
+
+    public function test_legacy_invite_marker_is_copied_into_invited_at(): void
+    {
+        $user = User::factory()->create([
+            'is_active' => false,
+            'email_verified_at' => null,
+            'invited_at' => null,
+        ]);
+
+        Schema::table('users', function ($table): void {
+            $table->dropColumn('invited_at');
+        });
+        DB::table('migrations')->where('migration', '2026_10_07_080000_add_invited_at_to_users_table')->delete();
+        DB::table('users')->where('id', $user->id)->update([
+            'remember_token' => 'staff-invite:legacy',
+        ]);
+
+        $this->artisan('migrate', [
+            '--path' => 'database/migrations/2026_10_07_080000_add_invited_at_to_users_table.php',
+            '--force' => true,
+        ])->assertSuccessful();
+
+        $row = DB::table('users')->where('id', $user->id)->first();
+        $this->assertNotNull($row->invited_at);
+        $this->assertFalse(str_starts_with((string) $row->remember_token, 'staff-invite:'));
+        $this->assertTrue(app(StaffInvitationService::class)->isPending($user->fresh()));
+    }
+
+    public function test_the_last_active_admin_cannot_be_demoted_or_deactivated(): void
+    {
+        config(['app.admin_email' => 'keeper@example.com']);
+        $only = $this->admin(['email' => 'only.admin@example.com']);
+        $actor = $this->staff(['users.activate']);
+        $this->assertFalse($only->isProtectedAdminUser());
+
+        try {
+            UserAccountRoleForm::syncAssignedRole($actor, $only, RbacCatalog::ROLE_STAFF);
+            $this->fail('Demoting the last active admin was accepted.');
+        } catch (ValidationException $exception) {
+            $this->assertSame('لا يمكن تنزيل آخر مدير نشط.', $exception->errors()['role'][0]);
+        }
+
+        $this->assertTrue($only->fresh()->isAdmin());
+
+        $this->actingAsOtpVerified($actor)
+            ->from(route('staff-ui.users.staff.show', $only))
+            ->post(route('staff-ui.users.staff.activation', $only), ['action' => 'deactivate'])
+            ->assertRedirect(route('staff-ui.users.staff.show', $only))
+            ->assertSessionHasErrors('activation');
+
+        $this->assertTrue($only->fresh()->is_active);
+
+        $extra = $this->admin(['email' => 'extra.admin@example.com']);
+
+        $this->actingAsOtpVerified($extra)
+            ->post(route('staff-ui.users.staff.role', $only), ['role' => RbacCatalog::ROLE_STAFF])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertTrue($only->fresh()->hasRole(RbacCatalog::ROLE_STAFF));
+
+        $protected = $this->admin(['email' => 'keeper@example.com']);
+        $this->assertTrue($protected->isProtectedAdminUser());
+
+        $this->actingAsOtpVerified($extra)
+            ->from(route('staff-ui.users.staff.show', $protected))
+            ->post(route('staff-ui.users.staff.role', $protected), ['role' => RbacCatalog::ROLE_STAFF])
+            ->assertRedirect(route('staff-ui.users.staff.show', $protected))
+            ->assertSessionHasErrors('role');
+
+        $this->actingAsOtpVerified($extra)
+            ->post(route('staff-ui.users.staff.activation', $protected), ['action' => 'deactivate'])
+            ->assertForbidden();
+
+        $this->assertTrue($protected->fresh()->isAdmin());
+        $this->assertTrue($protected->fresh()->is_active);
     }
 
     /**
