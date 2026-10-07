@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Web-only: migrations, permissions, and governance content (Railway preDeploy + staging web boot).
+# Web-only preDeploy: migrations, role catalog, and content seeders.
+# railway/run-web.sh must not call this script. /up starts with the HTTP process.
 #
 # Runs on the WEB service only (railway.json / railway.toml preDeployCommand).
 # Worker and scheduler configs intentionally omit preDeploy — do not add migrate
@@ -33,23 +34,9 @@ fi
 
 php artisan optimize:clear
 php artisan migrate --force
-php artisan db:seed --class=PrivacyPolicySeeder --force
-php artisan db:seed --class=PrivacyPolicyGenderUpdateSeeder --force
+# Role and permission definitions only. This seeder must not rewrite users.
 php artisan db:seed --class=RolesAndPermissionsSeeder --force
-php artisan db:seed --class=GovernanceContentSeeder --force
-php artisan db:seed --class=RegulationsSeeder --force
-php artisan db:seed --class=VolunteerOpportunitySeeder --force
-php artisan db:seed --class=PartnerSeeder --force
-php artisan db:seed --class=MediaPhotoSeeder --force
-php artisan db:seed --class=VolunteerLeadersProgramCoverSeeder --force
-php artisan db:seed --class=VolunteerLeadersProgramDatesSeeder --force
-php artisan db:seed --class=VolunteerLeadersProgramDescriptionSeeder --force
-php artisan db:seed --class=VolunteerLeadersProgramDeliverySeeder --force
-php artisan db:seed --class=VolunteerLeadersProgramPresentersSeeder --force
-php artisan db:seed --class=VolunteerLeadersProgramWhatsappSeeder --force
-php artisan db:seed --class=VolunteerLeadersProgramFemaleCapacitySeeder --force
-php artisan db:seed --class=FaeqoonProgramArchiveSeeder --force
-php artisan db:seed --class=DataForumProgramSeeder --force
-php artisan db:seed --class=NewsCoverAssetsSeeder --force
+# Public content seeders, skipped when database/seeders has not changed.
+php artisan deploy:seed-content
 php artisan permission:cache-reset
 php artisan cache:clear
