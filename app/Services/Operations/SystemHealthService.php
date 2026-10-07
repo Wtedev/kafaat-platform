@@ -177,6 +177,7 @@ final class SystemHealthService
      */
     private function checkProductionConfig(): array
     {
+        $this->productionValidator->reportUndeliverableMailer();
         $violations = $this->productionValidator->violations();
 
         return [

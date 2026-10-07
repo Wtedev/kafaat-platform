@@ -4,6 +4,8 @@ namespace Tests\Feature\Security;
 
 use App\Services\Operations\ProductionEnvironmentValidator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
 class ProductionConfigValidationTest extends TestCase
@@ -99,5 +101,52 @@ class ProductionConfigValidationTest extends TestCase
 
         $this->assertContains('CACHE_STORE cannot be file in production; use database or redis.', $violations);
         $this->assertContains('LOG_STACK must include stderr in production for platform log aggregation.', $violations);
+    }
+
+    public function test_production_log_and_array_mailers_are_logged_as_errors(): void
+    {
+        config([
+            'app.env' => 'production',
+            'app.debug' => false,
+            'app.key' => 'base64:'.base64_encode(str_repeat('a', 32)),
+            'app.url' => 'https://example.test',
+            'security.force_https' => true,
+            'security.trusted_hosts' => ['example.test'],
+            'session.secure' => true,
+            'session.http_only' => true,
+            'session.encrypt' => true,
+            'session.same_site' => 'lax',
+            'session.driver' => 'database',
+            'queue.default' => 'database',
+            'cache.default' => 'database',
+            'logging.channels.stack.channels' => ['stderr'],
+            'mail.default' => 'log',
+        ]);
+
+        $validator = app(ProductionEnvironmentValidator::class);
+
+        $this->assertContains(
+            'MAIL_MAILER is log in production. Verification codes and password emails are not delivered.',
+            $validator->violations(),
+        );
+
+        $logged = [];
+        Event::listen(MessageLogged::class, function (MessageLogged $event) use (&$logged): void {
+            $logged[] = [$event->level, $event->message];
+        });
+        $validator->reportUndeliverableMailer();
+        $this->assertContains(
+            ['error', 'MAIL_MAILER is log in production. Verification codes and password emails are not delivered.'],
+            $logged,
+        );
+
+        config(['mail.default' => 'array']);
+        $this->assertContains(
+            'MAIL_MAILER is array in production. Verification codes and password emails are not delivered.',
+            $validator->violations(),
+        );
+
+        config(['mail.default' => 'resend']);
+        $this->assertNull($validator->undeliverableMailerMessage());
     }
 }

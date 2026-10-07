@@ -48,6 +48,7 @@ use App\Services\Auth\EmailVerificationCodeService;
 use App\Services\CandidatePool\CandidatePoolConsentService;
 use App\Services\Inbox\InboxNotificationService;
 use App\Services\News\NewsPublicationService;
+use App\Services\Operations\ProductionEnvironmentValidator;
 use App\Services\Privacy\Retention\RetentionHandlerRegistry;
 use App\Services\Privacy\Retention\RetentionPolicyEngine;
 use App\Services\Privacy\Retention\RetentionResourceCatalog;
@@ -90,6 +91,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        app(ProductionEnvironmentValidator::class)->reportUndeliverableMailer();
+
         $this->configureAuthUserProvider();
         $this->configureRateLimiting();
         $this->configureProductionHttps();
