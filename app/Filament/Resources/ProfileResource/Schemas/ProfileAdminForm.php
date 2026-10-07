@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ProfileResource\Schemas;
 
+use App\Enums\IdentityCategory;
 use App\Enums\ProfileGender;
 use App\Models\Profile;
 use App\Support\Exports\BeneficiaryProfileExportColumns;
@@ -40,9 +41,19 @@ final class ProfileAdminForm
                         ->content(fn (?Profile $record): string => $record?->user?->maskedIdentityNumber() ?? '—')
                         ->visible(fn (?Profile $record): bool => $record?->user?->hasIdentityOnRecord() ?? false),
 
-                    Placeholder::make('account_identity_type')
-                        ->label('نوع الهوية')
-                        ->content(fn (?Profile $record): string => $record?->user?->identity_type?->label() ?? '—')
+                    Placeholder::make('account_identity_category')
+                        ->label('الجنسية')
+                        ->content(function (?Profile $record): string {
+                            $user = $record?->user;
+                            if ($user?->identity_category !== null) {
+                                return $user->identity_category->label();
+                            }
+                            if ($user?->identity_type !== null) {
+                                return IdentityCategory::fromIdentityType($user->identity_type)->label();
+                            }
+
+                            return '—';
+                        })
                         ->visible(fn (?Profile $record): bool => $record?->user?->hasIdentityOnRecord() ?? false),
 
                     Placeholder::make('account_email')

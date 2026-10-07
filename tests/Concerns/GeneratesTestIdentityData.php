@@ -20,7 +20,7 @@ trait GeneratesTestIdentityData
 
     protected function generateValidIdentityForType(IdentityType $type): string
     {
-        // Any 10-digit number is accepted; type is stored separately without prefix/checksum rules.
+        // First digit determines category: 1 = national ID / saudi, 2 = iqama / resident.
         $prefix = $type === IdentityType::NationalId ? '1' : '2';
 
         for ($attempt = 0; $attempt < 200; $attempt++) {
@@ -46,7 +46,6 @@ trait GeneratesTestIdentityData
             'father_name' => 'محمد',
             'grandfather_name' => 'عبدالله',
             'family_name' => 'السعود',
-            'identity_type' => IdentityType::NationalId->value,
             'identity_number' => $this->generateValidNationalId(),
             'birth_date' => '1995-05-15',
             'gender' => 'male',

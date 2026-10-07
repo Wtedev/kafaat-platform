@@ -45,6 +45,7 @@ final class AccountAnonymizationHandler implements DeletionHandlerInterface
             'notify_email' => false,
             'notification_settings' => null,
             'identity_type' => null,
+            'identity_category' => null,
             'identity_number_ciphertext' => null,
             'identity_number_lookup_hash' => null,
             'identity_number_last4' => null,

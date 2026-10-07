@@ -5,7 +5,6 @@ namespace App\Services\Privacy;
 use App\Data\Privacy\PrivacyAccessResponseSnapshot;
 use App\Enums\AccountStatus;
 use App\Enums\AuditLogResult;
-use App\Enums\IdentityType;
 use App\Enums\PrivacyCorrectionFieldCode;
 use App\Enums\PrivacyExportFileStatus;
 use App\Enums\PrivacyRequestEventType;
@@ -277,8 +276,17 @@ final class PrivacyRequestService
             } elseif ($field === PrivacyCorrectionFieldCode::BirthDate) {
                 $details['new_value'] = (string) ($valuePayload['birth_date'] ?? '');
             } elseif ($field === PrivacyCorrectionFieldCode::IdentityNumber) {
-                $identityType = IdentityType::from((string) ($valuePayload['identity_type'] ?? ''));
-                $details['identity_type'] = $identityType->value;
+                $normalized = IdentityNumberService::normalize((string) ($valuePayload['identity_number'] ?? ''));
+                $category = $normalized !== null
+                    ? IdentityNumberService::categoryFromNumber($normalized)
+                    : null;
+                if ($category === null) {
+                    throw ValidationException::withMessages([
+                        'identity_number' => IdentityNumberService::validationMessage($normalized),
+                    ]);
+                }
+                $details['identity_type'] = $category->toIdentityType()->value;
+                $details['identity_category'] = $category->value;
             }
 
             $privacyRequest = $this->createRequest(
@@ -290,13 +298,11 @@ final class PrivacyRequestService
             );
 
             if ($field === PrivacyCorrectionFieldCode::IdentityNumber) {
-                $identityType = IdentityType::from((string) ($valuePayload['identity_type'] ?? ''));
                 try {
                     $this->correctionService->storeSensitivePayload(
                         $privacyRequest,
                         $field,
                         (string) ($valuePayload['identity_number'] ?? ''),
-                        $identityType,
                     );
                 } catch (InvalidArgumentException $exception) {
                     if ($exception->getMessage() === 'duplicate_identity') {

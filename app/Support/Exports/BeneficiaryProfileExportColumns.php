@@ -2,9 +2,12 @@
 
 namespace App\Support\Exports;
 
+use App\Enums\IdentityCategory;
+use App\Enums\IdentityType;
 use App\Enums\MembershipType;
 use App\Enums\ProfileGender;
 use App\Models\Profile;
+use App\Models\User;
 use App\Services\Portal\CvFormOptions;
 use App\Services\Rbac\RbacCatalog;
 use App\Support\Privacy\SensitiveContactMasker;
@@ -67,6 +70,7 @@ final class BeneficiaryProfileExportColumns
             'user_phone' => $canContact ? $user?->phone : SensitiveContactMasker::maskPhone($user?->phone),
             'user_role_type' => self::roleTypeLabel($user?->role_type),
             'user_is_active' => $user === null ? null : ($user->is_active ? 'نشط' : 'موقوف'),
+            'identity_category' => self::identityCategoryLabel($user),
             'gender' => $profile->gender instanceof ProfileGender
                 ? $profile->gender->label()
                 : match ((string) $profile->gender) {
@@ -114,6 +118,7 @@ final class BeneficiaryProfileExportColumns
             'user_phone' => ['label' => 'رقم الجوال', 'default' => true],
             'user_role_type' => ['label' => 'تصنيف الحساب', 'default' => true],
             'user_is_active' => ['label' => 'حالة الحساب', 'default' => true],
+            'identity_category' => ['label' => 'الجنسية', 'default' => true],
 
             // — البيانات الشخصية —
             'gender' => ['label' => 'الجنس', 'default' => true],
@@ -262,6 +267,23 @@ final class BeneficiaryProfileExportColumns
             fn (array $row): string => ($row['type'] ? "{$row['type']} — " : '')."{$row['label']}: {$row['url']}",
             $links,
         ));
+    }
+
+    private static function identityCategoryLabel(?User $user): ?string
+    {
+        if ($user === null) {
+            return null;
+        }
+
+        if ($user->identity_category instanceof IdentityCategory) {
+            return $user->identity_category->label();
+        }
+
+        if ($user->identity_type instanceof IdentityType) {
+            return IdentityCategory::fromIdentityType($user->identity_type)->label();
+        }
+
+        return null;
     }
 
     /**

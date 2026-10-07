@@ -19,6 +19,7 @@ class ExportStaffBeneficiaryProfiles implements ShouldQueue
         public readonly string $search,
         public readonly string $status,
         public readonly string $completeness,
+        public readonly string $identityCategory,
         public readonly array $columnKeys,
     ) {}
 
@@ -29,6 +30,7 @@ class ExportStaffBeneficiaryProfiles implements ShouldQueue
             $this->search,
             $this->status,
             $this->completeness,
+            $this->identityCategory,
             $this->columnKeys,
         );
     }

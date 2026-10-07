@@ -106,8 +106,10 @@
                     @endif
                 </dd>
                 @if ($canViewMaskedIdentity)
-                    <dt>نوع الهوية</dt>
-                    <dd>{{ $beneficiary->identity_type?->label() ?? '—' }}</dd>
+                    <dt>الجنسية</dt>
+                    <dd>{{ $beneficiary->identity_category?->label()
+                        ?? ($beneficiary->identity_type ? \App\Enums\IdentityCategory::fromIdentityType($beneficiary->identity_type)->label() : null)
+                        ?? '—' }}</dd>
                     <dt>رقم الهوية</dt>
                     <dd class="sui-fact">
                         <span class="sui-fact__value" data-identity-masked>{{ $maskedIdentity ?: '—' }}</span>

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AccountStatus;
+use App\Enums\IdentityCategory;
 use App\Enums\IdentityType;
 use App\Enums\ProfileGender;
 use App\Enums\VolunteerHoursStatus;
@@ -132,6 +133,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             'notification_prefs_set_at' => 'datetime',
             'notification_settings' => 'array',
             'identity_type' => IdentityType::class,
+            'identity_category' => IdentityCategory::class,
             'identity_confirmed_at' => 'datetime',
             'profile_completed_at' => 'datetime',
         ];

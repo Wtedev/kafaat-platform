@@ -4,6 +4,7 @@ namespace App\Http\Controllers\StaffUi;
 
 use App\Enums\AccountStatus;
 use App\Enums\AuditLogResult;
+use App\Enums\IdentityCategory;
 use App\Enums\ProfileGender;
 use App\Http\Controllers\Controller;
 use App\Models\Certificate;
@@ -41,10 +42,16 @@ class StaffBeneficiaryController extends Controller
         $this->ensureStaff($request);
         $this->authorize('viewAny', User::class);
 
-        [$search, $status, $completeness] = $this->beneficiaryFilters($request);
+        [$search, $status, $completeness, $identityCategory] = $this->beneficiaryFilters($request);
         $user = $request->user();
         $canExport = $user->can('export', Profile::class);
-        $beneficiaries = $index->paginate($search, $status, $completeness, (int) $request->query('page', 1));
+        $beneficiaries = $index->paginate(
+            $search,
+            $status,
+            $completeness,
+            $identityCategory,
+            (int) $request->query('page', 1),
+        );
 
         return view('staff-ui.users.beneficiaries', [
             'staffName' => $user->name,
@@ -53,6 +60,7 @@ class StaffBeneficiaryController extends Controller
             'search' => $search,
             'status' => $status,
             'completeness' => $completeness,
+            'identityCategory' => $identityCategory,
             'canViewContact' => $user->can('beneficiaries.view_contact'),
             'canViewStaff' => $user->can('users.view'),
             'staffCount' => $user->can('users.view') ? $staff->count() : null,
@@ -67,7 +75,7 @@ class StaffBeneficiaryController extends Controller
     {
         $this->ensureStaff($request);
 
-        [$search, $status, $completeness] = $this->beneficiaryFilters($request);
+        [$search, $status, $completeness, $identityCategory] = $this->beneficiaryFilters($request);
         $columns = $request->input('columns', []);
 
         return $exports->downloadOrQueue(
@@ -75,6 +83,7 @@ class StaffBeneficiaryController extends Controller
             $search,
             $status,
             $completeness,
+            $identityCategory,
             is_array($columns) ? array_map(strval(...), $columns) : [],
         );
     }
@@ -223,13 +232,14 @@ class StaffBeneficiaryController extends Controller
     }
 
     /**
-     * @return array{0: string, 1: string, 2: string}
+     * @return array{0: string, 1: string, 2: string, 3: string}
      */
     private function beneficiaryFilters(Request $request): array
     {
         $search = mb_substr(trim((string) $request->input('q', '')), 0, 100);
         $status = (string) $request->input('status', '');
         $completeness = (string) $request->input('profile', '');
+        $identityCategory = (string) $request->input('identity_category', '');
 
         if (! in_array($status, ['', 'active', 'inactive'], true)) {
             $status = '';
@@ -239,7 +249,11 @@ class StaffBeneficiaryController extends Controller
             $completeness = '';
         }
 
-        return [$search, $status, $completeness];
+        if (IdentityCategory::tryFrom($identityCategory) === null) {
+            $identityCategory = '';
+        }
+
+        return [$search, $status, $completeness, $identityCategory];
     }
 
     private function ensureStaff(Request $request): void

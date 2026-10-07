@@ -3,15 +3,19 @@
 ])
 
 @php
+use App\Enums\IdentityCategory;
+
 $user = auth()->user();
-$identityTypeLabel = $user?->identity_type?->label() ?? '—';
+$categoryLabel = $user?->identity_category?->label()
+    ?? ($user?->identity_type ? IdentityCategory::fromIdentityType($user->identity_type)->label() : null)
+    ?? '—';
 $maskedIdentity = $user?->maskedIdentityNumber() ?? '—';
 $lockedInputClass = 'w-full cursor-not-allowed rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-600';
 @endphp
 
 <div>
-    <label class="{{ $labelClass }}">نوع الهوية</label>
-    <input type="text" value="{{ $identityTypeLabel }}" readonly tabindex="-1" class="{{ $lockedInputClass }}" />
+    <label class="{{ $labelClass }}">الجنسية</label>
+    <input type="text" value="{{ $categoryLabel }}" readonly tabindex="-1" class="{{ $lockedInputClass }}" />
 </div>
 
 <div>
