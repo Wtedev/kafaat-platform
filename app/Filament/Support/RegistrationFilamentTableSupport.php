@@ -8,10 +8,12 @@ use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
 use App\Services\PathAttendanceService;
 use App\Services\ProgramAttendanceService;
+use App\Support\ArabicText;
 use App\Support\RegistrationEligibilitySupport;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class RegistrationFilamentTableSupport
@@ -20,7 +22,23 @@ class RegistrationFilamentTableSupport
     {
         return TextColumn::make('user.name')
             ->label('اسم المستفيد')
-            ->searchable()
+            ->searchable(query: function (Builder $query, string $search): Builder {
+                $needle = trim($search);
+                if ($needle === '') {
+                    return $query;
+                }
+
+                $like = '%'.ArabicText::fold($needle).'%';
+
+                return $query->whereHas('user', function (Builder $user) use ($like): void {
+                    $user->where(function (Builder $match) use ($like): void {
+                        foreach (['name', 'first_name', 'father_name', 'grandfather_name', 'family_name'] as $column) {
+                            $folded = ArabicText::sqlFoldColumn($column);
+                            $match->orWhereRaw("{$folded} LIKE ?", [$like]);
+                        }
+                    });
+                });
+            })
             ->sortable()
             ->wrap()
             ->url(fn (Model $record): ?string => UserFilamentTableSupport::recordUrlFromUserRelation($record));
