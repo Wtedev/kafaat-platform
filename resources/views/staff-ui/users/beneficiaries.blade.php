@@ -118,7 +118,7 @@
                 <input type="hidden" name="q" value="{{ $search }}">
                 <input type="hidden" name="status" value="{{ $status }}">
                 <input type="hidden" name="profile" value="{{ $completeness }}">
-                <p>سيتم تصدير {{ $beneficiaries->total() }} مستفيداً حسب الفلاتر الحالية.</p>
+                <p>{{ $exportCountSentence }}</p>
                 <div class="sui-export-columns">
                     @foreach ($exportColumns as $key => $label)
                         <x-staff-ui.checkbox

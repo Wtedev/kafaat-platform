@@ -11,12 +11,12 @@ use App\Models\InboxNotification;
 use App\Models\Profile;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
+use App\Services\Documents\PrivateDocumentsStorage;
 use App\Services\Exports\BeneficiaryExportAuthorization;
 use App\Support\Exports\BeneficiaryProfileExportColumns;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -32,6 +32,10 @@ final class StaffBeneficiaryExport
     public const SYNC_ROW_LIMIT = 5000;
 
     public const HOURLY_LIMIT = 10;
+
+    public const LINK_HOURS = 24;
+
+    public const DIRECTORY = 'staff-beneficiary-exports';
 
     public function __construct(
         private readonly StaffBeneficiaryIndex $index,
@@ -141,13 +145,17 @@ final class StaffBeneficiaryExport
 
         $filters = $this->filters($search, $status, $completeness);
         $token = Str::random(40);
-        $relative = 'staff-beneficiary-exports/'.$actor->id.'/'.$token.'.xlsx';
+        $relative = self::DIRECTORY.'/'.$actor->id.'/'.$token.'.xlsx';
 
-        Excel::store(new BeneficiaryProfilesExport($profiles, $keys), $relative, 'local');
+        Excel::store(
+            new BeneficiaryProfilesExport($profiles, $keys),
+            $relative,
+            PrivateDocumentsStorage::diskName(),
+        );
 
         $url = URL::temporarySignedRoute(
             'staff-ui.users.export.download',
-            now()->addHours(24),
+            now()->addHours(self::LINK_HOURS),
             ['token' => $token, 'exporter' => $actor->id],
         );
 
@@ -169,10 +177,69 @@ final class StaffBeneficiaryExport
         abort_unless($actor->can('export', Profile::class), 403);
         abort_unless(preg_match('/^[A-Za-z0-9]{40}$/', $token) === 1, 404);
 
-        $relative = 'staff-beneficiary-exports/'.$actor->id.'/'.$token.'.xlsx';
-        abort_unless(Storage::disk('local')->exists($relative), 404);
+        $relative = self::DIRECTORY.'/'.$actor->id.'/'.$token.'.xlsx';
+        $disk = PrivateDocumentsStorage::disk();
+        abort_unless($disk->exists($relative), 404);
 
-        return Storage::disk('local')->download($relative, self::filename());
+        return $disk->download($relative, self::filename());
+    }
+
+    public function notifyFailure(int $actorId): void
+    {
+        $actor = User::query()->find($actorId);
+
+        if (! $actor instanceof User) {
+            return;
+        }
+
+        InboxNotification::query()->create([
+            'user_id' => $actor->id,
+            'title' => 'تعذر تصدير المستفيدين',
+            'message' => 'تعذر إنشاء ملف التصدير. حاول مرة أخرى لاحقاً.',
+            'type' => InboxNotificationType::GeneralMessage,
+            'sender_id' => null,
+            'target_type' => NotificationTargetType::SingleUser,
+            'context' => [],
+        ]);
+    }
+
+    public function purgeExpired(bool $dryRun = false): int
+    {
+        $disk = PrivateDocumentsStorage::disk();
+        $cutoff = now()->subHours(self::LINK_HOURS)->getTimestamp();
+        $deleted = 0;
+
+        foreach ($disk->allFiles(self::DIRECTORY) as $path) {
+            if ($disk->lastModified($path) > $cutoff) {
+                continue;
+            }
+
+            $deleted++;
+
+            if (! $dryRun) {
+                $disk->delete($path);
+            }
+        }
+
+        return $deleted;
+    }
+
+    public static function countSentence(int $count): string
+    {
+        $count = max(0, $count);
+
+        if ($count === 0) {
+            return 'لا يوجد مستفيدون حسب الفلاتر الحالية.';
+        }
+
+        $subject = match (true) {
+            $count === 1 => 'مستفيد واحد',
+            $count === 2 => 'مستفيدان',
+            $count <= 10 => $count.' مستفيدين',
+            default => $count.' مستفيداً',
+        };
+
+        return 'سيتم تصدير '.$subject.' حسب الفلاتر الحالية.';
     }
 
     /**

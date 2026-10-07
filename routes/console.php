@@ -26,6 +26,11 @@ Schedule::command('privacy:purge-expired-exports')
     ->timezone(config('app.timezone', 'Asia/Riyadh'))
     ->withoutOverlapping();
 
+Schedule::command('staff-ui:purge-expired-beneficiary-exports')
+    ->dailyAt('03:45')
+    ->timezone(config('app.timezone', 'Asia/Riyadh'))
+    ->withoutOverlapping();
+
 Schedule::command('privacy:apply-retention')
     ->dailyAt('04:00')
     ->timezone(config('app.timezone', 'Asia/Riyadh'))

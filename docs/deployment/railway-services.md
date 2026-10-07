@@ -42,6 +42,7 @@ Paused. See `docs/deployment/railway-staging.md`. Do not deploy there.
 - `training:publish-scheduled` — every minute
 - `inbox:dispatch-training-milestones` — hourly
 - `privacy:purge-expired-exports` — 03:30 Asia/Riyadh
+- `staff-ui:purge-expired-beneficiary-exports` — 03:45 Asia/Riyadh
 - `privacy:apply-retention` — 04:00 Asia/Riyadh
 - `error-pages:prune` — 04:30 Asia/Riyadh
 

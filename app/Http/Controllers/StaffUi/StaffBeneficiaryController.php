@@ -44,11 +44,12 @@ class StaffBeneficiaryController extends Controller
         [$search, $status, $completeness] = $this->beneficiaryFilters($request);
         $user = $request->user();
         $canExport = $user->can('export', Profile::class);
+        $beneficiaries = $index->paginate($search, $status, $completeness, (int) $request->query('page', 1));
 
         return view('staff-ui.users.beneficiaries', [
             'staffName' => $user->name,
             'staffEmail' => $user->email,
-            'beneficiaries' => $index->paginate($search, $status, $completeness, (int) $request->query('page', 1)),
+            'beneficiaries' => $beneficiaries,
             'search' => $search,
             'status' => $status,
             'completeness' => $completeness,
@@ -58,6 +59,7 @@ class StaffBeneficiaryController extends Controller
             'canExport' => $canExport,
             'exportColumns' => $canExport ? $exports->columnOptions($user) : [],
             'exportDefaults' => $canExport ? $exports->defaultColumnKeys($user) : [],
+            'exportCountSentence' => StaffBeneficiaryExport::countSentence($beneficiaries->total()),
         ]);
     }
 

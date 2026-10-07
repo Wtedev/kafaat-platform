@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Services\StaffUi\StaffBeneficiaryExport;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class ExportStaffBeneficiaryProfiles implements ShouldQueue
 {
@@ -30,5 +31,10 @@ class ExportStaffBeneficiaryProfiles implements ShouldQueue
             $this->completeness,
             $this->columnKeys,
         );
+    }
+
+    public function failed(?Throwable $exception): void
+    {
+        app(StaffBeneficiaryExport::class)->notifyFailure($this->actorId);
     }
 }
