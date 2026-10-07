@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Inbox\InboxNotificationService;
+use App\Support\CurrentPublishMoment;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -22,7 +23,7 @@ class SendTrainingProgramLaunchedNotifications implements ShouldQueue
     {
         $program = TrainingProgram::query()->find($this->programId);
 
-        if ($program === null) {
+        if ($program === null || ! CurrentPublishMoment::includes($program->published_at)) {
             return;
         }
 

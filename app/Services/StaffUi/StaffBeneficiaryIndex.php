@@ -13,14 +13,22 @@ final class StaffBeneficiaryIndex
 {
     public function paginate(string $search, string $status, string $completeness, int $page, int $perPage = 15): LengthAwarePaginator
     {
-        $users = $this->query($search, $status)
+        return $this->paginateCollection($this->matching($search, $status, $completeness), $page, $perPage);
+    }
+
+    /**
+     * المستفيدون المطابقون للبحث والفلاتر، بلا ترقيم صفحات.
+     *
+     * @return Collection<int, User>
+     */
+    public function matching(string $search, string $status, string $completeness): Collection
+    {
+        return $this->query($search, $status)
             ->with('profile')
             ->orderBy('name')
             ->get()
             ->filter(fn (User $user): bool => $this->matchesCompleteness($user, $completeness))
             ->values();
-
-        return $this->paginateCollection($users, $page, $perPage);
     }
 
     /**
@@ -30,6 +38,8 @@ final class StaffBeneficiaryIndex
     {
         $query = User::query()
             ->operational()
+            ->whereNull('privacy_deleted_at')
+            ->whereNull('anonymized_at')
             ->where(function (Builder $portal): void {
                 $portal->whereIn('role_type', ['beneficiary', 'volunteer', 'trainee'])
                     ->orWhereHas('roles', function (Builder $roles): void {

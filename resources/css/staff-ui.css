@@ -1551,6 +1551,25 @@ a.sui-menu-item {
     background: rgba(17, 24, 39, 0.4);
 }
 
+.sui-modal[data-sui-modal="export-beneficiaries"] .sui-modal__panel {
+    width: min(720px, 100%);
+}
+
+.sui-export-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sui-space-3);
+    max-height: min(46vh, 380px);
+    overflow: auto;
+    margin-bottom: var(--sui-space-2);
+}
+
+@media (max-width: 640px) {
+    .sui-export-columns {
+        grid-template-columns: 1fr;
+    }
+}
+
 .sui-modal__panel {
     position: relative;
     width: min(440px, 100%);
