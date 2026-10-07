@@ -346,10 +346,35 @@ class StaffUiBeneficiaryExportTest extends TestCase
         $disk->assertMissing(StaffBeneficiaryExport::DIRECTORY.'/4/old.xlsx');
         $disk->assertExists(StaffBeneficiaryExport::DIRECTORY.'/4/fresh.xlsx');
 
-        $scheduled = collect(app(Schedule::class)->events())
-            ->contains(fn ($event): bool => str_contains((string) $event->command, 'staff-ui:purge-expired-beneficiary-exports')
-                && $event->expression === '45 3 * * *');
-        $this->assertTrue($scheduled);
+        $events = collect(app(Schedule::class)->events());
+        $commands = $events->map(fn ($event): string => (string) $event->command);
+
+        $this->assertTrue($commands->contains(
+            fn (string $command): bool => str_contains($command, 'staff-ui:purge-expired-beneficiary-exports'),
+        ));
+        $this->assertTrue($events->contains(
+            fn ($event): bool => str_contains((string) $event->command, 'staff-ui:purge-expired-beneficiary-exports')
+                && $event->expression === '45 3 * * *',
+        ));
+        foreach ([
+            'news:publish-scheduled',
+            'training:publish-scheduled',
+            'inbox:dispatch-training-milestones',
+        ] as $removed) {
+            $this->assertFalse($commands->contains(
+                fn (string $command): bool => str_contains($command, $removed),
+            ));
+        }
+        foreach ([
+            'auth:purge-expired-pending-registrations',
+            'privacy:purge-expired-exports',
+            'privacy:apply-retention',
+            'error-pages:prune',
+        ] as $kept) {
+            $this->assertTrue($commands->contains(
+                fn (string $command): bool => str_contains($command, $kept),
+            ));
+        }
     }
 
     /**

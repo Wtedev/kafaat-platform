@@ -1,13 +1,9 @@
 #!/usr/bin/env bash
-# Laravel scheduler — required because several tasks run every minute.
+# Optional scheduler-only process. Production runs schedule:work inside the worker.
 #
-# Railway Cron (5-minute minimum) is insufficient for:
-#   news:publish-scheduled, training:publish-scheduled
-#
-# Deploy as a separate Railway service with:
+# Deploy only if a service sets:
 #   RAILWAY_START_MODE=scheduler
 #   Config-as-Code: railway/configs/scheduler.railway.json
-# Prefer schedule:work (Laravel 11+/12) over a custom sleep loop.
 set -euo pipefail
 
 php artisan optimize:clear

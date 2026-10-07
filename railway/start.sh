@@ -27,7 +27,7 @@ fi
 
 case "$mode" in
   worker)
-    echo "Railway start: worker (queue)" >&2
+    echo "Railway start: worker (queue and schedule)" >&2
     exec bash railway/run-worker.sh
     ;;
   scheduler)
