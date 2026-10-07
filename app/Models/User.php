@@ -17,6 +17,7 @@ use App\Services\Rbac\RbacService;
 use App\Support\Auth\EmailNormalizer;
 use App\Support\Privacy\UserDeletionGuard;
 use App\Support\PublicDiskPath;
+use App\Support\UserAccountRoleForm;
 use Database\Factories\UserFactory;
 use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
@@ -30,6 +31,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
@@ -37,13 +39,47 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     /** @use HasFactory<UserFactory> */
     use HasEntityNotes, HasFactory, HasRoles, Notifiable;
 
+    /** @var array<int, true> */
+    private static array $adminDeactivationTransactions = [];
+
     protected static function booted(): void
     {
         static::deleting(function (User $user): void {
             UserDeletionGuard::assertAuthorized();
         });
 
+        static::updating(function (User $user): void {
+            if (! $user->isDirty('is_active') || $user->is_active || ! $user->getOriginal('is_active')) {
+                return;
+            }
+
+            $opened = false;
+            $key = spl_object_id($user);
+            if (DB::transactionLevel() === 0) {
+                DB::beginTransaction();
+                self::$adminDeactivationTransactions[$key] = true;
+                $opened = true;
+            }
+
+            try {
+                UserAccountRoleForm::assertDeactivationKeepsAnActiveAdmin($user);
+            } catch (\Throwable $exception) {
+                if ($opened) {
+                    unset(self::$adminDeactivationTransactions[$key]);
+                    DB::rollBack();
+                }
+
+                throw $exception;
+            }
+        });
+
         static::updated(function (User $user): void {
+            $key = spl_object_id($user);
+            if (isset(self::$adminDeactivationTransactions[$key])) {
+                unset(self::$adminDeactivationTransactions[$key]);
+                DB::commit();
+            }
+
             if ($user->wasChanged('is_active') && ! $user->is_active) {
                 app(AccountDeactivationService::class)->invalidateSessions($user);
             }

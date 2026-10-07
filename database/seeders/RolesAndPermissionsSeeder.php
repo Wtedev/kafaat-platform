@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Services\Rbac\RbacCatalog;
-use App\Services\Rbac\StaffPermissionService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
@@ -42,8 +41,9 @@ class RolesAndPermissionsSeeder extends Seeder
             $role->syncPermissions($matrix[$roleName] ?? []);
         }
 
-        // مزامنة تعريفات الأدوار فقط. لا تنزيل للمدراء الإضافيين.
-        app(StaffPermissionService::class)->migrateUsersToFourRoleModel();
+        // لا ترحيل للمستخدمين ولا فرض أدمن واحد هنا.
+        // كان ذلك يمس كل الحسابات في كل إقلاع. الترحيل لمرة واحدة عبر
+        // StaffPermissionService::migrateUsersToFourRoleModel().
 
         $obsoleteRoles = Role::query()
             ->where('guard_name', RbacCatalog::GUARD_WEB)

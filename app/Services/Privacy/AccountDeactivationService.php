@@ -27,27 +27,29 @@ final class AccountDeactivationService
             throw new AuthorizationException('Protected admin accounts cannot be deactivated.');
         }
 
-        UserAccountRoleForm::assertDeactivationKeepsAnActiveAdmin($target);
-
         if (! $actor->can('deactivate', $target)) {
             throw new AuthorizationException('You are not allowed to deactivate this account.');
         }
 
-        if (! $target->is_active) {
-            return;
-        }
+        UserAccountRoleForm::assertDeactivationKeepsAnActiveAdmin($target, function () use ($target, $actor, $reason, $request): void {
+            $target->refresh();
 
-        $target->update(['is_active' => false]);
-        $this->invalidateSessions($target);
+            if (! $target->is_active) {
+                return;
+            }
 
-        $this->auditLogger->recordOrFail(
-            $actor,
-            'account.deactivated',
-            AuditLogResult::Success,
-            $target,
-            reason: $reason,
-            request: $request,
-        );
+            $target->update(['is_active' => false]);
+            $this->invalidateSessions($target);
+
+            $this->auditLogger->recordOrFail(
+                $actor,
+                'account.deactivated',
+                AuditLogResult::Success,
+                $target,
+                reason: $reason,
+                request: $request,
+            );
+        });
     }
 
     public function invalidateSessions(User $user): void

@@ -188,6 +188,7 @@ class StaffUiBeneficiaryProfileTest extends TestCase
             'token' => 'existing-token',
             'created_at' => now(),
         ]);
+        $beneficiary->forceFill(['remember_token' => 'remember-me-cookie'])->save();
 
         $this->actingAsOtpVerified($editor)
             ->post(route('staff-ui.users.update', $beneficiary), [
@@ -205,7 +206,10 @@ class StaffUiBeneficiaryProfileTest extends TestCase
         );
         $this->assertDatabaseMissing('sessions', ['id' => 'beneficiary-session']);
         $this->assertDatabaseMissing('password_reset_tokens', ['email' => 'old.beneficiary@example.com']);
-        $this->assertSame('new.beneficiary@example.com', $beneficiary->fresh()->email);
+        $fresh = $beneficiary->fresh();
+        $this->assertSame('new.beneficiary@example.com', $fresh->email);
+        $this->assertNotSame('remember-me-cookie', $fresh->remember_token);
+        $this->assertNotNull($fresh->remember_token);
     }
 
     public function test_phone_uses_the_registration_saudi_mobile_rule(): void
