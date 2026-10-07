@@ -7,6 +7,7 @@ use App\Enums\RegistrationStatus;
 use App\Enums\VolunteerHoursStatus;
 use App\Services\Inbox\InboxNotificationService;
 use App\Services\Media\PublicMediaLifecycleService;
+use App\Support\CurrentPublishMoment;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\PublicDiskPath;
 use App\Support\StaffFilamentRoles;
@@ -72,6 +73,10 @@ class VolunteerOpportunity extends Model
                 return;
             }
 
+            if (! CurrentPublishMoment::includes($opportunity->published_at)) {
+                return;
+            }
+
             $editor = Auth::user();
             app(InboxNotificationService::class)->volunteerOpportunityFirstPublished(
                 $opportunity,
@@ -83,7 +88,7 @@ class VolunteerOpportunity extends Model
             $editor = Auth::user();
 
             if ($opportunity->wasChanged('status') && $opportunity->status === OpportunityStatus::Published) {
-                if ($opportunity->notify_on_publish) {
+                if ($opportunity->notify_on_publish && CurrentPublishMoment::includes($opportunity->published_at)) {
                     app(InboxNotificationService::class)->volunteerOpportunityFirstPublished(
                         $opportunity,
                         $editor instanceof User ? $editor : null,

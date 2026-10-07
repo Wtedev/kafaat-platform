@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\LearningPath;
 use App\Models\User;
 use App\Services\Inbox\InboxNotificationService;
+use App\Support\CurrentPublishMoment;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -22,7 +23,7 @@ class SendLearningPathLaunchedNotifications implements ShouldQueue
     {
         $path = LearningPath::query()->find($this->pathId);
 
-        if ($path === null) {
+        if ($path === null || ! CurrentPublishMoment::includes($path->published_at)) {
             return;
         }
 

@@ -8,6 +8,10 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+Schedule::command('training:publish-scheduled')
+    ->everyMinute()
+    ->withoutOverlapping();
+
 Schedule::command('privacy:purge-expired-exports')
     ->dailyAt('03:30')
     ->timezone(config('app.timezone', 'Asia/Riyadh'))

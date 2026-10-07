@@ -38,6 +38,7 @@ Paused. See `docs/deployment/railway-staging.md`. Do not deploy there.
 
 ## Scheduler tasks (worker)
 
+- `training:publish-scheduled` — every minute
 - `auth:purge-expired-pending-registrations` — hourly
 - `privacy:purge-expired-exports` — 03:30 Asia/Riyadh
 - `staff-ui:purge-expired-beneficiary-exports` — 03:45 Asia/Riyadh
