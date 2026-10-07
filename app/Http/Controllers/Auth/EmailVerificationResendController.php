@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\Auth\EmailVerificationCodeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Throwable;
 
 class EmailVerificationResendController extends Controller
 {
@@ -14,7 +16,13 @@ class EmailVerificationResendController extends Controller
             return redirect()->route('portal.dashboard');
         }
 
-        $request->user()->sendEmailVerificationNotification();
+        try {
+            $request->user()->sendEmailVerificationNotification();
+        } catch (Throwable) {
+            $request->session()->put(EmailVerificationCodeService::SEND_FAILED_SESSION_KEY, true);
+
+            return back();
+        }
 
         return back()->with('status', 'تم إرسال رمز تحقق جديد إلى بريدك الإلكتروني.');
     }

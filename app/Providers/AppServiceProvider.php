@@ -44,6 +44,7 @@ use App\Policies\SecurityLogPolicy;
 use App\Policies\SendInAppNotificationPolicy;
 use App\Policies\SupportTicketPolicy;
 use App\Policies\UserPolicy;
+use App\Services\Auth\EmailVerificationCodeService;
 use App\Services\CandidatePool\CandidatePoolConsentService;
 use App\Services\Inbox\InboxNotificationService;
 use App\Services\News\NewsPublicationService;
@@ -210,6 +211,7 @@ class AppServiceProvider extends ServiceProvider
                 try {
                     $user->sendEmailVerificationNotification();
                 } catch (\Throwable $exception) {
+                    session()->put(EmailVerificationCodeService::SEND_FAILED_SESSION_KEY, true);
                     Log::error('otp.send_failed', [
                         'user_id' => $user->getAuthIdentifier(),
                         'message' => $exception->getMessage(),

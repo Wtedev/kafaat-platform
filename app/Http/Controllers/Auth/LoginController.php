@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Enums\SecurityLogResult;
 use App\Enums\SecurityLogSeverity;
 use App\Http\Controllers\Controller;
+use App\Services\Auth\EmailVerificationCodeService;
 use App\Services\Security\SecurityLogService;
 use App\Support\Auth\EmailNormalizer;
 use App\Support\Auth\SafeLoginReturnUrl;
@@ -95,7 +96,12 @@ class LoginController extends Controller
 
         // رمز التحقق إلزامي في كل دخول لجميع الأنواع (مستفيد/موظف/أدمن).
         // الـ Login listener أرسل الرمز وضبط بوابة الجلسة otp_verified=false.
-        return redirect()->route('verification.notice')
-            ->with('status', 'أرسلنا رمز تحقق إلى بريدك الإلكتروني. يرجى إدخاله للمتابعة.');
+        $redirect = redirect()->route('verification.notice');
+
+        if ($request->session()->get(EmailVerificationCodeService::SEND_FAILED_SESSION_KEY) === true) {
+            return $redirect;
+        }
+
+        return $redirect->with('status', 'أرسلنا رمز تحقق إلى بريدك الإلكتروني. يرجى إدخاله للمتابعة.');
     }
 }
