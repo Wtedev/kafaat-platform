@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\TrainingProgram;
 use App\Models\User;
 
 return [
@@ -54,6 +55,14 @@ return [
             'key' => 'users',
             'ability' => 'viewAny',
             'model' => User::class,
+        ],
+        [
+            'label' => 'البرامج',
+            'icon' => 'graduation-cap',
+            'route' => 'staff-ui.programs.index',
+            'key' => 'programs',
+            'ability' => 'viewAny',
+            'model' => TrainingProgram::class,
         ],
     ],
 
