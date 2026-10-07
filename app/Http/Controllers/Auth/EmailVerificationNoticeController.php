@@ -8,6 +8,7 @@ use App\Support\Auth\SafeLoginReturnUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Throwable;
 
 class EmailVerificationNoticeController extends Controller
 {
@@ -36,7 +37,11 @@ class EmailVerificationNoticeController extends Controller
             return;
         }
 
-        $user->sendEmailVerificationNotification();
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (Throwable) {
+            return;
+        }
 
         session()->flash('status', 'أرسلنا رمز تحقق إلى بريدك الإلكتروني.');
     }

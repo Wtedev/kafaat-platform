@@ -44,9 +44,11 @@ use App\Policies\SecurityLogPolicy;
 use App\Policies\SendInAppNotificationPolicy;
 use App\Policies\SupportTicketPolicy;
 use App\Policies\UserPolicy;
+use App\Services\Auth\EmailVerificationCodeService;
 use App\Services\CandidatePool\CandidatePoolConsentService;
 use App\Services\Inbox\InboxNotificationService;
 use App\Services\News\NewsPublicationService;
+use App\Services\Operations\ProductionEnvironmentValidator;
 use App\Services\Privacy\Retention\RetentionHandlerRegistry;
 use App\Services\Privacy\Retention\RetentionPolicyEngine;
 use App\Services\Privacy\Retention\RetentionResourceCatalog;
@@ -89,6 +91,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        app(ProductionEnvironmentValidator::class)->reportUndeliverableMailer();
+
         $this->configureAuthUserProvider();
         $this->configureRateLimiting();
         $this->configureProductionHttps();
@@ -210,6 +214,7 @@ class AppServiceProvider extends ServiceProvider
                 try {
                     $user->sendEmailVerificationNotification();
                 } catch (\Throwable $exception) {
+                    session()->put(EmailVerificationCodeService::SEND_FAILED_SESSION_KEY, true);
                     Log::error('otp.send_failed', [
                         'user_id' => $user->getAuthIdentifier(),
                         'message' => $exception->getMessage(),

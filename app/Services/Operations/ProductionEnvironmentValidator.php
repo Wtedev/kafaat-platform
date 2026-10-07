@@ -3,6 +3,7 @@
 namespace App\Services\Operations;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Laravel\Telescope\TelescopeServiceProvider;
 
 final class ProductionEnvironmentValidator
@@ -104,8 +105,9 @@ final class ProductionEnvironmentValidator
             $issues[] = 'Private documents disk must not point to public storage.';
         }
 
-        if ((string) config('mail.default') === 'log') {
-            $issues[] = 'MAIL_MAILER should not be log in production.';
+        $mailerIssue = $this->undeliverableMailerMessage();
+        if ($mailerIssue !== null) {
+            $issues[] = $mailerIssue;
         }
 
         if (class_exists(TelescopeServiceProvider::class)) {
@@ -117,5 +119,30 @@ final class ProductionEnvironmentValidator
         }
 
         return $issues;
+    }
+
+    /**
+     * Production mail written to the log is accepted by Laravel and never delivered.
+     */
+    public function undeliverableMailerMessage(): ?string
+    {
+        if (config('app.env') !== 'production') {
+            return null;
+        }
+
+        $mailer = (string) config('mail.default');
+        if (! in_array($mailer, ['log', 'array'], true)) {
+            return null;
+        }
+
+        return "MAIL_MAILER is {$mailer} in production. Verification codes and password emails are not delivered.";
+    }
+
+    public function reportUndeliverableMailer(): void
+    {
+        $message = $this->undeliverableMailerMessage();
+        if ($message !== null) {
+            Log::error($message);
+        }
     }
 }

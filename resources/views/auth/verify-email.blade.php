@@ -11,6 +11,11 @@
     <h1 class="text-xl font-bold text-gray-900">تحقق من بريدك الإلكتروني</h1>
 </div>
 
+@if (session('otp_send_failed'))
+<div class="mb-6 rounded-xl {{ config('brand.classes.alert_danger') }} px-4 py-3 text-sm text-center">
+    تعذّر إرسال رمز التحقق. اضغط إعادة الإرسال أو حاول بعد قليل
+</div>
+@else
 <p class="text-sm text-gray-600 text-center mb-6 leading-relaxed">
     أرسلنا رمز تحقق مكوّناً من 6 أرقام إلى بريدك الإلكتروني.
     أدخل الرمز أدناه لتفعيل حسابك.
@@ -20,6 +25,7 @@
 <div class="mb-4 rounded-xl {{ config('brand.classes.alert_success') }} px-4 py-3 text-sm text-center">
     {{ session('status') }}
 </div>
+@endif
 @endif
 
 @error('code')

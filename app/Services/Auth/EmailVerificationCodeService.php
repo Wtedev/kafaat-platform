@@ -2,11 +2,15 @@
 
 namespace App\Services\Auth;
 
+use App\Enums\SecurityLogResult;
+use App\Enums\SecurityLogSeverity;
 use App\Models\EmailVerificationCode;
 use App\Models\User;
 use App\Notifications\VerifyEmailCode;
+use App\Services\Security\SecurityLogService;
 use App\Services\UserActivityLogger;
 use Illuminate\Support\Facades\Hash;
+use Throwable;
 
 class EmailVerificationCodeService
 {
@@ -16,12 +20,26 @@ class EmailVerificationCodeService
     /** أقصى عدد محاولات إدخال خاطئة قبل إبطال الرمز. */
     public const MAX_ATTEMPTS = 5;
 
+    /** علامة الجلسة عندما يفشل تسليم الرمز، حتى تعرضها صفحة التحقق. */
+    public const SEND_FAILED_SESSION_KEY = 'otp_send_failed';
+
+    public const SEND_FAILED_MESSAGE = 'تعذّر إرسال رمز التحقق. اضغط إعادة الإرسال أو حاول بعد قليل';
+
     /**
-     * يولّد رمزاً جديداً (مع تخزينه مجزّأً) ويرسله للمستخدم.
+     * يولّد رمزاً ويرسله، ولا يحفظه إلا بعد نجاح الإرسال.
      */
     public function sendCode(User $user): void
     {
         $code = (string) random_int(100000, 999999);
+
+        try {
+            $user->notify(new VerifyEmailCode($code, self::EXPIRES_MINUTES));
+        } catch (Throwable $exception) {
+            session()->put(self::SEND_FAILED_SESSION_KEY, true);
+            $this->recordSendFailure($user, $exception);
+
+            throw $exception;
+        }
 
         EmailVerificationCode::updateOrCreate(
             ['user_id' => $user->id],
@@ -32,7 +50,19 @@ class EmailVerificationCodeService
             ],
         );
 
-        $user->notify(new VerifyEmailCode($code, self::EXPIRES_MINUTES));
+        session()->forget(self::SEND_FAILED_SESSION_KEY);
+    }
+
+    private function recordSendFailure(User $user, Throwable $exception): void
+    {
+        app(SecurityLogService::class)->record(
+            'auth.otp_send_failed',
+            SecurityLogResult::Failed,
+            SecurityLogSeverity::Warning,
+            $user,
+            metadata: ['message' => $exception->getMessage()],
+            request: request(),
+        );
     }
 
     /**
