@@ -57,6 +57,7 @@ use App\Http\Controllers\StaffUi\StaffBeneficiaryController;
 use App\Http\Controllers\StaffUi\StaffDirectoryController;
 use App\Http\Controllers\StaffUi\StaffInboxController;
 use App\Http\Controllers\StaffUi\StaffProfileController;
+use App\Http\Controllers\StaffUi\StaffProgramController;
 use App\Http\Controllers\StaffUi\StaffUiDemoController;
 use App\Support\StaffUi\StaffUiModule;
 use Illuminate\Support\Facades\Route;
@@ -139,6 +140,14 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.St
         Route::post('/users/{user}', [StaffBeneficiaryController::class, 'update'])->name('users.update');
         Route::post('/users/{user}/activation', [StaffBeneficiaryController::class, 'activation'])->name('users.activation');
         Route::post('/users/{user}/notes', [StaffBeneficiaryController::class, 'storeNote'])->name('users.notes.store');
+    });
+
+Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.StaffUiModule::TRAINING, 'staff-ui.maintenance:'.StaffUiModule::TRAINING])
+    ->prefix('staff-ui')
+    ->name('staff-ui.')
+    ->group(function () {
+        Route::get('/programs', [StaffProgramController::class, 'index'])->name('programs.index');
+        Route::get('/programs/{program}', [StaffProgramController::class, 'show'])->name('programs.show');
     });
 
 Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.StaffUiModule::SHELL, 'staff-ui.maintenance:'.StaffUiModule::SHELL])

@@ -170,6 +170,25 @@
         });
     });
 
+    const programToggle = document.querySelector("[data-sui-program-toggle]");
+    if (programToggle) {
+        const stored = document.documentElement.getAttribute("data-sui-program-view") || "cards";
+        const apply = (view) => {
+            const next = view === "table" ? "table" : "cards";
+            document.documentElement.setAttribute("data-sui-program-view", next);
+            try {
+                localStorage.setItem("staff-ui.programs.view", next);
+            } catch (error) {}
+            programToggle.querySelectorAll("[data-sui-program-view]").forEach((button) => {
+                button.setAttribute("aria-pressed", button.getAttribute("data-sui-program-view") === next ? "true" : "false");
+            });
+        };
+        apply(stored);
+        programToggle.querySelectorAll("[data-sui-program-view]").forEach((button) => {
+            button.addEventListener("click", () => apply(button.getAttribute("data-sui-program-view")));
+        });
+    }
+
     document.querySelectorAll("[data-sui-toast]").forEach((button) => {
         button.addEventListener("click", () => {
             toast(button.dataset.tone || "info", button.dataset.title || "تم", button.dataset.body || "");

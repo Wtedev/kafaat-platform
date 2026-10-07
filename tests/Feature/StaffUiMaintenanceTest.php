@@ -76,7 +76,7 @@ class StaffUiMaintenanceTest extends TestCase
             ->assertSee('سيتم إضافة الأقسام تدريجياً')
             ->assertDontSee('aria-disabled="true"', false)
             ->assertDontSee('البرنامج الحالي')
-            ->assertDontSee('البرامج')
+            ->assertSee(route('staff-ui.programs.index'), false)
             ->assertSee('تسجيل الخروج')
             ->assertSee(route('logout'), false)
             ->assertSee(route('staff-ui.profile'), false)
