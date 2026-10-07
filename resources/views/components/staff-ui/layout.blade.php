@@ -159,6 +159,15 @@
                                 @if (filled($notification->message))
                                     <p class="sui-inbox__body">{{ \Illuminate\Support\Str::limit(trim((string) $notification->message), 80) }}</p>
                                 @endif
+                                @php
+                                    $downloadUrl = is_array($notification->context) ? ($notification->context['download_url'] ?? null) : null;
+                                    $downloadUrl = is_string($downloadUrl) && (str_starts_with($downloadUrl, url('/')) || str_starts_with($downloadUrl, '/'))
+                                        ? $downloadUrl
+                                        : null;
+                                @endphp
+                                @if ($downloadUrl)
+                                    <a class="sui-inbox__mark" href="{{ $downloadUrl }}">تنزيل الملف</a>
+                                @endif
                                 <div class="sui-inbox__meta">
                                     <time datetime="{{ $notification->created_at?->toIso8601String() }}">{{ $notification->created_at?->timezone(config('app.timezone'))->format('Y-m-d H:i') }}</time>
                                     @if ($notification->read_at === null)

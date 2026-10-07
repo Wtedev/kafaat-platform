@@ -8,6 +8,7 @@ use App\Enums\ProfileGender;
 use App\Http\Controllers\Controller;
 use App\Models\Certificate;
 use App\Models\EmailVerificationCode;
+use App\Models\Profile;
 use App\Models\User;
 use App\Notifications\StaffEmailChangedByAdminNotification;
 use App\Rules\ValidSaudiMobile;
@@ -18,6 +19,7 @@ use App\Services\Identity\PersonNameService;
 use App\Services\Identity\SaudiPhoneService;
 use App\Services\Privacy\AccountDeactivationService;
 use App\Services\Rbac\RbacCatalog;
+use App\Services\StaffUi\StaffBeneficiaryExport;
 use App\Services\StaffUi\StaffBeneficiaryIndex;
 use App\Services\StaffUi\StaffDirectoryIndex;
 use App\Support\Auth\EmailNormalizer;
@@ -29,27 +31,19 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StaffBeneficiaryController extends Controller
 {
-    public function index(Request $request, StaffBeneficiaryIndex $index, StaffDirectoryIndex $staff): View
+    public function index(Request $request, StaffBeneficiaryIndex $index, StaffDirectoryIndex $staff, StaffBeneficiaryExport $exports): View
     {
         $this->ensureStaff($request);
         $this->authorize('viewAny', User::class);
 
-        $search = mb_substr(trim((string) $request->query('q', '')), 0, 100);
-        $status = (string) $request->query('status', '');
-        $completeness = (string) $request->query('profile', '');
-
-        if (! in_array($status, ['', 'active', 'inactive'], true)) {
-            $status = '';
-        }
-
-        if (! in_array($completeness, ['', 'complete', 'incomplete'], true)) {
-            $completeness = '';
-        }
-
+        [$search, $status, $completeness] = $this->beneficiaryFilters($request);
         $user = $request->user();
+        $canExport = $user->can('export', Profile::class);
 
         return view('staff-ui.users.beneficiaries', [
             'staffName' => $user->name,
@@ -61,7 +55,34 @@ class StaffBeneficiaryController extends Controller
             'canViewContact' => $user->can('beneficiaries.view_contact'),
             'canViewStaff' => $user->can('users.view'),
             'staffCount' => $user->can('users.view') ? $staff->count() : null,
+            'canExport' => $canExport,
+            'exportColumns' => $canExport ? $exports->columnOptions($user) : [],
+            'exportDefaults' => $canExport ? $exports->defaultColumnKeys($user) : [],
         ]);
+    }
+
+    public function export(Request $request, StaffBeneficiaryExport $exports): BinaryFileResponse|RedirectResponse
+    {
+        $this->ensureStaff($request);
+
+        [$search, $status, $completeness] = $this->beneficiaryFilters($request);
+        $columns = $request->input('columns', []);
+
+        return $exports->downloadOrQueue(
+            $request->user(),
+            $search,
+            $status,
+            $completeness,
+            is_array($columns) ? array_map(strval(...), $columns) : [],
+        );
+    }
+
+    public function downloadExport(Request $request, string $token, StaffBeneficiaryExport $exports): StreamedResponse
+    {
+        $this->ensureStaff($request);
+        abort_unless((int) $request->query('exporter') === (int) $request->user()->id, 403);
+
+        return $exports->downloadStored($request->user(), $token);
     }
 
     public function show(Request $request, User $user): View
@@ -197,6 +218,26 @@ class StaffBeneficiaryController extends Controller
         return redirect()
             ->route('staff-ui.users.show', $user)
             ->with('status', 'تمت إضافة الملاحظة.');
+    }
+
+    /**
+     * @return array{0: string, 1: string, 2: string}
+     */
+    private function beneficiaryFilters(Request $request): array
+    {
+        $search = mb_substr(trim((string) $request->input('q', '')), 0, 100);
+        $status = (string) $request->input('status', '');
+        $completeness = (string) $request->input('profile', '');
+
+        if (! in_array($status, ['', 'active', 'inactive'], true)) {
+            $status = '';
+        }
+
+        if (! in_array($completeness, ['', 'complete', 'incomplete'], true)) {
+            $completeness = '';
+        }
+
+        return [$search, $status, $completeness];
     }
 
     private function ensureStaff(Request $request): void

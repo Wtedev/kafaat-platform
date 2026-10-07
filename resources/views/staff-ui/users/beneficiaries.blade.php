@@ -4,8 +4,18 @@
 @endphp
 
 <x-staff-ui.layout :name="$staffName" :email="$staffEmail" crumb="المستخدمين" :dashboard-active="false" active-nav="users">
-    <header class="sui-page-head">
+    @if (session('status'))
+        <div hidden data-sui-flash data-tone="success" data-title="تم" data-body="{{ session('status') }}"></div>
+    @endif
+    @foreach ($errors->all() as $error)
+        <div hidden data-sui-flash data-tone="danger" data-title="تعذر التصدير" data-body="{{ $error }}"></div>
+    @endforeach
+
+    <header class="sui-page-head sui-staff-head">
         <h1>المستخدمين</h1>
+        @if ($canExport)
+            <x-staff-ui.button type="button" variant="secondary" size="sm" icon="download" data-sui-open-modal="export-beneficiaries">تصدير Excel</x-staff-ui.button>
+        @endif
     </header>
 
     <x-staff-ui.tabs group="users" :tabs="[
@@ -100,4 +110,30 @@
             </div>
         </x-slot:footer>
     </x-staff-ui.data-table>
+
+    @if ($canExport)
+        <x-staff-ui.modal name="export-beneficiaries" title="تصدير ملفات المستفيدين" :open="$errors->has('columns')">
+            <form method="POST" action="{{ route('staff-ui.users.export') }}">
+                @csrf
+                <input type="hidden" name="q" value="{{ $search }}">
+                <input type="hidden" name="status" value="{{ $status }}">
+                <input type="hidden" name="profile" value="{{ $completeness }}">
+                <p>سيتم تصدير {{ $beneficiaries->total() }} مستفيداً حسب الفلاتر الحالية.</p>
+                <div class="sui-export-columns">
+                    @foreach ($exportColumns as $key => $label)
+                        <x-staff-ui.checkbox
+                            name="columns[]"
+                            :value="$key"
+                            :label="$label"
+                            :checked="in_array($key, $exportDefaults, true)"
+                        />
+                    @endforeach
+                </div>
+                <div class="sui-modal__actions">
+                    <x-staff-ui.button type="submit" size="sm">تصدير</x-staff-ui.button>
+                    <x-staff-ui.button type="button" variant="ghost" size="sm" data-sui-modal-close>إلغاء</x-staff-ui.button>
+                </div>
+            </form>
+        </x-staff-ui.modal>
+    @endif
 </x-staff-ui.layout>

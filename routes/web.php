@@ -123,6 +123,10 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.St
     ->name('staff-ui.')
     ->group(function () {
         Route::get('/users', [StaffBeneficiaryController::class, 'index'])->name('users.index');
+        Route::post('/users/export', [StaffBeneficiaryController::class, 'export'])->name('users.export');
+        Route::get('/users/exports/{token}', [StaffBeneficiaryController::class, 'downloadExport'])
+            ->middleware('signed')
+            ->name('users.export.download');
         Route::get('/users/staff', [StaffDirectoryController::class, 'index'])->name('users.staff.index');
         Route::post('/users/staff', [StaffDirectoryController::class, 'store'])->name('users.staff.store');
         Route::get('/users/staff/{user}', [StaffDirectoryController::class, 'show'])->name('users.staff.show');
