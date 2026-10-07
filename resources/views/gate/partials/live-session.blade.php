@@ -1,18 +1,8 @@
 @php
-    $live = $liveSession ?? [
-        'can_open' => false,
-        'active' => false,
-        'ended' => false,
-        'session_minutes' => $liveSessionMinutes ?? 5,
-        'remaining_seconds' => 0,
-        'expires_at_ms' => null,
-        'started_at' => null,
-        'expires_at' => null,
-        'closed_at' => null,
-        'present_count' => 0,
-        'approved_count' => 0,
-        'attendees' => [],
-    ];
+    $live = \App\Services\Gate\GateAttendancePresentation::liveSessionState(
+        $liveSession ?? null,
+        $liveSessionMinutes ?? 5,
+    );
 @endphp
 
 <section
