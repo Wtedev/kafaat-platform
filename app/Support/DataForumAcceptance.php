@@ -20,6 +20,14 @@ final class DataForumAcceptance
         return $program !== null && $program->slug === self::SLUG;
     }
 
+    public static function logoUrl(): string
+    {
+        $base = rtrim((string) config('site.website_url'), '/');
+        $path = ltrim((string) config('brand.logos.kafaat_mail'), '/');
+
+        return $base.'/'.$path;
+    }
+
     public static function telegramUrlFor(?ProfileGender $gender): ?string
     {
         $url = match ($gender) {

@@ -100,6 +100,11 @@ class DataForumRegistrationApprovedTest extends TestCase
         $this->assertStringContainsString('الانضمام إلى مجموعة تيليجرام', $maleHtml);
         $this->assertStringContainsString('قبولك النهائي في الملتقى', $maleHtml);
         $this->assertStringContainsString('dir="rtl"', $maleHtml);
+        $this->assertStringContainsString('text-align:center', $maleHtml);
+        $this->assertStringContainsString(DataForumAcceptance::logoUrl(), $maleHtml);
+        $this->assertStringNotContainsString('127.0.0.1', $maleHtml);
+        $this->assertStringNotContainsString('text-align:right', $maleHtml);
+        $this->assertStringNotContainsString('text-align:left', $maleHtml);
 
         $female = $this->beneficiary(ProfileGender::Female);
         $femaleHtml = (new DataForumRegistrationApproved($this->registration($program, $female)))->toMail($female)->render();

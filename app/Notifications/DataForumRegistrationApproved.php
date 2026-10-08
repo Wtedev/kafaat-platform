@@ -33,8 +33,9 @@ class DataForumRegistrationApproved extends Notification implements ShouldQueue
 
         return (new MailMessage)
             ->subject(DataForumAcceptance::SUBJECT)
-            ->markdown('mail.data-forum-registration-approved', [
+            ->view('mail.data-forum-registration-approved', [
                 'telegramUrl' => DataForumAcceptance::telegramUrlFor($gender),
+                'logoUrl' => DataForumAcceptance::logoUrl(),
             ]);
     }
 }
