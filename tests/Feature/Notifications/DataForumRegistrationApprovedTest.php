@@ -99,6 +99,7 @@ class DataForumRegistrationApprovedTest extends TestCase
         $this->assertStringNotContainsString(self::FEMALE_URL, $maleHtml);
         $this->assertStringContainsString('الانضمام إلى مجموعة تيليجرام', $maleHtml);
         $this->assertStringContainsString('قبولك النهائي في الملتقى', $maleHtml);
+        $this->assertStringContainsString('<strong>رحلة</strong>', $maleHtml);
         $this->assertStringContainsString('dir="rtl"', $maleHtml);
         $this->assertStringContainsString('text-align:center', $maleHtml);
         $this->assertStringContainsString(DataForumAcceptance::logoUrl(), $maleHtml);

@@ -41,7 +41,7 @@
 @else
 <p style="margin:0 0 16px;text-align:center;">{{ \App\Support\DataForumAcceptance::TELEGRAM_PENDING_LINE }}</p>
 @endif
-<p style="margin:0 0 16px;text-align:center;">سعداء بانضمامك، ونتطلع إلى مشاركتك في رحلة <strong>تبدأ بالبيانات.. وتمتد إلى ما وراء الأرقام.</strong></p>
+<p style="margin:0 0 16px;text-align:center;">سعداء بانضمامك، ونتطلع إلى مشاركتك في <strong>رحلة</strong> <strong>تبدأ بالبيانات.. وتمتد إلى ما وراء الأرقام.</strong></p>
 <p style="margin:0;text-align:center;">مع تحيات فريق جمعية كفاءات الأهلية لبناء قدرات الشباب</p>
 </td>
 </tr>
