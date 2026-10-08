@@ -3,6 +3,7 @@
 namespace Tests\Feature\Filament;
 
 use App\Enums\CompetencyTrack;
+use App\Enums\IdentityType;
 use App\Enums\ProfileGender;
 use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
@@ -22,7 +23,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
@@ -119,37 +119,35 @@ class ProgramRegistrationsRelationManagerTest extends TestCase
             ->assertCanSeeTableRecords([$unspecified]);
     }
 
-    public function test_nationality_filter_only_when_identity_category_column_exists(): void
+    public function test_nationality_filter_splits_saudi_and_non_saudi_by_identity_type(): void
     {
         $admin = $this->admin();
         $program = $this->program($admin);
-        $this->registration($program, 'مستفيد', RegistrationStatus::Pending);
+        $saudi = $this->registration($program, 'سعودي', RegistrationStatus::Pending);
+        $saudi->user->forceFill(['identity_type' => IdentityType::NationalId])->save();
+        $resident = $this->registration($program, 'مقيم', RegistrationStatus::Pending);
+        $resident->user->forceFill(['identity_type' => IdentityType::Iqama])->save();
+        $unspecified = $this->registration($program, 'بدون هوية', RegistrationStatus::Pending);
+        $unspecified->user->forceFill(['identity_type' => null])->save();
 
         $this->withSession(['otp_verified' => true]);
 
-        $component = Livewire::actingAs($admin)
+        Livewire::actingAs($admin)
             ->test(ProgramRegistrationsRelationManager::class, [
                 'ownerRecord' => $program,
                 'pageClass' => ViewTrainingProgram::class,
-            ]);
-
-        if (! Schema::hasColumn('users', 'identity_category')) {
-            $filterNames = collect($component->instance()->getTable()->getFilters())->keys()->all();
-            $this->assertNotContains('identity_category', $filterNames);
-
-            return;
-        }
-
-        $saudi = $this->registration($program, 'سعودي', RegistrationStatus::Pending);
-        $saudi->user->forceFill(['identity_category' => 'saudi'])->save();
-        $resident = $this->registration($program, 'مقيم', RegistrationStatus::Pending);
-        $resident->user->forceFill(['identity_category' => 'resident'])->save();
-
-        $component
-            ->assertTableFilterExists('identity_category')
-            ->filterTable('identity_category', 'saudi')
+            ])
+            ->assertTableFilterExists('nationality')
+            ->assertTableColumnExists('user.identity_type')
+            ->filterTable('nationality', 'saudi')
             ->assertCanSeeTableRecords([$saudi])
-            ->assertCanNotSeeTableRecords([$resident]);
+            ->assertCanNotSeeTableRecords([$resident, $unspecified])
+            ->filterTable('nationality', 'non_saudi')
+            ->assertCanSeeTableRecords([$resident])
+            ->assertCanNotSeeTableRecords([$saudi, $unspecified])
+            ->filterTable('nationality', 'unspecified')
+            ->assertCanSeeTableRecords([$unspecified])
+            ->assertCanNotSeeTableRecords([$saudi, $resident]);
     }
 
     public function test_search_covers_four_names_with_arabic_folding(): void

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Support;
 
+use App\Enums\IdentityType;
 use App\Enums\ProfileGender;
 use App\Enums\RegistrationStatus;
 use Filament\Forms\Components\Select;
@@ -10,7 +11,6 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Schema;
 
 final class ProgramRegistrationsTableFilters
 {
@@ -19,28 +19,24 @@ final class ProgramRegistrationsTableFilters
      */
     public static function make(): array
     {
-        $filters = [
+        return [
+            self::nationalityFilter(),
             SelectFilter::make('status')
                 ->label('حالة القبول')
                 ->options(RegistrationStatus::class),
             self::genderFilter(),
             self::ageFilter(),
         ];
-
-        if (Schema::hasColumn('users', 'identity_category')) {
-            array_unshift($filters, self::nationalityFilter());
-        }
-
-        return $filters;
     }
 
-    private static function nationalityFilter(): SelectFilter
+    public static function nationalityFilter(): SelectFilter
     {
-        return SelectFilter::make('identity_category')
+        return SelectFilter::make('nationality')
             ->label('الجنسية')
             ->options([
                 'saudi' => 'سعودي',
-                'resident' => 'مقيم',
+                'non_saudi' => 'غير سعودي',
+                'unspecified' => 'غير محدد',
             ])
             ->query(function (Builder $query, array $data): Builder {
                 $value = $data['value'] ?? null;
@@ -48,7 +44,27 @@ final class ProgramRegistrationsTableFilters
                     return $query;
                 }
 
-                return $query->whereHas('user', fn (Builder $user): Builder => $user->where('identity_category', $value));
+                if ($value === 'unspecified') {
+                    return $query->whereHas(
+                        'user',
+                        fn (Builder $user): Builder => $user->whereNull('identity_type'),
+                    );
+                }
+
+                $identityType = match ($value) {
+                    'saudi' => IdentityType::NationalId->value,
+                    'non_saudi' => IdentityType::Iqama->value,
+                    default => null,
+                };
+
+                if ($identityType === null) {
+                    return $query;
+                }
+
+                return $query->whereHas(
+                    'user',
+                    fn (Builder $user): Builder => $user->where('identity_type', $identityType),
+                );
             });
     }
 
