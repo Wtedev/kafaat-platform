@@ -11,6 +11,7 @@ use App\Filament\Concerns\ConfiguresEditOnlyResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\ProgramRegistrationResource\Pages;
 use App\Filament\Resources\ProgramRegistrationResource\RelationManagers\AttendanceRelationManager;
+use App\Filament\Support\ProgramRegistrationsTableFilters;
 use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\Certificate;
 use App\Models\ProgramRegistration;
@@ -134,6 +135,8 @@ class ProgramRegistrationResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
+                RegistrationFilamentTableSupport::nationalityColumn(),
+
                 TextColumn::make('trainingProgram.title')
                     ->label('البرنامج')
                     ->searchable()
@@ -228,6 +231,7 @@ class ProgramRegistrationResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                ProgramRegistrationsTableFilters::nationalityFilter(),
                 SelectFilter::make('status')
                     ->label('الحالة')
                     ->options(RegistrationStatus::class),

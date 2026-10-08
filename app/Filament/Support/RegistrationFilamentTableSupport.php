@@ -3,6 +3,7 @@
 namespace App\Filament\Support;
 
 use App\Enums\AttendanceStatus;
+use App\Enums\IdentityType;
 use App\Enums\RegistrationStatus;
 use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
@@ -47,6 +48,21 @@ class RegistrationFilamentTableSupport
     public static function configureBeneficiaryRowNavigation(Table $table): Table
     {
         return UserFilamentTableSupport::configureBeneficiaryRowNavigation($table);
+    }
+
+    public static function nationalityColumn(): TextColumn
+    {
+        return TextColumn::make('user.identity_type')
+            ->label('الجنسية')
+            ->getStateUsing(function (Model $record): string {
+                $type = $record->user?->identity_type ?? null;
+
+                return match ($type) {
+                    IdentityType::NationalId => 'سعودي',
+                    IdentityType::Iqama => 'غير سعودي',
+                    default => 'غير محدد',
+                };
+            });
     }
 
     public static function acceptanceStatusColumn(): BadgeColumn

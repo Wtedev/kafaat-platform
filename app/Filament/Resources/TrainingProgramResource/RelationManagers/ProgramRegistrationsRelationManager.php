@@ -62,6 +62,7 @@ class ProgramRegistrationsRelationManager extends RelationManager
             ->description(fn (): string => 'عدد النتائج: '.en_num($this->getAllTableRecordsCount()))
             ->columns([
                 RegistrationFilamentTableSupport::beneficiaryNameColumn(),
+                RegistrationFilamentTableSupport::nationalityColumn(),
                 RegistrationFilamentTableSupport::acceptanceStatusColumn(),
             ])
             ->filters(ProgramRegistrationsTableFilters::make())
