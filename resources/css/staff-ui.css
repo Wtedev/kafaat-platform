@@ -64,6 +64,8 @@ html,
 body {
     margin: 0;
     min-height: 100%;
+    max-width: 100%;
+    overflow-x: clip;
 }
 
 body.sui-body {
@@ -134,12 +136,17 @@ a:hover {
 .sui-shell {
     display: flex;
     min-height: 100vh;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
     background: var(--sui-bg);
 }
 
 .sui-sidebar {
     width: var(--sui-sidebar);
     flex: 0 0 var(--sui-sidebar);
+    min-width: var(--sui-sidebar);
+    max-width: var(--sui-sidebar);
     background: var(--sui-surface);
     border-inline-end: 1px solid var(--sui-border);
     display: flex;
@@ -155,18 +162,27 @@ a:hover {
     display: flex;
     align-items: center;
     gap: var(--sui-space-2);
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
     padding: var(--sui-space-4) var(--sui-space-4) var(--sui-space-3);
 }
 
 .sui-sidebar__logo {
     width: 32px;
     height: 32px;
+    flex: 0 0 32px;
     border-radius: var(--sui-radius-sm);
     object-fit: contain;
     background: var(--sui-bg);
 }
 
 .sui-sidebar__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
     font-size: 15px;
     font-weight: 700;
     letter-spacing: 0;
@@ -260,6 +276,9 @@ a:hover {
     align-items: center;
     gap: var(--sui-space-2);
     min-height: 36px;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
     padding: 0 var(--sui-space-3);
     margin-bottom: 2px;
     border-radius: var(--sui-radius-sm);
@@ -289,8 +308,11 @@ a:hover {
 }
 
 .sui-nav__text {
-    flex: 1;
+    flex: 1 1 auto;
     min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .sui-nav__count {
@@ -301,6 +323,8 @@ a:hover {
     display: flex;
     align-items: center;
     gap: var(--sui-space-2);
+    min-width: 0;
+    max-width: calc(100% - var(--sui-space-4));
     margin: var(--sui-space-2);
     padding: var(--sui-space-2);
     border: 1px solid var(--sui-border);
@@ -2038,8 +2062,23 @@ a.sui-menu-item {
 
 /* ── Programs list ───────────────────────────────────────────────────────── */
 
+.sui-programs-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    min-width: 0;
+}
+
+.sui-programs-toolbar .sui-staff-count {
+    grid-column: auto;
+    width: auto;
+    white-space: nowrap;
+}
+
 .sui-programs-view-toggle {
     display: inline-flex;
+    flex: 0 0 auto;
     gap: 4px;
     padding: 3px;
     border: 1px solid var(--sui-border);
@@ -2216,6 +2255,11 @@ a.sui-menu-item {
 
 .sui-program-stat__value--inline {
     font-size: 15px;
+    font-weight: 700;
+    color: var(--sui-text);
+}
+
+.sui-program-stat__value--inline.is-hot {
     color: #9a6b12;
 }
 
@@ -2304,6 +2348,15 @@ a.sui-menu-item {
 @media (max-width: 960px) {
     .sui-programs-filters {
         grid-template-columns: 1fr;
+    }
+
+    .sui-programs-toolbar {
+        justify-self: end;
+        width: auto;
+    }
+
+    .sui-programs-filters .sui-programs-toolbar .sui-staff-count {
+        width: auto;
     }
 
     .sui-programs-cards:not([hidden]) {

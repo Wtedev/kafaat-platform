@@ -7,14 +7,6 @@
 <x-staff-ui.layout :name="$staffName" :email="$staffEmail" crumb="البرامج" :dashboard-active="false" active-nav="programs">
     <header class="sui-page-head sui-staff-head">
         <h1>البرامج</h1>
-        <div class="sui-programs-view-toggle" data-sui-programs-view-toggle role="group" aria-label="طريقة العرض">
-            <button type="button" class="sui-icon-btn is-active" data-sui-programs-view="table" aria-pressed="true" aria-label="جدول">
-                <i data-lucide="list" class="sui-icon"></i>
-            </button>
-            <button type="button" class="sui-icon-btn" data-sui-programs-view="cards" aria-pressed="false" aria-label="بطاقات">
-                <i data-lucide="layout-grid" class="sui-icon"></i>
-            </button>
-        </div>
     </header>
 
     <section class="sui-card sui-programs-panel" data-sui-programs-panel data-view="table">
@@ -29,7 +21,17 @@
             @if ($filtersActive)
                 <a class="sui-staff-clear" href="{{ $clearUrl }}">مسح الفلاتر</a>
             @endif
-            <span class="sui-staff-count">{{ en_num($programs->total()) }} برنامج</span>
+            <div class="sui-programs-toolbar">
+                <span class="sui-staff-count">{{ en_num($programs->total()) }} برنامج</span>
+                <div class="sui-programs-view-toggle" data-sui-programs-view-toggle role="group" aria-label="طريقة العرض">
+                    <button type="button" class="sui-icon-btn is-active" data-sui-programs-view="table" aria-pressed="true" aria-label="جدول">
+                        <i data-lucide="list" class="sui-icon"></i>
+                    </button>
+                    <button type="button" class="sui-icon-btn" data-sui-programs-view="cards" aria-pressed="false" aria-label="بطاقات">
+                        <i data-lucide="layout-grid" class="sui-icon"></i>
+                    </button>
+                </div>
+            </div>
         </form>
 
         @if ($programs->isEmpty())
@@ -69,7 +71,7 @@
                             </div>
                             @if ($availability !== StaffRegistrationAvailability::Path)
                                 <div class="sui-program-card__counts">
-                                    <div class="sui-program-stat sui-program-stat--pending">
+                                    <div @class(['sui-program-stat', 'sui-program-stat--pending' => $pending > 0])>
                                         <span class="sui-program-stat__value">{{ en_num($pending) }}</span>
                                         <span class="sui-program-stat__label">معلّق</span>
                                     </div>
@@ -135,7 +137,7 @@
                                         @if ($availability === StaffRegistrationAvailability::Path)
                                             —
                                         @else
-                                            <span class="sui-program-stat__value sui-program-stat__value--inline">{{ en_num($pending) }}</span>
+                                            <span @class(['sui-program-stat__value', 'sui-program-stat__value--inline', 'is-hot' => $pending > 0])>{{ en_num($pending) }}</span>
                                         @endif
                                     </td>
                                     <td data-label="مقبول">
