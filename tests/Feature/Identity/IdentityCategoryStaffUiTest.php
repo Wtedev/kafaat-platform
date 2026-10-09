@@ -3,6 +3,7 @@
 namespace Tests\Feature\Identity;
 
 use App\Enums\IdentityCategory;
+use App\Enums\IdentityType;
 use App\Enums\ProfileGender;
 use App\Models\User;
 use App\Services\Identity\IdentityNumberService;
@@ -59,6 +60,49 @@ class IdentityCategoryStaffUiTest extends TestCase
             ->assertDontSee('السعودية');
     }
 
+    public function test_invalid_identity_filter_is_admin_only_and_does_not_change_stored_numbers(): void
+    {
+        $admin = $this->admin();
+        $staff = $this->staff(['beneficiaries.view_basic', 'beneficiaries.view_contact']);
+        $saudi = $this->makeBeneficiary(
+            'saudi.invalid-filter@example.com',
+            'السعودية',
+            '1099445566',
+            IdentityCategory::Saudi,
+        );
+        $invalid = $this->invalidBeneficiary();
+        $originalHash = $invalid->identity_number_lookup_hash;
+        $originalType = $invalid->identity_type?->value;
+
+        $this->actingAsOtpVerified($admin)
+            ->get(route('staff-ui.users.index'))
+            ->assertOk()
+            ->assertSee('رقم هوية غير صالح');
+
+        $this->actingAsOtpVerified($staff)
+            ->get(route('staff-ui.users.index'))
+            ->assertOk()
+            ->assertDontSee('رقم هوية غير صالح');
+
+        $this->actingAsOtpVerified($admin)
+            ->get(route('staff-ui.users.index', ['identity_category' => 'invalid']))
+            ->assertOk()
+            ->assertSee('المرفوضة')
+            ->assertDontSee('السعودية');
+
+        $this->actingAsOtpVerified($staff)
+            ->get(route('staff-ui.users.index', ['identity_category' => 'invalid']))
+            ->assertOk()
+            ->assertSee('السعودية')
+            ->assertSee('المرفوضة');
+
+        $invalid->refresh();
+        $this->assertSame($originalHash, $invalid->identity_number_lookup_hash);
+        $this->assertSame($originalType, $invalid->identity_type?->value);
+        $this->assertNull($invalid->identity_category);
+        $this->assertNotNull($saudi->identity_category);
+    }
+
     public function test_beneficiary_profile_shows_category_without_full_number(): void
     {
         $staff = $this->staff([
@@ -92,6 +136,44 @@ class IdentityCategoryStaffUiTest extends TestCase
         $value = BeneficiaryProfileExportColumns::resolve($beneficiary->profile, 'identity_category');
         $this->assertSame('مقيم', $value);
         $this->assertStringNotContainsString('2099334455', (string) $value);
+    }
+
+    private function admin(): User
+    {
+        $admin = User::factory()->create([
+            'role_type' => 'admin',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $admin->assignRole(RbacCatalog::ROLE_ADMIN);
+
+        return $admin->fresh();
+    }
+
+    private function invalidBeneficiary(): User
+    {
+        $digits = '3099556677';
+        $user = User::factory()->create([
+            'name' => 'نورة سعد محمد المرفوضة',
+            'first_name' => 'نورة',
+            'father_name' => 'سعد',
+            'grandfather_name' => 'محمد',
+            'family_name' => 'المرفوضة',
+            'email' => 'invalid.filter@example.com',
+            'phone' => '0555001122',
+            'role_type' => 'beneficiary',
+            'is_active' => true,
+            'email_verified_at' => now(),
+            'identity_category' => null,
+            'identity_type' => IdentityType::NationalId,
+            'identity_number_ciphertext' => IdentityNumberService::encrypt($digits),
+            'identity_number_lookup_hash' => IdentityNumberService::generateLookupHash($digits),
+            'identity_number_last4' => '6677',
+            'identity_confirmed_at' => now(),
+        ]);
+        $user->assignRole(RbacCatalog::ROLE_BENEFICIARY);
+
+        return $user->fresh();
     }
 
     /**

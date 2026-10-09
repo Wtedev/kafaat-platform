@@ -55,7 +55,12 @@
                     name="identity_category"
                     label="الجنسية"
                     :selected="$identityCategory"
-                    :options="['' => 'الكل', 'saudi' => 'سعودي', 'resident' => 'مقيم']"
+                    :options="array_filter([
+                        '' => 'الكل',
+                        'saudi' => 'سعودي',
+                        'resident' => 'مقيم',
+                        'invalid' => ($canFilterInvalidIdentity ?? false) ? 'رقم هوية غير صالح' : null,
+                    ], fn ($label) => $label !== null)"
                 />
                 <div class="sui-table__filters-actions">
                     <x-staff-ui.button type="submit" variant="secondary" size="sm">تطبيق</x-staff-ui.button>
