@@ -66,7 +66,9 @@ class ViewTrainingProgram extends BaseViewRecord
         $record = $this->getRecord();
         $data = EntityPublicationFormData::mergePublicationUiState($data, $record, ProgramStatus::Published);
         $data = array_merge($data, TrainingEntityFormSupport::programPathLinkFormState($record));
-        $data['capacity_unlimited'] = $record->capacity === null;
+        $data['capacity_mode'] = ($record->capacity_male !== null || $record->capacity_female !== null)
+            ? 'per_gender'
+            : ($record->capacity !== null ? 'shared' : 'unlimited');
         $data['notify_audience'] = $record->notify_on_publish || $record->notify_milestones;
         $data['editors'] = TrainingEntityFormSupport::normalizeProgramEditorIds(
             $record->editors()->pluck('users.id')->all(),
@@ -272,9 +274,12 @@ class ViewTrainingProgram extends BaseViewRecord
             'session_topics_enabled' => 'محاور اللقاء',
             'session_topics' => 'محاور البرنامج',
             'program_presenters' => 'مقدمو البرنامج',
-            'whatsapp_groups_enabled' => 'مجموعات الواتساب',
-            'whatsapp_group_male' => 'مجموعة الذكور',
-            'whatsapp_group_female' => 'مجموعة الإناث',
+            'whatsapp_groups_enabled' => 'مجموعات التواصل',
+            'whatsapp_group_male' => 'رابط مجموعة الرجال',
+            'whatsapp_group_female' => 'رابط مجموعة النساء',
+            'approval_message' => 'رسالة القبول',
+            'capacity_male' => 'سعة الرجال',
+            'capacity_female' => 'سعة النساء',
             'owner_id' => 'مالك البرنامج',
             'assigned_to' => 'المسؤول',
             'editors' => 'أعضاء فريق العمل',

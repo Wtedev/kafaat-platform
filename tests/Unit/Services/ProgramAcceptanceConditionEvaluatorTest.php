@@ -114,8 +114,8 @@ class ProgramAcceptanceConditionEvaluatorTest extends TestCase
     {
         $program = $this->makeProgram([
             'genders' => [ProfileGender::Male->value],
-            'gender_capacity_full' => [ProfileGender::Female->value],
         ]);
+        $program->forceFill(['capacity_female' => 0])->save();
 
         $female = $this->makeUserWithIdentity(IdentityType::NationalId, [
             'gender' => ProfileGender::Female,

@@ -2,7 +2,6 @@
 
 namespace App\Support;
 
-use App\Enums\ProfileGender;
 use App\Enums\TrainingProgramKind;
 use App\Models\TrainingProgram;
 use App\Models\User;
@@ -163,10 +162,10 @@ final class TrainingProgramExtrasSupport
     public static function whatsappGroupsBlock(): Toggle
     {
         return Toggle::make('whatsapp_groups_enabled')
-            ->label('روابط مجموعات الواتساب')
+            ->label('مجموعات التواصل')
             ->inline(true)
             ->live()
-            ->helperText('يُرسل الرابط المناسب تلقائياً عند قبول التسجيل (حسب جنس المستفيد).')
+            ->helperText('يُرسل رابط المجموعة المناسبة عند قبول التسجيل، حسب جنس المستفيد.')
             ->extraFieldWrapperAttributes(['class' => 'fi-advanced-settings-toggle-row']);
     }
 
@@ -177,18 +176,20 @@ final class TrainingProgramExtrasSupport
     {
         return [
             TextInput::make('whatsapp_group_male')
-                ->label('مجموعة الذكور')
-                ->url()
+                ->label('رابط مجموعة الرجال')
                 ->maxLength(512)
-                ->placeholder('https://chat.whatsapp.com/...')
+                ->placeholder('https://')
                 ->visible(fn (Get $get): bool => (bool) $get('whatsapp_groups_enabled'))
+                ->required(fn (Get $get): bool => self::groupLinkRequired($get, 'male'))
+                ->rules([self::httpsUrlRule()])
                 ->columnSpanFull(),
             TextInput::make('whatsapp_group_female')
-                ->label('مجموعة الإناث')
-                ->url()
+                ->label('رابط مجموعة النساء')
                 ->maxLength(512)
-                ->placeholder('https://chat.whatsapp.com/...')
+                ->placeholder('https://')
                 ->visible(fn (Get $get): bool => (bool) $get('whatsapp_groups_enabled'))
+                ->required(fn (Get $get): bool => self::groupLinkRequired($get, 'female'))
+                ->rules([self::httpsUrlRule()])
                 ->columnSpanFull(),
         ];
     }
@@ -276,8 +277,8 @@ final class TrainingProgramExtrasSupport
             return $data;
         }
 
-        $data['whatsapp_group_male'] = self::normalizeWhatsappUrl($data['whatsapp_group_male'] ?? null);
-        $data['whatsapp_group_female'] = self::normalizeWhatsappUrl($data['whatsapp_group_female'] ?? null);
+        $data['whatsapp_group_male'] = self::httpsGroupUrl($data['whatsapp_group_male'] ?? null);
+        $data['whatsapp_group_female'] = self::httpsGroupUrl($data['whatsapp_group_female'] ?? null);
 
         return $data;
     }
@@ -287,6 +288,47 @@ final class TrainingProgramExtrasSupport
         $url = trim((string) $url);
 
         return $url !== '' ? $url : null;
+    }
+
+    public static function httpsGroupUrl(mixed $url): ?string
+    {
+        $url = self::normalizeWhatsappUrl($url);
+
+        if ($url === null || ! str_starts_with($url, 'https://')) {
+            return null;
+        }
+
+        return $url;
+    }
+
+    /**
+     * @return \Closure(string, mixed, \Closure): void
+     */
+    public static function httpsUrlRule(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail): void {
+            if ($value === null || $value === '') {
+                return;
+            }
+
+            if (! str_starts_with(trim((string) $value), 'https://')) {
+                $fail('الرابط يجب أن يبدأ بـ https://');
+            }
+        };
+    }
+
+    public static function groupLinkRequired(Get $get, string $gender): bool
+    {
+        if (! (bool) $get('whatsapp_groups_enabled')) {
+            return false;
+        }
+
+        $genders = $get('acceptance_genders');
+        if (! is_array($genders) || $genders === []) {
+            return true;
+        }
+
+        return in_array($gender, $genders, true);
     }
 
     /**
@@ -560,24 +602,7 @@ final class TrainingProgramExtrasSupport
 
     public static function whatsappGroupUrlFor(TrainingProgram $program, User $user): ?string
     {
-        if (! $program->whatsapp_groups_enabled) {
-            return null;
-        }
-
-        $gender = $user->profile?->gender;
-
-        if ($gender === ProfileGender::Female) {
-            return self::normalizeWhatsappUrl($program->whatsapp_group_female)
-                ?? self::normalizeWhatsappUrl($program->whatsapp_group_male);
-        }
-
-        if ($gender === ProfileGender::Male) {
-            return self::normalizeWhatsappUrl($program->whatsapp_group_male)
-                ?? self::normalizeWhatsappUrl($program->whatsapp_group_female);
-        }
-
-        return self::normalizeWhatsappUrl($program->whatsapp_group_male)
-            ?? self::normalizeWhatsappUrl($program->whatsapp_group_female);
+        return ProgramApprovalMail::groupUrl($program, $user);
     }
 
     public static function registrationApprovalMessage(TrainingProgram $program, User $recipient): string

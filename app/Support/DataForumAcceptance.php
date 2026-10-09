@@ -30,18 +30,16 @@ final class DataForumAcceptance
 
     public static function telegramUrlFor(?ProfileGender $gender): ?string
     {
-        $url = match ($gender) {
-            ProfileGender::Male => config('data_forum.telegram_male'),
-            ProfileGender::Female => config('data_forum.telegram_female'),
-            default => null,
-        };
+        $program = TrainingProgram::query()->where('slug', self::SLUG)->first();
 
-        if (! is_string($url)) {
+        if ($program === null || ! $program->whatsapp_groups_enabled) {
             return null;
         }
 
-        $url = trim($url);
-
-        return $url !== '' ? $url : null;
+        return match ($gender) {
+            ProfileGender::Male => TrainingProgramExtrasSupport::httpsGroupUrl($program->whatsapp_group_male),
+            ProfileGender::Female => TrainingProgramExtrasSupport::httpsGroupUrl($program->whatsapp_group_female),
+            default => null,
+        };
     }
 }

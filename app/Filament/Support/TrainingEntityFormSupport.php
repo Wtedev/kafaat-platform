@@ -181,12 +181,18 @@ final class TrainingEntityFormSupport
                 $capacityVisible,
                 includeProgramAudienceNotifications: true,
                 includeAutoAcceptRegistrations: false,
+                includePerGenderCapacity: true,
             ),
             TrainingProgramExtrasSupport::sessionTopicsBlock(),
             ...TrainingProgramExtrasSupport::sessionTopicsRepeaterFields(),
             ...TrainingProgramExtrasSupport::programPresentersRepeaterFields(),
             TrainingProgramExtrasSupport::whatsappGroupsBlock(),
             ...TrainingProgramExtrasSupport::whatsappGroupUrlFields(),
+            Textarea::make('approval_message')
+                ->label('رسالة القبول')
+                ->helperText('اتركها فارغة للرسالة الافتراضية. إن وُجدت تُرسل كما هي مع زر مجموعة التواصل.')
+                ->rows(6)
+                ->columnSpanFull(),
             ...self::entityAdvancedStaffBlock(
                 'مسؤولي البرنامج',
                 self::programStaffSectionDescription(),
@@ -272,13 +278,6 @@ final class TrainingEntityFormSupport
                         ->options(ProfileGender::options())
                         ->columns(2)
                         ->helperText('اتركه فارغاً لقبول الجميع.')
-                        ->columnSpanFull(),
-
-                    CheckboxList::make('acceptance_gender_capacity_full')
-                        ->label('امتلاء المقاعد حسب الجنس')
-                        ->options(ProfileGender::options())
-                        ->columns(2)
-                        ->helperText('عندما تمتلئ مقاعد جنس معيّن مع بقاء التسجيل مفتوحاً للجنس الآخر — تُعرض رسالة امتلاء السعة بدل «مخصص لـ».')
                         ->columnSpanFull(),
 
                     Grid::make(2)
@@ -525,7 +524,12 @@ final class TrainingEntityFormSupport
         ?Closure $capacityVisible,
         bool $includeProgramAudienceNotifications,
         bool $includeAutoAcceptRegistrations = true,
+        bool $includePerGenderCapacity = false,
     ): array {
+        if ($includePerGenderCapacity) {
+            return self::programCapacityFields($capacityVisible, $includeProgramAudienceNotifications, $includeAutoAcceptRegistrations);
+        }
+
         $capacityUnlimited = self::advancedSettingsToggle('capacity_unlimited', 'تسجيل غير محدود')
             ->default(true)
             ->live()
@@ -571,6 +575,67 @@ final class TrainingEntityFormSupport
         if ($includeProgramAudienceNotifications) {
             $fields[] = self::advancedSettingsToggle('notify_audience', 'إشعارات المستفيدين')
                 ->default(true);
+        }
+
+        return $fields;
+    }
+
+    /**
+     * @param  (Closure(Get): bool)|null  $capacityVisible
+     * @return array<int, Component|\Filament\Schemas\Components\Component>
+     */
+    private static function programCapacityFields(
+        ?Closure $capacityVisible,
+        bool $includeProgramAudienceNotifications,
+        bool $includeAutoAcceptRegistrations,
+    ): array {
+        $mode = Select::make('capacity_mode')
+            ->label('السعة')
+            ->options([
+                'unlimited' => 'غير محدودة',
+                'shared' => 'سعة واحدة',
+                'per_gender' => 'سعة لكل جنس',
+            ])
+            ->default('unlimited')
+            ->live()
+            ->dehydrated(false);
+
+        $shared = TextInput::make('capacity')
+            ->label('الحد الأقصى للمسجّلين')
+            ->numeric()
+            ->minValue(1)
+            ->nullable()
+            ->visible(fn (Get $get): bool => $get('capacity_mode') === 'shared')
+            ->dehydrated(fn (Get $get): bool => $get('capacity_mode') === 'shared');
+
+        $male = TextInput::make('capacity_male')
+            ->label('سعة الرجال')
+            ->numeric()
+            ->minValue(0)
+            ->nullable()
+            ->visible(fn (Get $get): bool => $get('capacity_mode') === 'per_gender');
+
+        $female = TextInput::make('capacity_female')
+            ->label('سعة النساء')
+            ->numeric()
+            ->minValue(0)
+            ->nullable()
+            ->visible(fn (Get $get): bool => $get('capacity_mode') === 'per_gender');
+
+        $group = Group::make()->columnSpanFull()->schema([$mode, $shared, $male, $female]);
+
+        if ($capacityVisible !== null) {
+            $group->visible($capacityVisible);
+        }
+
+        $fields = [$group];
+
+        if ($includeAutoAcceptRegistrations) {
+            $fields[] = self::advancedSettingsToggle('auto_accept_registrations', 'قبول تلقائي')->default(false);
+        }
+
+        if ($includeProgramAudienceNotifications) {
+            $fields[] = self::advancedSettingsToggle('notify_audience', 'إشعارات المستفيدين')->default(true);
         }
 
         return $fields;
@@ -1124,6 +1189,7 @@ final class TrainingEntityFormSupport
         $keys ??= [
             'is_linked_to_path',
             'capacity_unlimited',
+            'capacity_mode',
             'acceptance_manual_review',
         ];
 
@@ -1142,6 +1208,25 @@ final class TrainingEntityFormSupport
      */
     public static function applyCapacityUnlimited(array $data): array
     {
+        if (array_key_exists('capacity_mode', $data)) {
+            $mode = (string) $data['capacity_mode'];
+
+            if ($mode === 'per_gender') {
+                $data['capacity'] = null;
+            } elseif ($mode === 'shared') {
+                $data['capacity_male'] = null;
+                $data['capacity_female'] = null;
+            } else {
+                $data['capacity'] = null;
+                $data['capacity_male'] = null;
+                $data['capacity_female'] = null;
+            }
+
+            unset($data['capacity_mode'], $data['capacity_unlimited']);
+
+            return $data;
+        }
+
         if ((bool) ($data['capacity_unlimited'] ?? false)) {
             $data['capacity'] = null;
         }
