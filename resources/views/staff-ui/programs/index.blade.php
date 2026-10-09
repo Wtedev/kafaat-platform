@@ -8,16 +8,16 @@
     <header class="sui-page-head sui-staff-head">
         <h1>البرامج</h1>
         <div class="sui-programs-view-toggle" data-sui-programs-view-toggle role="group" aria-label="طريقة العرض">
-            <button type="button" class="sui-icon-btn is-active" data-sui-programs-view="cards" aria-pressed="true" aria-label="بطاقات">
-                <i data-lucide="layout-grid" class="sui-icon"></i>
-            </button>
-            <button type="button" class="sui-icon-btn" data-sui-programs-view="table" aria-pressed="false" aria-label="جدول">
+            <button type="button" class="sui-icon-btn is-active" data-sui-programs-view="table" aria-pressed="true" aria-label="جدول">
                 <i data-lucide="list" class="sui-icon"></i>
+            </button>
+            <button type="button" class="sui-icon-btn" data-sui-programs-view="cards" aria-pressed="false" aria-label="بطاقات">
+                <i data-lucide="layout-grid" class="sui-icon"></i>
             </button>
         </div>
     </header>
 
-    <section class="sui-card sui-programs-panel" data-sui-programs-panel data-view="cards">
+    <section class="sui-card sui-programs-panel" data-sui-programs-panel data-view="table">
         <form class="sui-table__filters sui-staff-filters sui-programs-filters" method="GET" action="{{ route('staff-ui.programs.index') }}" data-sui-staff-filters>
             <label class="sui-search sui-staff-search">
                 <i data-lucide="search" class="sui-icon"></i>
@@ -43,7 +43,7 @@
                 @endif
             </div>
         @else
-            <div class="sui-programs-cards" data-sui-programs-cards>
+            <div class="sui-programs-cards" data-sui-programs-cards hidden>
                 @foreach ($programs as $index => $program)
                     @php
                         $availability = $programStatus->registrationAvailability($program);
@@ -89,7 +89,7 @@
                 @endforeach
             </div>
 
-            <div class="sui-programs-table-wrap" data-sui-programs-table hidden>
+            <div class="sui-programs-table-wrap" data-sui-programs-table>
                 <div class="sui-table-wrap">
                     <table class="sui-table">
                         <thead>

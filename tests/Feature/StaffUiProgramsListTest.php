@@ -54,6 +54,10 @@ class StaffUiProgramsListTest extends TestCase
             ->assertOk()
             ->assertSee('البرامج')
             ->assertSee('برنامج ظاهر في القائمة')
+            ->assertSee('data-view="table"', false)
+            ->assertSee('data-sui-programs-cards hidden', false)
+            ->assertDontSee('عرض البرنامج', false)
+            ->assertDontSee('sui-program-card__excerpt', false)
             ->assertDontSee('تطبيق');
 
         $this->actingAsOtpVerified($blocked)
