@@ -119,7 +119,7 @@ class StaffBeneficiaryController extends Controller
             'canDownloadCv' => $actor->can('downloadCv', $user),
             'canViewMaskedIdentity' => $actor->can('viewMaskedIdentity', $user),
             'canRevealIdentity' => $actor->can('viewFullIdentity', $user),
-            'canUpdateIdentity' => $actor->can('beneficiaries.identity.update'),
+            'canUpdateIdentity' => $this->canCorrectIdentity($actor),
             'maskedIdentity' => IdentityNumberService::mask($user->identity_number_last4),
         ]);
     }
@@ -206,7 +206,7 @@ class StaffBeneficiaryController extends Controller
         $this->ensureStaff($request);
         $this->authorize('view', $user);
         $this->assertBeneficiary($user);
-        abort_unless($request->user()->can('beneficiaries.identity.update'), 403);
+        abort_unless($this->canCorrectIdentity($request->user()), 403);
 
         $identityType = IdentityType::tryFrom((string) $request->input('identity_type'));
         $data = $request->validate([
@@ -299,6 +299,13 @@ class StaffBeneficiaryController extends Controller
         }
 
         return [$search, $status, $completeness];
+    }
+
+    private function canCorrectIdentity(?User $actor): bool
+    {
+        return $actor instanceof User
+            && $actor->isAdmin()
+            && $actor->can('beneficiaries.identity.update');
     }
 
     private function ensureStaff(Request $request): void

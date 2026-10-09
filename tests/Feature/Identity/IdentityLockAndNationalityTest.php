@@ -3,11 +3,11 @@
 namespace Tests\Feature\Identity;
 
 use App\Enums\IdentityType;
+use App\Enums\PrivacyCorrectionFieldCode;
 use App\Enums\ProfileGender;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Exceptions\RegistrationNotEligibleException;
-use App\Enums\PrivacyCorrectionFieldCode;
 use App\Models\AuditLog;
 use App\Models\Profile;
 use App\Models\ProgramRegistration;
@@ -16,10 +16,13 @@ use App\Models\User;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\Privacy\PrivacyRequestService;
 use App\Services\ProgramRegistrationService;
-use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
+use App\Services\Rbac\PermissionMatrixCatalog;
 use App\Services\Rbac\RbacCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\GeneratesTestIdentityData;
 use Tests\Concerns\SeedsRbacRoles;
@@ -128,7 +131,7 @@ class IdentityLockAndNationalityTest extends TestCase
     {
         $original = IdentityNumberService::prepareStoragePayload('1098765432', IdentityType::NationalId);
         $beneficiary = $this->beneficiary($original);
-        $admin = $this->staff(['users.view', 'beneficiaries.identity.update']);
+        $admin = $this->admin();
 
         $this->actingAsOtpVerified($admin)
             ->post(route('staff-ui.users.identity.update', $beneficiary), [
@@ -156,6 +159,72 @@ class IdentityLockAndNationalityTest extends TestCase
         $this->assertSame('national_id', $log->metadata['identity_type_before']);
         $this->assertSame('iqama', $log->metadata['identity_type_after']);
         $this->assertArrayNotHasKey('identity_number', $log->metadata ?? []);
+
+        $this->actingAsOtpVerified($admin)
+            ->get(route('staff-ui.users.show', $beneficiary))
+            ->assertOk()
+            ->assertSee('تعديل الهوية');
+    }
+
+    public function test_staff_with_every_matrix_permission_cannot_correct_identity(): void
+    {
+        $original = IdentityNumberService::prepareStoragePayload('1098765432', IdentityType::NationalId);
+        $beneficiary = $this->beneficiary($original, 'staff-locked@example.com');
+        $staff = $this->staff(PermissionMatrixCatalog::assignablePermissionNames());
+
+        $this->assertNotContains('beneficiaries.identity.update', PermissionMatrixCatalog::assignablePermissionNames());
+        $this->assertFalse($staff->isAdmin());
+
+        $this->actingAsOtpVerified($staff)
+            ->get(route('staff-ui.users.show', $beneficiary))
+            ->assertOk()
+            ->assertDontSee('تعديل الهوية');
+
+        $this->actingAsOtpVerified($staff)
+            ->post(route('staff-ui.users.identity.update', $beneficiary), [
+                'identity_type' => IdentityType::Iqama->value,
+                'identity_number' => '2098765432',
+                'reason' => 'محاولة موظف',
+            ])
+            ->assertForbidden();
+
+        $staff->givePermissionTo('beneficiaries.identity.update');
+
+        $this->actingAsOtpVerified($staff->fresh())
+            ->post(route('staff-ui.users.identity.update', $beneficiary), [
+                'identity_type' => IdentityType::Iqama->value,
+                'identity_number' => '2098765432',
+                'reason' => 'محاولة موظف بعد منح الصلاحية',
+            ])
+            ->assertForbidden();
+
+        $beneficiary->refresh();
+        $this->assertSame($original['identity_number_lookup_hash'], $beneficiary->identity_number_lookup_hash);
+    }
+
+    public function test_identity_update_permission_is_revoked_from_non_admin_staff(): void
+    {
+        $staff = $this->staff(['beneficiaries.identity.update']);
+        $admin = $this->admin();
+
+        $this->assertTrue($staff->can('beneficiaries.identity.update'));
+        $this->assertTrue($admin->can('beneficiaries.identity.update'));
+
+        $migration = require database_path('migrations/2026_10_09_150000_revoke_identity_update_from_non_admins.php');
+        $migration->up();
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->assertFalse($staff->fresh()->can('beneficiaries.identity.update'));
+        $this->assertTrue($admin->fresh()->can('beneficiaries.identity.update'));
+        $this->assertSame(0, DB::table('model_has_permissions')
+            ->where('model_id', $staff->id)
+            ->whereIn('permission_id', function ($query): void {
+                $query->select('id')
+                    ->from('permissions')
+                    ->where('name', 'beneficiaries.identity.update');
+            })
+            ->count());
     }
 
     public function test_saudi_condition_uses_the_first_digit_at_registration_and_approval(): void
@@ -253,6 +322,18 @@ class IdentityLockAndNationalityTest extends TestCase
         ]);
 
         return $user->fresh(['profile']);
+    }
+
+    private function admin(): User
+    {
+        $admin = User::factory()->create([
+            'role_type' => 'admin',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $admin->assignRole(RbacCatalog::ROLE_ADMIN);
+
+        return $admin->fresh();
     }
 
     /**

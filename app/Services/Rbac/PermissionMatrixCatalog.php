@@ -143,7 +143,7 @@ final class PermissionMatrixCatalog
                 'actions' => [
                     'view' => ['beneficiaries.view_basic', 'beneficiaries.view_contact', 'beneficiaries.identity.view_masked', 'beneficiary.cv.view'],
                     'create' => null,
-                    'update' => ['beneficiaries.update_basic', 'beneficiaries.update_sensitive', 'beneficiaries.identity.update', 'beneficiaries.deactivate'],
+                    'update' => ['beneficiaries.update_basic', 'beneficiaries.update_sensitive', 'beneficiaries.deactivate'],
                     'delete' => null,
                 ],
             ],
