@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Enums\IdentityType;
 use App\Enums\ProfileGender;
 use App\Enums\UserDocumentStatus;
 use App\Enums\UserDocumentType;
@@ -452,7 +451,7 @@ class StaffUiBeneficiaryProfileTest extends TestCase
             'email_verified_at' => now(),
         ], $overrides));
         $user->assignRole(RbacCatalog::ROLE_BENEFICIARY);
-        $user->forceFill(IdentityNumberService::prepareStoragePayload(self::IDENTITY, IdentityType::NationalId))->save();
+        $user->forceFill(IdentityNumberService::prepareStoragePayload(self::IDENTITY))->save();
         $user->profile()->create([
             'gender' => ProfileGender::Female,
             'birth_date' => '1995-04-12',

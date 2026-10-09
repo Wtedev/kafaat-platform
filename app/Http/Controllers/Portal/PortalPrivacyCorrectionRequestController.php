@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers\Portal;
 
-use App\Enums\IdentityType;
 use App\Enums\PrivacyCorrectionFieldCode;
 use App\Http\Controllers\Controller;
+use App\Rules\ValidIdentityNumber;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\Privacy\PrivacyRequestService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class PortalPrivacyCorrectionRequestController extends Controller
@@ -53,8 +52,7 @@ class PortalPrivacyCorrectionRequestController extends Controller
         } elseif ($fieldCode === PrivacyCorrectionFieldCode::Email) {
             $rules['email'] = ['required', 'email', 'max:255'];
         } elseif ($fieldCode === PrivacyCorrectionFieldCode::IdentityNumber) {
-            $rules['identity_type'] = ['required', Rule::enum(IdentityType::class)];
-            $rules['identity_number'] = ['required', 'string', 'max:20'];
+            $rules['identity_number'] = ['required', 'string', 'max:20', new ValidIdentityNumber];
         }
 
         $validated = $request->validate($rules);

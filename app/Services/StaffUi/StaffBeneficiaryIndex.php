@@ -2,6 +2,7 @@
 
 namespace App\Services\StaffUi;
 
+use App\Enums\IdentityCategory;
 use App\Models\User;
 use App\Services\Rbac\RbacCatalog;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -11,9 +12,19 @@ use Illuminate\Support\Collection;
 
 final class StaffBeneficiaryIndex
 {
-    public function paginate(string $search, string $status, string $completeness, int $page, int $perPage = 15): LengthAwarePaginator
-    {
-        return $this->paginateCollection($this->matching($search, $status, $completeness), $page, $perPage);
+    public function paginate(
+        string $search,
+        string $status,
+        string $completeness,
+        string $identityCategory,
+        int $page,
+        int $perPage = 15,
+    ): LengthAwarePaginator {
+        return $this->paginateCollection(
+            $this->matching($search, $status, $completeness, $identityCategory),
+            $page,
+            $perPage,
+        );
     }
 
     /**
@@ -21,9 +32,13 @@ final class StaffBeneficiaryIndex
      *
      * @return Collection<int, User>
      */
-    public function matching(string $search, string $status, string $completeness): Collection
-    {
-        return $this->query($search, $status)
+    public function matching(
+        string $search,
+        string $status,
+        string $completeness,
+        string $identityCategory = '',
+    ): Collection {
+        return $this->query($search, $status, $identityCategory)
             ->with('profile')
             ->orderBy('name')
             ->get()
@@ -34,7 +49,7 @@ final class StaffBeneficiaryIndex
     /**
      * @return Builder<User>
      */
-    private function query(string $search, string $status): Builder
+    private function query(string $search, string $status, string $identityCategory): Builder
     {
         $query = User::query()
             ->operational()
@@ -59,6 +74,10 @@ final class StaffBeneficiaryIndex
             $query->where('is_active', true);
         } elseif ($status === 'inactive') {
             $query->where('is_active', false);
+        }
+
+        if (IdentityCategory::tryFrom($identityCategory) !== null) {
+            $query->where('identity_category', $identityCategory);
         }
 
         $needle = trim($search);
@@ -101,10 +120,7 @@ final class StaffBeneficiaryIndex
             $users->count(),
             $perPage,
             $page,
-            [
-                'path' => request()->url(),
-                'query' => request()->query(),
-            ],
+            ['path' => request()->url(), 'query' => request()->query()],
         );
     }
 }

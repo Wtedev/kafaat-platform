@@ -27,14 +27,17 @@ class RegisterRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $identityType = IdentityType::tryFrom((string) $this->input('identity_type'));
         $email = $this->input('email');
         $emailConfirmation = $this->input('email_confirmation');
+        $normalized = IdentityNumberService::normalize($this->input('identity_number'));
+        $derivedType = $normalized !== null
+            ? IdentityNumberService::typeFromNumber($normalized)
+            : null;
 
         $this->merge([
             'phone' => SaudiPhoneService::normalize($this->input('phone')),
-            'identity_number' => IdentityNumberService::normalize($this->input('identity_number')),
-            'identity_type' => $identityType?->value,
+            'identity_number' => $normalized,
+            'identity_type' => $derivedType?->value,
             'email' => is_string($email) ? PendingRegistrationService::normalizeEmail($email) : $email,
             'email_confirmation' => is_string($emailConfirmation)
                 ? PendingRegistrationService::normalizeEmail($emailConfirmation)
@@ -108,7 +111,7 @@ class RegisterRequest extends FormRequest
             'father_name.required' => 'اسم الأب مطلوب.',
             'grandfather_name.required' => 'اسم الجد مطلوب.',
             'family_name.required' => 'اسم العائلة مطلوب.',
-            'identity_type.required' => 'نوع الهوية مطلوب.',
+            'identity_type.required' => IdentityNumberService::INVALID_PREFIX_MESSAGE,
             'birth_date.required' => 'تاريخ الميلاد مطلوب.',
             'birth_date.before_or_equal' => 'تاريخ الميلاد لا يمكن أن يكون في المستقبل.',
             'gender.required' => 'الجنس مطلوب.',

@@ -54,11 +54,7 @@ final class PrivacyCorrectionService
         }
 
         $normalized = IdentityNumberService::normalize($plaintextValue);
-        if ($normalized === null || $identityType === null) {
-            throw new InvalidArgumentException('invalid_identity');
-        }
-
-        if (! IdentityNumberService::isValidFormat($normalized)) {
+        if ($normalized === null || ! IdentityNumberService::isValidFormat($normalized)) {
             throw new InvalidArgumentException('invalid_identity');
         }
 
@@ -66,6 +62,7 @@ final class PrivacyCorrectionService
             throw new InvalidArgumentException('duplicate_identity');
         }
 
+        // Type is always derived from the number; optional argument is validated for mismatch.
         $storagePayload = IdentityNumberService::prepareStoragePayload($plaintextValue, $identityType);
 
         return PrivacyCorrectionPayload::query()->updateOrCreate(
@@ -180,17 +177,17 @@ final class PrivacyCorrectionService
             throw new InvalidArgumentException('missing_payload');
         }
 
+        $identityType = $details['identity_type'] ?? null;
+        $identityCategory = $details['identity_category'] ?? null;
+
         $user->forceFill([
             'identity_number_ciphertext' => $payload->encrypted_value,
             'identity_number_lookup_hash' => $payload->value_lookup_hash,
             'identity_number_last4' => $payload->value_last4,
             'identity_confirmed_at' => now(),
+            'identity_type' => is_string($identityType) && $identityType !== '' ? $identityType : null,
+            'identity_category' => is_string($identityCategory) && $identityCategory !== '' ? $identityCategory : null,
         ]);
-
-        $identityType = $details['identity_type'] ?? null;
-        if (is_string($identityType) && $identityType !== '') {
-            $user->forceFill(['identity_type' => $identityType]);
-        }
 
         try {
             $user->save();

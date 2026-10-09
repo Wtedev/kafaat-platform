@@ -151,6 +151,7 @@ class StaffUiBeneficiaryExportTest extends TestCase
             'q' => 'تدقيق',
             'status' => 'active',
             'profile' => 'complete',
+            'identity_category' => '',
         ], $log->metadata['filters']);
     }
 

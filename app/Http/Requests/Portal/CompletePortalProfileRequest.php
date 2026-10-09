@@ -22,15 +22,16 @@ class CompletePortalProfileRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $identityType = IdentityType::tryFrom((string) $this->input('identity_type'));
-
         $merge = [
             'phone' => SaudiPhoneService::normalize($this->input('phone')),
         ];
 
         if ($this->filled('identity_number')) {
-            $merge['identity_number'] = IdentityNumberService::normalize($this->input('identity_number'));
-            $merge['identity_type'] = $identityType?->value;
+            $normalized = IdentityNumberService::normalize($this->input('identity_number'));
+            $merge['identity_number'] = $normalized;
+            $merge['identity_type'] = $normalized !== null
+                ? IdentityNumberService::typeFromNumber($normalized)?->value
+                : null;
         }
 
         $this->merge($merge);
@@ -76,7 +77,7 @@ class CompletePortalProfileRequest extends FormRequest
             'father_name.required' => 'اسم الأب مطلوب.',
             'grandfather_name.required' => 'اسم الجد مطلوب.',
             'family_name.required' => 'اسم العائلة مطلوب.',
-            'identity_type.required' => 'نوع الهوية مطلوب.',
+            'identity_type.required' => IdentityNumberService::INVALID_PREFIX_MESSAGE,
             'identity_number.required' => 'رقم الهوية أو الإقامة مطلوب.',
             'birth_date.required' => 'تاريخ الميلاد مطلوب.',
             'birth_date.before_or_equal' => 'تاريخ الميلاد لا يمكن أن يكون في المستقبل.',

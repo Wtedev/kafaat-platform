@@ -107,9 +107,9 @@
                     @endif
                 </dd>
                 @if ($canViewMaskedIdentity || $canUpdateIdentity)
-                    <dt>نوع الهوية</dt>
+                    <dt>الجنسية</dt>
                     <dd class="sui-fact">
-                        <span class="sui-fact__value">{{ $canViewMaskedIdentity ? ($beneficiary->identity_type?->label() ?? '—') : '—' }}</span>
+                        <span class="sui-fact__value">{{ $canViewMaskedIdentity ? ($beneficiary->identity_category?->label() ?? '—') : '—' }}</span>
                         @if ($canUpdateIdentity)
                             <x-staff-ui.button type="button" variant="ghost" size="sm" icon="pencil" icon-only aria-label="تعديل الهوية" data-sui-open-modal="edit-identity" />
                         @endif

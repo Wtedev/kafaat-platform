@@ -3,7 +3,7 @@
 namespace App\Filament\Support;
 
 use App\Enums\AttendanceStatus;
-use App\Enums\IdentityType;
+use App\Enums\IdentityCategory;
 use App\Enums\RegistrationStatus;
 use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
@@ -17,7 +17,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Throwable;
 
 class RegistrationFilamentTableSupport
 {
@@ -54,14 +53,14 @@ class RegistrationFilamentTableSupport
 
     public static function nationalityColumn(): TextColumn
     {
-        return TextColumn::make('user.identity_type')
+        return TextColumn::make('user.identity_category')
             ->label('الجنسية')
             ->getStateUsing(function (Model $record): string {
-                $type = $record->user?->identity_type ?? null;
+                $category = $record->user?->identity_category ?? null;
 
-                return match ($type) {
-                    IdentityType::NationalId => 'سعودي',
-                    IdentityType::Iqama => 'غير سعودي',
+                return match ($category) {
+                    IdentityCategory::Saudi => 'سعودي',
+                    IdentityCategory::Resident => 'غير سعودي',
                     default => 'غير محدد',
                 };
             });
@@ -73,18 +72,8 @@ class RegistrationFilamentTableSupport
             ->label('أول 4 أرقام')
             ->getStateUsing(function (Model $record): string {
                 $ciphertext = $record->user?->identity_number_ciphertext ?? null;
-                if (! is_string($ciphertext) || $ciphertext === '') {
-                    return '—';
-                }
-
-                try {
-                    $number = IdentityNumberService::decrypt($ciphertext);
-                } catch (Throwable) {
-                    return '—';
-                }
-
-                $digits = preg_replace('/\D+/', '', $number) ?? '';
-                if (strlen($digits) < 4) {
+                $digits = IdentityNumberService::digitsFromCiphertext(is_string($ciphertext) ? $ciphertext : null);
+                if ($digits === null || strlen($digits) < 4) {
                     return '—';
                 }
 

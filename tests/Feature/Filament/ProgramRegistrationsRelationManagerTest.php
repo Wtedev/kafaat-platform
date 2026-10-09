@@ -3,6 +3,7 @@
 namespace Tests\Feature\Filament;
 
 use App\Enums\CompetencyTrack;
+use App\Enums\IdentityCategory;
 use App\Enums\IdentityType;
 use App\Enums\ProfileGender;
 use App\Enums\ProgramDeliveryMode;
@@ -120,16 +121,25 @@ class ProgramRegistrationsRelationManagerTest extends TestCase
             ->assertCanSeeTableRecords([$unspecified]);
     }
 
-    public function test_nationality_filter_splits_saudi_and_non_saudi_by_identity_type(): void
+    public function test_nationality_filter_splits_saudi_and_non_saudi_by_identity_category(): void
     {
         $admin = $this->admin();
         $program = $this->program($admin);
         $saudi = $this->registration($program, 'سعودي', RegistrationStatus::Pending);
-        $saudi->user->forceFill(['identity_type' => IdentityType::NationalId])->save();
+        $saudi->user->forceFill([
+            'identity_category' => IdentityCategory::Saudi,
+            'identity_type' => IdentityType::NationalId,
+        ])->save();
         $resident = $this->registration($program, 'مقيم', RegistrationStatus::Pending);
-        $resident->user->forceFill(['identity_type' => IdentityType::Iqama])->save();
+        $resident->user->forceFill([
+            'identity_category' => IdentityCategory::Resident,
+            'identity_type' => IdentityType::Iqama,
+        ])->save();
         $unspecified = $this->registration($program, 'بدون هوية', RegistrationStatus::Pending);
-        $unspecified->user->forceFill(['identity_type' => null])->save();
+        $unspecified->user->forceFill([
+            'identity_category' => null,
+            'identity_type' => null,
+        ])->save();
 
         $this->withSession(['otp_verified' => true]);
 
@@ -139,7 +149,7 @@ class ProgramRegistrationsRelationManagerTest extends TestCase
                 'pageClass' => ViewTrainingProgram::class,
             ])
             ->assertTableFilterExists('nationality')
-            ->assertTableColumnExists('user.identity_type')
+            ->assertTableColumnExists('user.identity_category')
             ->filterTable('nationality', 'saudi')
             ->assertCanSeeTableRecords([$saudi])
             ->assertCanNotSeeTableRecords([$resident, $unspecified])

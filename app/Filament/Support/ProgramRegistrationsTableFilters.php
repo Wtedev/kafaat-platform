@@ -2,7 +2,7 @@
 
 namespace App\Filament\Support;
 
-use App\Enums\IdentityType;
+use App\Enums\IdentityCategory;
 use App\Enums\ProfileGender;
 use App\Enums\RegistrationStatus;
 use Filament\Forms\Components\Select;
@@ -47,23 +47,23 @@ final class ProgramRegistrationsTableFilters
                 if ($value === 'unspecified') {
                     return $query->whereHas(
                         'user',
-                        fn (Builder $user): Builder => $user->whereNull('identity_type'),
+                        fn (Builder $user): Builder => $user->whereNull('identity_category'),
                     );
                 }
 
-                $identityType = match ($value) {
-                    'saudi' => IdentityType::NationalId->value,
-                    'non_saudi' => IdentityType::Iqama->value,
+                $category = match ($value) {
+                    'saudi' => IdentityCategory::Saudi->value,
+                    'non_saudi' => IdentityCategory::Resident->value,
                     default => null,
                 };
 
-                if ($identityType === null) {
+                if ($category === null) {
                     return $query;
                 }
 
                 return $query->whereHas(
                     'user',
-                    fn (Builder $user): Builder => $user->where('identity_type', $identityType),
+                    fn (Builder $user): Builder => $user->where('identity_category', $category),
                 );
             });
     }
