@@ -457,5 +457,46 @@
         });
     });
 
+    const programsPanel = document.querySelector("[data-sui-programs-panel]");
+    if (programsPanel) {
+        const viewKey = "sui-programs-view";
+        const cards = programsPanel.querySelector("[data-sui-programs-cards]");
+        const table = programsPanel.querySelector("[data-sui-programs-table]");
+        const buttons = document.querySelectorAll("[data-sui-programs-view]");
+
+        const applyView = (view) => {
+            const mode = view === "table" ? "table" : "cards";
+            programsPanel.dataset.view = mode;
+            if (cards) cards.hidden = mode === "table";
+            if (table) table.hidden = mode !== "table";
+            buttons.forEach((button) => {
+                const active = button.dataset.suiProgramsView === mode;
+                button.classList.toggle("is-active", active);
+                button.setAttribute("aria-pressed", active ? "true" : "false");
+            });
+            localStorage.setItem(viewKey, mode);
+        };
+
+        const stored = localStorage.getItem(viewKey);
+        applyView(stored === "table" ? "table" : "cards");
+
+        buttons.forEach((button) => {
+            button.addEventListener("click", () => applyView(button.dataset.suiProgramsView));
+        });
+
+        programsPanel.querySelectorAll(".sui-program-row[data-href]").forEach((row) => {
+            const go = () => {
+                window.location.href = row.dataset.href;
+            };
+            row.addEventListener("click", go);
+            row.addEventListener("keydown", (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    go();
+                }
+            });
+        });
+    }
+
     refreshIcons();
 })();
