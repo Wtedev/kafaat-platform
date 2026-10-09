@@ -179,7 +179,7 @@ final class ProgramAcceptanceConditions
         $lines = [];
 
         if ($normalized['require_saudi_national']) {
-            $lines[] = 'سعودي الجنسية (هوية وطنية)';
+            $lines[] = 'سعودي الجنسية (يبدأ رقم الهوية بالرقم 1)';
         }
 
         if ($normalized['genders'] !== []) {

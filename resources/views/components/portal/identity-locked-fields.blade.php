@@ -33,6 +33,6 @@ $lockedInputClass = 'w-full cursor-not-allowed rounded-xl border border-gray-200
         </span>
     </div>
     <p id="identity-locked-hint" class="mt-1.5 text-xs leading-relaxed text-slate-500">
-        مسجّل ولا يمكن تعديله من هنا. للتعديل، يرجى التواصل مع الدعم.
+        مسجّل ولا يمكن تعديله من حسابك. التصحيح يتم من إدارة المنصة.
     </p>
 </div>

@@ -23,6 +23,7 @@
         $errors->has('bio') => 'bio',
         $errors->has('notify_email') => 'notify_email',
         $errors->has('email') => 'email',
+        $errors->hasAny(['identity_type', 'identity_number', 'reason']) => 'identity',
         default => null,
     };
 @endphp
@@ -105,9 +106,16 @@
                         <x-staff-ui.status tone="danger">معطّل</x-staff-ui.status>
                     @endif
                 </dd>
-                @if ($canViewMaskedIdentity)
+                @if ($canViewMaskedIdentity || $canUpdateIdentity)
                     <dt>نوع الهوية</dt>
-                    <dd>{{ $beneficiary->identity_type?->label() ?? '—' }}</dd>
+                    <dd class="sui-fact">
+                        <span class="sui-fact__value">{{ $canViewMaskedIdentity ? ($beneficiary->identity_type?->label() ?? '—') : '—' }}</span>
+                        @if ($canUpdateIdentity)
+                            <x-staff-ui.button type="button" variant="ghost" size="sm" icon="pencil" icon-only aria-label="تعديل الهوية" data-sui-open-modal="edit-identity" />
+                        @endif
+                    </dd>
+                @endif
+                @if ($canViewMaskedIdentity)
                     <dt>رقم الهوية</dt>
                     <dd class="sui-fact">
                         <span class="sui-fact__value" data-identity-masked>{{ $maskedIdentity ?: '—' }}</span>
@@ -395,6 +403,24 @@
                 <input type="hidden" name="action" value="deactivate">
                 <div class="sui-modal__actions">
                     <x-staff-ui.button type="submit" variant="danger" size="sm">تعطيل</x-staff-ui.button>
+                    <x-staff-ui.button type="button" variant="ghost" size="sm" data-sui-modal-close>إلغاء</x-staff-ui.button>
+                </div>
+            </form>
+        </x-staff-ui.modal>
+    @endif
+
+    @if ($canUpdateIdentity)
+        <x-staff-ui.modal name="edit-identity" title="تعديل الهوية" :open="$openField === 'identity'">
+            <form method="POST" action="{{ route('staff-ui.users.identity.update', $beneficiary) }}">
+                @csrf
+                <x-staff-ui.select name="identity_type" label="نوع الهوية" :selected="old('identity_type', $beneficiary->identity_type?->value)" :options="['national_id' => 'هوية وطنية', 'iqama' => 'إقامة']" :error="$errors->first('identity_type')" />
+                <x-staff-ui.input name="identity_number" label="رقم الهوية" :value="old('identity_number')" :error="$errors->first('identity_number')" />
+                <x-staff-ui.textarea name="reason" label="سبب التعديل" rows="3">{{ old('reason') }}</x-staff-ui.textarea>
+                @error('reason')
+                    <p class="sui-field__error">{{ $message }}</p>
+                @enderror
+                <div class="sui-modal__actions">
+                    <x-staff-ui.button type="submit" size="sm">حفظ</x-staff-ui.button>
                     <x-staff-ui.button type="button" variant="ghost" size="sm" data-sui-modal-close>إلغاء</x-staff-ui.button>
                 </div>
             </form>

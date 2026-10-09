@@ -255,7 +255,7 @@ final class TrainingEntityFormSupport
 
                     Toggle::make('acceptance_require_saudi_national')
                         ->label('سعودي الجنسية')
-                        ->helperText('يُقبل من لديه هوية وطنية فقط (وليس إقامة).')
+                        ->helperText('يُقبل من يبدأ رقم هويته بالرقم 1، بغض النظر عن نوع الهوية المخزّن.')
                         ->inline(true)
                         ->default(false)
                         ->extraFieldWrapperAttributes(['class' => 'fi-advanced-settings-toggle-row']),

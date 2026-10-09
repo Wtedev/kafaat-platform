@@ -95,6 +95,32 @@ class IdentityNumberService
         return self::isValidFormat($normalized);
     }
 
+    /**
+     * Saudi nationality for program eligibility is the first digit of the
+     * identity number (1), not the stored identity_type.
+     */
+    public static function isSaudiNationalNumber(?string $raw): bool
+    {
+        $normalized = self::normalize($raw);
+
+        return $normalized !== null
+            && self::isValidFormat($normalized)
+            && str_starts_with($normalized, '1');
+    }
+
+    public static function digitsFromCiphertext(?string $ciphertext): ?string
+    {
+        if ($ciphertext === null || $ciphertext === '') {
+            return null;
+        }
+
+        try {
+            return self::normalize(self::decrypt($ciphertext));
+        } catch (RuntimeException) {
+            return null;
+        }
+    }
+
     public static function generateLookupHash(string $normalized): string
     {
         return hash_hmac('sha256', $normalized, self::lookupKey());

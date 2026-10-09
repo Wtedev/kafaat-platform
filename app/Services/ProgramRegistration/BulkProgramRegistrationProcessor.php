@@ -7,6 +7,7 @@ use App\Enums\InboxNotificationType;
 use App\Enums\NotificationTargetType;
 use App\Enums\RegistrationStatus;
 use App\Exceptions\ProgramCapacityExceededException;
+use App\Exceptions\RegistrationNotEligibleException;
 use App\Models\InboxNotification;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
@@ -73,6 +74,8 @@ final class BulkProgramRegistrationProcessor
                 }
             } catch (ProgramCapacityExceededException) {
                 $capacityBlocked++;
+            } catch (RegistrationNotEligibleException) {
+                $skipped++;
             }
         }
 

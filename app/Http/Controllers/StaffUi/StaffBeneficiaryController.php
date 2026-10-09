@@ -4,6 +4,7 @@ namespace App\Http\Controllers\StaffUi;
 
 use App\Enums\AccountStatus;
 use App\Enums\AuditLogResult;
+use App\Enums\IdentityType;
 use App\Enums\ProfileGender;
 use App\Http\Controllers\Controller;
 use App\Models\Certificate;
@@ -11,6 +12,7 @@ use App\Models\EmailVerificationCode;
 use App\Models\Profile;
 use App\Models\User;
 use App\Notifications\StaffEmailChangedByAdminNotification;
+use App\Rules\ValidIdentityNumber;
 use App\Rules\ValidSaudiMobile;
 use App\Services\Audit\AuditLogger;
 use App\Services\Audit\BeneficiaryEditAudit;
@@ -117,6 +119,7 @@ class StaffBeneficiaryController extends Controller
             'canDownloadCv' => $actor->can('downloadCv', $user),
             'canViewMaskedIdentity' => $actor->can('viewMaskedIdentity', $user),
             'canRevealIdentity' => $actor->can('viewFullIdentity', $user),
+            'canUpdateIdentity' => $actor->can('beneficiaries.identity.update'),
             'maskedIdentity' => IdentityNumberService::mask($user->identity_number_last4),
         ]);
     }
@@ -196,6 +199,62 @@ class StaffBeneficiaryController extends Controller
         return redirect()
             ->route('staff-ui.users.show', $user)
             ->with('status', $message);
+    }
+
+    public function updateIdentity(Request $request, User $user): RedirectResponse
+    {
+        $this->ensureStaff($request);
+        $this->authorize('view', $user);
+        $this->assertBeneficiary($user);
+        abort_unless($request->user()->can('beneficiaries.identity.update'), 403);
+
+        $identityType = IdentityType::tryFrom((string) $request->input('identity_type'));
+        $data = $request->validate([
+            'identity_type' => ['required', Rule::enum(IdentityType::class)],
+            'identity_number' => ['required', 'string', new ValidIdentityNumber($identityType)],
+            'reason' => ['required', 'string', 'min:3', 'max:1000'],
+        ], [
+            'reason.required' => 'سبب التعديل مطلوب.',
+            'reason.min' => 'سبب التعديل مطلوب.',
+        ]);
+
+        if (IdentityNumberService::isDuplicate((string) $data['identity_number'], $user->id)) {
+            throw ValidationException::withMessages([
+                'identity_number' => IdentityNumberService::DUPLICATE_MESSAGE,
+            ]);
+        }
+
+        $type = IdentityType::from((string) $data['identity_type']);
+        $beforeType = $user->identity_type?->value;
+        $beforeLast4 = $user->identity_number_last4;
+        $payload = IdentityNumberService::prepareStoragePayload((string) $data['identity_number'], $type);
+
+        $user->forceFill([
+            'identity_type' => $payload['identity_type']->value,
+            'identity_number_ciphertext' => $payload['identity_number_ciphertext'],
+            'identity_number_lookup_hash' => $payload['identity_number_lookup_hash'],
+            'identity_number_last4' => $payload['identity_number_last4'],
+            'identity_confirmed_at' => $payload['identity_confirmed_at'],
+        ])->save();
+
+        app(AuditLogger::class)->recordOrFail(
+            $request->user(),
+            'identity.corrected',
+            AuditLogResult::Success,
+            $user,
+            reason: trim((string) $data['reason']),
+            metadata: [
+                'identity_type_before' => $beforeType,
+                'identity_type_after' => $type->value,
+                'identity_last4_before' => $beforeLast4,
+                'identity_last4_after' => $payload['identity_number_last4'],
+            ],
+            request: $request,
+        );
+
+        return redirect()
+            ->route('staff-ui.users.show', $user)
+            ->with('status', 'تم تحديث الهوية.');
     }
 
     public function storeNote(Request $request, User $user): RedirectResponse
