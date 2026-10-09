@@ -20,8 +20,7 @@ use App\Models\VolunteerRegistration;
 use App\Notifications\InboxNotificationEmail;
 use App\Services\EmailLogService;
 use App\Services\Rbac\RbacCatalog;
-use App\Support\DataForumAcceptance;
-use App\Support\TrainingProgramExtrasSupport;
+use App\Support\ProgramApprovalMail;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -325,27 +324,13 @@ class InboxNotificationService
 
     public function registrationApprovedProgram(User $recipient, TrainingProgram $program, ?User $approver = null): void
     {
-        if (DataForumAcceptance::matches($program)) {
-            $msg = new NotificationMessage(
-                type: InboxNotificationType::RegistrationApproved,
-                title: 'مبارك قبولك النهائي',
-                message: DataForumAcceptance::INBOX_MESSAGE,
-                senderId: $approver?->id,
-                targetType: NotificationTargetType::SingleUser,
-                context: self::inboxContext('training_program', (int) $program->getKey()),
-                emailable: false,
-            );
-            $this->dispatch($msg, [$recipient->id]);
-
-            return;
-        }
-
-        $whatsappUrl = TrainingProgramExtrasSupport::whatsappGroupUrlFor($program, $recipient);
+        $whatsappUrl = ProgramApprovalMail::groupUrl($program, $recipient);
+        $title = ProgramApprovalMail::isForumMessage($program) ? 'مبارك قبولك النهائي' : 'تم قبول تسجيلك';
 
         $msg = new NotificationMessage(
             type: InboxNotificationType::RegistrationApproved,
-            title: 'تم قبول تسجيلك',
-            message: TrainingProgramExtrasSupport::registrationApprovalMessage($program, $recipient),
+            title: $title,
+            message: ProgramApprovalMail::inboxMessage($program),
             senderId: $approver?->id,
             targetType: NotificationTargetType::SingleUser,
             context: self::inboxContext(

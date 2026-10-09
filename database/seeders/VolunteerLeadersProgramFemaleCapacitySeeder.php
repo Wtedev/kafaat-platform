@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\ProfileGender;
 use App\Models\TrainingProgram;
 use App\Support\ProgramAcceptanceConditions;
+use App\Support\ProgramCapacity;
 use App\Support\VolunteerLeadersProgramPeriod;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
@@ -31,7 +32,7 @@ class VolunteerLeadersProgramFemaleCapacitySeeder extends Seeder
                 $query->whereIn('slug', VolunteerLeadersProgramPeriod::stableSlugs())
                     ->orWhere('title', 'like', '%'.VolunteerLeadersProgramPeriod::TITLE_NEEDLE.'%');
             })
-            ->get(['id', 'title', 'slug', 'acceptance_conditions', 'auto_accept_registrations']);
+            ->get(['id', 'title', 'slug', 'acceptance_conditions', 'auto_accept_registrations', 'capacity_female']);
 
         if ($matched->isEmpty()) {
             $this->command?->warn(
@@ -58,9 +59,12 @@ class VolunteerLeadersProgramFemaleCapacitySeeder extends Seeder
             $desiredGenders = [];
             $desiredCapacityFull = [ProfileGender::Female->value];
 
+            $needsCapacity = $program->capacity_female === null;
+
             if (
                 $normalized['genders'] === $desiredGenders
                 && $normalized['gender_capacity_full'] === $desiredCapacityFull
+                && ! $needsCapacity
             ) {
                 continue;
             }
@@ -80,9 +84,15 @@ class VolunteerLeadersProgramFemaleCapacitySeeder extends Seeder
                 'acceptance_require_complete_profile' => $normalized['require_complete_profile'],
             ]);
 
-            $program->forceFill([
+            $fill = [
                 'acceptance_conditions' => $packed['acceptance_conditions'],
-            ])->save();
+            ];
+
+            if ($needsCapacity) {
+                $fill['capacity_female'] = ProgramCapacity::approvedCount($program, ProfileGender::Female);
+            }
+
+            $program->forceFill($fill)->save();
             $updated++;
         }
 

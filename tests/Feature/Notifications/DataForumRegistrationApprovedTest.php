@@ -10,10 +10,10 @@ use App\Models\Profile;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
-use App\Notifications\DataForumRegistrationApproved;
 use App\Notifications\ProgramRegistrationApproved;
 use App\Services\ProgramRegistrationService;
 use App\Support\DataForumAcceptance;
+use App\Support\ProgramApprovalMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -26,16 +26,6 @@ class DataForumRegistrationApprovedTest extends TestCase
 
     private const FEMALE_URL = 'https://t.me/data-forum-female-test';
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        config([
-            'data_forum.telegram_male' => self::MALE_URL,
-            'data_forum.telegram_female' => self::FEMALE_URL,
-        ]);
-    }
-
     public function test_data_forum_approval_sends_the_special_mail_and_inbox_notice(): void
     {
         Notification::fake();
@@ -47,8 +37,7 @@ class DataForumRegistrationApprovedTest extends TestCase
 
         app(ProgramRegistrationService::class)->approve($registration, $approver);
 
-        Notification::assertSentTo($beneficiary, DataForumRegistrationApproved::class);
-        Notification::assertNotSentTo($beneficiary, ProgramRegistrationApproved::class);
+        Notification::assertSentTo($beneficiary, ProgramRegistrationApproved::class);
 
         $this->assertDatabaseHas('in_app_notifications', [
             'user_id' => $beneficiary->id,
@@ -75,7 +64,6 @@ class DataForumRegistrationApprovedTest extends TestCase
         app(ProgramRegistrationService::class)->approve($registration, $approver);
 
         Notification::assertSentTo($beneficiary, ProgramRegistrationApproved::class);
-        Notification::assertNotSentTo($beneficiary, DataForumRegistrationApproved::class);
 
         $mail = (new ProgramRegistrationApproved($registration->fresh()))->toMail($beneficiary);
         $this->assertSame('تم قبول تسجيلك — برنامج آخر', $mail->subject);
@@ -92,12 +80,12 @@ class DataForumRegistrationApprovedTest extends TestCase
         $program = $this->program(DataForumAcceptance::SLUG, 'ملتقى تحليل البيانات 2');
 
         $male = $this->beneficiary(ProfileGender::Male);
-        $maleMail = (new DataForumRegistrationApproved($this->registration($program, $male)))->toMail($male);
+        $maleMail = (new ProgramRegistrationApproved($this->registration($program, $male)))->toMail($male);
         $maleHtml = $maleMail->render();
-        $this->assertSame(DataForumAcceptance::SUBJECT, $maleMail->subject);
+        $this->assertSame(ProgramApprovalMail::FORUM_SUBJECT, $maleMail->subject);
         $this->assertStringContainsString(self::MALE_URL, $maleHtml);
         $this->assertStringNotContainsString(self::FEMALE_URL, $maleHtml);
-        $this->assertStringContainsString('الانضمام إلى مجموعة تيليجرام', $maleHtml);
+        $this->assertStringContainsString(ProgramApprovalMail::BUTTON_LABEL, $maleHtml);
         $this->assertStringContainsString('قبولك النهائي في الملتقى', $maleHtml);
         $this->assertStringContainsString('<strong>رحلة</strong>', $maleHtml);
         $this->assertStringContainsString('dir="rtl"', $maleHtml);
@@ -108,14 +96,14 @@ class DataForumRegistrationApprovedTest extends TestCase
         $this->assertStringNotContainsString('text-align:left', $maleHtml);
 
         $female = $this->beneficiary(ProfileGender::Female);
-        $femaleHtml = (new DataForumRegistrationApproved($this->registration($program, $female)))->toMail($female)->render();
+        $femaleHtml = (new ProgramRegistrationApproved($this->registration($program, $female)))->toMail($female)->render();
         $this->assertStringContainsString(self::FEMALE_URL, $femaleHtml);
         $this->assertStringNotContainsString(self::MALE_URL, $femaleHtml);
 
         $unspecified = $this->beneficiary(null);
-        $unspecifiedHtml = (new DataForumRegistrationApproved($this->registration($program, $unspecified)))->toMail($unspecified)->render();
-        $this->assertStringContainsString(DataForumAcceptance::TELEGRAM_PENDING_LINE, $unspecifiedHtml);
-        $this->assertStringNotContainsString('الانضمام إلى مجموعة تيليجرام', $unspecifiedHtml);
+        $unspecifiedHtml = (new ProgramRegistrationApproved($this->registration($program, $unspecified)))->toMail($unspecified)->render();
+        $this->assertStringContainsString(ProgramApprovalMail::PENDING_LINE, $unspecifiedHtml);
+        $this->assertStringNotContainsString(ProgramApprovalMail::BUTTON_LABEL, $unspecifiedHtml);
         $this->assertStringNotContainsString(self::MALE_URL, $unspecifiedHtml);
         $this->assertStringNotContainsString(self::FEMALE_URL, $unspecifiedHtml);
     }
@@ -141,7 +129,7 @@ class DataForumRegistrationApprovedTest extends TestCase
 
     private function program(string $slug, string $title): TrainingProgram
     {
-        return TrainingProgram::query()->create([
+        $attributes = [
             'title' => $title,
             'slug' => $slug,
             'status' => ProgramStatus::Published,
@@ -149,7 +137,16 @@ class DataForumRegistrationApprovedTest extends TestCase
             'learning_path_id' => null,
             'capacity' => 5000,
             'auto_accept_registrations' => false,
-        ]);
+        ];
+
+        if ($slug === DataForumAcceptance::SLUG) {
+            $attributes['approval_message'] = ProgramApprovalMail::FORUM_BODY;
+            $attributes['whatsapp_groups_enabled'] = true;
+            $attributes['whatsapp_group_male'] = self::MALE_URL;
+            $attributes['whatsapp_group_female'] = self::FEMALE_URL;
+        }
+
+        return TrainingProgram::query()->create($attributes);
     }
 
     private function registration(TrainingProgram $program, User $user): ProgramRegistration

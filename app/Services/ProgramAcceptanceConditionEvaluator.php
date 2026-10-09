@@ -7,6 +7,7 @@ use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Identity\IdentityNumberService;
 use App\Support\ProgramAcceptanceConditions;
+use App\Support\ProgramCapacity;
 use Illuminate\Support\Carbon;
 
 final class ProgramAcceptanceConditionEvaluator
@@ -14,14 +15,22 @@ final class ProgramAcceptanceConditionEvaluator
     /**
      * @return array{eligible: bool, reasons: list<string>}
      */
-    public function evaluate(TrainingProgram $program, User $user): array
+    public function evaluate(TrainingProgram $program, User $user, bool $enforceLiveCapacity = true): array
     {
         $conditions = ProgramAcceptanceConditions::normalize(
             is_array($program->acceptance_conditions) ? $program->acceptance_conditions : null
         );
 
         if ($conditions === null) {
-            return ['eligible' => true, 'reasons' => []];
+            $user->loadMissing('profile');
+            $gender = $user->profile?->gender;
+            $message = $enforceLiveCapacity
+                ? ProgramCapacity::fullMessage($program, $gender instanceof ProfileGender ? $gender : null)
+                : null;
+
+            return $message === null
+                ? ['eligible' => true, 'reasons' => []]
+                : ['eligible' => false, 'reasons' => [$message]];
         }
 
         $user->loadMissing('profile');
@@ -41,12 +50,12 @@ final class ProgramAcceptanceConditionEvaluator
         $gender = $user->profile?->gender;
         $genderValue = $gender instanceof ProfileGender ? $gender->value : null;
 
-        if (
-            $genderValue !== null
-            && $conditions['gender_capacity_full'] !== []
-            && in_array($genderValue, $conditions['gender_capacity_full'], true)
-        ) {
-            $reasons[] = ProgramAcceptanceConditions::genderCapacityFullMessage($genderValue);
+        $capacityMessage = $enforceLiveCapacity
+            ? ProgramCapacity::fullMessage($program, $gender instanceof ProfileGender ? $gender : null)
+            : null;
+
+        if ($capacityMessage !== null) {
+            $reasons[] = $capacityMessage;
         } elseif ($conditions['genders'] !== []) {
             if ($genderValue === null || ! in_array($genderValue, $conditions['genders'], true)) {
                 $labels = collect($conditions['genders'])

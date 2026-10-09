@@ -13,13 +13,14 @@ use App\Models\LearningPath;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
-use App\Notifications\DataForumRegistrationApproved;
 use App\Notifications\ProgramRegistrationApproved;
 use App\Notifications\ProgramRegistrationReceived;
 use App\Notifications\ProgramRegistrationRejected;
 use App\Services\Inbox\InboxNotificationService;
-use App\Support\DataForumAcceptance;
+use App\Support\ProgramApprovalMail;
+use App\Support\ProgramCapacity;
 use App\Support\TrainingProgramExtrasSupport;
+use Illuminate\Support\Facades\DB;
 
 class ProgramRegistrationService
 {
@@ -171,23 +172,13 @@ class ProgramRegistrationService
         $registration->loadMissing(['user.profile', 'trainingProgram']);
         $program = $registration->trainingProgram;
 
-        if (DataForumAcceptance::matches($program)) {
-            $this->emailLogService->send(
-                recipient: $registration->user,
-                notification: new DataForumRegistrationApproved($registration),
-                templateKey: 'program_registration.approved.data_forum',
-                subject: DataForumAcceptance::SUBJECT,
-                sentBy: $approvedBy,
-            );
-        } else {
-            $this->emailLogService->send(
-                recipient: $registration->user,
-                notification: new ProgramRegistrationApproved($registration),
-                templateKey: 'program_registration.approved',
-                subject: 'Your Registration Has Been Approved — '.$program->title,
-                sentBy: $approvedBy,
-            );
-        }
+        $this->emailLogService->send(
+            recipient: $registration->user,
+            notification: new ProgramRegistrationApproved($registration),
+            templateKey: 'program_registration.approved',
+            subject: ProgramApprovalMail::subjectFor($program),
+            sentBy: $approvedBy,
+        );
 
         $this->inboxNotifications->registrationApprovedProgram($registration->user, $program, $approvedBy);
     }
@@ -217,31 +208,34 @@ class ProgramRegistrationService
             return false;
         }
 
-        $registration->loadMissing(['trainingProgram', 'user']);
-        $eligibility = $this->acceptanceEvaluator->evaluate($registration->trainingProgram, $registration->user);
-        if (! $eligibility['eligible']) {
-            throw new RegistrationNotEligibleException($eligibility['reasons']);
-        }
+        return DB::transaction(function () use ($registration, $approvedBy): bool {
+            $program = TrainingProgram::query()
+                ->whereKey($registration->training_program_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $registration->refresh();
+            $registration->setRelation('trainingProgram', $program);
+            $registration->loadMissing('user.profile');
 
-        $program = $registration->trainingProgram;
-
-        if ($program->capacity !== null) {
-            $approvedCount = $program->registrations()
-                ->where('status', RegistrationStatus::Approved->value)
-                ->count();
-
-            if ($approvedCount >= $program->capacity) {
-                throw new ProgramCapacityExceededException;
+            if ($registration->status === RegistrationStatus::Approved) {
+                return false;
             }
-        }
 
-        $registration->update([
-            'status' => RegistrationStatus::Approved,
-            'approved_by' => $approvedBy->id,
-            'approved_at' => now(),
-        ]);
+            $eligibility = $this->acceptanceEvaluator->evaluate($program, $registration->user, enforceLiveCapacity: false);
+            if (! $eligibility['eligible']) {
+                throw new RegistrationNotEligibleException($eligibility['reasons']);
+            }
 
-        return true;
+            ProgramCapacity::assertAvailable($program, $registration->user);
+
+            $registration->update([
+                'status' => RegistrationStatus::Approved,
+                'approved_by' => $approvedBy->id,
+                'approved_at' => now(),
+            ]);
+
+            return true;
+        });
     }
 
     /**

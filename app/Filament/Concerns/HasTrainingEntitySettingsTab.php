@@ -431,6 +431,7 @@ trait HasTrainingEntitySettingsTab
                     [
                         'is_linked_to_path',
                         'capacity_unlimited',
+                        'capacity_mode',
                         'notify_audience',
                         'publish_immediately',
                     ],
@@ -447,6 +448,7 @@ trait HasTrainingEntitySettingsTab
                     [
                         'is_linked_to_path',
                         'capacity_unlimited',
+                        'capacity_mode',
                         'notify_audience',
                         'publish_immediately',
                     ],
@@ -519,6 +521,7 @@ trait HasTrainingEntitySettingsTab
             $data['registration_status_display'],
             $data['is_linked_to_path'],
             $data['capacity_unlimited'],
+            $data['capacity_mode'],
             $data['notify_audience'],
             $data['publish_immediately'],
         );

@@ -191,12 +191,6 @@ final class ProgramAcceptanceConditions
             $lines[] = 'الجنس: '.$labels;
         }
 
-        if ($normalized['gender_capacity_full'] !== []) {
-            foreach ($normalized['gender_capacity_full'] as $gender) {
-                $lines[] = self::genderCapacityFullMessage($gender);
-            }
-        }
-
         if ($normalized['min_age'] !== null || $normalized['max_age'] !== null) {
             $min = $normalized['min_age'];
             $max = $normalized['max_age'];

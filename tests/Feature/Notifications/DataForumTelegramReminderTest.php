@@ -32,9 +32,16 @@ class DataForumTelegramReminderTest extends TestCase
     {
         parent::setUp();
 
-        config([
-            'data_forum.telegram_male' => self::MALE_URL,
-            'data_forum.telegram_female' => self::FEMALE_URL,
+        TrainingProgram::query()->create([
+            'title' => 'ملتقى تحليل البيانات 2',
+            'slug' => DataForumAcceptance::SLUG,
+            'status' => ProgramStatus::Published,
+            'published_at' => now(),
+            'whatsapp_groups_enabled' => true,
+            'whatsapp_group_male' => self::MALE_URL,
+            'whatsapp_group_female' => self::FEMALE_URL,
+            'capacity' => 2000,
+            'auto_accept_registrations' => false,
         ]);
     }
 
@@ -142,14 +149,7 @@ class DataForumTelegramReminderTest extends TestCase
 
     private function program(): TrainingProgram
     {
-        return TrainingProgram::query()->create([
-            'title' => 'ملتقى تحليل البيانات 2',
-            'slug' => DataForumAcceptance::SLUG,
-            'status' => ProgramStatus::Published,
-            'published_at' => now(),
-            'capacity' => 2000,
-            'auto_accept_registrations' => false,
-        ]);
+        return TrainingProgram::query()->where('slug', DataForumAcceptance::SLUG)->firstOrFail();
     }
 
     private function registration(TrainingProgram $program, User $user, ?string $approvedAt = null): ProgramRegistration
