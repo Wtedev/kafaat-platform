@@ -122,20 +122,13 @@
             },
 
             onPublishImmediatelyChange() {
-                if (this.publishImmediately) {
-                    this.publishedAt = null;
-                    if (this.activeRange === 'publish') {
-                        this.activeRange = this.showRegistration ? 'registration' : 'program';
-                    }
-                } else {
-                    this.activeRange = 'publish';
+                this.publishedAt = null;
+                if (this.activeRange === 'publish') {
+                    this.activeRange = this.showRegistration ? 'registration' : 'program';
                 }
             },
 
             pendingHint() {
-                if (this.activeRange === 'publish') {
-                    return 'اختر يوم النشر';
-                }
                 return 'اختر يوم النهاية';
             },
 
@@ -169,33 +162,12 @@
                 return ! this.weekdaySelected(new Date(this.year, this.month, day).getDay());
             },
 
-            todayDateString() {
-                return this.formatDate(new Date());
-            },
-
-            isBeforeToday(dateStr) {
-                const normalized = this.normalizeDate(dateStr);
-                return normalized !== null && normalized < this.todayDateString();
-            },
-
-            isTodayDateStr(dateStr) {
-                return this.normalizeDate(dateStr) === this.todayDateString();
-            },
-
             get scheduleErrors() {
                 const errors = [];
-                const today = this.todayDateString();
                 const programStart = this.normalizeDate(this.programStart);
                 const programEnd = this.normalizeDate(this.programEnd || this.programStart);
                 const regStart = this.normalizeDate(this.registrationStart);
                 const regEnd = this.normalizeDate(this.registrationEnd || this.registrationStart);
-
-                if (! this.publishImmediately) {
-                    const pubDate = this.normalizeDate(this.publishedAt);
-                    if (pubDate && pubDate < today) {
-                        errors.push('لا يمكن تحديد تاريخ النشر قبل اليوم.');
-                    }
-                }
 
                 if (programStart && regStart && this.showRegistration && programStart < regStart) {
                     errors.push('لا يمكن أن يبدأ البرنامج قبل تاريخ بدء التسجيل.');
@@ -298,13 +270,8 @@
                 const dateStr = this.dateForDay(day);
                 const inReg = this.showRegistration && this.inRange(dateStr, this.registrationStart, this.registrationEnd);
                 const inProg = this.inRange(dateStr, this.programStart, this.programHasEnd ? this.programEnd : this.programStart);
-                const inPublish = ! this.publishImmediately && this.publishedAt && dateStr === this.normalizeDate(this.publishedAt);
                 const weekdayOff = this.hasWeekdaySelection() && this.isWeekdayOff(day);
                 const classes = [];
-
-                if (inPublish) {
-                    classes.push('fi-training-schedule__day--publish');
-                }
 
                 if (inReg && inProg && ! weekdayOff) {
                     classes.push('fi-training-schedule__day--overlap');
@@ -326,9 +293,6 @@
 
                 if (this.pendingStart === dateStr) classes.push('fi-training-schedule__day--pending');
                 if (this.isToday(day)) classes.push('fi-training-schedule__day--today');
-                if (this.activeRange === 'publish' && this.isBeforeToday(dateStr)) {
-                    classes.push('fi-training-schedule__day--past');
-                }
 
                 return classes.join(' ');
             },
@@ -342,20 +306,10 @@
                 const dateStr = this.dateForDay(day);
 
                 if (this.activeRange === 'publish') {
-                    if (this.isBeforeToday(dateStr)) {
-                        return;
-                    }
-
-                    if (this.isTodayDateStr(dateStr)) {
-                        this.publishImmediately = true;
-                        this.publishedAt = null;
-                        this.activeRange = this.showRegistration ? 'registration' : 'program';
-                    } else {
-                        this.publishImmediately = false;
-                        this.publishedAt = dateStr;
-                    }
-
+                    this.activeRange = this.showRegistration ? 'registration' : 'program';
+                    this.publishedAt = null;
                     this.pendingStart = null;
+
                     return;
                 }
 
@@ -400,31 +354,6 @@
                     this.programEnd = null;
                 }
                 this.pendingStart = null;
-            },
-
-            clearPublishDate() {
-                this.publishedAt = null;
-            },
-
-            publishSummary() {
-                if (! this.publishedAt) return '—';
-                return this.formatDisplay(this.normalizeDate(this.publishedAt));
-            },
-
-            publishMeta() {
-                if (this.publishImmediately) {
-                    return 'نشر فوري';
-                }
-                if (! this.publishedAt) return '';
-                const d = this.parseDate(this.normalizeDate(this.publishedAt));
-                if (! d) return '';
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                d.setHours(0, 0, 0, 0);
-                if (d.getTime() === today.getTime()) {
-                    return 'نشر فوري';
-                }
-                return d > today ? 'مجدول' : '';
             },
 
             formatDisplay(dateStr) {
