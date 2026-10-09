@@ -299,14 +299,6 @@ final class TrainingProgramViewPresenter
             return $label.' — '.EntityViewPresenterSupport::formatDate($program->published_at);
         }
 
-        if (
-            $status !== ProgramStatus::Published
-            && $program->published_at !== null
-            && $program->published_at->isFuture()
-        ) {
-            return 'مجدول — '.EntityViewPresenterSupport::formatDate($program->published_at);
-        }
-
         return $label;
     }
 
