@@ -459,13 +459,13 @@
 
     const programsPanel = document.querySelector("[data-sui-programs-panel]");
     if (programsPanel) {
-        const viewKey = "sui-programs-view";
+        const viewKey = "sui-programs-display";
         const cards = programsPanel.querySelector("[data-sui-programs-cards]");
         const table = programsPanel.querySelector("[data-sui-programs-table]");
         const buttons = document.querySelectorAll("[data-sui-programs-view]");
 
         const applyView = (view) => {
-            const mode = view === "table" ? "table" : "cards";
+            const mode = view === "cards" ? "cards" : "table";
             programsPanel.dataset.view = mode;
             if (cards) cards.hidden = mode === "table";
             if (table) table.hidden = mode !== "table";
@@ -478,7 +478,7 @@
         };
 
         const stored = localStorage.getItem(viewKey);
-        applyView(stored === "table" ? "table" : "cards");
+        applyView(stored === "cards" ? "cards" : "table");
 
         buttons.forEach((button) => {
             button.addEventListener("click", () => applyView(button.dataset.suiProgramsView));
