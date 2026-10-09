@@ -225,7 +225,7 @@ class StaffUiProgramsListTest extends TestCase
             ->assertDontSee('REG_STATE_OPEN');
     }
 
-    public function test_publication_labels_for_draft_scheduled_and_published(): void
+    public function test_publication_labels_for_draft_and_published(): void
     {
         $viewer = $this->staff(['programs.view']);
         $status = app(StaffProgramStatus::class);
@@ -240,8 +240,8 @@ class StaffUiProgramsListTest extends TestCase
             'status' => ProgramStatus::Draft,
             'published_at' => now()->subDay(),
         ]);
-        $scheduled = $this->makeProgram([
-            'title' => 'مجدول للنشر',
+        $futureDraft = $this->makeProgram([
+            'title' => 'مسودة بتاريخ لاحق',
             'status' => ProgramStatus::Draft,
             'published_at' => now()->addDays(5),
         ]);
@@ -263,9 +263,7 @@ class StaffUiProgramsListTest extends TestCase
 
         $this->assertSame('مسودة', $status->publicationLabel($draft));
         $this->assertSame('مسودة', $status->publicationLabel($pastDraft));
-        $scheduledLabel = $status->publicationLabel($scheduled);
-        $this->assertStringStartsWith('مجدول للنشر في ', $scheduledLabel);
-        $this->assertStringContainsString(ar_date($scheduled->published_at, 'd MMM y'), $scheduledLabel);
+        $this->assertSame('مسودة', $status->publicationLabel($futureDraft));
         $this->assertStringStartsWith('نُشر', $status->publicationLabel($published));
         $this->assertStringContainsString('منذ', $status->publicationLabel($published));
         $this->assertStringStartsWith('نُشر', $status->publicationLabel($archivedPublished));
@@ -276,8 +274,9 @@ class StaffUiProgramsListTest extends TestCase
             ->get(route('staff-ui.programs.index'))
             ->assertOk()
             ->assertSee('مسودة ظاهرة')
+            ->assertSee('مسودة بتاريخ لاحق')
             ->assertSee('مسودة')
-            ->assertSee('مجدول للنشر في')
+            ->assertDontSee('مجدول للنشر')
             ->assertSee('منشور منذ يومين')
             ->assertSee('مؤرشف كان منشورا')
             ->assertSee('مؤرشف بلا نشر');
@@ -301,8 +300,9 @@ class StaffUiProgramsListTest extends TestCase
         $this->actingAsOtpVerified($viewer)
             ->get(route('staff-ui.programs.index', ['status' => ProgramStatus::Draft->value]))
             ->assertOk()
-            ->assertSee('مجدول للنشر')
+            ->assertSee('مسودة بتاريخ لاحق')
             ->assertSee('مسودة ظاهرة')
+            ->assertDontSee('مجدول للنشر')
             ->assertDontSee('منشور منذ يومين');
 
         $this->actingAsOtpVerified($viewer)

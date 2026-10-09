@@ -31,9 +31,7 @@ use Illuminate\Support\Carbon;
  * registration window.
  *
  * Publication line:
- * - Draft with published_at in the future → «مجدول للنشر في {date}»
- *   (PublishScheduledTrainingCommand publishes Draft rows once published_at is due.)
- * - Draft with no published_at, or a past published_at → «مسودة»
+ * - Draft → «مسودة» (a future published_at is not a separate state)
  * - Published (live) with published_at → «نُشر منذ {relative}»
  * - Published with null published_at → «نُشر منذ …» falls back to created_at relative
  * - Archived with published_at → «نُشر منذ {relative}»
@@ -94,14 +92,10 @@ final class StaffProgramStatus
      */
     public function publicationLabel(TrainingProgram $program, ?Carbon $now = null): string
     {
-        $now = $now ?? Carbon::now();
+        unset($now);
         $status = $this->programStatus($program);
 
         if ($status === ProgramStatus::Draft) {
-            if ($program->published_at !== null && $program->published_at->gt($now)) {
-                return 'مجدول للنشر في '.ar_date($program->published_at, 'd MMM y');
-            }
-
             return 'مسودة';
         }
 
