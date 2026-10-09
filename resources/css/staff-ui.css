@@ -1,3 +1,19 @@
+@font-face {
+    font-family: 'FF Shamel';
+    src: url('/fonts/shamel/FFShamelFamily-SansOneBook.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'FF Shamel';
+    src: url('/fonts/shamel/FFShamelFamily-SansOneBold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     --sui-bg: #f5f5f7;
     --sui-surface: #ffffff;
@@ -20,7 +36,8 @@
     --sui-text: #111827;
     --sui-text-secondary: #6b7280;
     --sui-text-muted: #9ca3af;
-    --sui-font: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+    --sui-font: 'FF Shamel', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     --sui-sidebar: 240px;
     --sui-sidebar-collapsed: 72px;
     --sui-space-1: 4px;
@@ -53,6 +70,7 @@ body.sui-body {
     font-family: var(--sui-font);
     font-size: 14px;
     line-height: 1.5;
+    font-synthesis: none;
     font-variant-numeric: lining-nums tabular-nums;
 }
 
@@ -141,7 +159,7 @@ a:hover {
 
 .sui-sidebar__name {
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0;
 }
 
@@ -209,7 +227,7 @@ a:hover {
 
 .sui-switcher__value {
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 400;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -225,7 +243,7 @@ a:hover {
     margin: var(--sui-space-4) var(--sui-space-3) var(--sui-space-2);
     font-size: 12px;
     color: var(--sui-text-muted);
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .sui-nav__item {
@@ -247,7 +265,7 @@ a:hover {
 
 .sui-nav__item.is-active {
     color: var(--sui-text);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .sui-nav__item.is-active .sui-icon {
@@ -296,7 +314,7 @@ a:hover {
 
 .sui-sidebar__user-name {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .sui-sidebar__user-email {
@@ -358,7 +376,7 @@ a:hover {
 
 .sui-crumb .is-current {
     color: var(--sui-text);
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .sui-search {
@@ -458,13 +476,13 @@ a:hover {
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.18);
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .sui-banner__title {
     margin: 0;
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.4;
 }
 
@@ -482,7 +500,7 @@ a:hover {
 .sui-section-head__title {
     margin: 0;
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .sui-section-head__actions {
@@ -512,7 +530,7 @@ a:hover {
 .sui-page-head h1 {
     margin: 0;
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .sui-page-head--row {
@@ -644,7 +662,7 @@ a:hover {
 .sui-subhead {
     margin: 16px 0 8px;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .sui-card__body > .sui-subhead:first-child {
@@ -710,7 +728,7 @@ a:hover {
 
 .sui-table a {
     color: inherit;
-    font-weight: 600;
+    font-weight: 700;
     text-decoration: none;
 }
 
@@ -742,7 +760,7 @@ a:hover {
 .sui-empty h2 {
     margin: 0;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .sui-empty p {
@@ -768,7 +786,7 @@ a:hover {
 .sui-maintenance__card h1 {
     margin: 0 0 var(--sui-space-2);
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .sui-maintenance__card p {
@@ -816,7 +834,7 @@ a:hover {
 .sui-kpi__value {
     margin: 0;
     font-size: 26px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0;
     line-height: 1.1;
 }
@@ -824,7 +842,7 @@ a:hover {
 .sui-delta {
     margin: 0;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .sui-delta--up {
@@ -856,13 +874,13 @@ a:hover {
     margin: 0 0 4px;
     font-size: 13px;
     color: var(--sui-text-secondary);
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .sui-chart__value {
     margin: 0;
     font-size: 24px;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.15;
 }
 
@@ -905,7 +923,7 @@ a:hover {
 
 .sui-tab.is-active {
     color: var(--sui-text);
-    font-weight: 600;
+    font-weight: 700;
     border-bottom-color: var(--sui-primary);
 }
 
@@ -920,7 +938,7 @@ a:hover {
     background: #f3f4f6;
     color: var(--sui-text-secondary);
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1;
 }
 
@@ -994,13 +1012,14 @@ a.sui-icon-btn {
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
+    font-variant-numeric: lining-nums tabular-nums;
 }
 
 .sui-table th {
     background: #f7f7f8;
     color: var(--sui-text-secondary);
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 400;
     text-align: start;
     padding: 10px var(--sui-space-3);
     border-bottom: 1px solid var(--sui-border);
@@ -1107,7 +1126,7 @@ a.sui-icon-btn {
     padding: 2px 8px;
     border-radius: 999px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.6;
     white-space: nowrap;
 }
@@ -1133,7 +1152,7 @@ a.sui-icon-btn {
     border-radius: var(--sui-radius-sm);
     border: 1px solid transparent;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1;
     text-decoration: none;
     white-space: nowrap;
@@ -1153,7 +1172,7 @@ a.sui-icon-btn {
     background: var(--sui-surface);
     border-color: var(--sui-border);
     color: var(--sui-text);
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .sui-btn--secondary:hover { background: #fafafa; color: var(--sui-text); }
@@ -1161,7 +1180,7 @@ a.sui-icon-btn {
 .sui-btn--ghost {
     background: transparent;
     color: var(--sui-text-secondary);
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .sui-btn--ghost:hover { background: #f3f4f6; color: var(--sui-text); }
@@ -1200,7 +1219,7 @@ a.sui-icon-btn {
 
 .sui-field__label {
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--sui-text);
 }
 
@@ -1383,7 +1402,7 @@ a.sui-menu-item {
     background: var(--sui-danger);
     color: #fff;
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 16px;
     text-align: center;
 }
@@ -1423,7 +1442,7 @@ a.sui-menu-item {
 
 .sui-inbox__title {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .sui-inbox__body,
@@ -1446,7 +1465,7 @@ a.sui-menu-item {
     background: transparent;
     color: var(--sui-primary-dark);
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     padding: 0;
 }
 
@@ -1462,7 +1481,7 @@ a.sui-menu-item {
 .sui-card__head h2 {
     margin: 0;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .sui-card__head p {
@@ -1526,7 +1545,7 @@ a.sui-menu-item {
     background: var(--sui-primary-tint);
     color: var(--sui-primary-dark);
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     flex: 0 0 auto;
 }
 
@@ -1584,7 +1603,7 @@ a.sui-menu-item {
 .sui-modal__title {
     margin: 0 0 var(--sui-space-2);
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .sui-modal__text {
@@ -1793,7 +1812,7 @@ a.sui-menu-item {
     height: 36px;
     color: var(--sui-primary-dark);
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     text-decoration: none;
 }
 
@@ -1847,11 +1866,11 @@ a.sui-menu-item {
     align-items: center;
     gap: 6px;
     color: var(--sui-text);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .sui-person__name strong {
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .sui-person__email,
@@ -1868,7 +1887,7 @@ a.sui-menu-item {
     background: var(--sui-primary-tint);
     color: var(--sui-primary-dark);
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.7;
 }
 
@@ -1880,7 +1899,7 @@ a.sui-menu-item {
     background: #f3f4f6;
     color: var(--sui-text);
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.6;
 }
 
@@ -2190,7 +2209,7 @@ a.sui-menu-item {
 
 .sui-program-stat__cap {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--sui-text-secondary);
 }
 
