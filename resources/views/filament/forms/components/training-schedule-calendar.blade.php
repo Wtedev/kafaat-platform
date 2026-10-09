@@ -68,19 +68,6 @@
                     <span class="fi-training-schedule__mode-dot fi-training-schedule__mode-dot--program"></span>
                     وقت البرنامج
                 </button>
-                <button
-                    type="button"
-                    role="tab"
-                    class="fi-training-schedule__mode-btn"
-                    x-show="showPublishSchedule && ! publishImmediately"
-                    x-cloak
-                    x-bind:aria-selected="activeRange === 'publish'"
-                    x-bind:class="{ 'is-active is-publish': activeRange === 'publish' }"
-                    x-on:click="setActiveRange('publish')"
-                >
-                    <span class="fi-training-schedule__mode-dot fi-training-schedule__mode-dot--publish"></span>
-                    النشر
-                </button>
             </div>
         </div>
 
@@ -208,22 +195,6 @@
                             <span class="fi-training-schedule__summary-pill" x-show="programStart" x-text="programMeta()"></span>
                         </div>
                     </div>
-                    <template x-if="showPublishSchedule && ! publishImmediately">
-                        <div class="fi-training-schedule__summary-card fi-training-schedule__summary-card--publish">
-                            <div class="fi-training-schedule__summary-accent"></div>
-                            <div class="fi-training-schedule__summary-inner">
-                                <div class="fi-training-schedule__summary-head">
-                                    <div class="fi-training-schedule__summary-title-row">
-                                        <span class="fi-training-schedule__summary-dot"></span>
-                                        <span class="fi-training-schedule__summary-badge">النشر</span>
-                                    </div>
-                                    <button type="button" class="fi-training-schedule__clear-btn" x-show="publishedAt" x-on:click="clearPublishDate()">مسح</button>
-                                </div>
-                                <p class="fi-training-schedule__summary-dates" x-text="publishSummary()"></p>
-                                <span class="fi-training-schedule__summary-pill" x-show="publishedAt" x-text="publishMeta()"></span>
-                            </div>
-                        </div>
-                    </template>
                 </div>
             </aside>
         </div>

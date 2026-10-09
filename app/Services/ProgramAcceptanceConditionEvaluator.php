@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Enums\IdentityType;
 use App\Enums\ProfileGender;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Services\Identity\IdentityNumberService;
 use App\Support\ProgramAcceptanceConditions;
 use Illuminate\Support\Carbon;
 
@@ -32,8 +32,9 @@ final class ProgramAcceptanceConditionEvaluator
         }
 
         if ($conditions['require_saudi_national']) {
-            if ($user->identity_type !== IdentityType::NationalId) {
-                $reasons[] = 'هذا البرنامج مخصص لمن لديهم هوية وطنية (سعودي الجنسية)، وليست إقامة.';
+            $digits = IdentityNumberService::digitsFromCiphertext($user->identity_number_ciphertext);
+            if (! IdentityNumberService::isSaudiNationalNumber($digits)) {
+                $reasons[] = 'هذا البرنامج مخصص لمن يبدأ رقم هويتهم بالرقم 1 (سعودي الجنسية).';
             }
         }
 

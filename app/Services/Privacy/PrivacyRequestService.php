@@ -239,6 +239,12 @@ final class PrivacyRequestService
     ): PrivacyRequest {
         $this->assertCanSubmitPrivacyRequest($user);
 
+        if ($field === PrivacyCorrectionFieldCode::IdentityNumber && $user->hasIdentityOnRecord()) {
+            throw ValidationException::withMessages([
+                'field_code' => 'لا يمكن تغيير رقم الهوية أو نوعها بعد تسجيلهما. التصحيح يتم من إدارة المنصة.',
+            ]);
+        }
+
         if ($field->isSelfServiceFor($user)) {
             throw ValidationException::withMessages([
                 'field_code' => 'يمكنك تعديل هذا الحقل مباشرة من ملفك الشخصي.',

@@ -89,19 +89,20 @@ class IdentityNumberService
 
     /**
      * Derive saudi / resident from the first digit of a normalized 10-digit number.
-     * Returns null when the number is not 10 digits or does not start with 1 or 2.
+     * Saudi uses isSaudiNationalNumber. Returns null when the number is not 10
+     * digits or does not start with 1 or 2.
      */
     public static function categoryFromNumber(?string $normalized): ?IdentityCategory
     {
-        if ($normalized === null || ! preg_match('/^\d{10}$/', $normalized)) {
+        if (self::isSaudiNationalNumber($normalized)) {
+            return IdentityCategory::Saudi;
+        }
+
+        if ($normalized === null || ! preg_match('/^\d{10}$/', $normalized) || ! str_starts_with($normalized, '2')) {
             return null;
         }
 
-        return match ($normalized[0]) {
-            '1' => IdentityCategory::Saudi,
-            '2' => IdentityCategory::Resident,
-            default => null,
-        };
+        return IdentityCategory::Resident;
     }
 
     /**
@@ -138,6 +139,32 @@ class IdentityNumberService
         }
 
         return self::INVALID_FORMAT_MESSAGE;
+    }
+
+    /**
+     * Saudi nationality for program eligibility is the first digit of the
+     * identity number (1), not the stored identity_type.
+     */
+    public static function isSaudiNationalNumber(?string $raw): bool
+    {
+        $normalized = self::normalize($raw);
+
+        return $normalized !== null
+            && preg_match('/^\d{10}$/', $normalized) === 1
+            && str_starts_with($normalized, '1');
+    }
+
+    public static function digitsFromCiphertext(?string $ciphertext): ?string
+    {
+        if ($ciphertext === null || $ciphertext === '') {
+            return null;
+        }
+
+        try {
+            return self::normalize(self::decrypt($ciphertext));
+        } catch (RuntimeException) {
+            return null;
+        }
     }
 
     public static function generateLookupHash(string $normalized): string

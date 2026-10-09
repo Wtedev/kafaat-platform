@@ -30,6 +30,7 @@ class UserProfileCompletionService
             PersonNameService::syncCompatibilityName($userAttributes, $nameParts);
 
             $hasIdentity = filled($user->identity_number_lookup_hash);
+            $this->rejectIdentityChangeWhenLocked($user, $data, $hasIdentity);
 
             if (! $hasIdentity && $requireIdentity) {
                 if (empty($data['identity_number'])) {
@@ -104,7 +105,10 @@ class UserProfileCompletionService
 
             PersonNameService::syncCompatibilityName($userAttributes, $nameParts);
 
-            if (! filled($user->identity_number_lookup_hash)) {
+            $hasIdentity = filled($user->identity_number_lookup_hash);
+            $this->rejectIdentityChangeWhenLocked($user, $data, $hasIdentity);
+
+            if (! $hasIdentity) {
                 if (! empty($data['identity_number'])) {
                     if (IdentityNumberService::isDuplicate((string) $data['identity_number'], $user->id)) {
                         throw new InvalidArgumentException('duplicate_identity');
@@ -157,5 +161,24 @@ class UserProfileCompletionService
 
             return $user->fresh(['profile']);
         });
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function rejectIdentityChangeWhenLocked(User $user, array $data, bool $hasIdentity): void
+    {
+        if (! $hasIdentity) {
+            return;
+        }
+
+        $submittedNumber = filled($data['identity_number'] ?? null);
+        $submittedType = filled($data['identity_type'] ?? null);
+
+        if (! $submittedNumber && ! $submittedType) {
+            return;
+        }
+
+        throw new InvalidArgumentException('identity_locked');
     }
 }

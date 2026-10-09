@@ -59,6 +59,7 @@ final class RbacCatalog
             'manage_roles', 'permissions.assign',
             'roles.view', 'roles.create', 'roles.update', 'roles.delete',
             'users.delete',
+            'beneficiaries.identity.update',
         ];
     }
 

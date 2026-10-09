@@ -7,7 +7,6 @@ use App\Enums\IdentityType;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
-use Throwable;
 
 final class IdentityCategoryBackfillService
 {
@@ -69,20 +68,17 @@ final class IdentityCategoryBackfillService
             return;
         }
 
-        try {
-            $normalized = IdentityNumberService::decrypt((string) $user->identity_number_ciphertext);
-        } catch (Throwable $exception) {
+        $normalized = IdentityNumberService::digitsFromCiphertext((string) $user->identity_number_ciphertext);
+
+        if ($normalized === null) {
             $stats['decrypt_failed']++;
             Log::warning('identity:backfill-category decrypt failed', [
                 'user_id' => $user->id,
-                'error' => $exception->getMessage(),
             ]);
 
             return;
         }
 
-        // Never log or echo the plaintext number.
-        $normalized = IdentityNumberService::normalize($normalized) ?? '';
         $category = IdentityNumberService::categoryFromNumber($normalized);
 
         if ($category === null) {

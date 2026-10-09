@@ -151,6 +151,7 @@ class StaffUiBeneficiaryExportTest extends TestCase
             'q' => 'تدقيق',
             'status' => 'active',
             'profile' => 'complete',
+            'identity_category' => '',
         ], $log->metadata['filters']);
     }
 
@@ -356,14 +357,10 @@ class StaffUiBeneficiaryExportTest extends TestCase
             fn ($event): bool => str_contains((string) $event->command, 'staff-ui:purge-expired-beneficiary-exports')
                 && $event->expression === '45 3 * * *',
         ));
-        $this->assertTrue($events->contains(
-            fn ($event): bool => str_contains((string) $event->command, 'training:publish-scheduled')
-                && $event->expression === '* * * * *'
-                && $event->withoutOverlapping,
-        ));
         foreach ([
             'news:publish-scheduled',
             'inbox:dispatch-training-milestones',
+            'training:publish-scheduled',
         ] as $removed) {
             $this->assertFalse($commands->contains(
                 fn (string $command): bool => str_contains($command, $removed),

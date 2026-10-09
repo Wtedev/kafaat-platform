@@ -161,6 +161,7 @@
                         <label class="mb-1 block text-sm font-medium">نوع الحقل</label>
                         <select name="field_code" required class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm">
                             @foreach (\App\Enums\PrivacyCorrectionFieldCode::cases() as $field)
+                                @continue($field === \App\Enums\PrivacyCorrectionFieldCode::IdentityNumber && auth()->user()?->hasIdentityOnRecord())
                             <option value="{{ $field->value }}">{{ $field->label() }}</option>
                             @endforeach
                         </select>

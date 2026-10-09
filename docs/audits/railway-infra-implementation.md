@@ -27,7 +27,7 @@ This file records **why** each infrastructure change was made. Operational steps
 
 **Decision:** Replace the custom `schedule:run` + `sleep 60` loop with `php artisan schedule:work` in `railway/run-scheduler.sh`.
 
-**Why:** Laravel 11+/12 provides a long-running scheduler that wakes every minute. Several app schedules are **every minute** (`news:publish-scheduled`, `training:publish-scheduled`); Railway’s built-in Cron floor (5 minutes) cannot replace this service.
+**Why:** Laravel 11+/12 provides a long-running scheduler that wakes every minute. Cleanup jobs run on that scheduler; Railway’s built-in Cron floor (5 minutes) cannot replace this service.
 
 **Config:** `railway/configs/scheduler.railway.json` — same isolation rules as the worker (no HTTP healthcheck, no preDeploy).
 

@@ -39,17 +39,14 @@ final class TrainingEntityPublicationViewSupport
             );
         }
 
-        $isScheduled = $publishedAt !== null && $publishedAt->isFuture();
-        $value = $isScheduled
-            ? EntityViewPresenterSupport::formatDate($publishedAt)
-            : 'غير مجدول';
+        unset($publishedAt);
 
         return array_merge(
             EntityViewPresenterSupport::row(
-                'موعد النشر',
-                $value,
-                'heroicon-o-calendar',
-                $isScheduled ? 'warning' : 'gray',
+                'حالة النشر',
+                'مسودة',
+                'heroicon-o-pencil-square',
+                'gray',
             ),
             [
                 'row_actions' => [

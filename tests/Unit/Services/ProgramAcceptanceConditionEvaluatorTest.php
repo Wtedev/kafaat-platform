@@ -44,6 +44,36 @@ class ProgramAcceptanceConditionEvaluatorTest extends TestCase
 
         $this->assertTrue($evaluator->evaluate($program, $saudi)['eligible']);
         $this->assertFalse($evaluator->evaluate($program, $resident)['eligible']);
+
+        $storedAsSaudi = IdentityNumberService::prepareStoragePayload('2345678901');
+        $mismatchedSaudi = User::factory()->create([
+            'identity_type' => IdentityType::NationalId,
+            'identity_number_ciphertext' => $storedAsSaudi['identity_number_ciphertext'],
+            'identity_number_lookup_hash' => $storedAsSaudi['identity_number_lookup_hash'],
+            'identity_number_last4' => $storedAsSaudi['identity_number_last4'],
+            'identity_confirmed_at' => $storedAsSaudi['identity_confirmed_at'],
+            'phone' => '0500000091',
+            'first_name' => 'مقيم',
+            'father_name' => 'محمد',
+            'grandfather_name' => 'عبدالله',
+            'family_name' => 'العلي',
+        ]);
+        $storedAsResident = IdentityNumberService::prepareStoragePayload('1345678901');
+        $mismatchedResident = User::factory()->create([
+            'identity_type' => IdentityType::Iqama,
+            'identity_number_ciphertext' => $storedAsResident['identity_number_ciphertext'],
+            'identity_number_lookup_hash' => $storedAsResident['identity_number_lookup_hash'],
+            'identity_number_last4' => $storedAsResident['identity_number_last4'],
+            'identity_confirmed_at' => $storedAsResident['identity_confirmed_at'],
+            'phone' => '0500000092',
+            'first_name' => 'سعودي',
+            'father_name' => 'محمد',
+            'grandfather_name' => 'عبدالله',
+            'family_name' => 'العلي',
+        ]);
+
+        $this->assertFalse($evaluator->evaluate($program, $mismatchedSaudi)['eligible']);
+        $this->assertTrue($evaluator->evaluate($program, $mismatchedResident)['eligible']);
     }
 
     public function test_age_and_city_and_gender_filters(): void
