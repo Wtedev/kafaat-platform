@@ -107,6 +107,24 @@ class TrainingProgramViewPresenterTest extends TestCase
         $this->assertSame('—', $descriptionSection['prose']);
     }
 
+    public function test_draft_with_future_publish_date_is_not_labeled_scheduled(): void
+    {
+        $program = $this->mockProgram();
+        $program->fill([
+            'status' => ProgramStatus::Draft,
+            'program_kind' => TrainingProgramKind::Course,
+            'published_at' => Carbon::now()->addDays(5),
+        ]);
+
+        $overviewRows = collect(TrainingProgramViewPresenter::present($program)['sections'])
+            ->firstWhere('title', 'نظرة عامة')['rows'];
+
+        $this->assertSame(
+            'مسودة',
+            collect($overviewRows)->firstWhere('label', 'حالة النشر')['value'],
+        );
+    }
+
     public function test_present_hides_duplicate_team_row_when_editor_is_owner(): void
     {
         $owner = new User(['name' => 'منسق واحد']);

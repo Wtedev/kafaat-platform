@@ -933,14 +933,6 @@ final class TrainingEntityFormSupport
             self::advancedSettingsToggle('publish_immediately', 'نشر فوراً')
                 ->default(true)
                 ->live(),
-
-            DatePicker::make('published_at')
-                ->label('موعد النشر')
-                ->native(false)
-                ->nullable()
-                ->visible(fn (Get $get): bool => ! (bool) ($get('publish_immediately') ?? true))
-                ->required(fn (Get $get): bool => ! (bool) ($get('publish_immediately') ?? true))
-                ->columnSpanFull(),
         ];
     }
 
@@ -961,22 +953,7 @@ final class TrainingEntityFormSupport
             return $data;
         }
 
-        $raw = $data['published_at'] ?? null;
-        if (blank($raw)) {
-            $data['published_at'] = null;
-
-            return $data;
-        }
-
-        $at = Carbon::parse($raw)->startOfDay()->timezone(config('app.timezone'));
-
-        if ($at->isSameDay(Carbon::today(config('app.timezone')))) {
-            $data['published_at'] = now();
-
-            return $data;
-        }
-
-        $data['published_at'] = $at;
+        $data['published_at'] = null;
 
         return $data;
     }
@@ -988,16 +965,7 @@ final class TrainingEntityFormSupport
 
     public static function wantsPublishedStatus(array $data): bool
     {
-        if (self::wantsImmediatePublication($data)) {
-            return true;
-        }
-
-        $raw = $data['published_at'] ?? null;
-        if (blank($raw)) {
-            return false;
-        }
-
-        return ! Carbon::parse($raw)->startOfDay()->timezone(config('app.timezone'))->isFuture();
+        return self::wantsImmediatePublication($data);
     }
 
     /**
@@ -1006,7 +974,6 @@ final class TrainingEntityFormSupport
     public static function validateProgramScheduleDates(array $data, bool $showRegistration = true): array
     {
         $errors = [];
-        $today = Carbon::today(config('app.timezone'));
         $programStart = self::parseScheduleDate($data['start_date'] ?? null);
         $programEnd = self::parseScheduleDate($data['end_date'] ?? null) ?? $programStart;
         $registrationStart = $showRegistration
@@ -1015,13 +982,6 @@ final class TrainingEntityFormSupport
         $registrationEnd = $showRegistration
           ? self::parseScheduleDate($data['registration_end'] ?? ($data['registration_start'] ?? null))
           : null;
-
-        if (! self::wantsImmediatePublication($data)) {
-            $publishAt = self::parseScheduleDate($data['published_at'] ?? null);
-            if ($publishAt !== null && $publishAt->lt($today)) {
-                $errors[] = 'لا يمكن تحديد تاريخ النشر قبل اليوم.';
-            }
-        }
 
         if ($showRegistration && $programStart !== null && $registrationStart !== null && $programStart->lt($registrationStart)) {
             $errors[] = 'لا يمكن أن يبدأ البرنامج قبل تاريخ بدء التسجيل.';
@@ -1068,7 +1028,7 @@ final class TrainingEntityFormSupport
             return Carbon::today(config('app.timezone'));
         }
 
-        return self::parseScheduleDate($data['published_at'] ?? null);
+        return null;
     }
 
     public static function resolvePublishImmediatelyFromRecord(
