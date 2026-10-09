@@ -63,6 +63,7 @@ class ProgramRegistrationsRelationManager extends RelationManager
             ->columns([
                 RegistrationFilamentTableSupport::beneficiaryNameColumn(),
                 RegistrationFilamentTableSupport::nationalityColumn(),
+                RegistrationFilamentTableSupport::identityFirstFourColumn(),
                 RegistrationFilamentTableSupport::acceptanceStatusColumn(),
             ])
             ->filters(ProgramRegistrationsTableFilters::make())

@@ -17,6 +17,7 @@ use App\Models\Profile;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Services\Identity\IdentityNumberService;
 use App\Support\ArabicText;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -148,6 +149,27 @@ class ProgramRegistrationsRelationManagerTest extends TestCase
             ->filterTable('nationality', 'unspecified')
             ->assertCanSeeTableRecords([$unspecified])
             ->assertCanNotSeeTableRecords([$saudi, $resident]);
+    }
+
+    public function test_table_shows_only_the_first_four_identity_digits(): void
+    {
+        $admin = $this->admin();
+        $program = $this->program($admin);
+        $registration = $this->registration($program, 'مستفيد', RegistrationStatus::Pending);
+        $registration->user->forceFill(
+            IdentityNumberService::prepareStoragePayload('2345678901', IdentityType::Iqama)
+        )->save();
+
+        $this->withSession(['otp_verified' => true]);
+
+        Livewire::actingAs($admin)
+            ->test(ProgramRegistrationsRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->assertTableColumnExists('identity_first_four')
+            ->assertSee('2345')
+            ->assertDontSee('2345678901');
     }
 
     public function test_search_covers_four_names_with_arabic_folding(): void

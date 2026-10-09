@@ -137,6 +137,8 @@ class ProgramRegistrationResource extends Resource
 
                 RegistrationFilamentTableSupport::nationalityColumn(),
 
+                RegistrationFilamentTableSupport::identityFirstFourColumn(),
+
                 TextColumn::make('trainingProgram.title')
                     ->label('البرنامج')
                     ->searchable()

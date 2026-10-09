@@ -7,6 +7,7 @@ use App\Enums\IdentityType;
 use App\Enums\RegistrationStatus;
 use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
+use App\Services\Identity\IdentityNumberService;
 use App\Services\PathAttendanceService;
 use App\Services\ProgramAttendanceService;
 use App\Support\ArabicText;
@@ -16,6 +17,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Throwable;
 
 class RegistrationFilamentTableSupport
 {
@@ -62,6 +64,31 @@ class RegistrationFilamentTableSupport
                     IdentityType::Iqama => 'غير سعودي',
                     default => 'غير محدد',
                 };
+            });
+    }
+
+    public static function identityFirstFourColumn(): TextColumn
+    {
+        return TextColumn::make('identity_first_four')
+            ->label('أول 4 أرقام')
+            ->getStateUsing(function (Model $record): string {
+                $ciphertext = $record->user?->identity_number_ciphertext ?? null;
+                if (! is_string($ciphertext) || $ciphertext === '') {
+                    return '—';
+                }
+
+                try {
+                    $number = IdentityNumberService::decrypt($ciphertext);
+                } catch (Throwable) {
+                    return '—';
+                }
+
+                $digits = preg_replace('/\D+/', '', $number) ?? '';
+                if (strlen($digits) < 4) {
+                    return '—';
+                }
+
+                return substr($digits, 0, 4);
             });
     }
 
