@@ -2029,10 +2029,18 @@ a.sui-menu-item {
     display: flex;
     flex-direction: column;
     gap: var(--sui-space-4);
+    min-width: 0;
+    max-width: 100%;
 }
 
 .sui-programs-filters {
-    grid-template-columns: minmax(160px, 1.3fr) repeat(3, minmax(120px, 1fr)) auto auto;
+    grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr)) auto auto;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.sui-programs-filters .sui-field {
+    min-width: 0;
 }
 
 .sui-programs-empty {
@@ -2197,10 +2205,26 @@ a.sui-menu-item {
     color: var(--sui-text-secondary);
 }
 
+.sui-programs-table-wrap {
+    min-width: 0;
+    max-width: 100%;
+}
+
 .sui-programs-table-wrap .sui-table-wrap {
     border: 1px solid var(--sui-border);
     border-radius: 12px;
-    overflow: hidden;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.sui-programs-table-wrap .sui-table {
+    table-layout: fixed;
+}
+
+.sui-programs-table-wrap .sui-table th,
+.sui-programs-table-wrap .sui-table td {
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .sui-program-row {

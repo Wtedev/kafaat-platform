@@ -31,11 +31,13 @@ use Illuminate\Support\Carbon;
  * registration window.
  *
  * Publication line:
- * - Draft → «مسودة»
- * - Published with published_at in the future → «مجدول للنشر في {date}»
+ * - Draft with published_at in the future → «مجدول للنشر في {date}»
+ *   (PublishScheduledTrainingCommand publishes Draft rows once published_at is due.)
+ * - Draft with no published_at, or a past published_at → «مسودة»
  * - Published (live) with published_at → «نُشر منذ {relative}»
  * - Published with null published_at → «نُشر منذ …» falls back to created_at relative
- * - Archived → badge handles status; line uses published_at relative when present, else «مسودة»
+ * - Archived with published_at → «نُشر منذ {relative}»
+ * - Archived with no published_at → empty string (the view omits the line)
  */
 final class StaffProgramStatus
 {
@@ -96,17 +98,19 @@ final class StaffProgramStatus
         $status = $this->programStatus($program);
 
         if ($status === ProgramStatus::Draft) {
+            if ($program->published_at !== null && $program->published_at->gt($now)) {
+                return 'مجدول للنشر في '.ar_date($program->published_at, 'd MMM y');
+            }
+
             return 'مسودة';
         }
 
-        if ($status === ProgramStatus::Published
-            && $program->published_at !== null
-            && $program->published_at->gt($now)) {
-            return 'مجدول للنشر في '.ar_date($program->published_at, 'd MMM y');
-        }
+        if ($status === ProgramStatus::Archived) {
+            if ($program->published_at === null) {
+                return '';
+            }
 
-        if ($status === ProgramStatus::Archived && $program->published_at === null) {
-            return 'مسودة';
+            return 'نُشر '.ar_diff_for_humans($program->published_at);
         }
 
         $anchor = $program->published_at ?? $program->created_at;

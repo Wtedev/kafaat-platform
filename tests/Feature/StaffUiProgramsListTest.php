@@ -235,9 +235,14 @@ class StaffUiProgramsListTest extends TestCase
             'status' => ProgramStatus::Draft,
             'published_at' => null,
         ]);
+        $pastDraft = $this->makeProgram([
+            'title' => 'مسودة بتاريخ ماض',
+            'status' => ProgramStatus::Draft,
+            'published_at' => now()->subDay(),
+        ]);
         $scheduled = $this->makeProgram([
             'title' => 'مجدول للنشر',
-            'status' => ProgramStatus::Published,
+            'status' => ProgramStatus::Draft,
             'published_at' => now()->addDays(5),
         ]);
         $published = $this->makeProgram([
@@ -245,19 +250,66 @@ class StaffUiProgramsListTest extends TestCase
             'status' => ProgramStatus::Published,
             'published_at' => now()->subDays(2),
         ]);
+        $archivedPublished = $this->makeProgram([
+            'title' => 'مؤرشف كان منشورا',
+            'status' => ProgramStatus::Archived,
+            'published_at' => now()->subDays(10),
+        ]);
+        $archivedUnpublished = $this->makeProgram([
+            'title' => 'مؤرشف بلا نشر',
+            'status' => ProgramStatus::Archived,
+            'published_at' => null,
+        ]);
 
         $this->assertSame('مسودة', $status->publicationLabel($draft));
-        $this->assertStringContainsString('مجدول للنشر في', $status->publicationLabel($scheduled));
+        $this->assertSame('مسودة', $status->publicationLabel($pastDraft));
+        $scheduledLabel = $status->publicationLabel($scheduled);
+        $this->assertStringStartsWith('مجدول للنشر في ', $scheduledLabel);
+        $this->assertStringContainsString(ar_date($scheduled->published_at, 'd MMM y'), $scheduledLabel);
         $this->assertStringStartsWith('نُشر', $status->publicationLabel($published));
         $this->assertStringContainsString('منذ', $status->publicationLabel($published));
+        $this->assertStringStartsWith('نُشر', $status->publicationLabel($archivedPublished));
+        $this->assertStringContainsString('منذ', $status->publicationLabel($archivedPublished));
+        $this->assertSame('', $status->publicationLabel($archivedUnpublished));
 
-        $this->actingAsOtpVerified($viewer)
+        $page = $this->actingAsOtpVerified($viewer)
             ->get(route('staff-ui.programs.index'))
             ->assertOk()
             ->assertSee('مسودة ظاهرة')
             ->assertSee('مسودة')
+            ->assertSee('مجدول للنشر في')
+            ->assertSee('منشور منذ يومين')
+            ->assertSee('مؤرشف كان منشورا')
+            ->assertSee('مؤرشف بلا نشر');
+
+        $html = $page->getContent();
+        $this->assertMatchesRegularExpression('/<option value="draft"[^>]*>\s*مسودة\s*<\/option>/u', $html);
+        $this->assertMatchesRegularExpression('/<option value="published"[^>]*>\s*منشور\s*<\/option>/u', $html);
+        $this->assertMatchesRegularExpression('/<option value="archived"[^>]*>\s*مؤرشف\s*<\/option>/u', $html);
+        $this->assertStringNotContainsString('<option value="scheduled"', $html);
+        $this->assertDoesNotMatchRegularExpression('/<option[^>]*>\s*مجدول/u', $html);
+
+        $unpublishedCard = $this->programCardHtml($html, 'مؤرشف بلا نشر');
+        $this->assertStringNotContainsString('sui-program-card__published', $unpublishedCard);
+        $this->assertStringNotContainsString('مسودة', $unpublishedCard);
+
+        $archivedCard = $this->programCardHtml($html, 'مؤرشف كان منشورا');
+        $this->assertStringContainsString('نُشر', $archivedCard);
+        $this->assertStringContainsString('منذ', $archivedCard);
+        $this->assertStringNotContainsString('مسودة', $archivedCard);
+
+        $this->actingAsOtpVerified($viewer)
+            ->get(route('staff-ui.programs.index', ['status' => ProgramStatus::Draft->value]))
+            ->assertOk()
             ->assertSee('مجدول للنشر')
-            ->assertSee('منشور منذ يومين');
+            ->assertSee('مسودة ظاهرة')
+            ->assertDontSee('منشور منذ يومين');
+
+        $this->actingAsOtpVerified($viewer)
+            ->get(route('staff-ui.programs.index', ['status' => ProgramStatus::Published->value]))
+            ->assertOk()
+            ->assertSee('منشور منذ يومين')
+            ->assertDontSee('مجدول للنشر');
     }
 
     public function test_empty_catalog_message_without_filters(): void
@@ -327,6 +379,14 @@ class StaffUiProgramsListTest extends TestCase
         DB::disableQueryLog();
 
         return $count;
+    }
+
+    private function programCardHtml(string $html, string $title): string
+    {
+        $pattern = '/<a class="sui-program-card"[\s\S]*?'.preg_quote($title, '/').'[\s\S]*?<\/a>/u';
+        $this->assertSame(1, preg_match($pattern, $html, $matches), 'Missing program card for '.$title);
+
+        return $matches[0];
     }
 
     /**

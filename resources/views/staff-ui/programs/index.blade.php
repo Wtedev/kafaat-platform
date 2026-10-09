@@ -50,6 +50,7 @@
                         $pending = $programStatus->pendingCount($program);
                         $approved = $programStatus->approvedCount($program);
                         $capacity = $program->capacity;
+                        $publication = $programStatus->publicationLabel($program);
                     @endphp
                     <a class="sui-program-card" href="{{ route('staff-ui.programs.show', $program) }}">
                         <x-staff-ui.program-cover :program="$program" :index="$index" />
@@ -80,7 +81,9 @@
                                     </div>
                                 </div>
                             @endif
-                            <p class="sui-program-card__published">{{ $programStatus->publicationLabel($program) }}</p>
+                            @if ($publication !== '')
+                                <p class="sui-program-card__published">{{ $publication }}</p>
+                            @endif
                         </div>
                     </a>
                 @endforeach
@@ -106,6 +109,7 @@
                                     $pending = $programStatus->pendingCount($program);
                                     $approved = $programStatus->approvedCount($program);
                                     $capacity = $program->capacity;
+                                    $publication = $programStatus->publicationLabel($program);
                                 @endphp
                                 <tr class="sui-program-row" data-href="{{ route('staff-ui.programs.show', $program) }}" tabindex="0" role="link">
                                     <td data-label="البرنامج">
@@ -143,7 +147,7 @@
                                             {{ en_num($approved) }}
                                         @endif
                                     </td>
-                                    <td data-label="النشر">{{ $programStatus->publicationLabel($program) }}</td>
+                                    <td data-label="النشر">@if ($publication !== ''){{ $publication }}@endif</td>
                                 </tr>
                             @endforeach
                         </tbody>
