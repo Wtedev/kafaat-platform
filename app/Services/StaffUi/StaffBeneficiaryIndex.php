@@ -76,7 +76,11 @@ final class StaffBeneficiaryIndex
             $query->where('is_active', false);
         }
 
-        if (IdentityCategory::tryFrom($identityCategory) !== null) {
+        if ($identityCategory === 'invalid') {
+            $query->whereNotNull('identity_number_ciphertext')
+                ->where('identity_number_ciphertext', '!=', '')
+                ->whereNull('identity_category');
+        } elseif (IdentityCategory::tryFrom($identityCategory) !== null) {
             $query->where('identity_category', $identityCategory);
         }
 

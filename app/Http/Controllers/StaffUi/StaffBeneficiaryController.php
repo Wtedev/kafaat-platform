@@ -44,8 +44,8 @@ class StaffBeneficiaryController extends Controller
         $this->ensureStaff($request);
         $this->authorize('viewAny', User::class);
 
-        [$search, $status, $completeness, $identityCategory] = $this->beneficiaryFilters($request);
         $user = $request->user();
+        [$search, $status, $completeness, $identityCategory] = $this->beneficiaryFilters($request, $user instanceof User && $user->isAdmin());
         $canExport = $user->can('export', Profile::class);
         $beneficiaries = $index->paginate(
             $search,
@@ -63,6 +63,7 @@ class StaffBeneficiaryController extends Controller
             'status' => $status,
             'completeness' => $completeness,
             'identityCategory' => $identityCategory,
+            'canFilterInvalidIdentity' => $user->isAdmin(),
             'canViewContact' => $user->can('beneficiaries.view_contact'),
             'canViewStaff' => $user->can('users.view'),
             'staffCount' => $user->can('users.view') ? $staff->count() : null,
@@ -77,7 +78,11 @@ class StaffBeneficiaryController extends Controller
     {
         $this->ensureStaff($request);
 
-        [$search, $status, $completeness, $identityCategory] = $this->beneficiaryFilters($request);
+        $actor = $request->user();
+        [$search, $status, $completeness, $identityCategory] = $this->beneficiaryFilters(
+            $request,
+            $actor instanceof User && $actor->isAdmin(),
+        );
         $columns = $request->input('columns', []);
 
         return $exports->downloadOrQueue(
@@ -294,7 +299,7 @@ class StaffBeneficiaryController extends Controller
     /**
      * @return array{0: string, 1: string, 2: string, 3: string}
      */
-    private function beneficiaryFilters(Request $request): array
+    private function beneficiaryFilters(Request $request, bool $allowInvalidIdentity = false): array
     {
         $search = mb_substr(trim((string) $request->input('q', '')), 0, 100);
         $status = (string) $request->input('status', '');
@@ -309,7 +314,11 @@ class StaffBeneficiaryController extends Controller
             $completeness = '';
         }
 
-        if (IdentityCategory::tryFrom($identityCategory) === null) {
+        if ($identityCategory === 'invalid') {
+            if (! $allowInvalidIdentity) {
+                $identityCategory = '';
+            }
+        } elseif (IdentityCategory::tryFrom($identityCategory) === null) {
             $identityCategory = '';
         }
 
