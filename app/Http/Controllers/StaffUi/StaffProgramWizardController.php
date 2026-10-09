@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\StaffUi\StaffProgramWizard;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -114,6 +115,17 @@ class StaffProgramWizardController extends Controller
             'trainingProgram' => $program,
             'userRegistration' => null,
             'acceptanceEvaluation' => null,
+            'staffPreview' => true,
+        ]);
+    }
+
+    public function acceptancePreview(Request $request, TrainingProgram $program): JsonResponse
+    {
+        $actor = $this->actor($request);
+        abort_unless($this->wizard->canContinue($actor, $program), 403);
+
+        return response()->json([
+            'lines' => $this->wizard->acceptanceLinesFromInput($request->all()),
         ]);
     }
 

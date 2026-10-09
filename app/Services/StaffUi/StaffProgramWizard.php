@@ -171,30 +171,86 @@ final class StaffProgramWizard
      */
     public function acceptancePreview(TrainingProgram $program): array
     {
-        $lines = ProgramAcceptanceConditions::summarize(
+        return $this->acceptanceLines(
             is_array($program->acceptance_conditions) ? $program->acceptance_conditions : null,
+            $program->capacity,
+            $program->capacity_male,
+            $program->capacity_female,
+            (bool) $program->auto_accept_registrations,
+            unlimitedWhenEmpty: true,
         );
+    }
 
+    /**
+     * Live preview of the acceptance step. Does not save.
+     *
+     * @param  array<string, mixed>  $input
+     * @return list<string>
+     */
+    public function acceptanceLinesFromInput(array $input): array
+    {
+        $genders = array_values(array_filter(
+            is_array($input['acceptance_genders'] ?? null) ? $input['acceptance_genders'] : [],
+            static fn (mixed $gender): bool => is_string($gender) && $gender !== '',
+        ));
+        $mode = (string) ($input['capacity_mode'] ?? 'unlimited');
+        $shared = $mode === 'shared' && filled($input['capacity'] ?? null) ? (int) $input['capacity'] : null;
+        $male = $mode === 'per_gender' && filled($input['capacity_male'] ?? null) ? (int) $input['capacity_male'] : null;
+        $female = $mode === 'per_gender' && filled($input['capacity_female'] ?? null) ? (int) $input['capacity_female'] : null;
+        if ($mode === 'per_gender' && $genders !== []) {
+            if (! in_array(ProfileGender::Male->value, $genders, true)) {
+                $male = null;
+            }
+            if (! in_array(ProfileGender::Female->value, $genders, true)) {
+                $female = null;
+            }
+        }
+
+        return $this->acceptanceLines(
+            [
+                'require_saudi_national' => (bool) ($input['acceptance_require_saudi_national'] ?? false),
+                'genders' => $genders,
+                'min_age' => $input['acceptance_min_age'] ?? null,
+                'max_age' => $input['acceptance_max_age'] ?? null,
+            ],
+            $shared,
+            $male,
+            $female,
+            (bool) ($input['auto_accept_registrations'] ?? false),
+            unlimitedWhenEmpty: $mode === 'unlimited',
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $conditions
+     * @return list<string>
+     */
+    private function acceptanceLines(
+        ?array $conditions,
+        ?int $capacity,
+        ?int $capacityMale,
+        ?int $capacityFemale,
+        bool $autoAccept,
+        bool $unlimitedWhenEmpty,
+    ): array {
         $lines = array_values(array_filter(
-            $lines,
+            ProgramAcceptanceConditions::summarize($conditions),
             static fn (string $line): bool => ! str_contains($line, 'مدينة الإقامة')
                 && ! str_contains($line, 'اكتمال بيانات الملف'),
         ));
 
-        if ($program->capacity_male !== null || $program->capacity_female !== null) {
-            if ($program->capacity_male !== null) {
-                $lines[] = 'سعة الرجال: '.$program->capacity_male;
+        $items = ProgramAcceptanceConditions::publicCapacityItems($capacity, $capacityMale, $capacityFemale);
+        if ($items === []) {
+            if ($unlimitedWhenEmpty) {
+                $lines[] = 'السعة: بلا حد';
             }
-            if ($program->capacity_female !== null) {
-                $lines[] = 'سعة النساء: '.$program->capacity_female;
-            }
-        } elseif ($program->capacity !== null) {
-            $lines[] = 'السعة: '.$program->capacity;
         } else {
-            $lines[] = 'السعة: بلا حد';
+            foreach ($items as $item) {
+                $lines[] = $item['label'].': '.$item['value'];
+            }
         }
 
-        $lines[] = $program->auto_accept_registrations
+        $lines[] = $autoAccept
             ? 'طريقة القبول: تلقائي لمن يستوفي الشروط حتى امتلاء السعة'
             : 'طريقة القبول: يدوي';
 
@@ -360,6 +416,15 @@ final class StaffProgramWizard
             'capacity_male' => $data['capacity_male'] ?? null,
             'capacity_female' => $data['capacity_female'] ?? null,
         ]);
+        $selectedGenders = is_array($data['acceptance_genders'] ?? null) ? $data['acceptance_genders'] : [];
+        if ($data['capacity_mode'] === 'per_gender' && $selectedGenders !== []) {
+            if (! in_array(ProfileGender::Male->value, $selectedGenders, true)) {
+                $capacity['capacity_male'] = null;
+            }
+            if (! in_array(ProfileGender::Female->value, $selectedGenders, true)) {
+                $capacity['capacity_female'] = null;
+            }
+        }
         $program->fill([
             'auto_accept_registrations' => (bool) ($input['auto_accept_registrations'] ?? false),
             'acceptance_conditions' => $packed['acceptance_conditions'] ?? null,

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\CompetencyTrack;
+use App\Enums\ProfileGender;
 use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
@@ -10,6 +11,7 @@ use App\Filament\Resources\TrainingProgramResource\Pages\ViewTrainingProgram;
 use App\Filament\Support\TrainingEntityFormSupport;
 use App\Mail\ProgramAcceptancePreviewMail;
 use App\Models\AuditLog;
+use App\Models\Profile;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Rbac\RbacCatalog;
@@ -243,6 +245,124 @@ class StaffUiProgramWizardTest extends TestCase
         Livewire::actingAs($staff)
             ->test(ViewTrainingProgram::class, ['record' => $program->getKey()])
             ->assertSuccessful();
+    }
+
+    public function test_female_only_preview_matches_saved_capacity_and_rejects_a_man(): void
+    {
+        $staff = $this->creator();
+        $this->actingAsOtpVerified($staff)
+            ->post(route('staff-ui.programs.wizard.store-new'), $this->basics())
+            ->assertRedirect();
+        $program = TrainingProgram::query()->firstOrFail();
+
+        $this->actingAsOtpVerified($staff)
+            ->post(route('staff-ui.programs.wizard.store', [$program, 2]), [
+                'start_date' => '2026-11-01',
+                'end_date' => '2026-11-20',
+                'registration_start' => '2026-10-01',
+                'registration_end' => '2026-10-20',
+            ])
+            ->assertRedirect();
+
+        $preview = $this->actingAsOtpVerified($staff)
+            ->postJson(route('staff-ui.programs.wizard.acceptance-preview', $program), [
+                'acceptance_genders' => ['female'],
+                'acceptance_min_age' => 18,
+                'acceptance_max_age' => 40,
+                'capacity_mode' => 'per_gender',
+                'capacity_female' => 20,
+            ])
+            ->assertOk();
+        $lines = $preview->json('lines');
+        $this->assertContains('سعة النساء: 20', $lines);
+        $this->assertTrue(collect($lines)->contains(fn (string $line): bool => str_contains($line, 'أنثى')));
+        $this->assertTrue(collect($lines)->contains(fn (string $line): bool => str_contains($line, '18')));
+        $program->refresh();
+        $this->assertNull($program->capacity_female);
+
+        $this->actingAsOtpVerified($staff)
+            ->post(route('staff-ui.programs.wizard.store', [$program, 3]), [
+                'acceptance_genders' => ['female'],
+                'acceptance_min_age' => 18,
+                'acceptance_max_age' => 40,
+                'capacity_mode' => 'per_gender',
+                'capacity_female' => 20,
+            ])
+            ->assertRedirect();
+
+        $program->refresh();
+        $this->assertSame(['female'], $program->acceptance_conditions['genders']);
+        $this->assertSame(20, $program->capacity_female);
+        $this->assertNull($program->capacity);
+        $this->assertNull($program->capacity_male);
+
+        $stepHtml = $this->actingAsOtpVerified($staff)
+            ->get(route('staff-ui.programs.wizard', [$program, 3]))
+            ->assertOk()
+            ->assertSee('سعة النساء: 20')
+            ->getContent();
+        $this->assertMatchesRegularExpression('/data-sui-capacity="male"\s+hidden/', $stepHtml);
+        $this->assertMatchesRegularExpression('/data-sui-capacity="shared"\s+hidden/', $stepHtml);
+        $this->assertDoesNotMatchRegularExpression('/data-sui-capacity="female"\s+hidden/', $stepHtml);
+
+        $this->actingAsOtpVerified($staff)
+            ->get(route('staff-ui.programs.wizard', [$program, 6]))
+            ->assertOk()
+            ->assertSee('رسالة القبول')
+            ->assertSee('الرسالة الافتراضية')
+            ->assertSee('روابط المجموعات')
+            ->assertSee('المقدمون')
+            ->assertSee('نورة سعد');
+
+        $this->actingAsOtpVerified($staff)
+            ->get(route('staff-ui.programs.wizard.preview', $program))
+            ->assertOk()
+            ->assertSee('إناث')
+            ->assertSee('سعة النساء')
+            ->assertSee('20')
+            ->assertSee('معاينة — البرنامج غير منشور')
+            ->assertDontSee('ذكور وإناث')
+            ->assertSee('aria-disabled="true"', false)
+            ->assertDontSee('id="program-register-form"', false);
+
+        $man = User::factory()->create([
+            'role_type' => 'beneficiary',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $man->assignRole(RbacCatalog::ROLE_BENEFICIARY);
+        Profile::query()->create([
+            'user_id' => $man->id,
+            'gender' => ProfileGender::Male,
+            'birth_date' => '1990-01-01',
+        ]);
+
+        $this->actingAsOtpVerified($man)
+            ->post(route('public.programs.register', $program), [
+                'attendance_acknowledgement' => '1',
+            ])
+            ->assertNotFound();
+        $this->assertDatabaseMissing('program_registrations', [
+            'training_program_id' => $program->id,
+            'user_id' => $man->id,
+        ]);
+
+        $program->update([
+            'status' => ProgramStatus::Published,
+            'published_at' => now(),
+        ]);
+
+        $this->actingAsOtpVerified($man)
+            ->from(route('public.programs.show', $program))
+            ->post(route('public.programs.register', $program), [
+                'attendance_acknowledgement' => '1',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('error');
+        $this->assertDatabaseMissing('program_registrations', [
+            'training_program_id' => $program->id,
+            'user_id' => $man->id,
+        ]);
     }
 
     public function test_schedule_rules_reject_an_inverted_range(): void

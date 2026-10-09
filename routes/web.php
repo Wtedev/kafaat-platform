@@ -153,6 +153,7 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.St
         Route::get('/programs/{program}/wizard/{step}', [StaffProgramWizardController::class, 'show'])->whereNumber('step')->name('programs.wizard');
         Route::post('/programs/{program}/wizard/{step}', [StaffProgramWizardController::class, 'store'])->whereNumber('step')->name('programs.wizard.store');
         Route::post('/programs/{program}/wizard-preview-mail', [StaffProgramWizardController::class, 'previewMail'])->name('programs.wizard.preview-mail');
+        Route::post('/programs/{program}/wizard-acceptance-preview', [StaffProgramWizardController::class, 'acceptancePreview'])->name('programs.wizard.acceptance-preview');
         Route::get('/programs/{program}/preview', [StaffProgramWizardController::class, 'preview'])->name('programs.wizard.preview');
         Route::get('/programs', [StaffProgramController::class, 'index'])->name('programs.index');
         Route::get('/programs/{program}', [StaffProgramController::class, 'show'])->name('programs.show');

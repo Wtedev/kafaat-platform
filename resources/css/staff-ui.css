@@ -2411,10 +2411,51 @@ a.sui-menu-item {
     border-radius: 12px;
 }
 
-.sui-wizard-days,
-.sui-wizard-summary {
+.sui-wizard-days {
     display: grid;
     gap: 8px;
+}
+
+.sui-wizard-repeat-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.sui-wizard-repeat-head .sui-wizard-sub {
+    margin: 0;
+}
+
+.sui-wizard-repeat {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: end;
+}
+
+.sui-wizard-summary {
+    display: grid;
+    gap: 0;
+}
+
+.sui-wizard-summary > div {
+    display: grid;
+    grid-template-columns: minmax(9rem, 14rem) minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--sui-border);
+}
+
+.sui-wizard-summary dt {
+    margin: 0;
+    color: var(--sui-heading);
+    font-weight: 700;
+}
+
+.sui-wizard-summary dd {
+    margin: 0;
 }
 
 .sui-wizard {

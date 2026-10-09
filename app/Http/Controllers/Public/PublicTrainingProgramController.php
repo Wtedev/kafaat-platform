@@ -83,6 +83,8 @@ class PublicTrainingProgramController extends Controller
 
     public function register(Request $request, TrainingProgram $trainingProgram)
     {
+        abort_if($trainingProgram->status->value !== 'published', 404);
+
         if (! $request->user()) {
             return redirect()->route('login');
         }

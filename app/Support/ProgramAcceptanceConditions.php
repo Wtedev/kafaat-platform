@@ -259,6 +259,54 @@ final class ProgramAcceptanceConditions
         return $lines;
     }
 
+    /**
+     * Public-page gender line. An empty list means everyone.
+     */
+    public static function publicGenderLabel(?array $conditions): string
+    {
+        $normalized = self::normalize($conditions);
+        $genders = is_array($normalized) ? $normalized['genders'] : [];
+        $male = in_array(ProfileGender::Male->value, $genders, true);
+        $female = in_array(ProfileGender::Female->value, $genders, true);
+
+        if ($female && ! $male) {
+            return 'إناث';
+        }
+
+        if ($male && ! $female) {
+            return 'ذكور';
+        }
+
+        return 'ذكور وإناث';
+    }
+
+    /**
+     * Capacity facts shared by the public page and the staff preview.
+     * Unlimited capacity returns no rows; the staff preview adds its own sentence.
+     *
+     * @return list<array{label: string, value: string}>
+     */
+    public static function publicCapacityItems(?int $capacity, ?int $capacityMale, ?int $capacityFemale): array
+    {
+        if ($capacityMale !== null || $capacityFemale !== null) {
+            $items = [];
+            if ($capacityMale !== null) {
+                $items[] = ['label' => 'سعة الرجال', 'value' => (string) $capacityMale];
+            }
+            if ($capacityFemale !== null) {
+                $items[] = ['label' => 'سعة النساء', 'value' => (string) $capacityFemale];
+            }
+
+            return $items;
+        }
+
+        if ($capacity !== null) {
+            return [['label' => 'السعة', 'value' => (string) $capacity]];
+        }
+
+        return [];
+    }
+
     public static function normalizeCity(string $city): string
     {
         $city = trim(preg_replace('/\s+/u', ' ', $city) ?? '');

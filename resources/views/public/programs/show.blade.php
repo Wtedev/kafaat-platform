@@ -31,11 +31,16 @@ $alreadyRegistered = $userRegistration !== null;
 $ackLabel = $inPerson
 ? 'أقر بأنني قرأت جميع تفاصيل البرنامج وأعرف مدينة وموقع إقامته ('.$venueHint.') وأستطيع الحضور.'
 : 'أقر بأنني قرأت جميع تفاصيل البرنامج وأستطيع الالتزام بمواعيده.';
+$staffPreview = (bool) ($staffPreview ?? false);
 @endphp
 
 @extends('layouts.public')
 @section('title', $trainingProgram->title)
 @section('content')
+
+@if ($staffPreview)
+<div role="status" style="margin-bottom:16px;border-radius:12px;background:#fef3c7;color:#78350f;padding:12px 16px;text-align:center;font-weight:700;">معاينة — البرنامج غير منشور</div>
+@endif
 
 <x-public.entity-show-layout :backHref="$trainingProgram->competency_track ? route('public.programs.track', $trainingProgram->competency_track) : route('public.tracks.index')" :backLabel="$trainingProgram->competency_track?->shortLabel() ?? 'مسارات الكفاءة'" :title="$trainingProgram->title" :description="$trainingProgram->description" descriptionHeading="نبذة عن البرنامج" mediaContext="program" :programKind="$trainingProgram->program_kind" :hasImage="filled($trainingProgram->image)" :imageUrl="$trainingProgram->imagePublicUrl()" :objectFit="$trainingProgram->imageUsesContainFit() ? 'contain' : 'cover'" :surfaceColor="$trainingProgram->imageHeroSurfaceColor()">
     <x-slot:mediaBadges>
@@ -93,7 +98,11 @@ $ackLabel = $inPerson
 
     <x-slot:action>
         <div class="flex flex-col gap-4">
-            @if ($alreadyRegistered)
+            @if ($staffPreview)
+            <div style="opacity:.55;">
+                <x-public.register-cta-button type="button" disabled aria-disabled="true">سجّل في البرنامج</x-public.register-cta-button>
+            </div>
+            @elseif ($alreadyRegistered)
             @php $sv = $userRegistration->status->value; @endphp
             <div class="flex flex-wrap items-center gap-3">
                 <span class="rounded-full px-3 py-1 text-sm font-medium {{ $statusColors[$sv] ?? 'bg-gray-100 text-gray-600' }}">
@@ -179,7 +188,7 @@ $ackLabel = $inPerson
             @elseif (! auth()->check())
             <div class="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-center sm:justify-end">
                 <p class="text-sm leading-relaxed text-gray-500">يجب تسجيل الدخول للتسجيل في البرنامج.</p>
-                <x-public.register-cta-button :href="route('login', ['return' => request()->getRequestUri()])">سجّل الدخول للتسجيل</x-public.register-cta-button>
+                <x-public.register-cta-button :href="route('login', ['return' => request()->getRequestUri()])">سجّل دخولك للمتابعة</x-public.register-cta-button>
             </div>
             @else
             <p class="text-sm text-gray-400">لا يمكن التسجيل بهذا الحساب حالياً.</p>

@@ -45,7 +45,7 @@
         @endforeach
     </ol>
 
-    <form id="program-wizard" class="sui-card sui-wizard" method="POST" action="{{ $action }}" enctype="multipart/form-data">
+    <form id="program-wizard" class="sui-card sui-wizard" method="POST" action="{{ $action }}" enctype="multipart/form-data" @if ($program) data-sui-acceptance-url="{{ route('staff-ui.programs.wizard.acceptance-preview', $program) }}" @endif>
         @csrf
 
         @if ($step === 1)
@@ -64,31 +64,52 @@
                         </label>
                         <span data-sui-cover-name></span>
                     </x-staff-ui.field>
-                    <img class="sui-wizard-cover" alt="" hidden data-sui-cover-preview>
-                    @if ($program?->image)
-                        <img class="sui-wizard-cover" src="{{ $program->imagePublicUrl() }}" alt="الغلاف الحالي">
-                    @endif
+                    <img class="sui-wizard-cover" alt="معاينة الغلاف" data-sui-cover-preview @if ($program?->image) src="{{ $program->imagePublicUrl() }}" @else hidden @endif>
                 </div>
             </div>
 
-            <h2 class="sui-wizard-sub">المقدمون</h2>
-            @for ($i = 0; $i < 3; $i++)
-                @php $row = old('program_presenters.'.$i, $program?->program_presenters[$i] ?? []); @endphp
-                <div class="sui-form-grid">
-                    <x-staff-ui.input name="program_presenters[{{ $i }}][name]" label="الاسم" :value="$row['name'] ?? ''" :error="$errors->first('program_presenters.'.$i.'.name')" />
-                    <x-staff-ui.input name="program_presenters[{{ $i }}][role]" label="الصفة" :value="$row['role'] ?? ''" />
-                </div>
-            @endfor
+            @php
+                $presenterRows = old('program_presenters', $program?->program_presenters ?? []);
+                $presenterRows = is_array($presenterRows) && $presenterRows !== [] ? array_values($presenterRows) : [['name' => '', 'role' => '']];
+                $topicRows = old('session_topics', $program?->session_topics ?? []);
+                $topicRows = is_array($topicRows) && $topicRows !== [] ? array_values($topicRows) : [['title' => '', 'facilitators' => '']];
+                $topicsOn = (bool) old('session_topics_enabled', $program?->session_topics_enabled);
+            @endphp
 
-            <h2 class="sui-wizard-sub">المحاور</h2>
-            <x-staff-ui.toggle name="session_topics_enabled" value="1" label="عرض المحاور" :checked="(bool) old('session_topics_enabled', $program?->session_topics_enabled)" />
-            @for ($i = 0; $i < 4; $i++)
-                @php $topic = old('session_topics.'.$i, $program?->session_topics[$i] ?? []); @endphp
-                <div class="sui-form-grid">
-                    <x-staff-ui.input name="session_topics[{{ $i }}][title]" label="المحور" :value="$topic['title'] ?? ''" />
-                    <x-staff-ui.input name="session_topics[{{ $i }}][facilitators]" label="المسؤولون" :value="$topic['facilitators'] ?? ''" />
+            <div class="sui-wizard-repeat-head">
+                <h2 class="sui-wizard-sub">المقدمون</h2>
+                <button type="button" class="sui-btn sui-btn--secondary sui-btn--sm" data-sui-add="presenter">إضافة مقدم</button>
+            </div>
+            <div data-sui-rows="presenter">
+                @foreach ($presenterRows as $i => $row)
+                    <div class="sui-wizard-repeat" data-sui-row="presenter">
+                        <div class="sui-form-grid">
+                            <x-staff-ui.input name="program_presenters[{{ $i }}][name]" label="الاسم" :value="$row['name'] ?? ''" :error="$errors->first('program_presenters.'.$i.'.name')" />
+                            <x-staff-ui.input name="program_presenters[{{ $i }}][role]" label="الصفة" :value="$row['role'] ?? ''" />
+                        </div>
+                        <button type="button" class="sui-btn sui-btn--ghost sui-btn--sm" data-sui-remove>حذف</button>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="sui-wizard-repeat-head">
+                <h2 class="sui-wizard-sub">المحاور</h2>
+                <x-staff-ui.toggle name="session_topics_enabled" value="1" label="عرض المحاور" :checked="$topicsOn" />
+            </div>
+            <div data-sui-topics @if (! $topicsOn) hidden @endif>
+                <div data-sui-rows="topic">
+                    @foreach ($topicRows as $i => $topic)
+                        <div class="sui-wizard-repeat" data-sui-row="topic">
+                            <div class="sui-form-grid">
+                                <x-staff-ui.input name="session_topics[{{ $i }}][title]" label="المحور" :value="$topic['title'] ?? ''" />
+                                <x-staff-ui.input name="session_topics[{{ $i }}][facilitators]" label="المسؤولون" :value="$topic['facilitators'] ?? ''" />
+                            </div>
+                            <button type="button" class="sui-btn sui-btn--ghost sui-btn--sm" data-sui-remove>حذف</button>
+                        </div>
+                    @endforeach
                 </div>
-            @endfor
+                <button type="button" class="sui-btn sui-btn--secondary sui-btn--sm" data-sui-add="topic">إضافة محور</button>
+            </div>
         @endif
 
         @if ($step === 2)
@@ -127,20 +148,22 @@
                 <x-staff-ui.input type="number" name="acceptance_max_age" label="الحد الأقصى للعمر" min="0" max="120" :value="old('acceptance_max_age', $program?->acceptance_conditions['max_age'] ?? '')" :error="$errors->first('acceptance_max_age')" />
             </div>
             <x-staff-ui.select name="capacity_mode" label="السعة" :selected="$capacityMode" :options="['unlimited' => 'بلا حد', 'shared' => 'سعة واحدة', 'per_gender' => 'سعة لكل جنس']" />
-            <div class="sui-form-grid">
-                <x-staff-ui.input type="number" name="capacity" label="السعة المشتركة" min="1" :value="old('capacity', $program?->capacity)" :error="$errors->first('capacity')" />
+            <div data-sui-capacity="shared" @if ($capacityMode !== 'shared') hidden @endif>
+                <x-staff-ui.input type="number" name="capacity" label="السعة" min="1" :value="old('capacity', $program?->capacity)" :error="$errors->first('capacity')" />
+            </div>
+            <div data-sui-capacity="male" @if ($capacityMode !== 'per_gender' || ! $showMale) hidden @endif>
                 <x-staff-ui.input type="number" name="capacity_male" label="سعة الرجال" min="1" :value="old('capacity_male', $program?->capacity_male)" :error="$errors->first('capacity_male')" />
+            </div>
+            <div data-sui-capacity="female" @if ($capacityMode !== 'per_gender' || ! $showFemale) hidden @endif>
                 <x-staff-ui.input type="number" name="capacity_female" label="سعة النساء" min="1" :value="old('capacity_female', $program?->capacity_female)" :error="$errors->first('capacity_female')" />
             </div>
             <x-staff-ui.toggle name="auto_accept_registrations" value="1" label="قبول تلقائي لمن يستوفي الشروط حتى امتلاء السعة" :checked="(bool) old('auto_accept_registrations', $program?->auto_accept_registrations)" />
-            @if ($acceptancePreview !== [])
-                <h2 class="sui-wizard-sub">كما ستظهر للمستفيد</h2>
-                <ul>
-                    @foreach ($acceptancePreview as $line)
-                        <li>{{ $line }}</li>
-                    @endforeach
-                </ul>
-            @endif
+            <h2 class="sui-wizard-sub">كما ستظهر للمستفيد</h2>
+            <ul data-sui-acceptance-preview>
+                @foreach ($acceptancePreview as $line)
+                    <li>{{ $line }}</li>
+                @endforeach
+            </ul>
         @endif
 
         @if ($step === 4)
@@ -165,6 +188,40 @@
         @endif
 
         @if ($step === 6)
+            @php
+                $presenterSummary = collect(is_array($program->program_presenters) ? $program->program_presenters : [])
+                    ->map(function (mixed $row): string {
+                        if (! is_array($row)) {
+                            return '';
+                        }
+                        $name = trim((string) ($row['name'] ?? ''));
+                        $role = trim((string) ($row['role'] ?? ''));
+
+                        return $name === '' ? '' : ($role !== '' ? $name.' — '.$role : $name);
+                    })
+                    ->filter()
+                    ->implode('، ');
+                $topicSummary = $program->session_topics_enabled
+                    ? collect(is_array($program->session_topics) ? $program->session_topics : [])
+                        ->map(function (mixed $row): string {
+                            if (! is_array($row)) {
+                                return '';
+                            }
+                            $title = trim((string) ($row['title'] ?? ''));
+                            $who = trim((string) ($row['facilitators'] ?? ''));
+
+                            return $title === '' ? '' : ($who !== '' ? $title.' — '.$who : $title);
+                        })
+                        ->filter()
+                        ->implode('، ')
+                    : '';
+                $groupSummary = $program->whatsapp_groups_enabled
+                    ? collect([
+                        filled($program->whatsapp_group_male) ? 'رجال: '.$program->whatsapp_group_male : null,
+                        filled($program->whatsapp_group_female) ? 'نساء: '.$program->whatsapp_group_female : null,
+                    ])->filter()->implode('، ')
+                    : 'غير مفعّلة';
+            @endphp
             <input type="hidden" name="publish" value="{{ $publishIntent ? '1' : '0' }}">
             <dl class="sui-wizard-summary">
                 <div><dt>العنوان</dt><dd>{{ $program->title }}</dd></div>
@@ -172,9 +229,13 @@
                 <div><dt>مسار الكفاءة</dt><dd>{{ $program->competency_track?->shortLabel() }}</dd></div>
                 <div><dt>أسلوب التنفيذ</dt><dd>{{ $program->delivery_mode?->label() }}</dd></div>
                 <div><dt>المكان</dt><dd>{{ $program->venue ?: '—' }}</dd></div>
+                <div><dt>المقدمون</dt><dd>{{ $presenterSummary !== '' ? $presenterSummary : '—' }}</dd></div>
+                <div><dt>المحاور</dt><dd>{{ $topicSummary !== '' ? $topicSummary : '—' }}</dd></div>
                 <div><dt>البداية</dt><dd>{{ $program->start_date?->toDateString() ?: '—' }}</dd></div>
                 <div><dt>النهاية</dt><dd>{{ $program->end_date?->toDateString() ?: '—' }}</dd></div>
                 <div><dt>التسجيل</dt><dd>{{ $program->registration_start?->toDateString() ?: '—' }} – {{ $program->registration_end?->toDateString() ?: '—' }}</dd></div>
+                <div><dt>رسالة القبول</dt><dd>{{ filled($program->approval_message) ? trim(strip_tags((string) $program->approval_message)) : 'الرسالة الافتراضية' }}</dd></div>
+                <div><dt>روابط المجموعات</dt><dd>{{ $groupSummary !== '' ? $groupSummary : '—' }}</dd></div>
                 <div><dt>النشر</dt><dd>{{ $publishIntent ? 'منشور' : 'مسودة' }}</dd></div>
                 <div><dt>الإشعارات</dt><dd>{{ $notifyIntent ? 'مفعّلة' : 'متوقفة' }}</dd></div>
             </dl>
@@ -206,6 +267,24 @@
         </div>
     </form>
 
+    <template id="sui-presenter-template">
+        <div class="sui-wizard-repeat" data-sui-row="presenter">
+            <div class="sui-form-grid">
+                <label class="sui-field"><span class="sui-field__label">الاسم</span><input class="sui-control" data-field="name"></label>
+                <label class="sui-field"><span class="sui-field__label">الصفة</span><input class="sui-control" data-field="role"></label>
+            </div>
+            <button type="button" class="sui-btn sui-btn--secondary sui-btn--sm" data-sui-remove>حذف</button>
+        </div>
+    </template>
+    <template id="sui-topic-template">
+        <div class="sui-wizard-repeat" data-sui-row="topic">
+            <div class="sui-form-grid">
+                <label class="sui-field"><span class="sui-field__label">المحور</span><input class="sui-control" data-field="title"></label>
+                <label class="sui-field"><span class="sui-field__label">المسؤولون</span><input class="sui-control" data-field="facilitators"></label>
+            </div>
+            <button type="button" class="sui-btn sui-btn--secondary sui-btn--sm" data-sui-remove>حذف</button>
+        </div>
+    </template>
     <script>
         document.querySelector('[data-sui-cover]')?.addEventListener('change', (event) => {
             const file = event.target.files?.[0];
@@ -216,5 +295,93 @@
             preview.src = URL.createObjectURL(file);
             if (name) name.textContent = file.name;
         });
+
+        const wizardForm = document.getElementById('program-wizard');
+
+        function reindexRows(kind, prefix) {
+            document.querySelectorAll(`[data-sui-row="${kind}"]`).forEach((row, index) => {
+                row.querySelectorAll('[data-field], [name]').forEach((input) => {
+                    const field = input.dataset.field || (input.name?.match(/\[(\w+)\]$/) || [])[1];
+                    if (!field || !input.name && !input.dataset.field) return;
+                    if (field) input.name = `${prefix}[${index}][${field}]`;
+                });
+            });
+        }
+
+        document.querySelectorAll('[data-sui-add]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const kind = button.dataset.suiAdd;
+                const template = document.getElementById(kind === 'presenter' ? 'sui-presenter-template' : 'sui-topic-template');
+                const host = document.querySelector(`[data-sui-rows="${kind}"]`);
+                host?.append(template.content.cloneNode(true));
+                reindexRows('presenter', 'program_presenters');
+                reindexRows('topic', 'session_topics');
+            });
+        });
+
+        wizardForm?.addEventListener('click', (event) => {
+            const remove = event.target.closest('[data-sui-remove]');
+            if (!remove) return;
+            remove.closest('[data-sui-row]')?.remove();
+            reindexRows('presenter', 'program_presenters');
+            reindexRows('topic', 'session_topics');
+        });
+
+        const topicsBox = document.querySelector('[data-sui-topics]');
+        wizardForm?.querySelector('[name="session_topics_enabled"]')?.addEventListener('change', (event) => {
+            if (topicsBox) topicsBox.hidden = !event.target.checked;
+        });
+
+        function syncCapacityFields() {
+            const mode = wizardForm?.querySelector('[name="capacity_mode"]')?.value || 'unlimited';
+            const genders = [...(wizardForm?.querySelectorAll('[name="acceptance_genders[]"]:checked') || [])].map((input) => input.value);
+            const showMale = genders.length === 0 || genders.includes('male');
+            const showFemale = genders.length === 0 || genders.includes('female');
+            const shared = document.querySelector('[data-sui-capacity="shared"]');
+            const male = document.querySelector('[data-sui-capacity="male"]');
+            const female = document.querySelector('[data-sui-capacity="female"]');
+            if (shared) shared.hidden = mode !== 'shared';
+            if (male) male.hidden = mode !== 'per_gender' || !showMale;
+            if (female) female.hidden = mode !== 'per_gender' || !showFemale;
+            [shared, male, female].forEach((box) => {
+                box?.querySelectorAll('input').forEach((input) => {
+                    input.disabled = box.hidden;
+                });
+            });
+        }
+
+        wizardForm?.querySelector('[name="capacity_mode"]')?.addEventListener('change', syncCapacityFields);
+        wizardForm?.querySelectorAll('[name="acceptance_genders[]"]').forEach((input) => {
+            input.addEventListener('change', syncCapacityFields);
+        });
+        syncCapacityFields();
+
+        const previewList = document.querySelector('[data-sui-acceptance-preview]');
+        const previewUrl = wizardForm?.dataset.suiAcceptanceUrl;
+        let previewTimer = 0;
+        async function refreshAcceptancePreview() {
+            if (!previewList || !previewUrl || !wizardForm) return;
+            const response = await fetch(previewUrl, {
+                method: 'POST',
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: new FormData(wizardForm),
+            });
+            if (!response.ok) return;
+            const payload = await response.json();
+            previewList.replaceChildren(...(payload.lines || []).map((line) => {
+                const item = document.createElement('li');
+                item.textContent = line;
+                return item;
+            }));
+        }
+        function scheduleAcceptancePreview() {
+            window.clearTimeout(previewTimer);
+            previewTimer = window.setTimeout(refreshAcceptancePreview, 150);
+        }
+        if (previewList && previewUrl) {
+            wizardForm.addEventListener('input', scheduleAcceptancePreview);
+            wizardForm.addEventListener('change', scheduleAcceptancePreview);
+            refreshAcceptancePreview();
+        }
     </script>
 </x-staff-ui.layout>

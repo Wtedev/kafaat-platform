@@ -46,7 +46,7 @@ class ProgramLoginReturnRedirectTest extends TestCase
         $html = $this->get(route('public.programs.show', $program))
             ->assertOk()
             ->assertSee('يجب تسجيل الدخول للتسجيل في البرنامج.', false)
-            ->assertSee('سجّل الدخول للتسجيل', false)
+            ->assertSee('سجّل دخولك للمتابعة', false)
             ->getContent();
 
         $this->assertMatchesRegularExpression(
@@ -65,7 +65,7 @@ class ProgramLoginReturnRedirectTest extends TestCase
             '/sm:justify-center[^>]*>\s*<p[^>]*>يجب تسجيل الدخول للتسجيل في البرنامج\.<\/p>/u',
             $html,
         );
-        $this->assertSame(1, substr_count($html, 'سجّل الدخول للتسجيل'));
+        $this->assertSame(1, substr_count($html, 'سجّل دخولك للمتابعة'));
         $this->assertStringNotContainsString('shadow-[0_-8px_32px_-12px_rgba(51,84,131,0.18)]', $html);
         $this->assertStringContainsString('ltr:rotate-180', $html);
     }
@@ -79,7 +79,7 @@ class ProgramLoginReturnRedirectTest extends TestCase
             ->assertOk()
             ->assertSee('شركاء البرنامج', false)
             ->assertSee('يجب تسجيل الدخول للتسجيل في البرنامج.', false)
-            ->assertSee('سجّل الدخول للتسجيل', false)
+            ->assertSee('سجّل دخولك للمتابعة', false)
             ->getContent();
 
         $partnersPos = strpos($html, 'id="program-partners-heading"');
@@ -243,7 +243,7 @@ class ProgramLoginReturnRedirectTest extends TestCase
             ->get(route('public.programs.show', $program))
             ->assertOk()
             ->assertSee('سجّل في البرنامج')
-            ->assertDontSee('سجّل الدخول للتسجيل', false);
+            ->assertDontSee('سجّل دخولك للمتابعة', false);
     }
 
     public function test_guest_sees_closed_registration_message_not_login_cta_on_volunteer_leaders(): void
@@ -266,7 +266,7 @@ class ProgramLoginReturnRedirectTest extends TestCase
             ->assertSee('باب التسجيل مغلق حالياً ولا يمكن تقديم طلبات جديدة.', false)
             ->assertSee('انتهى التسجيل', false)
             ->assertSee('border-gray-200 bg-gray-50', false)
-            ->assertDontSee('سجّل الدخول للتسجيل', false)
+            ->assertDontSee('سجّل دخولك للمتابعة', false)
             ->assertDontSee('يجب تسجيل الدخول للتسجيل في البرنامج.', false)
             ->assertDontSee('سجّل في البرنامج', false);
     }
@@ -294,7 +294,7 @@ class ProgramLoginReturnRedirectTest extends TestCase
             ->assertSee('border-amber-200/80 bg-amber-50/80', false)
             ->assertDontSee('انتهى التسجيل في هذا البرنامج.', false)
             ->assertDontSee('باب التسجيل مغلق حالياً ولا يمكن تقديم طلبات جديدة.', false)
-            ->assertDontSee('سجّل الدخول للتسجيل', false)
+            ->assertDontSee('سجّل دخولك للمتابعة', false)
             ->assertDontSee('سجّل في البرنامج', false);
     }
 
