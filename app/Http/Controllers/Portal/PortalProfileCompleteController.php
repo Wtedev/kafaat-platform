@@ -40,6 +40,12 @@ class PortalProfileCompleteController extends Controller
                     ]);
             }
 
+            if ($exception->getMessage() === 'identity_locked') {
+                return back()->withErrors([
+                    'identity_number' => 'لا يمكن تغيير رقم الهوية أو نوعها بعد تسجيلهما.',
+                ]);
+            }
+
             throw $exception;
         }
 

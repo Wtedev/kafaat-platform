@@ -172,6 +172,10 @@ final class PrivacyCorrectionService
 
     private function applyIdentity(User $user, ?PrivacyCorrectionPayload $payload, array $details): void
     {
+        if ($user->hasIdentityOnRecord()) {
+            throw new InvalidArgumentException('identity_locked');
+        }
+
         if ($payload === null || $payload->isConsumed()) {
             throw new InvalidArgumentException('missing_payload');
         }

@@ -273,16 +273,11 @@ class PrivacyCenterTest extends TestCase
             'identity_type' => IdentityType::NationalId->value,
             'identity_number' => $newIdentity,
             'password' => 'SecretPass1!',
-        ])->assertRedirect(route('portal.privacy'));
+        ])->assertSessionHasErrors('field_code');
 
-        $privacyRequest = PrivacyRequest::query()->where('user_id', $user->id)->firstOrFail();
-        $details = json_encode($privacyRequest->request_details);
-        $this->assertIsString($details);
-        $this->assertStringNotContainsString($newIdentity, $details);
-
-        $payload = PrivacyCorrectionPayload::query()->where('privacy_request_id', $privacyRequest->id)->first();
-        $this->assertNotNull($payload);
-        $this->assertNotSame($newIdentity, $payload->encrypted_value);
+        $this->assertNull(PrivacyRequest::query()->where('user_id', $user->id)->first());
+        $user->refresh();
+        $this->assertSame($existingPayload['identity_number_lookup_hash'], $user->identity_number_lookup_hash);
     }
 
     public function test_duplicate_identity_correction_is_rejected(): void
@@ -319,7 +314,10 @@ class PrivacyCenterTest extends TestCase
             'identity_type' => IdentityType::NationalId->value,
             'identity_number' => $identity,
             'password' => 'SecretPass1!',
-        ])->assertSessionHasErrors(['identity_number' => IdentityNumberService::DUPLICATE_MESSAGE]);
+        ])->assertSessionHasErrors('field_code');
+
+        $user->refresh();
+        $this->assertSame($ownStorage['identity_number_lookup_hash'], $user->identity_number_lookup_hash);
     }
 
     public function test_correction_apply_updates_user_without_modifying_certificates(): void

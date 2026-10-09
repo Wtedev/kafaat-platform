@@ -137,6 +137,7 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.St
         Route::post('/users/staff/{user}/password-reset', [StaffDirectoryController::class, 'sendPasswordReset'])->name('users.staff.password-reset');
         Route::get('/users/{user}', [StaffBeneficiaryController::class, 'show'])->name('users.show');
         Route::post('/users/{user}', [StaffBeneficiaryController::class, 'update'])->name('users.update');
+        Route::post('/users/{user}/identity', [StaffBeneficiaryController::class, 'updateIdentity'])->name('users.identity.update');
         Route::post('/users/{user}/activation', [StaffBeneficiaryController::class, 'activation'])->name('users.activation');
         Route::post('/users/{user}/notes', [StaffBeneficiaryController::class, 'storeNote'])->name('users.notes.store');
     });

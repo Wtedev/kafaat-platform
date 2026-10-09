@@ -217,6 +217,12 @@ class ProgramRegistrationService
             return false;
         }
 
+        $registration->loadMissing(['trainingProgram', 'user']);
+        $eligibility = $this->acceptanceEvaluator->evaluate($registration->trainingProgram, $registration->user);
+        if (! $eligibility['eligible']) {
+            throw new RegistrationNotEligibleException($eligibility['reasons']);
+        }
+
         $program = $registration->trainingProgram;
 
         if ($program->capacity !== null) {
