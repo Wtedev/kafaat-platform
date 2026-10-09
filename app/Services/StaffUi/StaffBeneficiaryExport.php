@@ -85,6 +85,7 @@ final class StaffBeneficiaryExport
         string $search,
         string $status,
         string $completeness,
+        string $identityCategory,
         array $requestedKeys,
     ): BinaryFileResponse|RedirectResponse {
         abort_unless($actor->can('export', Profile::class), 403);
@@ -92,8 +93,8 @@ final class StaffBeneficiaryExport
         $keys = $this->authorizedKeys($actor, $requestedKeys);
         $this->consumeRateLimit($actor);
 
-        $filters = $this->filters($search, $status, $completeness);
-        $profiles = $this->profiles($search, $status, $completeness);
+        $filters = $this->filters($search, $status, $completeness, $identityCategory);
+        $profiles = $this->profiles($search, $status, $completeness, $identityCategory);
 
         if ($profiles->isEmpty()) {
             throw ValidationException::withMessages([
@@ -107,6 +108,7 @@ final class StaffBeneficiaryExport
                 $search,
                 $status,
                 $completeness,
+                $identityCategory,
                 $keys,
             );
 
@@ -126,6 +128,7 @@ final class StaffBeneficiaryExport
         string $search,
         string $status,
         string $completeness,
+        string $identityCategory,
         array $requestedKeys,
     ): void {
         $actor = User::query()->find($actorId);
@@ -138,12 +141,12 @@ final class StaffBeneficiaryExport
             return;
         }
 
-        $profiles = $this->profiles($search, $status, $completeness);
+        $profiles = $this->profiles($search, $status, $completeness, $identityCategory);
         if ($profiles->isEmpty()) {
             return;
         }
 
-        $filters = $this->filters($search, $status, $completeness);
+        $filters = $this->filters($search, $status, $completeness, $identityCategory);
         $token = Str::random(40);
         $relative = self::DIRECTORY.'/'.$actor->id.'/'.$token.'.xlsx';
 
@@ -283,9 +286,13 @@ final class StaffBeneficiaryExport
     /**
      * @return Collection<int, Profile>
      */
-    private function profiles(string $search, string $status, string $completeness): Collection
-    {
-        $users = $this->index->matching($search, $status, $completeness);
+    private function profiles(
+        string $search,
+        string $status,
+        string $completeness,
+        string $identityCategory,
+    ): Collection {
+        $users = $this->index->matching($search, $status, $completeness, $identityCategory);
 
         return $users
             ->map(fn (User $user): ?Profile => $user->profile)
@@ -301,7 +308,7 @@ final class StaffBeneficiaryExport
 
     /**
      * @param  list<string>  $keys
-     * @param  array{q: string, status: string, profile: string}  $filters
+     * @param  array{q: string, status: string, profile: string, identity_category: string}  $filters
      */
     private function recordAudit(User $actor, int $rowCount, array $keys, array $filters): void
     {
@@ -320,14 +327,15 @@ final class StaffBeneficiaryExport
     }
 
     /**
-     * @return array{q: string, status: string, profile: string}
+     * @return array{q: string, status: string, profile: string, identity_category: string}
      */
-    private function filters(string $search, string $status, string $completeness): array
+    private function filters(string $search, string $status, string $completeness, string $identityCategory): array
     {
         return [
             'q' => $search,
             'status' => $status,
             'profile' => $completeness,
+            'identity_category' => $identityCategory,
         ];
     }
 

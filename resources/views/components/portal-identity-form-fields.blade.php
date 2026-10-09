@@ -13,14 +13,19 @@
 ])
 
 @php
-use App\Enums\IdentityType;
+use App\Enums\IdentityCategory;
 use App\Enums\ProfileGender;
+use App\Services\Identity\IdentityNumberService;
 
 $inputClass = 'w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/25';
 $labelClass = 'mb-1.5 block text-sm font-medium text-gray-700';
 $sectioned = $layout === 'sectioned';
 $showNames = ! $sectioned || $section === 'names';
 $showIdentityContact = ! $sectioned || $section === 'identity-contact';
+$oldIdentity = old('identity_number');
+$oldCategory = is_string($oldIdentity)
+    ? IdentityNumberService::categoryFromNumber(IdentityNumberService::normalize($oldIdentity) ?? '')
+    : null;
 @endphp
 
 @if ($sectioned)
@@ -59,21 +64,24 @@ $showIdentityContact = ! $sectioned || $section === 'identity-contact';
             @if ($identityLocked)
                 <x-portal.identity-locked-fields :label-class="$labelClass" />
             @else
-                <div>
-                    <label class="{{ $labelClass }}">نوع الهوية <span class="text-brand-danger">*</span></label>
-                    <select name="identity_type" required class="{{ $inputClass }} @error('identity_type') border-brand-danger @enderror">
-                        <option value="">اختر النوع</option>
-                        @foreach (IdentityType::cases() as $type)
-                            <option value="{{ $type->value }}" @selected(old('identity_type') === $type->value)>{{ $type->label() }}</option>
-                        @endforeach
-                    </select>
-                    @error('identity_type') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
-                </div>
-                <div>
+                <div class="sm:col-span-2">
                     <label class="{{ $labelClass }}">رقم الهوية / الإقامة <span class="text-brand-danger">*</span></label>
-                    <input type="text" name="identity_number" value="{{ old('identity_number') }}" required inputmode="numeric" maxlength="10" pattern="[0-9]{10}" autocomplete="off"
-                        class="{{ $inputClass }} @error('identity_number') border-brand-danger @enderror" dir="ltr" />
+                    <div class="flex flex-wrap items-center gap-3">
+                        <input type="text" name="identity_number" value="{{ old('identity_number') }}" required inputmode="numeric" maxlength="10" pattern="[0-9]{10}" autocomplete="off"
+                            class="{{ $inputClass }} max-w-xs @error('identity_number') border-brand-danger @enderror" dir="ltr"
+                            data-identity-number-input
+                            aria-describedby="identity-category-hint" />
+                        <span
+                            id="identity-category-hint"
+                            class="text-sm font-medium text-[#335483] {{ $oldCategory ? '' : 'hidden' }}"
+                            data-identity-category-hint
+                            data-label-saudi="{{ IdentityCategory::Saudi->documentLabel() }}"
+                            data-label-resident="{{ IdentityCategory::Resident->documentLabel() }}"
+                            @if ($oldCategory) aria-live="polite" @endif
+                        >{{ $oldCategory?->documentLabel() }}</span>
+                    </div>
                     @error('identity_number') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
+                    @error('identity_type') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
                 </div>
             @endif
         @endif
@@ -133,21 +141,23 @@ $showIdentityContact = ! $sectioned || $section === 'identity-contact';
         @if ($identityLocked)
             <x-portal.identity-locked-fields :label-class="$labelClass" />
         @else
-            <div>
-                <label class="{{ $labelClass }}">نوع الهوية <span class="text-brand-danger">*</span></label>
-                <select name="identity_type" required class="{{ $inputClass }} @error('identity_type') border-brand-danger @enderror">
-                    <option value="">اختر النوع</option>
-                    @foreach (IdentityType::cases() as $type)
-                        <option value="{{ $type->value }}" @selected(old('identity_type') === $type->value)>{{ $type->label() }}</option>
-                    @endforeach
-                </select>
-                @error('identity_type') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
-            </div>
-            <div>
+            <div class="sm:col-span-2">
                 <label class="{{ $labelClass }}">رقم الهوية / الإقامة <span class="text-brand-danger">*</span></label>
-                <input type="text" name="identity_number" value="{{ old('identity_number') }}" required inputmode="numeric" maxlength="10" pattern="[0-9]{10}" autocomplete="off"
-                    class="{{ $inputClass }} @error('identity_number') border-brand-danger @enderror" dir="ltr" />
+                <div class="flex flex-wrap items-center gap-3">
+                    <input type="text" name="identity_number" value="{{ old('identity_number') }}" required inputmode="numeric" maxlength="10" pattern="[0-9]{10}" autocomplete="off"
+                        class="{{ $inputClass }} max-w-xs @error('identity_number') border-brand-danger @enderror" dir="ltr"
+                        data-identity-number-input
+                        aria-describedby="identity-category-hint-default" />
+                    <span
+                        id="identity-category-hint-default"
+                        class="text-sm font-medium text-[#335483] {{ $oldCategory ? '' : 'hidden' }}"
+                        data-identity-category-hint
+                        data-label-saudi="{{ IdentityCategory::Saudi->documentLabel() }}"
+                        data-label-resident="{{ IdentityCategory::Resident->documentLabel() }}"
+                    >{{ $oldCategory?->documentLabel() }}</span>
+                </div>
                 @error('identity_number') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
+                @error('identity_type') <p class="mt-1 text-xs text-brand-danger">{{ $message }}</p> @enderror
             </div>
         @endif
     @endif

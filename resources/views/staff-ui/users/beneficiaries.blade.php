@@ -51,9 +51,15 @@
                     :selected="$completeness"
                     :options="['' => 'الكل', 'complete' => 'مكتمل', 'incomplete' => 'غير مكتمل']"
                 />
+                <x-staff-ui.select
+                    name="identity_category"
+                    label="الجنسية"
+                    :selected="$identityCategory"
+                    :options="['' => 'الكل', 'saudi' => 'سعودي', 'resident' => 'مقيم']"
+                />
                 <div class="sui-table__filters-actions">
                     <x-staff-ui.button type="submit" variant="secondary" size="sm">تطبيق</x-staff-ui.button>
-                    @if ($search !== '' || $status !== '' || $completeness !== '')
+                    @if ($search !== '' || $status !== '' || $completeness !== '' || $identityCategory !== '')
                         <x-staff-ui.button variant="ghost" size="sm" :href="route('staff-ui.users.index')">مسح</x-staff-ui.button>
                     @endif
                 </div>
@@ -118,6 +124,7 @@
                 <input type="hidden" name="q" value="{{ $search }}">
                 <input type="hidden" name="status" value="{{ $status }}">
                 <input type="hidden" name="profile" value="{{ $completeness }}">
+                <input type="hidden" name="identity_category" value="{{ $identityCategory }}">
                 <p>{{ $exportCountSentence }}</p>
                 <div class="sui-export-columns">
                     @foreach ($exportColumns as $key => $label)

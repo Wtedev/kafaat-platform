@@ -2,7 +2,6 @@
 
 namespace App\Services\Identity;
 
-use App\Enums\IdentityType;
 use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -34,11 +33,9 @@ class UserProfileCompletionService
             $this->rejectIdentityChangeWhenLocked($user, $data, $hasIdentity);
 
             if (! $hasIdentity && $requireIdentity) {
-                if (empty($data['identity_type']) || empty($data['identity_number'])) {
+                if (empty($data['identity_number'])) {
                     throw new InvalidArgumentException('identity_required');
                 }
-
-                $identityType = IdentityType::from((string) $data['identity_type']);
 
                 if (IdentityNumberService::isDuplicate((string) $data['identity_number'], $user->id)) {
                     throw new InvalidArgumentException('duplicate_identity');
@@ -46,10 +43,10 @@ class UserProfileCompletionService
 
                 $identityPayload = IdentityNumberService::prepareStoragePayload(
                     (string) $data['identity_number'],
-                    $identityType,
                 );
 
                 $userAttributes = array_merge($userAttributes, [
+                    'identity_category' => $identityPayload['identity_category']->value,
                     'identity_type' => $identityPayload['identity_type']->value,
                     'identity_number_ciphertext' => $identityPayload['identity_number_ciphertext'],
                     'identity_number_lookup_hash' => $identityPayload['identity_number_lookup_hash'],
@@ -112,19 +109,17 @@ class UserProfileCompletionService
             $this->rejectIdentityChangeWhenLocked($user, $data, $hasIdentity);
 
             if (! $hasIdentity) {
-                if (! empty($data['identity_type']) && ! empty($data['identity_number'])) {
-                    $identityType = IdentityType::from((string) $data['identity_type']);
-
+                if (! empty($data['identity_number'])) {
                     if (IdentityNumberService::isDuplicate((string) $data['identity_number'], $user->id)) {
                         throw new InvalidArgumentException('duplicate_identity');
                     }
 
                     $identityPayload = IdentityNumberService::prepareStoragePayload(
                         (string) $data['identity_number'],
-                        $identityType,
                     );
 
                     $userAttributes = array_merge($userAttributes, [
+                        'identity_category' => $identityPayload['identity_category']->value,
                         'identity_type' => $identityPayload['identity_type']->value,
                         'identity_number_ciphertext' => $identityPayload['identity_number_ciphertext'],
                         'identity_number_lookup_hash' => $identityPayload['identity_number_lookup_hash'],

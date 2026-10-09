@@ -22,15 +22,16 @@ class UpdatePortalProfileRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $identityType = IdentityType::tryFrom((string) $this->input('identity_type'));
-
         $merge = [
             'phone' => SaudiPhoneService::normalize($this->input('phone')),
         ];
 
         if ($this->filled('identity_number')) {
-            $merge['identity_number'] = IdentityNumberService::normalize($this->input('identity_number'));
-            $merge['identity_type'] = $identityType?->value;
+            $normalized = IdentityNumberService::normalize($this->input('identity_number'));
+            $merge['identity_number'] = $normalized;
+            $merge['identity_type'] = $normalized !== null
+                ? IdentityNumberService::typeFromNumber($normalized)?->value
+                : null;
         }
 
         $this->merge($merge);
@@ -90,6 +91,7 @@ class UpdatePortalProfileRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'identity_type.required' => IdentityNumberService::INVALID_PREFIX_MESSAGE,
             'avatar.image' => 'يجب أن يكون الملف صورة حقيقية (JPEG أو PNG أو WebP).',
             'avatar.mimes' => 'الصيغ المسموحة فقط: JPEG و PNG و WebP. لا يُسمح بـ SVG أو GIF.',
             'avatar.max' => 'حجم الصورة يجب ألا يتجاوز 5 ميجابايت.',

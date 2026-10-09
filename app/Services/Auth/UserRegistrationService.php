@@ -2,7 +2,6 @@
 
 namespace App\Services\Auth;
 
-use App\Enums\IdentityType;
 use App\Enums\PrivacyPolicyAcknowledgementSource;
 use App\Models\PrivacyPolicyVersion;
 use App\Models\User;
@@ -30,10 +29,8 @@ class UserRegistrationService
     {
         return DB::transaction(function () use ($data, $policy, $request): User {
             $nameParts = PersonNameService::normalizedParts($data);
-            $identityType = IdentityType::from((string) $data['identity_type']);
             $identityPayload = IdentityNumberService::prepareStoragePayload(
                 (string) $data['identity_number'],
-                $identityType,
             );
 
             if (IdentityNumberService::isDuplicate((string) $data['identity_number'])) {
@@ -56,6 +53,7 @@ class UserRegistrationService
                 'is_active' => true,
                 'phone' => $phone,
                 ...$nameParts,
+                'identity_category' => $identityPayload['identity_category']->value,
                 'identity_type' => $identityPayload['identity_type']->value,
                 'identity_number_ciphertext' => $identityPayload['identity_number_ciphertext'],
                 'identity_number_lookup_hash' => $identityPayload['identity_number_lookup_hash'],

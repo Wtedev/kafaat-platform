@@ -195,16 +195,17 @@
                         <input type="email" name="email" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm" dir="ltr" />
                     </div>
                     <div>
-                        <label class="mb-1 block text-sm font-medium">نوع الهوية</label>
-                        <select name="identity_type" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm">
-                            @foreach (\App\Enums\IdentityType::cases() as $type)
-                            <option value="{{ $type->value }}">{{ $type->label() }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
                         <label class="mb-1 block text-sm font-medium">رقم الهوية الجديد</label>
-                        <input type="text" name="identity_number" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm" dir="ltr" />
+                        <div class="flex flex-wrap items-center gap-3">
+                            <input type="text" name="identity_number" class="w-full max-w-xs rounded-xl border border-gray-300 px-3 py-2 text-sm" dir="ltr" inputmode="numeric" maxlength="10" data-identity-number-input aria-describedby="privacy-identity-category-hint" />
+                            <span
+                                id="privacy-identity-category-hint"
+                                class="hidden text-sm font-medium text-[#335483]"
+                                data-identity-category-hint
+                                data-label-saudi="هوية وطنية"
+                                data-label-resident="إقامة"
+                            ></span>
+                        </div>
                     </div>
                     <div class="sm:col-span-2">
                         <label class="mb-1 block text-sm font-medium">كلمة المرور (مطلوبة للحقول الحساسة)</label>

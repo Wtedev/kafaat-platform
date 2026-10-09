@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Enums\AccountStatus;
 use App\Enums\AttendanceStatus;
-use App\Enums\IdentityType;
 use App\Enums\MembershipType;
 use App\Enums\OpportunityStatus;
 use App\Enums\ProfileGender;
@@ -617,6 +616,7 @@ class StaffUiPreviewSeeder extends Seeder
         if (! $complete) {
             $user->forceFill([
                 'identity_type' => null,
+                'identity_category' => null,
                 'identity_number_ciphertext' => null,
                 'identity_number_lookup_hash' => null,
                 'identity_number_last4' => null,
@@ -627,10 +627,7 @@ class StaffUiPreviewSeeder extends Seeder
         }
 
         $number = sprintf('1%09d', 90000000 + $index);
-        $user->forceFill(IdentityNumberService::prepareStoragePayload(
-            $number,
-            $index % 2 === 0 ? IdentityType::NationalId : IdentityType::Iqama,
-        ))->save();
+        $user->forceFill(IdentityNumberService::prepareStoragePayload($number))->save();
     }
 
     private function syncCvFile(User $user, Profile $profile, bool $withCv): void

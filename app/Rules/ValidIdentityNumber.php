@@ -10,7 +10,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 class ValidIdentityNumber implements ValidationRule
 {
     public function __construct(
-        private readonly ?IdentityType $type,
+        private readonly ?IdentityType $type = null,
         private readonly bool $required = true,
     ) {}
 
@@ -24,16 +24,17 @@ class ValidIdentityNumber implements ValidationRule
             return;
         }
 
-        if (! $this->type instanceof IdentityType) {
-            $fail('نوع الهوية مطلوب.');
+        $normalized = IdentityNumberService::normalize(is_string($value) ? $value : (string) $value);
+
+        if ($normalized === null || ! IdentityNumberService::isValidFormat($normalized)) {
+            $fail(IdentityNumberService::validationMessage($normalized));
 
             return;
         }
 
-        $normalized = IdentityNumberService::normalize(is_string($value) ? $value : (string) $value);
-
-        if ($normalized === null || ! IdentityNumberService::isValidFormat($normalized)) {
-            $fail('رقم الهوية أو الإقامة يجب أن يكون 10 أرقام.');
+        if ($this->type instanceof IdentityType
+            && ! IdentityNumberService::isValidForType($normalized, $this->type)) {
+            $fail(IdentityNumberService::INVALID_PREFIX_MESSAGE);
         }
     }
 }

@@ -45,7 +45,7 @@ class ProgramAcceptanceConditionEvaluatorTest extends TestCase
         $this->assertTrue($evaluator->evaluate($program, $saudi)['eligible']);
         $this->assertFalse($evaluator->evaluate($program, $resident)['eligible']);
 
-        $storedAsSaudi = IdentityNumberService::prepareStoragePayload('2345678901', IdentityType::NationalId);
+        $storedAsSaudi = IdentityNumberService::prepareStoragePayload('2345678901');
         $mismatchedSaudi = User::factory()->create([
             'identity_type' => IdentityType::NationalId,
             'identity_number_ciphertext' => $storedAsSaudi['identity_number_ciphertext'],
@@ -58,7 +58,7 @@ class ProgramAcceptanceConditionEvaluatorTest extends TestCase
             'grandfather_name' => 'عبدالله',
             'family_name' => 'العلي',
         ]);
-        $storedAsResident = IdentityNumberService::prepareStoragePayload('1345678901', IdentityType::Iqama);
+        $storedAsResident = IdentityNumberService::prepareStoragePayload('1345678901');
         $mismatchedResident = User::factory()->create([
             'identity_type' => IdentityType::Iqama,
             'identity_number_ciphertext' => $storedAsResident['identity_number_ciphertext'],

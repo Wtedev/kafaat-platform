@@ -240,10 +240,9 @@ class IdentityLockAndNationalityTest extends TestCase
         $approver = User::factory()->create(['role_type' => 'staff']);
         $service = app(ProgramRegistrationService::class);
 
-        $prefixTwoStoredAsSaudi = $this->beneficiary(
-            IdentityNumberService::prepareStoragePayload('2091111111', IdentityType::NationalId),
-            'prefix-two@example.com',
-        );
+        $prefixTwo = IdentityNumberService::prepareStoragePayload('2091111111');
+        $prefixTwo['identity_type'] = IdentityType::NationalId;
+        $prefixTwoStoredAsSaudi = $this->beneficiary($prefixTwo, 'prefix-two@example.com');
 
         try {
             $service->register($program, $prefixTwoStoredAsSaudi);
@@ -272,10 +271,9 @@ class IdentityLockAndNationalityTest extends TestCase
             'learning_path_id' => null,
             'acceptance_conditions' => ['require_saudi_national' => true],
         ]);
-        $user = $this->beneficiary(
-            IdentityNumberService::prepareStoragePayload('1091111111', IdentityType::Iqama),
-            'prefix-one@example.com',
-        );
+        $prefixOne = IdentityNumberService::prepareStoragePayload('1091111111');
+        $prefixOne['identity_type'] = IdentityType::Iqama;
+        $user = $this->beneficiary($prefixOne, 'prefix-one@example.com');
         $registration = ProgramRegistration::query()->create([
             'training_program_id' => $program->id,
             'user_id' => $user->id,
