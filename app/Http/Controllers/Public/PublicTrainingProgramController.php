@@ -93,6 +93,16 @@ class PublicTrainingProgramController extends Controller
 
         $inPerson = $trainingProgram->delivery_mode?->hasPhysicalComponent() ?? false;
 
+        $missingProfile = ProgramAcceptanceConditions::missingProfileFieldsForRegistration(
+            $trainingProgram,
+            $request->user(),
+        );
+        if ($missingProfile !== []) {
+            return redirect()->route('portal.profile.complete', [
+                'return' => '/programs/'.$trainingProgram->slug,
+            ]);
+        }
+
         $request->validate(
             [
                 'attendance_acknowledgement' => ['accepted'],

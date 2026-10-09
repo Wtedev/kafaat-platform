@@ -128,7 +128,7 @@ class ProgramAcceptanceConditionsRegistrationTest extends TestCase
         $this->assertArrayNotHasKey('acceptance_require_saudi_national', $packed);
     }
 
-    public function test_form_data_packer_clears_conditions_when_manual_toggle_off(): void
+    public function test_form_data_packer_keeps_conditions_when_acceptance_toggles_are_off(): void
     {
         $packed = ProgramAcceptanceConditions::applyFormData([
             'auto_accept_registrations' => false,
@@ -137,11 +137,73 @@ class ProgramAcceptanceConditionsRegistrationTest extends TestCase
             'acceptance_genders' => [],
             'acceptance_min_age' => null,
             'acceptance_max_age' => null,
+            'acceptance_cities' => ['جدة'],
+            'acceptance_require_complete_profile' => false,
+        ]);
+
+        $this->assertSame([
+            'require_saudi_national' => true,
+            'genders' => [],
+            'gender_capacity_full' => [],
+            'min_age' => null,
+            'max_age' => null,
+            'cities' => ['جدة'],
+            'require_complete_profile' => false,
+        ], $packed['acceptance_conditions']);
+    }
+
+    public function test_form_data_packer_clears_conditions_only_when_fields_are_empty(): void
+    {
+        $packed = ProgramAcceptanceConditions::applyFormData([
+            'auto_accept_registrations' => false,
+            'acceptance_manual_review' => false,
+            'acceptance_require_saudi_national' => false,
+            'acceptance_genders' => [],
+            'acceptance_min_age' => null,
+            'acceptance_max_age' => null,
             'acceptance_cities' => [],
             'acceptance_require_complete_profile' => false,
         ]);
 
         $this->assertNull($packed['acceptance_conditions']);
+    }
+
+    public function test_missing_condition_field_sends_the_beneficiary_to_profile_completion_then_back(): void
+    {
+        $user = $this->makeEligiblePortalUser();
+        $user->profile->forceFill(['gender' => null])->save();
+        $program = $this->makeOpenProgram([
+            'auto_accept_registrations' => false,
+            'acceptance_conditions' => [
+                'genders' => [ProfileGender::Female->value],
+            ],
+        ]);
+
+        $this->actingAsOtpVerified($user)
+            ->from(route('public.programs.show', $program))
+            ->post(route('public.programs.register', $program), [
+                'attendance_acknowledgement' => '1',
+            ])
+            ->assertRedirect(route('portal.profile.complete', [
+                'return' => '/programs/'.$program->slug,
+            ]));
+
+        $this->assertDatabaseMissing('program_registrations', [
+            'training_program_id' => $program->id,
+            'user_id' => $user->id,
+        ]);
+
+        $payload = $this->validRegistrationPayload();
+        unset($payload['email'], $payload['password'], $payload['password_confirmation']);
+
+        $this->actingAsOtpVerified($user)
+            ->get(route('portal.profile.complete', [
+                'return' => '/programs/'.$program->slug,
+            ]))
+            ->assertOk();
+
+        $this->post(route('portal.profile.complete.store'), $payload)
+            ->assertRedirect('/programs/'.$program->slug);
     }
 
     private function makeEligiblePortalUser(IdentityType $type = IdentityType::NationalId): User

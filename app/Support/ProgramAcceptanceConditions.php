@@ -4,6 +4,8 @@ namespace App\Support;
 
 use App\Enums\IdentityType;
 use App\Enums\ProfileGender;
+use App\Models\TrainingProgram;
+use App\Models\User;
 
 /**
  * Structured acceptance / eligibility rules stored on training_programs.acceptance_conditions.
@@ -99,6 +101,42 @@ final class ProgramAcceptanceConditions
     }
 
     /**
+     * Fields the beneficiary must fill before registering when this program checks them.
+     *
+     * @return list<'identity_number'|'gender'|'birth_date'>
+     */
+    public static function missingProfileFieldsForRegistration(TrainingProgram $program, User $user): array
+    {
+        $conditions = self::normalize(
+            is_array($program->acceptance_conditions) ? $program->acceptance_conditions : null,
+        );
+
+        if ($conditions === null) {
+            return [];
+        }
+
+        $user->loadMissing('profile');
+        $missing = [];
+
+        if ($conditions['require_saudi_national'] && ! filled($user->identity_number_ciphertext)) {
+            $missing[] = 'identity_number';
+        }
+
+        if ($conditions['genders'] !== [] && ! $user->profile?->gender instanceof ProfileGender) {
+            $missing[] = 'gender';
+        }
+
+        if (
+            ($conditions['min_age'] !== null || $conditions['max_age'] !== null)
+            && $user->profile?->birth_date === null
+        ) {
+            $missing[] = 'birth_date';
+        }
+
+        return $missing;
+    }
+
+    /**
      * Unpack stored JSON into Filament form flat fields.
      *
      * @param  array<string, mixed>|null  $conditions
@@ -137,25 +175,32 @@ final class ProgramAcceptanceConditions
      */
     public static function applyFormData(array $data): array
     {
-        $autoAccept = (bool) ($data['auto_accept_registrations'] ?? false);
-        $manualReview = (bool) ($data['acceptance_manual_review'] ?? false);
+        $conditionKeys = array_values(array_diff(self::FORM_KEYS, ['acceptance_manual_review']));
+        $hasConditionInputs = false;
+        foreach ($conditionKeys as $key) {
+            if (array_key_exists($key, $data)) {
+                $hasConditionInputs = true;
+                break;
+            }
+        }
 
-        $shouldPersistConditions = $autoAccept || $manualReview;
-
-        if ($shouldPersistConditions) {
+        if ($hasConditionInputs) {
+            $existing = is_array($data['acceptance_conditions'] ?? null) ? $data['acceptance_conditions'] : [];
             $data['acceptance_conditions'] = self::normalize([
                 'require_saudi_national' => (bool) ($data['acceptance_require_saudi_national'] ?? false),
                 'genders' => is_array($data['acceptance_genders'] ?? null) ? $data['acceptance_genders'] : [],
-                'gender_capacity_full' => is_array($data['acceptance_gender_capacity_full'] ?? null)
-                    ? $data['acceptance_gender_capacity_full']
-                    : [],
+                'gender_capacity_full' => array_key_exists('acceptance_gender_capacity_full', $data)
+                    ? (is_array($data['acceptance_gender_capacity_full']) ? $data['acceptance_gender_capacity_full'] : [])
+                    : (is_array($existing['gender_capacity_full'] ?? null) ? $existing['gender_capacity_full'] : []),
                 'min_age' => $data['acceptance_min_age'] ?? null,
                 'max_age' => $data['acceptance_max_age'] ?? null,
-                'cities' => is_array($data['acceptance_cities'] ?? null) ? $data['acceptance_cities'] : [],
-                'require_complete_profile' => (bool) ($data['acceptance_require_complete_profile'] ?? false),
+                'cities' => array_key_exists('acceptance_cities', $data)
+                    ? (is_array($data['acceptance_cities']) ? $data['acceptance_cities'] : [])
+                    : (is_array($existing['cities'] ?? null) ? $existing['cities'] : []),
+                'require_complete_profile' => array_key_exists('acceptance_require_complete_profile', $data)
+                    ? (bool) $data['acceptance_require_complete_profile']
+                    : (bool) ($existing['require_complete_profile'] ?? false),
             ]);
-        } else {
-            $data['acceptance_conditions'] = null;
         }
 
         foreach (self::FORM_KEYS as $key) {

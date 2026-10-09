@@ -2369,3 +2369,56 @@ a.sui-menu-item {
     .sui-sidebar { transition: none; }
     .sui-program-card { transition: none; }
 }
+
+.sui-wizard-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 16px;
+    padding: 0;
+    list-style: none;
+}
+
+.sui-wizard-steps button,
+.sui-wizard-steps span {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.sui-wizard-steps .is-current span,
+.sui-wizard-steps .is-current button {
+    font-weight: 700;
+}
+
+.sui-wizard-sub {
+    margin: 20px 0 8px;
+    font-size: 1rem;
+}
+
+.sui-wizard-hint,
+.sui-wizard-status {
+    margin: 8px 0 16px;
+    color: var(--sui-muted, #5c6b7a);
+}
+
+.sui-wizard-cover {
+    display: block;
+    max-width: 280px;
+    margin-top: 8px;
+    border-radius: 12px;
+}
+
+.sui-wizard-days,
+.sui-wizard-summary {
+    display: grid;
+    gap: 8px;
+}
+
+.sui-wizard {
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+}

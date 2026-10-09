@@ -58,6 +58,7 @@ use App\Http\Controllers\StaffUi\StaffDirectoryController;
 use App\Http\Controllers\StaffUi\StaffInboxController;
 use App\Http\Controllers\StaffUi\StaffProfileController;
 use App\Http\Controllers\StaffUi\StaffProgramController;
+use App\Http\Controllers\StaffUi\StaffProgramWizardController;
 use App\Http\Controllers\StaffUi\StaffUiDemoController;
 use App\Support\StaffUi\StaffUiModule;
 use Illuminate\Support\Facades\Route;
@@ -147,6 +148,12 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.St
     ->prefix('staff-ui')
     ->name('staff-ui.')
     ->group(function () {
+        Route::get('/programs/create', [StaffProgramWizardController::class, 'create'])->name('programs.create');
+        Route::post('/programs/create', [StaffProgramWizardController::class, 'storeNew'])->name('programs.wizard.store-new');
+        Route::get('/programs/{program}/wizard/{step}', [StaffProgramWizardController::class, 'show'])->whereNumber('step')->name('programs.wizard');
+        Route::post('/programs/{program}/wizard/{step}', [StaffProgramWizardController::class, 'store'])->whereNumber('step')->name('programs.wizard.store');
+        Route::post('/programs/{program}/wizard-preview-mail', [StaffProgramWizardController::class, 'previewMail'])->name('programs.wizard.preview-mail');
+        Route::get('/programs/{program}/preview', [StaffProgramWizardController::class, 'preview'])->name('programs.wizard.preview');
         Route::get('/programs', [StaffProgramController::class, 'index'])->name('programs.index');
         Route::get('/programs/{program}', [StaffProgramController::class, 'show'])->name('programs.show');
     });
