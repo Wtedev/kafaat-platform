@@ -11,12 +11,14 @@ use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
 use App\Exceptions\RegistrationNotEligibleException;
 use App\Filament\Resources\TrainingProgramResource\Pages\ViewTrainingProgram;
+use App\Filament\Support\TrainingProgramViewPresenter;
 use App\Models\Profile;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\ProgramRegistrationService;
 use App\Services\Rbac\RbacCatalog;
+use App\Services\StaffUi\StaffProgramWizard;
 use App\Support\ProgramAcceptanceConditions;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -270,6 +272,59 @@ class ProgramAcceptanceConditionsRegistrationTest extends TestCase
             'training_program_id' => $program->id,
             'user_id' => $man->id,
         ]);
+    }
+
+    public function test_suspended_acceptance_conditions_are_not_shown_as_active_rules(): void
+    {
+        $conditions = [
+            'require_saudi_national' => true,
+            'genders' => [ProfileGender::Female->value],
+            'min_age' => 18,
+            'max_age' => 38,
+            'enforced' => false,
+        ];
+        $program = $this->makeOpenProgram([
+            'title' => 'برنامج شروطه غير سارية',
+            'auto_accept_registrations' => false,
+            'acceptance_conditions' => $conditions,
+            'capacity' => 40,
+        ]);
+
+        $this->get(route('public.programs.show', $program))
+            ->assertOk()
+            ->assertDontSee('من 18 إلى 38 سنة')
+            ->assertDontSee('سعوديون وسعوديات')
+            ->assertSee('ذكور وإناث')
+            ->assertDontSee('إناث فقط');
+
+        $enrollment = collect(TrainingProgramViewPresenter::present($program)['sections'])
+            ->firstWhere('title', 'التسجيل والسعة');
+        $labels = collect($enrollment['rows'])->pluck('label');
+        $this->assertFalse($labels->contains('شروط القبول'));
+
+        $preview = app(StaffProgramWizard::class)->acceptancePreview($program);
+        $this->assertFalse(collect($preview)->contains(fn (string $line): bool => str_contains($line, '18')));
+        $this->assertFalse(collect($preview)->contains(fn (string $line): bool => str_contains($line, 'سعودي')));
+        $this->assertTrue(collect($preview)->contains(fn (string $line): bool => str_contains($line, 'ذكور وإناث')));
+
+        $program->forceFill([
+            'acceptance_conditions' => array_diff_key($conditions, ['enforced' => true]),
+        ])->save();
+        $program->refresh();
+
+        $this->get(route('public.programs.show', $program))
+            ->assertOk()
+            ->assertSee('من 18 إلى 38 سنة')
+            ->assertSee('سعوديون وسعوديات')
+            ->assertSee('إناث')
+            ->assertDontSee('ذكور وإناث');
+
+        $active = collect(TrainingProgramViewPresenter::present($program->fresh())['sections'])
+            ->firstWhere('title', 'التسجيل والسعة');
+        $conditionRow = collect($active['rows'])->firstWhere('label', 'شروط القبول');
+        $this->assertNotNull($conditionRow);
+        $this->assertStringContainsString('18', $conditionRow['value']);
+        $this->assertStringContainsString('أنثى', $conditionRow['value']);
     }
 
     private function makeEligiblePortalUser(IdentityType $type = IdentityType::NationalId): User

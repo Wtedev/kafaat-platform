@@ -177,7 +177,7 @@ final class StaffProgramWizard
     public function acceptancePreview(TrainingProgram $program): array
     {
         return $this->acceptanceLines(
-            is_array($program->acceptance_conditions) ? $program->acceptance_conditions : null,
+            ProgramAcceptanceConditions::applicable($program),
             $program->capacity,
             $program->capacity_male,
             $program->capacity_female,
