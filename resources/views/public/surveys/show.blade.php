@@ -1,7 +1,93 @@
 @extends('layouts.public')
 @section('title', 'استبيان')
+@section('head')
+    <style>
+        .survey-shell { max-width: 40rem; }
+        .survey-kicker {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            background: #e8eef5;
+            color: #335483;
+            padding: 0.2rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .survey-question {
+            border: 1px solid #e6edf4;
+            border-radius: 1rem;
+            background: #fff;
+            padding: 1rem 1rem 0.9rem;
+        }
+        .survey-question + .survey-question { margin-top: 0.85rem; }
+        .survey-index {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.6rem;
+            height: 1.6rem;
+            border-radius: 999px;
+            background: #335483;
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .survey-stars {
+            display: inline-flex;
+            flex-direction: row-reverse;
+            gap: 0.15rem;
+        }
+        .survey-stars input {
+            position: absolute;
+            inline-size: 1px;
+            block-size: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+        }
+        .survey-stars label {
+            cursor: pointer;
+            font-size: 2rem;
+            line-height: 1;
+            color: #d5dde6;
+            padding: 0 0.05rem;
+        }
+        .survey-stars label:hover,
+        .survey-stars label:hover ~ label,
+        .survey-stars input:checked ~ label { color: #e2b340; }
+        .survey-stars input:focus-visible + label {
+            outline: 2px solid #335483;
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+        .survey-choice {
+            display: flex;
+            gap: 0.6rem;
+            align-items: flex-start;
+            border: 1px solid #e6edf4;
+            border-radius: 0.85rem;
+            padding: 0.65rem 0.8rem;
+            background: #fff;
+        }
+        .survey-choice + .survey-choice { margin-top: 0.45rem; }
+    </style>
+@endsection
 @section('content')
-    <div class="mx-auto max-w-xl rounded-xl border border-gray-100 bg-white p-6">
+    @php
+        $typeLabel = $survey?->type?->label();
+        $programTitle = $survey?->program?->title;
+    @endphp
+    <div class="survey-shell mx-auto rounded-2xl border border-gray-100 bg-white p-6 sm:p-8">
+        @if ($typeLabel || $programTitle)
+            <div class="mb-5">
+                @if ($typeLabel)
+                    <span class="survey-kicker">استبيان {{ $typeLabel }}</span>
+                @endif
+                @if ($programTitle)
+                    <p class="mt-3 text-sm text-gray-500">{{ $programTitle }}</p>
+                @endif
+            </div>
+        @endif
+
         @if ($step === 'unavailable')
             <h1 class="text-xl font-semibold text-[#335483]">{{ \App\Services\Surveys\ProgramSurveyService::UNAVAILABLE_MESSAGE }}</h1>
         @elseif ($step === 'already')
@@ -10,60 +96,69 @@
             <h1 class="text-xl font-semibold text-[#335483]">{{ \App\Services\Surveys\ProgramSurveyService::THANKS_MESSAGE }}</h1>
         @elseif ($step === 'confirm')
             <h1 class="text-xl font-semibold text-[#335483]">تأكيد الهوية</h1>
-            <p class="mt-4 text-lg">{{ $shortName }}</p>
-            <form method="POST" action="{{ route('public.surveys.confirm', $survey->public_token) }}" class="mt-6 flex gap-3">
+            <p class="mt-4 text-2xl font-semibold tracking-wide text-[#335483]" dir="ltr">{{ $shortName }}</p>
+            <form method="POST" action="{{ route('public.surveys.confirm', $survey->public_token) }}" class="mt-6 flex flex-wrap gap-3">
                 @csrf
                 <button type="submit" name="choice" value="yes" class="rounded-xl bg-[#335483] px-4 py-2 text-sm font-semibold text-white">نعم، هذا أنا</button>
                 <button type="submit" name="choice" value="no" class="rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold">ليس أنا</button>
             </form>
         @elseif ($step === 'form')
-            <h1 class="text-xl font-semibold text-[#335483]">الاستبيان</h1>
+            <h1 class="text-xl font-semibold text-[#335483]">الأسئلة</h1>
+            <p class="mt-2 text-sm text-gray-500">رتّب إجابتك باختيار النجوم، من نجمة واحدة إلى خمس نجوم.</p>
             @if ($errors->any())
                 <p class="mt-4 text-sm text-red-700">{{ $errors->first() }}</p>
             @endif
-            <form method="POST" action="{{ route('public.surveys.submit', $survey->public_token) }}" class="mt-6 space-y-6">
+            <form method="POST" action="{{ route('public.surveys.submit', $survey->public_token) }}" class="mt-6">
                 @csrf
                 @foreach ($survey->questions as $question)
-                    <fieldset class="space-y-2">
-                        <legend class="font-semibold">{{ $question->prompt }}</legend>
+                    <fieldset class="survey-question">
+                        <legend class="flex items-start gap-3 font-semibold">
+                            <span class="survey-index">{{ $loop->iteration }}</span>
+                            <span>{{ $question->prompt }}</span>
+                        </legend>
                         @if ($question->type === \App\Enums\SurveyQuestionType::Scale)
-                            <div class="flex flex-wrap items-center gap-3">
+                            <div class="mt-4 flex flex-wrap items-center gap-3" dir="ltr">
                                 @if (filled($question->scale_min_label))
                                     <span class="text-sm text-gray-600">{{ $question->scale_min_label }}</span>
                                 @endif
-                                @for ($score = 1; $score <= 5; $score++)
-                                    <label class="text-sm">
-                                        <input type="radio" name="answers[{{ $question->id }}]" value="{{ $score }}" @checked((string) old('answers.'.$question->id) === (string) $score)>
-                                        {{ $score }}
-                                    </label>
-                                @endfor
+                                <div class="survey-stars">
+                                    @for ($score = 5; $score >= 1; $score--)
+                                        <input id="survey-q-{{ $question->id }}-{{ $score }}" type="radio" name="answers[{{ $question->id }}]" value="{{ $score }}" @checked((string) old('answers.'.$question->id) === (string) $score)>
+                                        <label for="survey-q-{{ $question->id }}-{{ $score }}" aria-label="{{ $score }} من 5">★</label>
+                                    @endfor
+                                </div>
                                 @if (filled($question->scale_max_label))
                                     <span class="text-sm text-gray-600">{{ $question->scale_max_label }}</span>
                                 @endif
                             </div>
                         @elseif ($question->type === \App\Enums\SurveyQuestionType::Single)
-                            @foreach ($question->options ?? [] as $option)
-                                <label class="block text-sm">
-                                    <input type="radio" name="answers[{{ $question->id }}]" value="{{ $option }}">
-                                    {{ $option }}
-                                </label>
-                            @endforeach
+                            <div class="mt-3">
+                                @foreach ($question->options ?? [] as $option)
+                                    <label class="survey-choice text-sm">
+                                        <input type="radio" name="answers[{{ $question->id }}]" value="{{ $option }}">
+                                        {{ $option }}
+                                    </label>
+                                @endforeach
+                            </div>
                         @elseif ($question->type === \App\Enums\SurveyQuestionType::Multiple)
-                            @foreach ($question->options ?? [] as $option)
-                                <label class="block text-sm">
-                                    <input type="checkbox" name="answers[{{ $question->id }}][]" value="{{ $option }}">
-                                    {{ $option }}
-                                </label>
-                            @endforeach
+                            <div class="mt-3">
+                                @foreach ($question->options ?? [] as $option)
+                                    <label class="survey-choice text-sm">
+                                        <input type="checkbox" name="answers[{{ $question->id }}][]" value="{{ $option }}">
+                                        {{ $option }}
+                                    </label>
+                                @endforeach
+                            </div>
                         @else
-                            <textarea name="answers[{{ $question->id }}]" rows="3" class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm"></textarea>
+                            <textarea name="answers[{{ $question->id }}]" rows="3" class="mt-3 w-full rounded-xl border border-gray-300 px-3 py-2 text-sm"></textarea>
                         @endif
                     </fieldset>
                 @endforeach
-                <button type="submit" class="rounded-xl bg-[#335483] px-4 py-2 text-sm font-semibold text-white">إرسال</button>
+                <button type="submit" class="mt-6 w-full rounded-xl bg-[#335483] px-4 py-3 text-sm font-semibold text-white sm:w-auto">إرسال</button>
             </form>
         @else
             <h1 class="text-xl font-semibold text-[#335483]">أدخل رقم الهوية</h1>
+            <p class="mt-2 text-sm text-gray-500">نطابق الرقم مع تسجيلك المقبول في البرنامج، ثم نعرض اسمًا مختصرًا للتأكيد.</p>
             @if ($errors->any())
                 <p class="mt-4 text-sm text-red-700">{{ $errors->first() }}</p>
             @endif
