@@ -184,7 +184,7 @@ class ProgramAttendanceLinksTest extends TestCase
             ->set('tab', 'manual')
             ->assertSee('نورة سعد')
             ->call('mark', $registration->id)
-            ->assertSee('حاضر');
+            ->assertSee('تحضير');
 
         $mark = ProgramAttendanceMark::query()->firstOrFail();
         $this->assertSame(AttendanceMarkSource::Manual, $mark->source);

@@ -46,9 +46,9 @@
                     <li class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 px-4 py-3">
                         <span class="font-semibold text-[#335483]">{{ $registration->user?->fullName() }}</span>
                         @if ($marks->has($registration->id))
-                            <span class="text-sm tabular-nums text-gray-500">حاضر {{ $marks->get($registration->id)->riyadhLabel() }}</span>
+                            <span class="text-sm tabular-nums text-gray-500">تحضير {{ $marks->get($registration->id)->riyadhLabel() }}</span>
                         @else
-                            <button type="button" wire:click="mark({{ $registration->id }})" class="rounded-xl bg-[#335483] px-3 py-1.5 text-sm font-semibold text-white">حاضر</button>
+                            <button type="button" wire:click="mark({{ $registration->id }})" class="rounded-xl bg-[#335483] px-3 py-1.5 text-sm font-semibold text-white">تحضير</button>
                         @endif
                     </li>
                 @endforeach
