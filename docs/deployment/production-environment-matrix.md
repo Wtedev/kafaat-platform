@@ -25,6 +25,9 @@
 | `LOG_LEVEL` | `debug` | `warning` or `error` |
 | `LOG_STACK` | `single` | **`stderr`** (Railway log drains) preferred |
 | `MAIL_MAILER` | `resend` | production provider (**not** `log`) |
+| `WEB_RUNTIME` | unset (local `artisan serve`) | `frankenphp` (default). `artisan` rolls back to `php artisan serve` without a rebuild |
+| `WEB_THREADS` | unset | `32`. FrankenPHP threads. Two replicas stay under 80% of Postgres `max_connections` |
+| `PHP_CLI_SERVER_WORKERS` | unset | used only when `WEB_RUNTIME=artisan` |
 
 Validation: `App\Services\Operations\ProductionEnvironmentValidator` (production only).
 

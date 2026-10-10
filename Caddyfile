@@ -1,0 +1,46 @@
+# FrankenPHP for the Railway web service. Rollback does not use this file:
+# set WEB_RUNTIME=artisan and the start script returns to php artisan serve.
+{
+	admin off
+	persist_config off
+	auto_https off
+
+	log {
+		format json
+		output stderr
+		level INFO
+	}
+
+	frankenphp {
+		num_threads {$WEB_THREADS:32}
+		php_ini opcache.enable 1
+		php_ini opcache.enable_cli 0
+		php_ini opcache.validate_timestamps 0
+		php_ini opcache.revalidate_freq 0
+		php_ini opcache.memory_consumption 256
+		php_ini opcache.max_accelerated_files 20000
+		php_ini opcache.interned_strings_buffer 16
+		php_ini opcache.jit disable
+		php_ini opcache.jit_buffer_size 0
+	}
+}
+
+:{$PORT:8080} {
+	root * /app/public
+	encode zstd gzip
+
+	# Vite fingerprints /build. Fonts and images are not fingerprinted, so their
+	# cache is long but not immutable.
+	@hashed path /build/*
+	header @hashed Cache-Control "public, max-age=31536000, immutable"
+
+	@static path /fonts/* /images/*
+	header @static Cache-Control "public, max-age=2592000"
+
+	file_server {
+		hide .git
+		hide .env*
+	}
+
+	php_server
+}

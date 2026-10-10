@@ -24,6 +24,8 @@
 /storage/pail
 /vendor
 /scripts/load/identities.json
+/scripts/load/logins.json
+/scripts/load/peak-target.json
 /scripts/load/target.txt
 _ide_helper.php
 Homestead.json
