@@ -593,6 +593,11 @@ class TrainingProgram extends Model
         return $this->hasMany(ProgramSurvey::class);
     }
 
+    public function attendanceLinks(): HasMany
+    {
+        return $this->hasMany(ProgramAttendanceLink::class);
+    }
+
     public function broadcasts(): HasMany
     {
         return $this->hasMany(ProgramBroadcast::class);

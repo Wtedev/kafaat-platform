@@ -13,6 +13,7 @@ use App\Filament\Resources\Concerns\EntityNotesRelationManager;
 use App\Filament\Resources\LearningPathResource\RelationManagers\TrainingProgramsRelationManager;
 use App\Filament\Resources\TrainingProgramResource\Pages;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramAttendanceCheckersRelationManager;
+use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramAttendanceLinksRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramAttendanceRegistrationsRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramBroadcastsRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramGradesRelationManager;
@@ -510,6 +511,7 @@ class TrainingProgramResource extends Resource
             ProgramRegistrationsRelationManager::class,
             ProgramSurveysRelationManager::class,
             ProgramBroadcastsRelationManager::class,
+            ProgramAttendanceLinksRelationManager::class,
             ProgramAttendanceRegistrationsRelationManager::class,
             ProgramPrepDaysRelationManager::class,
             ProgramAttendanceCheckersRelationManager::class,
