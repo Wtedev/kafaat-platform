@@ -139,7 +139,7 @@ class ProgramAttendanceLinksTest extends TestCase
             ->from(route('portal.dashboard'))
             ->post(route('portal.attendance.check-in', $link->token))
             ->assertSessionHasErrors(['attendance' => ProgramAttendanceLinkService::CLOSED_MESSAGE]);
-        $this->assertSame(ProgramAttendanceLinkService::OPEN_MINUTES, (int) $reopened->opens_at->diffInMinutes($reopened->closes_at));
+        $this->assertSame(15, (int) $reopened->opens_at->diffInMinutes($reopened->closes_at));
         $this->assertDatabaseCount('program_attendance_marks', 0);
     }
 

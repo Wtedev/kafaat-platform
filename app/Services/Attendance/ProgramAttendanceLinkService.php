@@ -23,7 +23,7 @@ final class ProgramAttendanceLinkService
 
     public const ALREADY_MESSAGE = 'سبق تسجيل حضورك في هذا الرابط.';
 
-    public const OPEN_MINUTES = 10;
+    public const OPEN_MINUTES = 15;
 
     public function create(TrainingProgram $program, string $name): ProgramAttendanceLink
     {
