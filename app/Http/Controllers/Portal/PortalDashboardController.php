@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Portal;
 
 use App\Enums\RegistrationStatus;
 use App\Http\Controllers\Controller;
+use App\Models\ProgramAttendanceLink;
 use App\Services\Inbox\InboxNotificationService;
 use App\Services\Portal\PortalDashboardComposer;
 use Illuminate\Http\Request;
@@ -35,6 +36,21 @@ class PortalDashboardController extends Controller
         $inbox = app(InboxNotificationService::class);
         $inboxPreview = $inbox->latestForUser($user, 6);
         $inboxUnreadCount = $inbox->unreadCount($user);
+        $openAttendanceLinks = ProgramAttendanceLink::query()
+            ->whereNull('cancelled_at')
+            ->whereNotNull('opens_at')
+            ->whereNotNull('closes_at')
+            ->where('opens_at', '<=', now())
+            ->where('closes_at', '>', now())
+            ->whereHas('program.registrations', function ($query) use ($user): void {
+                $query->where('user_id', $user->id)
+                    ->where('status', RegistrationStatus::Approved->value);
+            })
+            ->whereDoesntHave('marks', function ($query) use ($user): void {
+                $query->whereHas('registration', fn ($registration) => $registration->where('user_id', $user->id));
+            })
+            ->orderBy('closes_at')
+            ->get();
 
         return view('portal.dashboard', compact(
             'user',
@@ -49,6 +65,7 @@ class PortalDashboardController extends Controller
             'volunteerTeamNotifications',
             'inboxPreview',
             'inboxUnreadCount',
+            'openAttendanceLinks',
         ));
     }
 }

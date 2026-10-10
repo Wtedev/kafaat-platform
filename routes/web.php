@@ -41,6 +41,8 @@ use App\Http\Controllers\Portal\PortalSettingsController;
 use App\Http\Controllers\Portal\PortalSupportController;
 use App\Http\Controllers\Portal\PortalSupportWidgetController;
 use App\Http\Controllers\Portal\PortalVolunteerController;
+use App\Http\Controllers\Portal\ProgramAttendanceLinkCheckInController;
+use App\Http\Controllers\Public\AttendanceDeskController;
 use App\Http\Controllers\Public\CertificateVerificationController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\PublicCompetencyTracksController;
@@ -223,6 +225,10 @@ Route::prefix('gate/{program:slug}')->name('gate.')->group(function () {
     });
 });
 
+Route::get('/a/{token}', [AttendanceDeskController::class, 'show'])
+    ->where('token', '[A-Za-z0-9]{32,80}')
+    ->name('public.attendance.desk');
+
 Route::get('/s/{publicToken}', [PublicSurveyController::class, 'show'])
     ->where('publicToken', '[A-Za-z0-9]{32,80}')
     ->name('public.surveys.show');
@@ -285,6 +291,9 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'beneficiary', 'privac
     ->group(function () {
 
         Route::get('/', PortalDashboardController::class)->name('dashboard');
+        Route::post('/attendance/{token}', ProgramAttendanceLinkCheckInController::class)
+            ->where('token', '[A-Za-z0-9]{32,80}')
+            ->name('attendance.check-in');
 
         Route::get('/notifications', [PortalInboxController::class, 'index'])->name('notifications');
         Route::get('/notifications/settings', [PortalInboxController::class, 'settings'])->name('notifications.settings');
