@@ -9,6 +9,8 @@ use App\Models\ProgramAttendanceMark;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Services\Identity\IdentityNumberService;
+use App\Services\Surveys\ProgramSurveyService;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -17,18 +19,27 @@ final class ProgramAttendanceLinkService
 {
     public const CLOSED_MESSAGE = 'التحضير غير مفتوح الآن.';
 
+    public const UNAVAILABLE_MESSAGE = 'رابط التحضير غير متاح الآن';
+
     public const CANCELLED_MESSAGE = 'رابط التحضير ملغى.';
 
     public const NOT_APPROVED_MESSAGE = 'تعذّر تسجيل الحضور. القبول في البرنامج مطلوب.';
 
+    public const NOT_FOUND_MESSAGE = 'لم نجد تسجيلاً مقبولاً بهذا الرقم في البرنامج. تواصل مع فريق البرنامج';
+
     public const ALREADY_MESSAGE = 'سبق تسجيل حضورك في هذا الرابط.';
+
+    public const ALREADY_PUBLIC_MESSAGE = 'حضورك مسجّل مسبقاً';
+
+    public const RECORDED_MESSAGE = 'تم تسجيل حضورك';
 
     public const OPEN_MINUTES = 15;
 
-    public function create(TrainingProgram $program, string $name): ProgramAttendanceLink
+    public function create(TrainingProgram $program, string $name, int $openMinutes = self::OPEN_MINUTES): ProgramAttendanceLink
     {
         return $program->attendanceLinks()->create([
             'name' => trim($name),
+            'open_minutes' => max(1, $openMinutes),
         ]);
     }
 
@@ -50,7 +61,7 @@ final class ProgramAttendanceLinkService
 
         $link->update([
             'opens_at' => now(),
-            'closes_at' => now()->addMinutes(self::OPEN_MINUTES),
+            'closes_at' => now()->addMinutes($link->openMinutes()),
         ]);
 
         return $link->refresh();
@@ -65,9 +76,73 @@ final class ProgramAttendanceLinkService
         return $link->refresh();
     }
 
-    public function checkIn(ProgramAttendanceLink $link, User $user): ProgramAttendanceMark
+    /**
+     * @return array{status: 'match'|'missing'|'already'|'closed', short_name: ?string, registration_id: ?int, attended_at: ?string}
+     */
+    public function identify(ProgramAttendanceLink $link, string $nationalId): array
     {
-        return $this->store($link, $user, AttendanceMarkSource::Self, requireOpen: true);
+        if (! $link->isOpen()) {
+            return ['status' => 'closed', 'short_name' => null, 'registration_id' => null, 'attended_at' => null];
+        }
+
+        $normalized = IdentityNumberService::normalize($nationalId);
+        $lookup = is_string($normalized) && IdentityNumberService::isValidFormat($normalized)
+            ? IdentityNumberService::generateLookupHash($normalized)
+            : hash('sha256', 'attendance-miss');
+
+        $registration = ProgramRegistration::query()
+            ->where('training_program_id', $link->training_program_id)
+            ->where('status', RegistrationStatus::Approved->value)
+            ->whereHas('user', fn ($query) => $query->where('identity_number_lookup_hash', $lookup))
+            ->first();
+
+        if ($registration === null) {
+            return ['status' => 'missing', 'short_name' => null, 'registration_id' => null, 'attended_at' => null];
+        }
+
+        $existing = $link->marks()->where('program_registration_id', $registration->id)->first();
+        if ($existing !== null) {
+            return [
+                'status' => 'already',
+                'short_name' => null,
+                'registration_id' => $registration->id,
+                'attended_at' => $existing->riyadhLabel(),
+            ];
+        }
+
+        $registration->loadMissing('user');
+
+        return [
+            'status' => 'match',
+            'short_name' => app(ProgramSurveyService::class)->shortName($registration->user),
+            'registration_id' => $registration->id,
+            'attended_at' => null,
+        ];
+    }
+
+    public function confirm(ProgramAttendanceLink $link, int $registrationId, ?string $ip): ProgramAttendanceMark
+    {
+        $registration = ProgramRegistration::query()->whereKey($registrationId)->first();
+        $registration?->loadMissing('user');
+
+        if ($registration === null || $registration->user === null) {
+            throw ValidationException::withMessages([
+                'attendance' => self::NOT_FOUND_MESSAGE,
+            ]);
+        }
+
+        try {
+            return $this->store($link, $registration->user, AttendanceMarkSource::PublicLink, requireOpen: true, registration: $registration, ip: $ip);
+        } catch (ValidationException $exception) {
+            $message = (string) collect($exception->errors())->flatten()->first();
+            if ($message === self::ALREADY_MESSAGE) {
+                throw ValidationException::withMessages([
+                    'attendance' => self::ALREADY_PUBLIC_MESSAGE,
+                ]);
+            }
+
+            throw $exception;
+        }
     }
 
     public function markManual(ProgramAttendanceLink $link, ProgramRegistration $registration): ProgramAttendanceMark
@@ -89,9 +164,10 @@ final class ProgramAttendanceLinkService
         AttendanceMarkSource $source,
         bool $requireOpen,
         ?ProgramRegistration $registration = null,
+        ?string $ip = null,
     ): ProgramAttendanceMark {
         try {
-            return DB::transaction(function () use ($link, $user, $source, $requireOpen, $registration): ProgramAttendanceMark {
+            return DB::transaction(function () use ($link, $user, $source, $requireOpen, $registration, $ip): ProgramAttendanceMark {
                 $locked = ProgramAttendanceLink::query()->whereKey($link->id)->lockForUpdate()->firstOrFail();
 
                 if ($locked->isCancelled()) {
@@ -102,7 +178,7 @@ final class ProgramAttendanceLinkService
 
                 if ($requireOpen && ! $locked->isOpen()) {
                     throw ValidationException::withMessages([
-                        'attendance' => self::CLOSED_MESSAGE,
+                        'attendance' => self::UNAVAILABLE_MESSAGE,
                     ]);
                 }
 
@@ -129,6 +205,7 @@ final class ProgramAttendanceLinkService
                     'program_registration_id' => $registration->id,
                     'attended_at' => now(),
                     'source' => $source,
+                    'ip_address' => $ip,
                 ]);
             });
         } catch (QueryException $exception) {

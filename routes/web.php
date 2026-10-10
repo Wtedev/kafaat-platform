@@ -41,10 +41,10 @@ use App\Http\Controllers\Portal\PortalSettingsController;
 use App\Http\Controllers\Portal\PortalSupportController;
 use App\Http\Controllers\Portal\PortalSupportWidgetController;
 use App\Http\Controllers\Portal\PortalVolunteerController;
-use App\Http\Controllers\Portal\ProgramAttendanceLinkCheckInController;
 use App\Http\Controllers\Public\AttendanceDeskController;
 use App\Http\Controllers\Public\CertificateVerificationController;
 use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\PublicAttendanceController;
 use App\Http\Controllers\Public\PublicCompetencyTracksController;
 use App\Http\Controllers\Public\PublicGovernanceController;
 use App\Http\Controllers\Public\PublicLearningPathController;
@@ -229,6 +229,18 @@ Route::get('/a/{token}', [AttendanceDeskController::class, 'show'])
     ->where('token', '[A-Za-z0-9]{32,80}')
     ->name('public.attendance.desk');
 
+Route::get('/h/{token}', [PublicAttendanceController::class, 'show'])
+    ->where('token', '[A-Za-z0-9]{32,80}')
+    ->name('public.attendance.show');
+Route::post('/h/{token}/identify', [PublicAttendanceController::class, 'identify'])
+    ->where('token', '[A-Za-z0-9]{32,80}')
+    ->middleware(['throttle:attendance-public-ip', 'throttle:attendance-public-identity'])
+    ->name('public.attendance.identify');
+Route::post('/h/{token}/confirm', [PublicAttendanceController::class, 'confirm'])
+    ->where('token', '[A-Za-z0-9]{32,80}')
+    ->middleware('throttle:attendance-public-ip')
+    ->name('public.attendance.confirm');
+
 Route::get('/s/{publicToken}', [PublicSurveyController::class, 'show'])
     ->where('publicToken', '[A-Za-z0-9]{32,80}')
     ->name('public.surveys.show');
@@ -291,9 +303,6 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'beneficiary', 'privac
     ->group(function () {
 
         Route::get('/', PortalDashboardController::class)->name('dashboard');
-        Route::post('/attendance/{token}', ProgramAttendanceLinkCheckInController::class)
-            ->where('token', '[A-Za-z0-9]{32,80}')
-            ->name('attendance.check-in');
 
         Route::get('/notifications', [PortalInboxController::class, 'index'])->name('notifications');
         Route::get('/notifications/settings', [PortalInboxController::class, 'settings'])->name('notifications.settings');

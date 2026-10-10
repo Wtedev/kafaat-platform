@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TrainingProgramResource\RelationManagers;
 
+use App\Exports\ProgramAttendanceMarkExport;
 use App\Models\ProgramAttendanceLink;
 use App\Models\TrainingProgram;
 use App\Services\Attendance\ProgramAttendanceLinkService;
@@ -15,6 +16,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\HtmlString;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProgramAttendanceLinksRelationManager extends RelationManager
 {
@@ -42,6 +44,13 @@ class ProgramAttendanceLinksRelationManager extends RelationManager
                 ->label('اسم الرابط')
                 ->required()
                 ->maxLength(160),
+            TextInput::make('open_minutes')
+                ->label('مدة الفتح بالدقائق')
+                ->numeric()
+                ->default(15)
+                ->minValue(1)
+                ->maxValue(180)
+                ->required(),
         ]);
     }
 
@@ -55,6 +64,9 @@ class ProgramAttendanceLinksRelationManager extends RelationManager
                 TextColumn::make('marks_count')
                     ->counts('marks')
                     ->label('عدد الحاضرين'),
+                TextColumn::make('open_minutes')
+                    ->label('المدة')
+                    ->formatStateUsing(fn ($state): string => ((int) $state).' د'),
                 TextColumn::make('cancelled_at')
                     ->label('الحالة')
                     ->formatStateUsing(fn ($state): string => filled($state) ? 'ملغى' : 'نشط')
@@ -83,6 +95,22 @@ class ProgramAttendanceLinksRelationManager extends RelationManager
                             BLADE,
                             ['url' => $record->publicUrl()],
                         )
+                    )),
+                Action::make('open')
+                    ->label('فتح الآن')
+                    ->visible(fn (ProgramAttendanceLink $record): bool => ! $record->isCancelled() && ! $record->isOpen())
+                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
+                    ->action(fn (ProgramAttendanceLink $record) => app(ProgramAttendanceLinkService::class)->open($record)),
+                Action::make('close')
+                    ->label('إغلاق')
+                    ->visible(fn (ProgramAttendanceLink $record): bool => $record->isOpen())
+                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
+                    ->action(fn (ProgramAttendanceLink $record) => app(ProgramAttendanceLinkService::class)->close($record)),
+                Action::make('export')
+                    ->label('تصدير Excel')
+                    ->action(fn (ProgramAttendanceLink $record) => Excel::download(
+                        new ProgramAttendanceMarkExport($record),
+                        'attendance-'.$record->id.'.xlsx',
                     )),
                 Action::make('cancel')
                     ->label('إلغاء الرابط')
