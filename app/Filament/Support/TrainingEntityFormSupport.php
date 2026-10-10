@@ -250,6 +250,7 @@ final class TrainingEntityFormSupport
             Group::make()
                 ->columnSpanFull()
                 ->visible($conditionsVisible)
+                ->dehydrated(true)
                 ->schema([
                     Placeholder::make('acceptance_conditions_heading')
                         ->hiddenLabel()
@@ -313,7 +314,26 @@ final class TrainingEntityFormSupport
      */
     public static function applyAcceptanceConditions(array $data): array
     {
-        return ProgramAcceptanceConditions::applyFormData($data);
+        $auto = (bool) ($data['auto_accept_registrations'] ?? false);
+        $manual = (bool) ($data['acceptance_manual_review'] ?? false);
+        $data = ProgramAcceptanceConditions::applyFormData($data);
+        $conditions = $data['acceptance_conditions'] ?? null;
+
+        if (! is_array($conditions)) {
+            return $data;
+        }
+
+        // Keep the saved rules. Registration ignores them only while both modes are off.
+        // The wizard does not use this method, so its rules stay in force.
+        if (! $auto && ! $manual) {
+            $conditions['enforced'] = false;
+        } else {
+            unset($conditions['enforced']);
+        }
+
+        $data['acceptance_conditions'] = $conditions;
+
+        return $data;
     }
 
     /**
@@ -1040,13 +1060,22 @@ final class TrainingEntityFormSupport
     {
         $errors = [];
         $programStart = self::parseScheduleDate($data['start_date'] ?? null);
-        $programEnd = self::parseScheduleDate($data['end_date'] ?? null) ?? $programStart;
+        $programEndInput = self::parseScheduleDate($data['end_date'] ?? null);
+        $programEnd = $programEndInput ?? $programStart;
         $registrationStart = $showRegistration
           ? self::parseScheduleDate($data['registration_start'] ?? null)
           : null;
         $registrationEnd = $showRegistration
-          ? self::parseScheduleDate($data['registration_end'] ?? ($data['registration_start'] ?? null))
+          ? self::parseScheduleDate($data['registration_end'] ?? null)
           : null;
+
+        if ($programStart !== null && $programEndInput !== null && $programEndInput->lt($programStart)) {
+            $errors[] = 'يجب أن يكون تاريخ نهاية البرنامج في أو بعد تاريخ البداية.';
+        }
+
+        if ($showRegistration && $registrationStart !== null && $registrationEnd !== null && $registrationEnd->lt($registrationStart)) {
+            $errors[] = 'يجب أن تكون نهاية التسجيل في أو بعد بدايته.';
+        }
 
         if ($showRegistration && $programStart !== null && $registrationStart !== null && $programStart->lt($registrationStart)) {
             $errors[] = 'لا يمكن أن يبدأ البرنامج قبل تاريخ بدء التسجيل.';
@@ -1191,6 +1220,13 @@ final class TrainingEntityFormSupport
             'capacity_unlimited',
             'capacity_mode',
             'acceptance_manual_review',
+            'acceptance_require_saudi_national',
+            'acceptance_genders',
+            'acceptance_gender_capacity_full',
+            'acceptance_min_age',
+            'acceptance_max_age',
+            'acceptance_cities',
+            'acceptance_require_complete_profile',
         ];
 
         foreach ($keys as $key) {

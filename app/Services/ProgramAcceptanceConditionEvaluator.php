@@ -17,9 +17,7 @@ final class ProgramAcceptanceConditionEvaluator
      */
     public function evaluate(TrainingProgram $program, User $user, bool $enforceLiveCapacity = true): array
     {
-        $conditions = ProgramAcceptanceConditions::normalize(
-            is_array($program->acceptance_conditions) ? $program->acceptance_conditions : null
-        );
+        $conditions = ProgramAcceptanceConditions::applicable($program);
 
         if ($conditions === null) {
             $user->loadMissing('profile');

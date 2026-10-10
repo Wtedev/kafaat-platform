@@ -23,9 +23,7 @@ $venueMapUrl = filled($trainingProgram->venue)
     : null;
 
 $benefits = TrainingProgramExtrasSupport::publicBenefits($trainingProgram);
-$acceptance = ProgramAcceptanceConditions::normalize(
-    is_array($trainingProgram->acceptance_conditions) ? $trainingProgram->acceptance_conditions : null
-);
+$acceptance = ProgramAcceptanceConditions::applicable($trainingProgram);
 $saudiOnly = is_array($acceptance) && $acceptance['require_saudi_national'];
 $ageLabel = null;
 if (is_array($acceptance) && ($acceptance['min_age'] !== null || $acceptance['max_age'] !== null)) {
@@ -71,11 +69,19 @@ if (is_array($acceptance) && ($acceptance['min_age'] !== null || $acceptance['ma
         </x-public.info-sidebar-item>
         @endif
 
-        <x-public.info-sidebar-item dense label="الجنس" value="ذكور وإناث">
+        <x-public.info-sidebar-item dense label="الجنس" :value="ProgramAcceptanceConditions::publicGenderLabel($acceptance)">
             <x-slot:icon>
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
             </x-slot:icon>
         </x-public.info-sidebar-item>
+
+        @foreach (ProgramAcceptanceConditions::publicCapacityItems($trainingProgram->capacity, $trainingProgram->capacity_male, $trainingProgram->capacity_female) as $capacityItem)
+        <x-public.info-sidebar-item dense :label="$capacityItem['label']" :value="en_digits($capacityItem['value'])">
+            <x-slot:icon>
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </x-slot:icon>
+        </x-public.info-sidebar-item>
+        @endforeach
 
         <x-public.info-sidebar-item dense label="مدة البرنامج" :value="en_digits($trainingProgram->programDurationDescription())">
             <x-slot:icon>

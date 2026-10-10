@@ -4,6 +4,8 @@ namespace App\Support;
 
 use App\Enums\IdentityType;
 use App\Enums\ProfileGender;
+use App\Models\TrainingProgram;
+use App\Models\User;
 
 /**
  * Structured acceptance / eligibility rules stored on training_programs.acceptance_conditions.
@@ -99,6 +101,40 @@ final class ProgramAcceptanceConditions
     }
 
     /**
+     * Fields the beneficiary must fill before registering when this program checks them.
+     *
+     * @return list<'identity_number'|'gender'|'birth_date'>
+     */
+    public static function missingProfileFieldsForRegistration(TrainingProgram $program, User $user): array
+    {
+        $conditions = self::applicable($program);
+
+        if ($conditions === null) {
+            return [];
+        }
+
+        $user->loadMissing('profile');
+        $missing = [];
+
+        if ($conditions['require_saudi_national'] && ! filled($user->identity_number_ciphertext)) {
+            $missing[] = 'identity_number';
+        }
+
+        if ($conditions['genders'] !== [] && ! $user->profile?->gender instanceof ProfileGender) {
+            $missing[] = 'gender';
+        }
+
+        if (
+            ($conditions['min_age'] !== null || $conditions['max_age'] !== null)
+            && $user->profile?->birth_date === null
+        ) {
+            $missing[] = 'birth_date';
+        }
+
+        return $missing;
+    }
+
+    /**
      * Unpack stored JSON into Filament form flat fields.
      *
      * @param  array<string, mixed>|null  $conditions
@@ -116,6 +152,8 @@ final class ProgramAcceptanceConditions
             'require_complete_profile' => false,
         ];
 
+        $suspended = self::isSuspended($conditions, $autoAccept);
+
         return [
             'acceptance_require_saudi_national' => (bool) $normalized['require_saudi_national'],
             'acceptance_genders' => $normalized['genders'],
@@ -124,9 +162,39 @@ final class ProgramAcceptanceConditions
             'acceptance_max_age' => $normalized['max_age'],
             'acceptance_cities' => $normalized['cities'],
             'acceptance_require_complete_profile' => (bool) $normalized['require_complete_profile'],
-            // When auto is off and conditions already exist, keep the conditions panel visible.
-            'acceptance_manual_review' => ! $autoAccept && self::hasAny($normalized),
+            // A suspended payload keeps the saved rules hidden until a mode is turned on again.
+            'acceptance_manual_review' => ! $autoAccept && ! $suspended && self::hasAny($normalized),
         ];
+    }
+
+    /**
+     * Stored rules stay in the JSON when both Filament modes are off, but registration ignores them.
+     * Programs saved before this flag, and wizard programs, keep enforcing their rules.
+     *
+     * @param  array<string, mixed>|null  $conditions
+     */
+    public static function isSuspended(?array $conditions, bool $autoAccept): bool
+    {
+        if ($autoAccept || ! is_array($conditions) || ! array_key_exists('enforced', $conditions)) {
+            return false;
+        }
+
+        return $conditions['enforced'] === false;
+    }
+
+    /**
+     * Rules that registration and the public page should apply. Null means no eligibility rules.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function applicable(TrainingProgram $program): ?array
+    {
+        $raw = is_array($program->acceptance_conditions) ? $program->acceptance_conditions : null;
+        if (self::isSuspended($raw, (bool) $program->auto_accept_registrations)) {
+            return null;
+        }
+
+        return self::normalize($raw);
     }
 
     /**
@@ -137,25 +205,32 @@ final class ProgramAcceptanceConditions
      */
     public static function applyFormData(array $data): array
     {
-        $autoAccept = (bool) ($data['auto_accept_registrations'] ?? false);
-        $manualReview = (bool) ($data['acceptance_manual_review'] ?? false);
+        $conditionKeys = array_values(array_diff(self::FORM_KEYS, ['acceptance_manual_review']));
+        $hasConditionInputs = false;
+        foreach ($conditionKeys as $key) {
+            if (array_key_exists($key, $data)) {
+                $hasConditionInputs = true;
+                break;
+            }
+        }
 
-        $shouldPersistConditions = $autoAccept || $manualReview;
-
-        if ($shouldPersistConditions) {
+        if ($hasConditionInputs) {
+            $existing = is_array($data['acceptance_conditions'] ?? null) ? $data['acceptance_conditions'] : [];
             $data['acceptance_conditions'] = self::normalize([
                 'require_saudi_national' => (bool) ($data['acceptance_require_saudi_national'] ?? false),
                 'genders' => is_array($data['acceptance_genders'] ?? null) ? $data['acceptance_genders'] : [],
-                'gender_capacity_full' => is_array($data['acceptance_gender_capacity_full'] ?? null)
-                    ? $data['acceptance_gender_capacity_full']
-                    : [],
+                'gender_capacity_full' => array_key_exists('acceptance_gender_capacity_full', $data)
+                    ? (is_array($data['acceptance_gender_capacity_full']) ? $data['acceptance_gender_capacity_full'] : [])
+                    : (is_array($existing['gender_capacity_full'] ?? null) ? $existing['gender_capacity_full'] : []),
                 'min_age' => $data['acceptance_min_age'] ?? null,
                 'max_age' => $data['acceptance_max_age'] ?? null,
-                'cities' => is_array($data['acceptance_cities'] ?? null) ? $data['acceptance_cities'] : [],
-                'require_complete_profile' => (bool) ($data['acceptance_require_complete_profile'] ?? false),
+                'cities' => array_key_exists('acceptance_cities', $data)
+                    ? (is_array($data['acceptance_cities']) ? $data['acceptance_cities'] : [])
+                    : (is_array($existing['cities'] ?? null) ? $existing['cities'] : []),
+                'require_complete_profile' => array_key_exists('acceptance_require_complete_profile', $data)
+                    ? (bool) $data['acceptance_require_complete_profile']
+                    : (bool) ($existing['require_complete_profile'] ?? false),
             ]);
-        } else {
-            $data['acceptance_conditions'] = null;
         }
 
         foreach (self::FORM_KEYS as $key) {
@@ -212,6 +287,54 @@ final class ProgramAcceptanceConditions
         }
 
         return $lines;
+    }
+
+    /**
+     * Public-page gender line. An empty list means everyone.
+     */
+    public static function publicGenderLabel(?array $conditions): string
+    {
+        $normalized = self::normalize($conditions);
+        $genders = is_array($normalized) ? $normalized['genders'] : [];
+        $male = in_array(ProfileGender::Male->value, $genders, true);
+        $female = in_array(ProfileGender::Female->value, $genders, true);
+
+        if ($female && ! $male) {
+            return 'إناث';
+        }
+
+        if ($male && ! $female) {
+            return 'ذكور';
+        }
+
+        return 'ذكور وإناث';
+    }
+
+    /**
+     * Capacity facts shared by the public page and the staff preview.
+     * Unlimited capacity returns no rows; the staff preview adds its own sentence.
+     *
+     * @return list<array{label: string, value: string}>
+     */
+    public static function publicCapacityItems(?int $capacity, ?int $capacityMale, ?int $capacityFemale): array
+    {
+        if ($capacityMale !== null || $capacityFemale !== null) {
+            $items = [];
+            if ($capacityMale !== null) {
+                $items[] = ['label' => 'سعة الرجال', 'value' => (string) $capacityMale];
+            }
+            if ($capacityFemale !== null) {
+                $items[] = ['label' => 'سعة النساء', 'value' => (string) $capacityFemale];
+            }
+
+            return $items;
+        }
+
+        if ($capacity !== null) {
+            return [['label' => 'السعة', 'value' => (string) $capacity]];
+        }
+
+        return [];
     }
 
     public static function normalizeCity(string $city): string

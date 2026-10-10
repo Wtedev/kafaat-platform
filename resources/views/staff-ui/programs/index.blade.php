@@ -7,6 +7,9 @@
 <x-staff-ui.layout :name="$staffName" :email="$staffEmail" crumb="البرامج" :dashboard-active="false" active-nav="programs">
     <header class="sui-page-head sui-staff-head">
         <h1>البرامج</h1>
+        @if ($canCreate)
+            <x-staff-ui.button size="sm" :href="route('staff-ui.programs.create')" icon="plus">إضافة برنامج</x-staff-ui.button>
+        @endif
     </header>
 
     <section class="sui-card sui-programs-panel" data-sui-programs-panel data-view="table">

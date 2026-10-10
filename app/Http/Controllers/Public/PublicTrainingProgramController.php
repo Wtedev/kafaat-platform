@@ -68,7 +68,7 @@ class PublicTrainingProgramController extends Controller
             if ($userRegistration === null
                 && $trainingProgram->learning_path_id === null
                 && ProgramAcceptanceConditions::hasAny(
-                    is_array($trainingProgram->acceptance_conditions) ? $trainingProgram->acceptance_conditions : null
+                    ProgramAcceptanceConditions::applicable($trainingProgram)
                 )) {
                 $acceptanceEvaluation = $this->acceptanceEvaluator->evaluate($trainingProgram, $user);
             }
@@ -83,6 +83,8 @@ class PublicTrainingProgramController extends Controller
 
     public function register(Request $request, TrainingProgram $trainingProgram)
     {
+        abort_if($trainingProgram->status->value !== 'published', 404);
+
         if (! $request->user()) {
             return redirect()->route('login');
         }
@@ -92,6 +94,16 @@ class PublicTrainingProgramController extends Controller
         }
 
         $inPerson = $trainingProgram->delivery_mode?->hasPhysicalComponent() ?? false;
+
+        $missingProfile = ProgramAcceptanceConditions::missingProfileFieldsForRegistration(
+            $trainingProgram,
+            $request->user(),
+        );
+        if ($missingProfile !== []) {
+            return redirect()->route('portal.profile.complete', [
+                'return' => route('public.programs.show', $trainingProgram, false),
+            ]);
+        }
 
         $request->validate(
             [

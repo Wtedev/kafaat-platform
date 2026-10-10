@@ -2,19 +2,28 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CompetencyTrack;
 use App\Enums\IdentityType;
 use App\Enums\ProfileGender;
+use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
+use App\Enums\TrainingProgramKind;
 use App\Exceptions\RegistrationNotEligibleException;
+use App\Filament\Resources\TrainingProgramResource\Pages\ViewTrainingProgram;
+use App\Filament\Support\TrainingProgramViewPresenter;
 use App\Models\Profile;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\ProgramRegistrationService;
+use App\Services\Rbac\RbacCatalog;
+use App\Services\StaffUi\StaffProgramWizard;
 use App\Support\ProgramAcceptanceConditions;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Livewire\Livewire;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\GeneratesTestIdentityData;
 use Tests\Concerns\SeedsRbacRoles;
@@ -128,7 +137,7 @@ class ProgramAcceptanceConditionsRegistrationTest extends TestCase
         $this->assertArrayNotHasKey('acceptance_require_saudi_national', $packed);
     }
 
-    public function test_form_data_packer_clears_conditions_when_manual_toggle_off(): void
+    public function test_form_data_packer_keeps_conditions_when_acceptance_toggles_are_off(): void
     {
         $packed = ProgramAcceptanceConditions::applyFormData([
             'auto_accept_registrations' => false,
@@ -137,11 +146,185 @@ class ProgramAcceptanceConditionsRegistrationTest extends TestCase
             'acceptance_genders' => [],
             'acceptance_min_age' => null,
             'acceptance_max_age' => null,
+            'acceptance_cities' => ['جدة'],
+            'acceptance_require_complete_profile' => false,
+        ]);
+
+        $this->assertSame([
+            'require_saudi_national' => true,
+            'genders' => [],
+            'gender_capacity_full' => [],
+            'min_age' => null,
+            'max_age' => null,
+            'cities' => ['جدة'],
+            'require_complete_profile' => false,
+        ], $packed['acceptance_conditions']);
+    }
+
+    public function test_form_data_packer_clears_conditions_only_when_fields_are_empty(): void
+    {
+        $packed = ProgramAcceptanceConditions::applyFormData([
+            'auto_accept_registrations' => false,
+            'acceptance_manual_review' => false,
+            'acceptance_require_saudi_national' => false,
+            'acceptance_genders' => [],
+            'acceptance_min_age' => null,
+            'acceptance_max_age' => null,
             'acceptance_cities' => [],
             'acceptance_require_complete_profile' => false,
         ]);
 
         $this->assertNull($packed['acceptance_conditions']);
+    }
+
+    public function test_missing_condition_field_sends_the_beneficiary_to_profile_completion_then_back(): void
+    {
+        $user = $this->makeEligiblePortalUser();
+        $user->profile->forceFill(['gender' => null])->save();
+        $program = $this->makeOpenProgram([
+            'auto_accept_registrations' => false,
+            'acceptance_conditions' => [
+                'genders' => [ProfileGender::Female->value],
+            ],
+        ]);
+
+        $this->actingAsOtpVerified($user)
+            ->from(route('public.programs.show', $program))
+            ->post(route('public.programs.register', $program), [
+                'attendance_acknowledgement' => '1',
+            ])
+            ->assertRedirect(route('portal.profile.complete', [
+                'return' => '/programs/'.$program->slug,
+            ]));
+
+        $this->assertDatabaseMissing('program_registrations', [
+            'training_program_id' => $program->id,
+            'user_id' => $user->id,
+        ]);
+
+        $payload = $this->validRegistrationPayload();
+        unset($payload['email'], $payload['password'], $payload['password_confirmation']);
+
+        $this->actingAsOtpVerified($user)
+            ->get(route('portal.profile.complete', [
+                'return' => '/programs/'.$program->slug,
+            ]))
+            ->assertOk();
+
+        $this->post(route('portal.profile.complete.store'), $payload)
+            ->assertRedirect('/programs/'.$program->slug);
+    }
+
+    public function test_filament_save_with_both_acceptance_modes_off_keeps_conditions_but_allows_registration(): void
+    {
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        $admin = User::factory()->create([
+            'role_type' => 'admin',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $admin->assignRole(RbacCatalog::ROLE_ADMIN);
+
+        $program = $this->makeOpenProgram([
+            'title' => 'برنامج شرط جنس مخفي',
+            'program_kind' => TrainingProgramKind::Course,
+            'competency_track' => CompetencyTrack::Self,
+            'delivery_mode' => ProgramDeliveryMode::Remote,
+            'description' => 'وصف البرنامج',
+            'auto_accept_registrations' => false,
+            'acceptance_conditions' => [
+                'genders' => [ProfileGender::Female->value],
+            ],
+            'created_by' => $admin->id,
+            'owner_id' => $admin->id,
+        ]);
+
+        $this->withSession(['otp_verified' => true]);
+
+        Livewire::actingAs($admin)
+            ->test(ViewTrainingProgram::class, ['record' => $program->getKey()])
+            ->fillForm([
+                'auto_accept_registrations' => false,
+                'acceptance_manual_review' => false,
+            ])
+            ->call('saveTrainingEntitySettings')
+            ->assertHasNoFormErrors();
+
+        $program->refresh();
+        $this->assertFalse($program->auto_accept_registrations);
+        $this->assertSame([ProfileGender::Female->value], $program->acceptance_conditions['genders']);
+        $this->assertFalse($program->acceptance_conditions['enforced']);
+
+        $man = $this->makeEligiblePortalUser();
+        $man->profile->forceFill(['gender' => ProfileGender::Male])->save();
+
+        $this->actingAsOtpVerified($man)
+            ->post(route('public.programs.register', $program), [
+                'attendance_acknowledgement' => '1',
+            ])
+            ->assertRedirect(route('public.programs.registered', [
+                'trainingProgram' => $program->slug,
+                'registration' => $program->registrations()->where('user_id', $man->id)->value('id'),
+            ]));
+
+        $this->assertDatabaseHas('program_registrations', [
+            'training_program_id' => $program->id,
+            'user_id' => $man->id,
+        ]);
+    }
+
+    public function test_suspended_acceptance_conditions_are_not_shown_as_active_rules(): void
+    {
+        $conditions = [
+            'require_saudi_national' => true,
+            'genders' => [ProfileGender::Female->value],
+            'min_age' => 18,
+            'max_age' => 38,
+            'enforced' => false,
+        ];
+        $program = $this->makeOpenProgram([
+            'title' => 'برنامج شروطه غير سارية',
+            'auto_accept_registrations' => false,
+            'acceptance_conditions' => $conditions,
+            'capacity' => 40,
+        ]);
+
+        $this->get(route('public.programs.show', $program))
+            ->assertOk()
+            ->assertDontSee('من 18 إلى 38 سنة')
+            ->assertDontSee('سعوديون وسعوديات')
+            ->assertSee('ذكور وإناث')
+            ->assertDontSee('إناث فقط');
+
+        $enrollment = collect(TrainingProgramViewPresenter::present($program)['sections'])
+            ->firstWhere('title', 'التسجيل والسعة');
+        $labels = collect($enrollment['rows'])->pluck('label');
+        $this->assertFalse($labels->contains('شروط القبول'));
+
+        $preview = app(StaffProgramWizard::class)->acceptancePreview($program);
+        $this->assertFalse(collect($preview)->contains(fn (string $line): bool => str_contains($line, '18')));
+        $this->assertFalse(collect($preview)->contains(fn (string $line): bool => str_contains($line, 'سعودي')));
+        $this->assertTrue(collect($preview)->contains(fn (string $line): bool => str_contains($line, 'ذكور وإناث')));
+
+        $program->forceFill([
+            'acceptance_conditions' => array_diff_key($conditions, ['enforced' => true]),
+        ])->save();
+        $program->refresh();
+
+        $this->get(route('public.programs.show', $program))
+            ->assertOk()
+            ->assertSee('من 18 إلى 38 سنة')
+            ->assertSee('سعوديون وسعوديات')
+            ->assertSee('إناث')
+            ->assertDontSee('ذكور وإناث');
+
+        $active = collect(TrainingProgramViewPresenter::present($program->fresh())['sections'])
+            ->firstWhere('title', 'التسجيل والسعة');
+        $conditionRow = collect($active['rows'])->firstWhere('label', 'شروط القبول');
+        $this->assertNotNull($conditionRow);
+        $this->assertStringContainsString('18', $conditionRow['value']);
+        $this->assertStringContainsString('أنثى', $conditionRow['value']);
     }
 
     private function makeEligiblePortalUser(IdentityType $type = IdentityType::NationalId): User
