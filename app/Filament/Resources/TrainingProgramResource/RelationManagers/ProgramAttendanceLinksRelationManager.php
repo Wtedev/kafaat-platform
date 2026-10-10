@@ -8,14 +8,18 @@ use App\Models\TrainingProgram;
 use App\Services\Attendance\ProgramAttendanceLinkService;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\HtmlString;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProgramAttendanceLinksRelationManager extends RelationManager
@@ -57,7 +61,7 @@ class ProgramAttendanceLinksRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->recordAction('attendees')
+            ->recordAction('manual')
             ->columns([
                 TextColumn::make('name')
                     ->label('الاسم'),
@@ -78,6 +82,54 @@ class ProgramAttendanceLinksRelationManager extends RelationManager
                     ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false),
             ])
             ->actions([
+                Action::make('manual')
+                    ->label('تحضير يدوي')
+                    ->modalHeading(fn (ProgramAttendanceLink $record): string => 'تحضير يدوي — '.$record->name)
+                    ->modalSubmitActionLabel('تحضير')
+                    ->visible(fn (ProgramAttendanceLink $record): bool => ! $record->isCancelled())
+                    ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
+                    ->form([
+                        TextInput::make('national_id')
+                            ->label('رقم الهوية')
+                            ->required()
+                            ->live(debounce: 400),
+                        Placeholder::make('matched_name')
+                            ->label('الاسم')
+                            ->content(function (Get $get): string {
+                                $record = $this->mountedAttendanceLink();
+                                if (! $record instanceof ProgramAttendanceLink) {
+                                    return 'اكتب رقم الهوية ليظهر الاسم';
+                                }
+
+                                $nationalId = (string) ($get('national_id') ?: ($this->mountedActions[0]['data']['national_id'] ?? ''));
+                                $candidate = app(ProgramAttendanceLinkService::class)->manualCandidate($record, $nationalId);
+
+                                if (filled($candidate['name'])) {
+                                    return $candidate['message'] !== null
+                                        ? $candidate['name'].' — '.$candidate['message']
+                                        : (string) $candidate['name'];
+                                }
+
+                                return $candidate['message'] ?? 'اكتب رقم الهوية ليظهر الاسم';
+                            }),
+                    ])
+                    ->action(function (ProgramAttendanceLink $record, array $data): void {
+                        $service = app(ProgramAttendanceLinkService::class);
+                        $candidate = $service->manualCandidate($record, (string) ($data['national_id'] ?? ''));
+
+                        if (! $candidate['ready'] || $candidate['registration'] === null) {
+                            throw ValidationException::withMessages([
+                                'national_id' => $candidate['message'] ?? ProgramAttendanceLinkService::NOT_FOUND_MESSAGE,
+                            ]);
+                        }
+
+                        $service->markManual($record, $candidate['registration']);
+
+                        Notification::make()
+                            ->title('تم تسجيل حضور '.$candidate['name'])
+                            ->success()
+                            ->send();
+                    }),
                 Action::make('copy')
                     ->label('نسخ الرابط')
                     ->modalHeading('نسخ الرابط')
@@ -137,5 +189,21 @@ class ProgramAttendanceLinksRelationManager extends RelationManager
             ])
             ->emptyStateHeading('لا توجد روابط تحضير')
             ->defaultSort('id', 'desc');
+    }
+
+    private function mountedAttendanceLink(): ?ProgramAttendanceLink
+    {
+        $record = $this->getMountedAction()?->getRecord();
+        if ($record instanceof ProgramAttendanceLink) {
+            return $record;
+        }
+
+        $key = $this->mountedActions[0]['context']['recordKey'] ?? null;
+        $owner = $this->getOwnerRecord();
+        if ($key === null || ! $owner instanceof TrainingProgram) {
+            return null;
+        }
+
+        return $owner->attendanceLinks()->whereKey($key)->first();
     }
 }

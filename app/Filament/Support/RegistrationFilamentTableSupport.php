@@ -31,12 +31,20 @@ class RegistrationFilamentTableSupport
                 }
 
                 $like = '%'.ArabicText::fold($needle).'%';
+                $normalized = IdentityNumberService::normalize($needle);
+                $identityHash = is_string($normalized) && IdentityNumberService::isValidFormat($normalized)
+                    ? IdentityNumberService::generateLookupHash($normalized)
+                    : null;
 
-                return $query->whereHas('user', function (Builder $user) use ($like): void {
-                    $user->where(function (Builder $match) use ($like): void {
+                return $query->whereHas('user', function (Builder $user) use ($like, $identityHash): void {
+                    $user->where(function (Builder $match) use ($like, $identityHash): void {
                         foreach (['name', 'first_name', 'father_name', 'grandfather_name', 'family_name'] as $column) {
                             $folded = ArabicText::sqlFoldColumn($column);
                             $match->orWhereRaw("{$folded} LIKE ?", [$like]);
+                        }
+
+                        if ($identityHash !== null) {
+                            $match->orWhere('identity_number_lookup_hash', $identityHash);
                         }
                     });
                 });

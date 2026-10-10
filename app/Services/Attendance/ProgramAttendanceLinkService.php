@@ -145,6 +145,55 @@ final class ProgramAttendanceLinkService
         }
     }
 
+    /**
+     * Staff lookup for one identity on this link. A full valid number that is not an
+     * approved registration on the program returns the same not-found message as the public page.
+     *
+     * @return array{name: ?string, registration: ?ProgramRegistration, message: ?string, ready: bool}
+     */
+    public function manualCandidate(ProgramAttendanceLink $link, string $nationalId): array
+    {
+        $empty = ['name' => null, 'registration' => null, 'message' => null, 'ready' => false];
+        $normalized = IdentityNumberService::normalize($nationalId);
+
+        if ($normalized === null || $normalized === '') {
+            return $empty;
+        }
+
+        if (! IdentityNumberService::isValidFormat($normalized)) {
+            return $empty;
+        }
+
+        $registration = ProgramRegistration::query()
+            ->where('training_program_id', $link->training_program_id)
+            ->where('status', RegistrationStatus::Approved->value)
+            ->whereHas('user', fn ($query) => $query->where(
+                'identity_number_lookup_hash',
+                IdentityNumberService::generateLookupHash($normalized),
+            ))
+            ->with('user')
+            ->first();
+
+        if ($registration === null) {
+            return [
+                'name' => null,
+                'registration' => null,
+                'message' => self::NOT_FOUND_MESSAGE,
+                'ready' => false,
+            ];
+        }
+
+        $name = $registration->user?->fullName();
+        $already = $link->marks()->where('program_registration_id', $registration->id)->exists();
+
+        return [
+            'name' => $name,
+            'registration' => $registration,
+            'message' => $already ? self::ALREADY_MESSAGE : null,
+            'ready' => ! $already,
+        ];
+    }
+
     public function markManual(ProgramAttendanceLink $link, ProgramRegistration $registration): ProgramAttendanceMark
     {
         $registration->loadMissing('user');

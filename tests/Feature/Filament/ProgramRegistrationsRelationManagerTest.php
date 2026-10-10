@@ -217,6 +217,31 @@ class ProgramRegistrationsRelationManagerTest extends TestCase
             ->assertCanNotSeeTableRecords([$other]);
     }
 
+    public function test_search_by_identity_number_shows_the_registrant_name(): void
+    {
+        $admin = $this->admin();
+        $program = $this->program($admin);
+        $match = $this->registration($program, 'نورة سعد', RegistrationStatus::Approved, userAttributes: [
+            'first_name' => 'نورة',
+            'family_name' => 'سعد',
+            'name' => 'نورة سعد',
+        ]);
+        $other = $this->registration($program, 'خالد الزهراني', RegistrationStatus::Approved);
+        $match->user->forceFill(IdentityNumberService::prepareStoragePayload('1123456789', IdentityType::NationalId))->save();
+
+        $this->withSession(['otp_verified' => true]);
+
+        Livewire::actingAs($admin)
+            ->test(ProgramRegistrationsRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->searchTable('1123456789')
+            ->assertCanSeeTableRecords([$match])
+            ->assertCanNotSeeTableRecords([$other])
+            ->assertSee('نورة سعد');
+    }
+
     public function test_select_all_is_not_limited_to_current_page_and_bulk_actions_exist(): void
     {
         $admin = $this->admin();
