@@ -2,7 +2,25 @@
 @section('title', 'استبيان')
 @section('head')
     <style>
-        .survey-shell { max-width: 40rem; }
+        .survey-shell { max-width: 40rem; overflow: hidden; }
+        .survey-body { padding: 1.5rem 1.5rem 2rem; }
+        .survey-hero {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #eef2f6;
+        }
+        .survey-hero img {
+            display: block;
+            width: 100%;
+            height: 12rem;
+            object-fit: cover;
+        }
+        .survey-hero.is-contain img {
+            height: 13rem;
+            object-fit: contain;
+            padding: 1.25rem 1.5rem;
+        }
         .survey-kicker {
             display: inline-flex;
             align-items: center;
@@ -32,9 +50,18 @@
             font-size: 0.8rem;
             font-weight: 700;
         }
+        .survey-scale {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            width: 100%;
+            margin-top: 0.85rem;
+        }
         .survey-stars {
             display: inline-flex;
-            flex-direction: row-reverse;
+            flex-direction: row;
+            direction: ltr;
             gap: 0.15rem;
         }
         .survey-stars input {
@@ -53,7 +80,7 @@
         }
         .survey-stars label:hover,
         .survey-stars label:hover ~ label,
-        .survey-stars input:checked ~ label { color: #e2b340; }
+        .survey-stars input:checked ~ label { color: #fbbb2e; }
         .survey-stars input:focus-visible + label {
             outline: 2px solid #335483;
             outline-offset: 2px;
@@ -73,10 +100,20 @@
 @endsection
 @section('content')
     @php
+        $program = $survey?->program;
         $typeLabel = $survey?->type?->label();
-        $programTitle = $survey?->program?->title;
+        $programTitle = $program?->title;
+        $headerImage = $program && filled($program->image) ? $program->imagePublicUrl() : null;
+        $headerContain = $program?->imageUsesContainFit() ?? false;
+        $headerSurface = $headerContain ? ($program->imageHeroSurfaceColor() ?: '#eef2f6') : null;
     @endphp
-    <div class="survey-shell mx-auto rounded-2xl border border-gray-100 bg-white p-6 sm:p-8">
+    <div class="survey-shell mx-auto rounded-2xl border border-gray-100 bg-white">
+        @if ($headerImage)
+            <div class="survey-hero {{ $headerContain ? 'is-contain' : '' }}" @if ($headerSurface) style="background: {{ $headerSurface }}" @endif>
+                <img src="{{ $headerImage }}" alt="{{ $programTitle }}">
+            </div>
+        @endif
+        <div class="survey-body">
         @if ($typeLabel || $programTitle)
             <div class="mb-5">
                 @if ($typeLabel)
@@ -104,7 +141,7 @@
             </form>
         @elseif ($step === 'form')
             <h1 class="text-xl font-semibold text-[#335483]">الأسئلة</h1>
-            <p class="mt-2 text-sm text-gray-500">رتّب إجابتك باختيار النجوم، من نجمة واحدة إلى خمس نجوم.</p>
+            <p class="mt-2 text-sm text-gray-500">النجمة على اليمين هي واحدة، ويزداد العدد كلما اتجهت يسارًا حتى خمس نجوم.</p>
             @if ($errors->any())
                 <p class="mt-4 text-sm text-red-700">{{ $errors->first() }}</p>
             @endif
@@ -117,7 +154,7 @@
                             <span>{{ $question->prompt }}</span>
                         </legend>
                         @if ($question->type === \App\Enums\SurveyQuestionType::Scale)
-                            <div class="mt-4 flex flex-wrap items-center gap-3" dir="ltr">
+                            <div class="survey-scale" dir="ltr">
                                 @if (filled($question->scale_min_label))
                                     <span class="text-sm text-gray-600">{{ $question->scale_min_label }}</span>
                                 @endif
@@ -175,5 +212,6 @@
                 <button type="submit" class="rounded-xl bg-[#335483] px-4 py-2 text-sm font-semibold text-white">متابعة</button>
             </form>
         @endif
+        </div>
     </div>
 @endsection

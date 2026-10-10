@@ -407,13 +407,18 @@ class ProgramSurveysTest extends TestCase
         $this->assertSame(['الأول'], $pre->questions()->orderBy('position')->pluck('prompt')->all());
         $this->assertSame(['الأول'], $post->questions()->orderBy('position')->pluck('prompt')->all());
 
+        $program->allowCoverUpdate = true;
+        $program->update(['image' => 'images/programs/partner-kafaat.svg']);
+
         $this->withSession(['survey_registration.'.$pre->public_token => 1])
             ->get(route('public.surveys.show', $pre->public_token))
             ->assertOk()
             ->assertSee('أبدًا')
             ->assertSee('دائمًا')
             ->assertSee('★')
-            ->assertSee('1')
+            ->assertSee('#fbbb2e', false)
+            ->assertSee('survey-scale', false)
+            ->assertSee('/images/programs/partner-kafaat.svg', false)
             ->assertSee('من 5');
     }
 
