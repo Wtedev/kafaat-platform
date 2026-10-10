@@ -21,6 +21,7 @@ use App\Services\Rbac\RbacCatalog;
 use App\Services\Surveys\ProgramSurveyService;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Filament\Schemas\Schema;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Testing\TestResponse;
@@ -353,6 +354,65 @@ class ProgramAttendanceLinksTest extends TestCase
         }
     }
 
+    public function test_staff_can_mark_a_registrant_manually_from_the_link_and_sees_the_name(): void
+    {
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        $admin = User::factory()->create([
+            'role_type' => 'admin',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $admin->assignRole(RbacCatalog::ROLE_ADMIN);
+        $program = $this->program();
+        $identity = '1123456789';
+        $user = $this->beneficiary('نورة', 'سعد', $identity);
+        $registration = $this->register($program, $user, RegistrationStatus::Approved);
+        $link = app(ProgramAttendanceLinkService::class)->create($program, 'السبت 10 اكتوبر');
+
+        $this->withSession(['otp_verified' => true]);
+        $this->actingAs($admin);
+
+        $component = Livewire::actingAs($admin)
+            ->test(ProgramAttendanceLinksRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->mountAction(TestAction::make('manual')->table($link))
+            ->fillForm(['national_id' => $identity]);
+        $this->assertSame('نورة سعد', $this->manualAttendanceName($component));
+        $component->callMountedAction()->assertHasNoFormErrors();
+
+        $mark = ProgramAttendanceMark::query()->where('program_registration_id', $registration->id)->first();
+        $this->assertNotNull($mark);
+        $this->assertSame(AttendanceMarkSource::Manual, $mark->source);
+        $this->assertSame(1, ProgramAttendanceMark::query()->count());
+
+        $again = Livewire::actingAs($admin)
+            ->test(ProgramAttendanceLinksRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->mountAction(TestAction::make('manual')->table($link))
+            ->fillForm(['national_id' => $identity]);
+        $this->assertSame(
+            'نورة سعد — '.ProgramAttendanceLinkService::ALREADY_MESSAGE,
+            $this->manualAttendanceName($again),
+        );
+        $again->callMountedAction()->assertHasErrors(['national_id']);
+
+        $this->assertSame(1, ProgramAttendanceMark::query()->count());
+
+        $missing = Livewire::actingAs($admin)
+            ->test(ProgramAttendanceLinksRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->mountAction(TestAction::make('manual')->table($link->fresh()))
+            ->fillForm(['national_id' => '1099887766']);
+        $this->assertSame(ProgramAttendanceLinkService::NOT_FOUND_MESSAGE, $this->manualAttendanceName($missing));
+        $missing->callMountedAction()->assertHasErrors(['national_id']);
+    }
+
     public function test_staff_can_create_and_cancel_an_attendance_link(): void
     {
         Filament::setCurrentPanel(Filament::getPanel('admin'));
@@ -389,6 +449,20 @@ class ProgramAttendanceLinksTest extends TestCase
             ->callAction(TestAction::make('cancel')->table($link));
 
         $this->assertNotNull($link->fresh()->cancelled_at);
+    }
+
+    private function manualAttendanceName(mixed $component): mixed
+    {
+        $action = $component->instance()->getMountedAction();
+        $schema = $action->getSchema(Schema::make($component->instance()));
+
+        foreach ($schema->getComponents(withHidden: true) as $field) {
+            if ($field->getName() === 'matched_name') {
+                return $field->getState();
+            }
+        }
+
+        return null;
     }
 
     private function program(): TrainingProgram
