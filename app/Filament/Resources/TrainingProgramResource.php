@@ -19,6 +19,7 @@ use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramGrade
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramPrepDaysRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationCertificatesRelationManager;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationsRelationManager;
+use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramSurveysRelationManager;
 use App\Filament\Support\EntityTwoColumnFormLayout;
 use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\LearningPath;
@@ -507,6 +508,7 @@ class TrainingProgramResource extends Resource
     {
         return [
             ProgramRegistrationsRelationManager::class,
+            ProgramSurveysRelationManager::class,
             ProgramBroadcastsRelationManager::class,
             ProgramAttendanceRegistrationsRelationManager::class,
             ProgramPrepDaysRelationManager::class,
