@@ -228,7 +228,6 @@ Route::get('/s/{publicToken}', [PublicSurveyController::class, 'show'])
     ->name('public.surveys.show');
 Route::post('/s/{publicToken}/identify', [PublicSurveyController::class, 'identify'])
     ->where('publicToken', '[A-Za-z0-9]{32,80}')
-    ->middleware('throttle:survey-identity')
     ->name('public.surveys.identify');
 Route::post('/s/{publicToken}/confirm', [PublicSurveyController::class, 'confirm'])
     ->where('publicToken', '[A-Za-z0-9]{32,80}')
