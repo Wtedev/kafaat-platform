@@ -17,6 +17,7 @@ final class SensitiveDataRedactor
         'cookie',
         'session',
         'identity_number',
+        'national_id',
         'identity_number_ciphertext',
         'identity_number_lookup_hash',
         'cv_path',

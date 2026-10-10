@@ -425,6 +425,16 @@ class AppServiceProvider extends ServiceProvider
                 });
         });
 
+        RateLimiter::for('survey-identity', function (Request $request): Limit {
+            return Limit::perMinutes(15, 10)
+                ->by((string) $request->ip())
+                ->response(function () {
+                    return back()->withErrors([
+                        'national_id' => 'تجاوزت عدد المحاولات المسموح بها. حاول لاحقًا.',
+                    ]);
+                });
+        });
+
         RateLimiter::for('email-change-verify', function (Request $request): Limit {
             $key = $request->user()?->id ?? $request->ip();
 

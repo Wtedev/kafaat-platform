@@ -49,6 +49,7 @@ use App\Http\Controllers\Public\PublicLearningPathController;
 use App\Http\Controllers\Public\PublicMediaController;
 use App\Http\Controllers\Public\PublicNewsController;
 use App\Http\Controllers\Public\PublicRegulationController;
+use App\Http\Controllers\Public\PublicSurveyController;
 use App\Http\Controllers\Public\PublicTrainingProgramController;
 use App\Http\Controllers\Public\PublicVolunteerOpportunityController;
 use App\Http\Controllers\Public\SupportTicketController;
@@ -221,6 +222,20 @@ Route::prefix('gate/{program:slug}')->name('gate.')->group(function () {
         Route::post('/logout', [GateAttendanceController::class, 'logout'])->name('logout');
     });
 });
+
+Route::get('/s/{publicToken}', [PublicSurveyController::class, 'show'])
+    ->where('publicToken', '[A-Za-z0-9]{32,80}')
+    ->name('public.surveys.show');
+Route::post('/s/{publicToken}/identify', [PublicSurveyController::class, 'identify'])
+    ->where('publicToken', '[A-Za-z0-9]{32,80}')
+    ->middleware('throttle:survey-identity')
+    ->name('public.surveys.identify');
+Route::post('/s/{publicToken}/confirm', [PublicSurveyController::class, 'confirm'])
+    ->where('publicToken', '[A-Za-z0-9]{32,80}')
+    ->name('public.surveys.confirm');
+Route::post('/s/{publicToken}', [PublicSurveyController::class, 'submit'])
+    ->where('publicToken', '[A-Za-z0-9]{32,80}')
+    ->name('public.surveys.submit');
 
 Route::prefix('paths')->name('public.paths.')->group(function () {
     Route::get('/', [PublicLearningPathController::class, 'index'])->name('index');
