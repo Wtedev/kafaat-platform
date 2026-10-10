@@ -27,7 +27,7 @@ Paused. See `docs/deployment/railway-staging.md`. Do not deploy there.
 |------|---------|
 | `railway/predeploy.sh` | Migrations, role catalog, and content seeders when sources changed (**web preDeploy only**) |
 | `railway/start.sh` | Dispatch by `RAILWAY_START_MODE` or service name |
-| `railway/run-web.sh` | HTTP server + storage link. Does not run predeploy |
+| `railway/run-web.sh` | HTTP server + storage link. Does not run predeploy. Default `WEB_RUNTIME=frankenphp`; `WEB_RUNTIME=artisan` rolls back to `php artisan serve` without a rebuild |
 | `railway/run-worker.sh` | `queue:work` and `schedule:work` |
 | `railway/run-scheduler.sh` | `schedule:work` only (not a production service) |
 | `railway/deploy-production.sh` | Redeploy web + worker + scheduler |

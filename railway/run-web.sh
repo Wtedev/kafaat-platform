@@ -75,4 +75,36 @@ else
 fi
 
 php artisan optimize
-exec php artisan serve --host=0.0.0.0 --port="${PORT:-8080}"
+
+# WEB_RUNTIME=frankenphp (default) or artisan (immediate rollback, no rebuild).
+# WEB_THREADS is the FrankenPHP thread pool. Each thread holds one database
+# connection while a request is running. 32 threads × 2 replicas = 64, plus the
+# queue worker, stays under 80% of Postgres max_connections (500 → 400).
+runtime="${WEB_RUNTIME:-frankenphp}"
+case "${runtime}" in
+  artisan)
+    echo "WEB_RUNTIME=artisan (rollback): php artisan serve on port ${PORT:-8080}"
+    exec php artisan serve --host=0.0.0.0 --port="${PORT:-8080}"
+    ;;
+  frankenphp)
+    ;;
+  *)
+    echo "FATAL: WEB_RUNTIME must be frankenphp or artisan (got ${runtime})." >&2
+    exit 1
+    ;;
+esac
+
+if ! command -v frankenphp >/dev/null 2>&1; then
+  echo "FATAL: frankenphp is not on PATH. Set WEB_RUNTIME=artisan to roll back." >&2
+  exit 1
+fi
+
+threads="${WEB_THREADS:-32}"
+if [[ "${threads}" =~ ^[0-9]+$ ]] && (( threads > 160 )); then
+  echo "WARNING: WEB_THREADS=${threads} can exceed 80% of Postgres max_connections with two replicas." >&2
+fi
+
+echo "WEB_RUNTIME=frankenphp threads=${threads} port=${PORT:-8080}"
+export WEB_THREADS="${threads}"
+cd /app
+exec frankenphp run --config /app/Caddyfile
