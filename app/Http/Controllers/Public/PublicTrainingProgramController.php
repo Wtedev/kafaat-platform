@@ -68,7 +68,7 @@ class PublicTrainingProgramController extends Controller
             if ($userRegistration === null
                 && $trainingProgram->learning_path_id === null
                 && ProgramAcceptanceConditions::hasAny(
-                    is_array($trainingProgram->acceptance_conditions) ? $trainingProgram->acceptance_conditions : null
+                    ProgramAcceptanceConditions::applicable($trainingProgram)
                 )) {
                 $acceptanceEvaluation = $this->acceptanceEvaluator->evaluate($trainingProgram, $user);
             }
@@ -101,7 +101,7 @@ class PublicTrainingProgramController extends Controller
         );
         if ($missingProfile !== []) {
             return redirect()->route('portal.profile.complete', [
-                'return' => '/programs/'.$trainingProgram->slug,
+                'return' => route('public.programs.show', $trainingProgram, false),
             ]);
         }
 

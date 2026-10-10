@@ -314,7 +314,26 @@ final class TrainingEntityFormSupport
      */
     public static function applyAcceptanceConditions(array $data): array
     {
-        return ProgramAcceptanceConditions::applyFormData($data);
+        $auto = (bool) ($data['auto_accept_registrations'] ?? false);
+        $manual = (bool) ($data['acceptance_manual_review'] ?? false);
+        $data = ProgramAcceptanceConditions::applyFormData($data);
+        $conditions = $data['acceptance_conditions'] ?? null;
+
+        if (! is_array($conditions)) {
+            return $data;
+        }
+
+        // Keep the saved rules. Registration ignores them only while both modes are off.
+        // The wizard does not use this method, so its rules stay in force.
+        if (! $auto && ! $manual) {
+            $conditions['enforced'] = false;
+        } else {
+            unset($conditions['enforced']);
+        }
+
+        $data['acceptance_conditions'] = $conditions;
+
+        return $data;
     }
 
     /**

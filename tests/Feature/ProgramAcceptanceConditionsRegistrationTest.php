@@ -2,19 +2,26 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CompetencyTrack;
 use App\Enums\IdentityType;
 use App\Enums\ProfileGender;
+use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
+use App\Enums\TrainingProgramKind;
 use App\Exceptions\RegistrationNotEligibleException;
+use App\Filament\Resources\TrainingProgramResource\Pages\ViewTrainingProgram;
 use App\Models\Profile;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\ProgramRegistrationService;
+use App\Services\Rbac\RbacCatalog;
 use App\Support\ProgramAcceptanceConditions;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Livewire\Livewire;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\GeneratesTestIdentityData;
 use Tests\Concerns\SeedsRbacRoles;
@@ -204,6 +211,65 @@ class ProgramAcceptanceConditionsRegistrationTest extends TestCase
 
         $this->post(route('portal.profile.complete.store'), $payload)
             ->assertRedirect('/programs/'.$program->slug);
+    }
+
+    public function test_filament_save_with_both_acceptance_modes_off_keeps_conditions_but_allows_registration(): void
+    {
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        $admin = User::factory()->create([
+            'role_type' => 'admin',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $admin->assignRole(RbacCatalog::ROLE_ADMIN);
+
+        $program = $this->makeOpenProgram([
+            'title' => 'برنامج شرط جنس مخفي',
+            'program_kind' => TrainingProgramKind::Course,
+            'competency_track' => CompetencyTrack::Self,
+            'delivery_mode' => ProgramDeliveryMode::Remote,
+            'description' => 'وصف البرنامج',
+            'auto_accept_registrations' => false,
+            'acceptance_conditions' => [
+                'genders' => [ProfileGender::Female->value],
+            ],
+            'created_by' => $admin->id,
+            'owner_id' => $admin->id,
+        ]);
+
+        $this->withSession(['otp_verified' => true]);
+
+        Livewire::actingAs($admin)
+            ->test(ViewTrainingProgram::class, ['record' => $program->getKey()])
+            ->fillForm([
+                'auto_accept_registrations' => false,
+                'acceptance_manual_review' => false,
+            ])
+            ->call('saveTrainingEntitySettings')
+            ->assertHasNoFormErrors();
+
+        $program->refresh();
+        $this->assertFalse($program->auto_accept_registrations);
+        $this->assertSame([ProfileGender::Female->value], $program->acceptance_conditions['genders']);
+        $this->assertFalse($program->acceptance_conditions['enforced']);
+
+        $man = $this->makeEligiblePortalUser();
+        $man->profile->forceFill(['gender' => ProfileGender::Male])->save();
+
+        $this->actingAsOtpVerified($man)
+            ->post(route('public.programs.register', $program), [
+                'attendance_acknowledgement' => '1',
+            ])
+            ->assertRedirect(route('public.programs.registered', [
+                'trainingProgram' => $program->slug,
+                'registration' => $program->registrations()->where('user_id', $man->id)->value('id'),
+            ]));
+
+        $this->assertDatabaseHas('program_registrations', [
+            'training_program_id' => $program->id,
+            'user_id' => $man->id,
+        ]);
     }
 
     private function makeEligiblePortalUser(IdentityType $type = IdentityType::NationalId): User

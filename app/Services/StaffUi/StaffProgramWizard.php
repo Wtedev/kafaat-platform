@@ -105,6 +105,11 @@ final class StaffProgramWizard
         }
 
         $publish = (bool) ($input['publish'] ?? false);
+        if ($publish && ($program->start_date === null || $program->registration_start === null || $program->registration_end === null)) {
+            throw ValidationException::withMessages([
+                'start_date' => 'لا يمكن النشر قبل إدخال تاريخ بداية البرنامج وبداية التسجيل ونهايته.',
+            ]);
+        }
         if ($publish && ! $actor->can('publish', $program)) {
             throw ValidationException::withMessages([
                 'publish' => 'لا تملك صلاحية نشر هذا البرنامج.',
@@ -233,11 +238,24 @@ final class StaffProgramWizard
         bool $autoAccept,
         bool $unlimitedWhenEmpty,
     ): array {
-        $lines = array_values(array_filter(
-            ProgramAcceptanceConditions::summarize($conditions),
-            static fn (string $line): bool => ! str_contains($line, 'مدينة الإقامة')
-                && ! str_contains($line, 'اكتمال بيانات الملف'),
-        ));
+        $lines = [];
+        $genderPlaced = false;
+        foreach (ProgramAcceptanceConditions::summarize($conditions) as $line) {
+            if (str_contains($line, 'مدينة الإقامة') || str_contains($line, 'اكتمال بيانات الملف')) {
+                continue;
+            }
+            if (str_starts_with($line, 'الجنس:')) {
+                continue;
+            }
+            $lines[] = $line;
+            if (str_starts_with($line, 'سعودي الجنسية')) {
+                $lines[] = 'الجنس: '.ProgramAcceptanceConditions::publicGenderLabel($conditions);
+                $genderPlaced = true;
+            }
+        }
+        if (! $genderPlaced) {
+            array_unshift($lines, 'الجنس: '.ProgramAcceptanceConditions::publicGenderLabel($conditions));
+        }
 
         $items = ProgramAcceptanceConditions::publicCapacityItems($capacity, $capacityMale, $capacityFemale);
         if ($items === []) {
@@ -331,8 +349,9 @@ final class StaffProgramWizard
 
     /**
      * @param  array<string, mixed>  $input
+     * @return array<string, mixed>
      */
-    private function saveSchedule(TrainingProgram $program, array $input): void
+    private function validatedSchedule(TrainingProgram $program, array $input): array
     {
         $isSession = $program->program_kind === TrainingProgramKind::Session;
         $validator = validator($input, [
@@ -354,6 +373,17 @@ final class StaffProgramWizard
                 'start_date' => $errors,
             ]);
         }
+
+        return $data;
+    }
+
+    /**
+     * @param  array<string, mixed>  $input
+     */
+    private function saveSchedule(TrainingProgram $program, array $input): void
+    {
+        $data = $this->validatedSchedule($program, $input);
+        $isSession = $program->program_kind === TrainingProgramKind::Session;
         $program->fill([
             'start_date' => $data['start_date'] ?? null,
             'end_date' => $data['end_date'] ?? null,
@@ -505,7 +535,7 @@ final class StaffProgramWizard
                 'session_topics_enabled' => $program->session_topics_enabled,
                 'session_topics' => $program->session_topics,
             ], $program),
-            2 => $this->saveSchedule($program, [
+            2 => $this->validatedSchedule($program, [
                 'start_date' => $program->start_date?->toDateString(),
                 'end_date' => $program->end_date?->toDateString(),
                 'registration_start' => $program->registration_start?->toDateString(),

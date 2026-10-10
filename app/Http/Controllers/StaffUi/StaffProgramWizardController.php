@@ -47,7 +47,6 @@ class StaffProgramWizardController extends Controller
         $program = $wizard->createDraft($actor, $request->all(), $request->file('image'));
         $request->session()->put($this->intentKey($program), [
             'publish' => false,
-            'notify' => true,
         ]);
 
         return redirect()->route('staff-ui.programs.wizard', [$program, 2]);
@@ -63,9 +62,12 @@ class StaffProgramWizardController extends Controller
             try {
                 $wizard->finish($actor, $program, $request->all());
             } catch (ValidationException $exception) {
-                $invalid = isset($exception->errors()['publish'])
+                $errors = $exception->errors();
+                $invalid = isset($errors['publish'])
                     ? 5
-                    : ($wizard->firstInvalidStoredStep($program->refresh()) ?? 1);
+                    : (isset($errors['start_date'])
+                        ? 2
+                        : ($wizard->firstInvalidStoredStep($program->refresh()) ?? 1));
 
                 return redirect()
                     ->route('staff-ui.programs.wizard', [$program, $invalid])
@@ -84,7 +86,6 @@ class StaffProgramWizardController extends Controller
         if ($step === 5) {
             $request->session()->put($this->intentKey($program), [
                 'publish' => $request->boolean('publish'),
-                'notify' => $request->boolean('notify_audience'),
             ]);
         }
 
@@ -193,7 +194,9 @@ class StaffProgramWizardController extends Controller
 
         return [
             'publish' => (bool) ($stored['publish'] ?? false),
-            'notify' => (bool) ($stored['notify'] ?? ($program->notify_on_publish && $program->notify_milestones && $program->notify_registrants_on_update)),
+            'notify' => $program->notify_on_publish
+                && $program->notify_milestones
+                && $program->notify_registrants_on_update,
         ];
     }
 }

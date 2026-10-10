@@ -23,9 +23,7 @@ $venueMapUrl = filled($trainingProgram->venue)
     : null;
 
 $benefits = TrainingProgramExtrasSupport::publicBenefits($trainingProgram);
-$acceptance = ProgramAcceptanceConditions::normalize(
-    is_array($trainingProgram->acceptance_conditions) ? $trainingProgram->acceptance_conditions : null
-);
+$acceptance = ProgramAcceptanceConditions::applicable($trainingProgram);
 $saudiOnly = is_array($acceptance) && $acceptance['require_saudi_national'];
 $ageLabel = null;
 if (is_array($acceptance) && ($acceptance['min_age'] !== null || $acceptance['max_age'] !== null)) {

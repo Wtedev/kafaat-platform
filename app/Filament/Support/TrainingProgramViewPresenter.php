@@ -198,7 +198,7 @@ final class TrainingProgramViewPresenter
         ];
 
         $conditionLines = ProgramAcceptanceConditions::summarize(
-            is_array($program->acceptance_conditions) ? $program->acceptance_conditions : null
+            ProgramAcceptanceConditions::applicable($program)
         );
 
         if ($conditionLines !== []) {

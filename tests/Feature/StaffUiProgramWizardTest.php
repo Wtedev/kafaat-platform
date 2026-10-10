@@ -15,6 +15,7 @@ use App\Models\Profile;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Rbac\RbacCatalog;
+use App\Services\StaffUi\StaffProgramWizard;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -275,7 +276,8 @@ class StaffUiProgramWizardTest extends TestCase
             ->assertOk();
         $lines = $preview->json('lines');
         $this->assertContains('سعة النساء: 20', $lines);
-        $this->assertTrue(collect($lines)->contains(fn (string $line): bool => str_contains($line, 'أنثى')));
+        $this->assertContains('الجنس: إناث', $lines);
+        $this->assertFalse(collect($lines)->contains(fn (string $line): bool => str_contains($line, 'أنثى')));
         $this->assertTrue(collect($lines)->contains(fn (string $line): bool => str_contains($line, '18')));
         $program->refresh();
         $this->assertNull($program->capacity_female);
@@ -300,6 +302,7 @@ class StaffUiProgramWizardTest extends TestCase
             ->get(route('staff-ui.programs.wizard', [$program, 3]))
             ->assertOk()
             ->assertSee('سعة النساء: 20')
+            ->assertSee('الجنس: إناث')
             ->getContent();
         $this->assertMatchesRegularExpression('/data-sui-capacity="male"\s+hidden/', $stepHtml);
         $this->assertMatchesRegularExpression('/data-sui-capacity="shared"\s+hidden/', $stepHtml);
@@ -363,6 +366,128 @@ class StaffUiProgramWizardTest extends TestCase
             'training_program_id' => $program->id,
             'user_id' => $man->id,
         ]);
+    }
+
+    public function test_publishing_without_schedule_dates_returns_to_step_two(): void
+    {
+        $staff = $this->creator(publish: true);
+        $this->actingAsOtpVerified($staff)
+            ->post(route('staff-ui.programs.wizard.store-new'), $this->basics())
+            ->assertRedirect();
+        $program = TrainingProgram::query()->firstOrFail();
+
+        $this->actingAsOtpVerified($staff)
+            ->post(route('staff-ui.programs.wizard.store', [$program, 6]), [
+                'publish' => '1',
+            ])
+            ->assertRedirect(route('staff-ui.programs.wizard', [$program, 2]))
+            ->assertSessionHasErrors([
+                'start_date' => 'لا يمكن النشر قبل إدخال تاريخ بداية البرنامج وبداية التسجيل ونهايته.',
+            ]);
+
+        $program->refresh();
+        $this->assertSame(ProgramStatus::Draft, $program->status);
+        $this->assertNull($program->published_at);
+        $this->assertNull($program->start_date);
+        $this->assertNull($program->registration_start);
+        $this->assertNull($program->registration_end);
+    }
+
+    public function test_draft_save_without_schedule_dates_succeeds(): void
+    {
+        $staff = $this->creator(publish: true);
+        $this->actingAsOtpVerified($staff)
+            ->post(route('staff-ui.programs.wizard.store-new'), $this->basics())
+            ->assertRedirect();
+        $program = TrainingProgram::query()->firstOrFail();
+
+        $this->actingAsOtpVerified($staff)
+            ->post(route('staff-ui.programs.wizard.store', [$program, 6]), [
+                'publish' => '0',
+            ])
+            ->assertRedirect(route('staff-ui.programs.show', $program));
+
+        $program->refresh();
+        $this->assertSame(ProgramStatus::Draft, $program->status);
+        $this->assertNull($program->start_date);
+        $this->assertNull($program->registration_start);
+        $this->assertNull($program->registration_end);
+    }
+
+    public function test_checking_stored_steps_does_not_write_the_schedule(): void
+    {
+        $staff = $this->creator();
+        $this->actingAsOtpVerified($staff)
+            ->post(route('staff-ui.programs.wizard.store-new'), $this->basics())
+            ->assertRedirect();
+        $program = TrainingProgram::query()->firstOrFail();
+        $stamp = now()->subDay()->startOfSecond();
+        TrainingProgram::query()->whereKey($program->id)->update([
+            'start_date' => '2026-11-01',
+            'updated_at' => $stamp,
+        ]);
+
+        app(StaffProgramWizard::class)->firstInvalidStoredStep($program->fresh());
+
+        $program->refresh();
+        $this->assertSame('2026-11-01', $program->start_date?->toDateString());
+        $this->assertTrue($program->updated_at->equalTo($stamp));
+    }
+
+    public function test_review_reads_notifications_from_the_program(): void
+    {
+        $staff = $this->creator(publish: true);
+        $this->actingAsOtpVerified($staff)
+            ->post(route('staff-ui.programs.wizard.store-new'), $this->basics())
+            ->assertRedirect();
+        $program = TrainingProgram::query()->firstOrFail();
+        $program->update([
+            'notify_on_publish' => false,
+            'notify_milestones' => false,
+            'notify_registrants_on_update' => false,
+        ]);
+
+        $this->actingAsOtpVerified($staff)
+            ->withSession([
+                'staff_program_wizard.'.$program->id => ['publish' => true, 'notify' => true],
+            ])
+            ->get(route('staff-ui.programs.wizard', [$program, 6]))
+            ->assertOk()
+            ->assertSee('منشور')
+            ->assertSee('متوقفة');
+    }
+
+    public function test_resaving_a_published_program_without_dates_is_not_a_new_publish(): void
+    {
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        $staff = $this->creator(publish: true);
+        $this->actingAsOtpVerified($staff)
+            ->post(route('staff-ui.programs.wizard.store-new'), $this->basics())
+            ->assertRedirect();
+        $program = TrainingProgram::query()->firstOrFail();
+        $program->forceFill([
+            'status' => ProgramStatus::Published,
+            'published_at' => now(),
+            'start_date' => null,
+            'registration_start' => null,
+            'registration_end' => null,
+        ])->save();
+
+        $this->withSession(['otp_verified' => true]);
+        Livewire::actingAs($staff)
+            ->test(ViewTrainingProgram::class, ['record' => $program->getKey()])
+            ->fillForm([
+                'title' => 'برنامج منشور بلا تواريخ',
+            ])
+            ->call('saveTrainingEntitySettings')
+            ->assertHasNoFormErrors();
+
+        $program->refresh();
+        $this->assertSame(ProgramStatus::Published, $program->status);
+        $this->assertNull($program->start_date);
+        $this->assertNull($program->registration_start);
+        $this->assertNull($program->registration_end);
+        $this->assertSame('برنامج منشور بلا تواريخ', $program->title);
     }
 
     public function test_schedule_rules_reject_an_inverted_range(): void

@@ -107,9 +107,7 @@ final class ProgramAcceptanceConditions
      */
     public static function missingProfileFieldsForRegistration(TrainingProgram $program, User $user): array
     {
-        $conditions = self::normalize(
-            is_array($program->acceptance_conditions) ? $program->acceptance_conditions : null,
-        );
+        $conditions = self::applicable($program);
 
         if ($conditions === null) {
             return [];
@@ -154,6 +152,8 @@ final class ProgramAcceptanceConditions
             'require_complete_profile' => false,
         ];
 
+        $suspended = self::isSuspended($conditions, $autoAccept);
+
         return [
             'acceptance_require_saudi_national' => (bool) $normalized['require_saudi_national'],
             'acceptance_genders' => $normalized['genders'],
@@ -162,9 +162,39 @@ final class ProgramAcceptanceConditions
             'acceptance_max_age' => $normalized['max_age'],
             'acceptance_cities' => $normalized['cities'],
             'acceptance_require_complete_profile' => (bool) $normalized['require_complete_profile'],
-            // When auto is off and conditions already exist, keep the conditions panel visible.
-            'acceptance_manual_review' => ! $autoAccept && self::hasAny($normalized),
+            // A suspended payload keeps the saved rules hidden until a mode is turned on again.
+            'acceptance_manual_review' => ! $autoAccept && ! $suspended && self::hasAny($normalized),
         ];
+    }
+
+    /**
+     * Stored rules stay in the JSON when both Filament modes are off, but registration ignores them.
+     * Programs saved before this flag, and wizard programs, keep enforcing their rules.
+     *
+     * @param  array<string, mixed>|null  $conditions
+     */
+    public static function isSuspended(?array $conditions, bool $autoAccept): bool
+    {
+        if ($autoAccept || ! is_array($conditions) || ! array_key_exists('enforced', $conditions)) {
+            return false;
+        }
+
+        return $conditions['enforced'] === false;
+    }
+
+    /**
+     * Rules that registration and the public page should apply. Null means no eligibility rules.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function applicable(TrainingProgram $program): ?array
+    {
+        $raw = is_array($program->acceptance_conditions) ? $program->acceptance_conditions : null;
+        if (self::isSuspended($raw, (bool) $program->auto_accept_registrations)) {
+            return null;
+        }
+
+        return self::normalize($raw);
     }
 
     /**
