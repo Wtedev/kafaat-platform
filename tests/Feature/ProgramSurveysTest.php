@@ -61,7 +61,9 @@ class ProgramSurveysTest extends TestCase
 
         $this->get(route('public.surveys.show', $survey->public_token))
             ->assertOk()
-            ->assertSee('طي****قاضي')
+            ->assertSee('طي ... ... قاضي')
+            ->assertSee('text-right', false)
+            ->assertSee('dir="rtl"', false)
             ->assertDontSee('طيبة')
             ->assertDontSee('سمير')
             ->assertDontSee('عبدالمنعم');

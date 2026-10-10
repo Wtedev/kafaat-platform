@@ -96,7 +96,7 @@
             <h1 class="text-xl font-semibold text-[#335483]">{{ \App\Services\Surveys\ProgramSurveyService::THANKS_MESSAGE }}</h1>
         @elseif ($step === 'confirm')
             <h1 class="text-xl font-semibold text-[#335483]">تأكيد الهوية</h1>
-            <p class="mt-4 text-2xl font-semibold tracking-wide text-[#335483]" dir="ltr">{{ $shortName }}</p>
+            <p class="mt-4 text-right text-2xl font-semibold text-[#335483]" dir="rtl">{{ $shortName }}</p>
             <form method="POST" action="{{ route('public.surveys.confirm', $survey->public_token) }}" class="mt-6 flex flex-wrap gap-3">
                 @csrf
                 <button type="submit" name="choice" value="yes" class="rounded-xl bg-[#335483] px-4 py-2 text-sm font-semibold text-white">نعم، هذا أنا</button>

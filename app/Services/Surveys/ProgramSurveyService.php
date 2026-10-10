@@ -303,15 +303,25 @@ final class ProgramSurveyService
     public function shortName(?User $user): string
     {
         $first = trim((string) ($user?->first_name ?? ''));
+        $father = trim((string) ($user?->father_name ?? ''));
+        $grandfather = trim((string) ($user?->grandfather_name ?? ''));
         $family = trim((string) ($user?->family_name ?? ''));
-        $firstPart = $first === '' ? '' : mb_substr($first, 0, 2);
-        $familyPart = $family === '' ? '' : mb_substr($family, 0, 4);
 
-        if ($firstPart === '' || $familyPart === '') {
-            return $firstPart.$familyPart;
+        $parts = [];
+        if ($first !== '') {
+            $parts[] = mb_substr($first, 0, 2);
+        }
+        if ($father !== '') {
+            $parts[] = '...';
+        }
+        if ($grandfather !== '') {
+            $parts[] = '...';
+        }
+        if ($family !== '') {
+            $parts[] = mb_substr($family, 0, 4);
         }
 
-        return $firstPart.'****'.$familyPart;
+        return implode(' ', $parts);
     }
 
     /**
