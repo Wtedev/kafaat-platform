@@ -159,26 +159,22 @@ class ProgramSurveysTest extends TestCase
         $this->assertDatabaseCount('survey_responses', 0);
     }
 
-    public function test_the_identity_step_is_rate_limited(): void
+    public function test_the_identity_step_accepts_repeated_attempts(): void
     {
         [, $survey] = $this->openPreSurvey();
         $this->withServerVariables(['REMOTE_ADDR' => '10.8.8.8']);
 
-        for ($attempt = 0; $attempt < 10; $attempt++) {
-            $this->post(route('public.surveys.identify', $survey->public_token), [
-                'national_id' => '200000000'.$attempt,
-                'turnstile_token' => 'test-turnstile',
-            ])->assertRedirect();
+        for ($attempt = 0; $attempt < 11; $attempt++) {
+            $this->from(route('public.surveys.show', $survey->public_token))
+                ->post(route('public.surveys.identify', $survey->public_token), [
+                    'national_id' => sprintf('%010d', 2000000000 + $attempt),
+                    'turnstile_token' => 'test-turnstile',
+                ])
+                ->assertRedirect()
+                ->assertSessionHasErrors(['national_id' => ProgramSurveyService::NOT_FOUND_MESSAGE]);
         }
 
-        $this->from(route('public.surveys.show', $survey->public_token))
-            ->post(route('public.surveys.identify', $survey->public_token), [
-                'national_id' => '2000000009',
-                'turnstile_token' => 'test-turnstile',
-            ])
-            ->assertSessionHasErrors(['national_id' => 'تجاوزت عدد المحاولات المسموح بها. حاول لاحقًا.']);
-
-        $this->assertDatabaseCount('survey_access_attempts', 10);
+        $this->assertDatabaseCount('survey_access_attempts', 11);
     }
 
     public function test_missing_turnstile_keys_reject_the_identity_step_outside_testing(): void
