@@ -83,8 +83,9 @@ php artisan optimize
 runtime="${WEB_RUNTIME:-frankenphp}"
 case "${runtime}" in
   artisan)
-    echo "WEB_RUNTIME=artisan (rollback): php artisan serve on port ${PORT:-8080}"
-    exec php artisan serve --host=0.0.0.0 --port="${PORT:-8080}"
+    # The built-in server ignores PHP_CLI_SERVER_WORKERS unless reload is off.
+    echo "WEB_RUNTIME=artisan (rollback): php artisan serve --no-reload on port ${PORT:-8080} workers=${PHP_CLI_SERVER_WORKERS:-1}"
+    exec php artisan serve --no-reload --host=0.0.0.0 --port="${PORT:-8080}"
     ;;
   frankenphp)
     ;;

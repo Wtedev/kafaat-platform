@@ -11,7 +11,7 @@ class WebRuntimeScriptTest extends TestCase
         $script = (string) file_get_contents(base_path('railway/run-web.sh'));
 
         $this->assertStringContainsString('WEB_RUNTIME:-frankenphp', $script);
-        $this->assertStringContainsString('php artisan serve --host=0.0.0.0 --port="${PORT:-8080}"', $script);
+        $this->assertStringContainsString('php artisan serve --no-reload --host=0.0.0.0 --port="${PORT:-8080}"', $script);
         $this->assertStringContainsString('frankenphp run --config /app/Caddyfile', $script);
         $this->assertStringContainsString('php artisan storage:link', $script);
         $this->assertStringContainsString('php artisan optimize', $script);
