@@ -34,8 +34,11 @@ class SecurityHeadersTest extends TestCase
     {
         $response = $this->get(route('home'));
 
+        $csp = (string) $response->headers->get('Content-Security-Policy');
         $response->assertHeader('Content-Security-Policy');
-        $this->assertStringNotContainsString('5173', (string) $response->headers->get('Content-Security-Policy'));
+        $this->assertStringNotContainsString('5173', $csp);
+        $this->assertStringContainsString("script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://challenges.cloudflare.com", $csp);
+        $this->assertStringContainsString('frame-src https://challenges.cloudflare.com', $csp);
     }
 
     public function test_local_vite_dev_server_is_allowed_by_csp_while_hot_file_exists(): void
