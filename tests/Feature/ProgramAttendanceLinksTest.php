@@ -223,6 +223,63 @@ class ProgramAttendanceLinksTest extends TestCase
             ->assertSee('1 من 1');
     }
 
+    public function test_attendance_time_is_shown_in_riyadh_on_the_trainer_page_and_in_filament(): void
+    {
+        $previousConfig = config('app.timezone');
+        $previousPhp = date_default_timezone_get();
+        config(['app.timezone' => 'UTC']);
+        date_default_timezone_set('UTC');
+        Carbon::setTestNow(Carbon::parse('2026-10-10 13:05:07', 'UTC'));
+
+        try {
+            $program = $this->program();
+            $user = $this->beneficiary('نورة', 'سعد');
+            $this->register($program, $user, RegistrationStatus::Approved);
+            $link = $this->openLink($program, 'اللقاء الأول');
+
+            $this->actingAsOtpVerified($user)
+                ->post(route('portal.attendance.check-in', $link->token))
+                ->assertRedirect();
+
+            auth()->logout();
+
+            $this->get(route('public.attendance.desk', $link->token))
+                ->assertOk()
+                ->assertSee('2026-10-10 16:05:07')
+                ->assertDontSee('2026-10-10 13:05:07');
+
+            Livewire::test(TrainerDesk::class, ['token' => $link->token])
+                ->set('tab', 'manual')
+                ->assertSee('2026-10-10 16:05:07')
+                ->assertDontSee('2026-10-10 13:05:07');
+
+            Filament::setCurrentPanel(Filament::getPanel('admin'));
+            $admin = User::factory()->create([
+                'role_type' => 'admin',
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]);
+            $admin->assignRole(RbacCatalog::ROLE_ADMIN);
+            $this->withSession(['otp_verified' => true]);
+            $this->actingAs($admin);
+
+            $component = Livewire::actingAs($admin)
+                ->test(ProgramAttendanceLinksRelationManager::class, [
+                    'ownerRecord' => $program,
+                    'pageClass' => ViewTrainingProgram::class,
+                ])
+                ->mountAction(TestAction::make('attendees')->table($link));
+
+            $html = (string) $component->instance()->getMountedAction()->getModalContent();
+            $this->assertStringContainsString('2026-10-10 16:05:07', $html);
+            $this->assertStringNotContainsString('2026-10-10 13:05:07', $html);
+        } finally {
+            Carbon::setTestNow();
+            config(['app.timezone' => $previousConfig]);
+            date_default_timezone_set($previousPhp);
+        }
+    }
+
     public function test_staff_can_create_and_cancel_an_attendance_link(): void
     {
         Filament::setCurrentPanel(Filament::getPanel('admin'));

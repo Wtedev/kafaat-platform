@@ -29,8 +29,11 @@
         @if ($tab === 'live')
             <p class="mt-6 text-sm text-gray-600">الحاضرون {{ $presentCount }} من {{ $approvedCount }}</p>
             <ul class="mt-3 space-y-2">
-                @forelse ($recentNames as $name)
-                    <li class="rounded-xl bg-[#e9eff6] px-4 py-3 text-base font-semibold text-[#335483]">{{ $name }}</li>
+                @forelse ($recentMarks as $mark)
+                    <li class="flex items-center justify-between gap-3 rounded-xl bg-[#e9eff6] px-4 py-3">
+                        <span class="text-base font-semibold text-[#335483]">{{ $mark->registration?->user?->fullName() }}</span>
+                        <span class="text-sm tabular-nums text-[#335483]">{{ $mark->riyadhLabel() }}</span>
+                    </li>
                 @empty
                     <li class="text-sm text-gray-500">لا يظهر اسم الآن.</li>
                 @endforelse
@@ -42,8 +45,8 @@
                 @foreach ($approved as $registration)
                     <li class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 px-4 py-3">
                         <span class="font-semibold text-[#335483]">{{ $registration->user?->fullName() }}</span>
-                        @if ($markedIds->contains($registration->id))
-                            <span class="text-sm text-gray-500">حاضر</span>
+                        @if ($marks->has($registration->id))
+                            <span class="text-sm tabular-nums text-gray-500">حاضر {{ $marks->get($registration->id)->riyadhLabel() }}</span>
                         @else
                             <button type="button" wire:click="mark({{ $registration->id }})" class="rounded-xl bg-[#335483] px-3 py-1.5 text-sm font-semibold text-white">حاضر</button>
                         @endif

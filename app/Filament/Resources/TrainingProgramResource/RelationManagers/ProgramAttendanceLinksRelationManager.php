@@ -100,7 +100,7 @@ class ProgramAttendanceLinksRelationManager extends RelationManager
                         $rows = $record->marks()->with('registration.user')->orderBy('attended_at')->get();
                         $html = '<table class="w-full text-sm"><thead><tr><th class="py-2 text-right">الاسم</th><th class="py-2 text-right">وقت التحضير</th><th class="py-2 text-right">المصدر</th></tr></thead><tbody>';
                         foreach ($rows as $mark) {
-                            $html .= '<tr><td class="py-2">'.e($mark->registration?->user?->fullName()).'</td><td class="py-2">'.e($mark->attended_at?->timezone(config('app.timezone'))->format('Y-m-d H:i:s')).'</td><td class="py-2">'.e($mark->source->label()).'</td></tr>';
+                            $html .= '<tr><td class="py-2">'.e($mark->registration?->user?->fullName()).'</td><td class="py-2">'.e($mark->riyadhLabel()).'</td><td class="py-2">'.e($mark->source->label()).'</td></tr>';
                         }
                         $html .= '</tbody></table>';
 

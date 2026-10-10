@@ -84,22 +84,18 @@ class TrainerDesk extends Component
             );
         }
 
-        $markedIds = $link->marks()->pluck('program_registration_id');
-        $recentNames = $link->marks()
-            ->with('registration.user')
-            ->where('attended_at', '>', now()->subSeconds(4))
-            ->latest('attended_at')
-            ->get()
-            ->map(fn ($mark): string => $mark->registration?->user?->fullName() ?? '')
-            ->filter()
+        $marks = $link->marks()->with('registration.user')->get()->keyBy('program_registration_id');
+        $recentMarks = $marks
+            ->filter(fn ($mark): bool => $mark->attended_at->greaterThan(now()->subSeconds(4)))
+            ->sortByDesc(fn ($mark) => $mark->attended_at->getTimestamp())
             ->values();
 
         return view('livewire.attendance.trainer-desk', [
             'link' => $link,
             'programTitle' => $link->program?->title,
             'approved' => $approved,
-            'markedIds' => $markedIds,
-            'recentNames' => $recentNames,
+            'marks' => $marks,
+            'recentMarks' => $recentMarks,
             'presentCount' => $link->marks()->count(),
             'approvedCount' => ProgramRegistration::query()
                 ->where('training_program_id', $link->training_program_id)

@@ -32,4 +32,9 @@ class ProgramAttendanceMark extends Model
     {
         return $this->belongsTo(ProgramRegistration::class, 'program_registration_id');
     }
+
+    public function riyadhLabel(): string
+    {
+        return $this->attended_at->timezone('Asia/Riyadh')->format('Y-m-d H:i:s');
+    }
 }
