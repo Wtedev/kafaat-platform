@@ -61,10 +61,10 @@ class ProgramSurveysTest extends TestCase
 
         $this->get(route('public.surveys.show', $survey->public_token))
             ->assertOk()
-            ->assertSee('طيبة ق.')
+            ->assertSee('طي****قاضي')
+            ->assertDontSee('طيبة')
             ->assertDontSee('سمير')
-            ->assertDontSee('عبدالمنعم')
-            ->assertDontSee('قاضي');
+            ->assertDontSee('عبدالمنعم');
 
         $this->post(route('public.surveys.confirm', $survey->public_token), ['choice' => 'yes'])
             ->assertRedirect(route('public.surveys.show', $survey->public_token));

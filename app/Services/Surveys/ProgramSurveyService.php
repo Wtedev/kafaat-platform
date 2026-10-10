@@ -304,13 +304,14 @@ final class ProgramSurveyService
     {
         $first = trim((string) ($user?->first_name ?? ''));
         $family = trim((string) ($user?->family_name ?? ''));
-        $letter = $family === '' ? '' : mb_substr($family, 0, 1);
+        $firstPart = $first === '' ? '' : mb_substr($first, 0, 2);
+        $familyPart = $family === '' ? '' : mb_substr($family, 0, 4);
 
-        if ($first === '') {
-            return $letter === '' ? '' : $letter.'.';
+        if ($firstPart === '' || $familyPart === '') {
+            return $firstPart.$familyPart;
         }
 
-        return $letter === '' ? $first : $first.' '.$letter.'.';
+        return $firstPart.'****'.$familyPart;
     }
 
     /**
