@@ -409,7 +409,10 @@ class ProgramSurveysTest extends TestCase
             ->get(route('public.surveys.show', $pre->public_token))
             ->assertOk()
             ->assertSee('أبدًا')
-            ->assertSee('دائمًا');
+            ->assertSee('دائمًا')
+            ->assertSee('★')
+            ->assertSee('1')
+            ->assertSee('من 5');
     }
 
     public function test_editing_questions_copied_from_a_template_does_not_change_the_template(): void
