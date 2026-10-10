@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Enums\AttendanceMarkSource;
+use App\Enums\IdentityType;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
+use App\Exports\ProgramAttendanceMarkExport;
 use App\Filament\Resources\TrainingProgramResource\Pages\ViewTrainingProgram;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramAttendanceLinksRelationManager;
 use App\Livewire\Attendance\TrainerDesk;
@@ -14,11 +16,14 @@ use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Attendance\ProgramAttendanceLinkService;
+use App\Services\Identity\IdentityNumberService;
 use App\Services\Rbac\RbacCatalog;
+use App\Services\Surveys\ProgramSurveyService;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Testing\TestResponse;
 use Livewire\Livewire;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\SeedsRbacRoles;
@@ -42,36 +47,52 @@ class ProgramAttendanceLinksTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_an_approved_trainee_checks_in_once_per_link(): void
+    public function test_an_approved_trainee_checks_in_once_per_link_without_logging_in(): void
     {
         $program = $this->program();
-        $user = $this->beneficiary('نورة', 'سعد');
+        $identity = '1000000001';
+        $user = $this->beneficiary('نورة', 'سعد', $identity);
         $registration = $this->register($program, $user, RegistrationStatus::Approved);
-        $link = $this->openLink($program, 'اللقاء الأول');
+        $link = $this->openLink($program, 'اليوم الأول');
 
-        $this->actingAsOtpVerified($user)
-            ->get(route('portal.dashboard'))
+        $this->assertGuest();
+        $this->get(route('public.attendance.show', $link->token))
             ->assertOk()
-            ->assertSee('التحضير مفتوح')
-            ->assertSee('اللقاء الأول')
-            ->assertSee('سجّل حضوري');
+            ->assertSee('اليوم الأول')
+            ->assertSee($program->title)
+            ->assertSee('رقم الهوية');
 
-        $this->actingAsOtpVerified($user)
-            ->post(route('portal.attendance.check-in', $link->token))
-            ->assertRedirect(route('portal.dashboard'));
+        $this->post(route('public.attendance.identify', $link->token), [
+            'national_id' => $identity,
+            'turnstile_token' => 'test-turnstile',
+        ])->assertRedirect(route('public.attendance.show', $link->token));
 
+        $this->get(route('public.attendance.show', $link->token))
+            ->assertOk()
+            ->assertSee('نو')
+            ->assertSee('تأكيد الحضور');
+
+        $this->post(route('public.attendance.confirm', $link->token))
+            ->assertOk()
+            ->assertSee(ProgramAttendanceLinkService::RECORDED_MESSAGE);
+
+        $this->assertGuest();
         $this->assertDatabaseCount('program_attendance_marks', 1);
         $this->assertDatabaseHas('program_attendance_marks', [
             'program_attendance_link_id' => $link->id,
             'program_registration_id' => $registration->id,
-            'source' => AttendanceMarkSource::Self->value,
+            'source' => AttendanceMarkSource::PublicLink->value,
         ]);
+        $this->assertNotNull(ProgramAttendanceMark::query()->firstOrFail()->ip_address);
+        $export = new ProgramAttendanceMarkExport($link->fresh());
+        $this->assertSame(['الاسم', 'الوقت', 'المصدر'], $export->headings());
+        $this->assertSame('رابط عام', $export->collection()->first()[2]);
+        $this->assertSame('نورة سعد', $export->collection()->first()[0]);
 
-        $this->actingAsOtpVerified($user)
-            ->from(route('portal.dashboard'))
-            ->post(route('portal.attendance.check-in', $link->token))
-            ->assertRedirect(route('portal.dashboard'))
-            ->assertSessionHasErrors(['attendance' => ProgramAttendanceLinkService::ALREADY_MESSAGE]);
+        $this->post(route('public.attendance.identify', $link->token), [
+            'national_id' => $identity,
+            'turnstile_token' => 'test-turnstile',
+        ])->assertOk()->assertSee(ProgramAttendanceLinkService::ALREADY_PUBLIC_MESSAGE);
 
         $this->assertDatabaseCount('program_attendance_marks', 1);
         $this->actingAsOtpVerified($user)
@@ -82,34 +103,92 @@ class ProgramAttendanceLinksTest extends TestCase
     public function test_the_same_trainee_can_check_in_on_two_links(): void
     {
         $program = $this->program();
-        $user = $this->beneficiary('نورة', 'سعد');
+        $identity = '1000000002';
+        $user = $this->beneficiary('نورة', 'سعد', $identity);
         $this->register($program, $user, RegistrationStatus::Approved);
         $first = $this->openLink($program, 'اللقاء الأول');
         $second = $this->openLink($program, 'اللقاء الثاني');
 
-        $this->actingAsOtpVerified($user)->post(route('portal.attendance.check-in', $first->token))->assertRedirect();
-        $this->actingAsOtpVerified($user)->post(route('portal.attendance.check-in', $second->token))->assertRedirect();
+        $this->attend($first, $identity)->assertOk();
+        $this->attend($second, $identity)->assertOk();
 
         $this->assertDatabaseCount('program_attendance_marks', 2);
-        $this->assertSame(2, ProgramAttendanceMark::query()->whereIn('program_attendance_link_id', [$first->id, $second->id])->count());
     }
 
-    public function test_a_non_approved_registration_cannot_check_in(): void
+    public function test_a_non_approved_or_unknown_identity_is_rejected_the_same_way(): void
     {
         $program = $this->program();
-        $user = $this->beneficiary('نورة', 'سعد');
+        $identity = '1000000003';
+        $user = $this->beneficiary('نورة', 'سعد', $identity);
         $this->register($program, $user, RegistrationStatus::Pending);
-        $link = $this->openLink($program, 'اللقاء الأول');
+        $link = $this->openLink($program, 'اليوم الأول');
 
-        $this->actingAsOtpVerified($user)
-            ->from(route('portal.dashboard'))
-            ->post(route('portal.attendance.check-in', $link->token))
-            ->assertSessionHasErrors(['attendance' => ProgramAttendanceLinkService::NOT_APPROVED_MESSAGE]);
+        $this->from(route('public.attendance.show', $link->token))
+            ->post(route('public.attendance.identify', $link->token), [
+                'national_id' => $identity,
+                'turnstile_token' => 'test-turnstile',
+            ])
+            ->assertSessionHasErrors(['national_id' => ProgramAttendanceLinkService::NOT_FOUND_MESSAGE]);
+
+        $this->from(route('public.attendance.show', $link->token))
+            ->post(route('public.attendance.identify', $link->token), [
+                'national_id' => '1000000099',
+                'turnstile_token' => 'test-turnstile',
+            ])
+            ->assertSessionHasErrors(['national_id' => ProgramAttendanceLinkService::NOT_FOUND_MESSAGE]);
 
         $this->assertDatabaseCount('program_attendance_marks', 0);
-        $this->actingAsOtpVerified($user)
-            ->get(route('portal.dashboard'))
-            ->assertDontSee('التحضير مفتوح');
+    }
+
+    public function test_turnstile_is_required_and_the_identity_and_ip_limits_apply(): void
+    {
+        $program = $this->program();
+        $link = $this->openLink($program, 'اليوم الأول');
+
+        $this->from(route('public.attendance.show', $link->token))
+            ->post(route('public.attendance.identify', $link->token), [
+                'national_id' => '1000000004',
+            ])
+            ->assertSessionHasErrors(['turnstile_token' => ProgramSurveyService::TURNSTILE_MESSAGE]);
+
+        $identity = '1000000005';
+        for ($attempt = 1; $attempt <= 10; $attempt++) {
+            $this->from(route('public.attendance.show', $link->token))
+                ->post(route('public.attendance.identify', $link->token), [
+                    'national_id' => $identity,
+                    'turnstile_token' => 'test-turnstile',
+                ])
+                ->assertSessionHasErrors(['national_id' => ProgramAttendanceLinkService::NOT_FOUND_MESSAGE]);
+        }
+
+        $this->from(route('public.attendance.show', $link->token))
+            ->post(route('public.attendance.identify', $link->token), [
+                'national_id' => $identity,
+                'turnstile_token' => 'test-turnstile',
+            ])
+            ->assertSessionHasErrors(['national_id' => 'تجاوزت عدد المحاولات. حاول بعد دقيقة.']);
+    }
+
+    public function test_requests_from_one_ip_are_limited_at_thirty_per_minute(): void
+    {
+        $program = $this->program();
+        $link = $this->openLink($program, 'اليوم الأول');
+
+        for ($attempt = 1; $attempt <= 30; $attempt++) {
+            $this->from(route('public.attendance.show', $link->token))
+                ->post(route('public.attendance.identify', $link->token), [
+                    'national_id' => sprintf('1%09d', 300000000 + $attempt),
+                    'turnstile_token' => 'test-turnstile',
+                ])
+                ->assertSessionHasErrors(['national_id' => ProgramAttendanceLinkService::NOT_FOUND_MESSAGE]);
+        }
+
+        $this->from(route('public.attendance.show', $link->token))
+            ->post(route('public.attendance.identify', $link->token), [
+                'national_id' => '1000000777',
+                'turnstile_token' => 'test-turnstile',
+            ])
+            ->assertSessionHasErrors(['national_id' => 'تجاوزت عدد المحاولات. حاول بعد دقيقة.']);
     }
 
     public function test_check_in_is_rejected_after_the_window_closes(): void
@@ -120,26 +199,28 @@ class ProgramAttendanceLinksTest extends TestCase
         $service = app(ProgramAttendanceLinkService::class);
         $link = $service->create($program, 'اللقاء الأول');
 
-        $this->actingAsOtpVerified($user)
-            ->from(route('portal.dashboard'))
-            ->post(route('portal.attendance.check-in', $link->token))
-            ->assertSessionHasErrors(['attendance' => ProgramAttendanceLinkService::CLOSED_MESSAGE]);
+        $this->get(route('public.attendance.show', $link->token))
+            ->assertOk()
+            ->assertSee(ProgramAttendanceLinkService::UNAVAILABLE_MESSAGE)
+            ->assertDontSee('name="national_id"', false);
 
         $service->open($link);
         $service->close($link->fresh());
 
-        $this->actingAsOtpVerified($user)
-            ->from(route('portal.dashboard'))
-            ->post(route('portal.attendance.check-in', $link->token))
-            ->assertSessionHasErrors(['attendance' => ProgramAttendanceLinkService::CLOSED_MESSAGE]);
+        $this->get(route('public.attendance.show', $link->fresh()->token))
+            ->assertOk()
+            ->assertSee(ProgramAttendanceLinkService::UNAVAILABLE_MESSAGE);
 
         $reopened = $service->open($link->fresh());
-        Carbon::setTestNow($reopened->closes_at);
-        $this->actingAsOtpVerified($user)
-            ->from(route('portal.dashboard'))
-            ->post(route('portal.attendance.check-in', $link->token))
-            ->assertSessionHasErrors(['attendance' => ProgramAttendanceLinkService::CLOSED_MESSAGE]);
         $this->assertSame(15, (int) $reopened->opens_at->diffInMinutes($reopened->closes_at));
+        Carbon::setTestNow($reopened->closes_at);
+        $this->get(route('public.attendance.show', $link->token))
+            ->assertOk()
+            ->assertSee(ProgramAttendanceLinkService::UNAVAILABLE_MESSAGE);
+
+        $custom = $service->create($program, 'اليوم الأول', 20);
+        $customOpened = $service->open($custom);
+        $this->assertSame(20, (int) $customOpened->opens_at->diffInMinutes($customOpened->closes_at));
         $this->assertDatabaseCount('program_attendance_marks', 0);
     }
 
@@ -152,10 +233,9 @@ class ProgramAttendanceLinksTest extends TestCase
         $link = $this->openLink($program, 'اللقاء الأول');
         $service->cancel($link->fresh());
 
-        $this->actingAsOtpVerified($user)
-            ->from(route('portal.dashboard'))
-            ->post(route('portal.attendance.check-in', $link->token))
-            ->assertSessionHasErrors(['attendance' => ProgramAttendanceLinkService::CANCELLED_MESSAGE]);
+        $this->get(route('public.attendance.show', $link->token))
+            ->assertOk()
+            ->assertSee(ProgramAttendanceLinkService::UNAVAILABLE_MESSAGE);
 
         $this->get(route('public.attendance.desk', $link->token))
             ->assertOk()
@@ -173,10 +253,9 @@ class ProgramAttendanceLinksTest extends TestCase
         $registration = $this->register($program, $user, RegistrationStatus::Approved);
         $link = app(ProgramAttendanceLinkService::class)->create($program, 'اللقاء الأول');
 
-        $this->actingAsOtpVerified($user)
-            ->from(route('portal.dashboard'))
-            ->post(route('portal.attendance.check-in', $link->token))
-            ->assertSessionHasErrors(['attendance' => ProgramAttendanceLinkService::CLOSED_MESSAGE]);
+        $this->get(route('public.attendance.show', $link->token))
+            ->assertOk()
+            ->assertSee(ProgramAttendanceLinkService::UNAVAILABLE_MESSAGE);
 
         Livewire::test(TrainerDesk::class, ['token' => $link->token])
             ->assertSee('wire:poll.3s', false)
@@ -196,19 +275,16 @@ class ProgramAttendanceLinksTest extends TestCase
         $moment = Carbon::parse('2026-10-10 16:05:07');
         Carbon::setTestNow($moment);
         $program = $this->program();
-        $user = $this->beneficiary('نورة', 'سعد');
+        $identity = '1000000011';
+        $user = $this->beneficiary('نورة', 'سعد', $identity);
         $this->register($program, $user, RegistrationStatus::Approved);
         $link = $this->openLink($program, 'اللقاء الأول');
 
-        $this->actingAsOtpVerified($user)
-            ->post(route('portal.attendance.check-in', $link->token))
-            ->assertRedirect();
+        $this->attend($link, $identity)->assertOk();
 
         $mark = ProgramAttendanceMark::query()->firstOrFail();
         $this->assertTrue($mark->attended_at->equalTo($moment));
-        $this->assertSame(AttendanceMarkSource::Self, $mark->source);
-
-        auth()->logout();
+        $this->assertSame(AttendanceMarkSource::PublicLink, $mark->source);
 
         $this->get(route('public.attendance.desk', $link->token))
             ->assertOk()
@@ -233,15 +309,12 @@ class ProgramAttendanceLinksTest extends TestCase
 
         try {
             $program = $this->program();
-            $user = $this->beneficiary('نورة', 'سعد');
+            $identity = '1000000012';
+            $user = $this->beneficiary('نورة', 'سعد', $identity);
             $this->register($program, $user, RegistrationStatus::Approved);
             $link = $this->openLink($program, 'اللقاء الأول');
 
-            $this->actingAsOtpVerified($user)
-                ->post(route('portal.attendance.check-in', $link->token))
-                ->assertRedirect();
-
-            auth()->logout();
+            $this->attend($link, $identity)->assertOk()->assertSee('2026-10-10 16:05:07');
 
             $this->get(route('public.attendance.desk', $link->token))
                 ->assertOk()
@@ -332,7 +405,7 @@ class ProgramAttendanceLinksTest extends TestCase
         ]);
     }
 
-    private function beneficiary(string $first, string $family): User
+    private function beneficiary(string $first, string $family, ?string $identity = null): User
     {
         $user = User::factory()->create([
             'name' => $first.' '.$family,
@@ -344,9 +417,22 @@ class ProgramAttendanceLinksTest extends TestCase
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
+        if ($identity !== null) {
+            $user->forceFill(IdentityNumberService::prepareStoragePayload($identity, IdentityType::NationalId))->save();
+        }
         $user->assignRole('beneficiary');
 
         return $user->fresh();
+    }
+
+    private function attend(ProgramAttendanceLink $link, string $identity): TestResponse
+    {
+        $this->post(route('public.attendance.identify', $link->token), [
+            'national_id' => $identity,
+            'turnstile_token' => 'test-turnstile',
+        ])->assertRedirect(route('public.attendance.show', $link->token));
+
+        return $this->post(route('public.attendance.confirm', $link->token));
     }
 
     private function register(TrainingProgram $program, User $user, RegistrationStatus $status): ProgramRegistration

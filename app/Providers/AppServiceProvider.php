@@ -46,6 +46,7 @@ use App\Policies\SupportTicketPolicy;
 use App\Policies\UserPolicy;
 use App\Services\Auth\EmailVerificationCodeService;
 use App\Services\CandidatePool\CandidatePoolConsentService;
+use App\Services\Identity\IdentityNumberService;
 use App\Services\Inbox\InboxNotificationService;
 use App\Services\News\NewsPublicationService;
 use App\Services\Operations\ProductionEnvironmentValidator;
@@ -298,6 +299,31 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureRateLimiting(): void
     {
+        RateLimiter::for('attendance-public-ip', function (Request $request): Limit {
+            return Limit::perMinute(30)
+                ->by('attendance-ip|'.$request->ip())
+                ->response(function () {
+                    return back()->withErrors([
+                        'national_id' => 'تجاوزت عدد المحاولات. حاول بعد دقيقة.',
+                    ]);
+                });
+        });
+
+        RateLimiter::for('attendance-public-identity', function (Request $request): Limit {
+            $normalized = IdentityNumberService::normalize((string) $request->input('national_id', ''));
+            $key = is_string($normalized) && IdentityNumberService::isValidFormat($normalized)
+                ? IdentityNumberService::generateLookupHash($normalized)
+                : 'invalid';
+
+            return Limit::perMinute(10)
+                ->by('attendance-id|'.$key)
+                ->response(function () {
+                    return back()->withErrors([
+                        'national_id' => 'تجاوزت عدد المحاولات. حاول بعد دقيقة.',
+                    ]);
+                });
+        });
+
         // تسجيل الدخول: 5 محاولات لكل IP+بريد كل دقيقة (يقلل التشويه خلف NAT مع TrustProxies *)
         RateLimiter::for('login', function (Request $request): Limit {
             $email = EmailNormalizer::normalize((string) $request->input('email', ''));

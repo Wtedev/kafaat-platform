@@ -13,6 +13,7 @@ class ProgramAttendanceLink extends Model
     protected $fillable = [
         'training_program_id',
         'name',
+        'open_minutes',
         'token',
         'cancelled_at',
         'opens_at',
@@ -22,6 +23,7 @@ class ProgramAttendanceLink extends Model
     protected function casts(): array
     {
         return [
+            'open_minutes' => 'integer',
             'cancelled_at' => 'datetime',
             'opens_at' => 'datetime',
             'closes_at' => 'datetime',
@@ -33,6 +35,10 @@ class ProgramAttendanceLink extends Model
         static::creating(function (self $link): void {
             if (! filled($link->token)) {
                 $link->token = Str::random(40);
+            }
+
+            if (! filled($link->open_minutes)) {
+                $link->open_minutes = 15;
             }
         });
     }
@@ -81,7 +87,19 @@ class ProgramAttendanceLink extends Model
         return sprintf('%d:%02d', intdiv($seconds, 60), $seconds % 60);
     }
 
+    public function openMinutes(): int
+    {
+        $minutes = (int) $this->open_minutes;
+
+        return $minutes > 0 ? $minutes : 15;
+    }
+
     public function publicUrl(): string
+    {
+        return route('public.attendance.show', $this->token);
+    }
+
+    public function trainerUrl(): string
     {
         return route('public.attendance.desk', $this->token);
     }

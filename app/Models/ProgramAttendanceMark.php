@@ -13,6 +13,7 @@ class ProgramAttendanceMark extends Model
         'program_registration_id',
         'attended_at',
         'source',
+        'ip_address',
     ];
 
     protected function casts(): array
