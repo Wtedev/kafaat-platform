@@ -33,13 +33,13 @@ final class ProgramAttendanceLinkService
 
     public const RECORDED_MESSAGE = 'تم تسجيل حضورك';
 
-    public const OPEN_MINUTES = 15;
+    public const OPEN_MINUTES = 60;
 
-    public function create(TrainingProgram $program, string $name, int $openMinutes = self::OPEN_MINUTES): ProgramAttendanceLink
+    public function create(TrainingProgram $program, string $name): ProgramAttendanceLink
     {
         return $program->attendanceLinks()->create([
             'name' => trim($name),
-            'open_minutes' => max(1, $openMinutes),
+            'open_minutes' => self::OPEN_MINUTES,
         ]);
     }
 
@@ -61,7 +61,7 @@ final class ProgramAttendanceLinkService
 
         $link->update([
             'opens_at' => now(),
-            'closes_at' => now()->addMinutes($link->openMinutes()),
+            'closes_at' => now()->addMinutes(self::OPEN_MINUTES),
         ]);
 
         return $link->refresh();

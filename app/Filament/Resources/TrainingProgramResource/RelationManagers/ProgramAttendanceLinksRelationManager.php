@@ -44,13 +44,6 @@ class ProgramAttendanceLinksRelationManager extends RelationManager
                 ->label('اسم الرابط')
                 ->required()
                 ->maxLength(160),
-            TextInput::make('open_minutes')
-                ->label('مدة الفتح بالدقائق')
-                ->numeric()
-                ->default(15)
-                ->minValue(1)
-                ->maxValue(180)
-                ->required(),
         ]);
     }
 
@@ -66,7 +59,10 @@ class ProgramAttendanceLinksRelationManager extends RelationManager
                     ->label('عدد الحاضرين'),
                 TextColumn::make('open_minutes')
                     ->label('المدة')
-                    ->formatStateUsing(fn ($state): string => ((int) $state).' د'),
+                    ->formatStateUsing(fn (): string => 'ساعة'),
+                TextColumn::make('closes_at')
+                    ->label('الإغلاق')
+                    ->state(fn (ProgramAttendanceLink $record): string => $record->closesAtLabel() ?? '—'),
                 TextColumn::make('cancelled_at')
                     ->label('الحالة')
                     ->formatStateUsing(fn ($state): string => filled($state) ? 'ملغى' : 'نشط')
@@ -75,6 +71,12 @@ class ProgramAttendanceLinksRelationManager extends RelationManager
             ->headerActions([
                 CreateAction::make()
                     ->label('رابط تحضير')
+                    ->using(function (array $data): ProgramAttendanceLink {
+                        /** @var TrainingProgram $owner */
+                        $owner = $this->getOwnerRecord();
+
+                        return app(ProgramAttendanceLinkService::class)->create($owner, (string) ($data['name'] ?? ''));
+                    })
                     ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false),
             ])
             ->actions([
@@ -99,6 +101,10 @@ class ProgramAttendanceLinksRelationManager extends RelationManager
                 Action::make('open')
                     ->label('فتح الآن')
                     ->visible(fn (ProgramAttendanceLink $record): bool => ! $record->isCancelled() && ! $record->isOpen())
+                    ->requiresConfirmation()
+                    ->modalHeading('فتح الآن')
+                    ->modalDescription('سيبقى الرابط مفتوحًا لمدة ساعة')
+                    ->modalSubmitActionLabel('فتح الآن')
                     ->authorize(fn (): bool => auth()->user()?->can('update', $this->getOwnerRecord()) ?? false)
                     ->action(fn (ProgramAttendanceLink $record) => app(ProgramAttendanceLinkService::class)->open($record)),
                 Action::make('close')

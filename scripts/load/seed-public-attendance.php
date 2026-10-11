@@ -27,7 +27,7 @@ $program = TrainingProgram::query()->create([
     'registration_end' => now()->addMonth()->toDateString(),
 ]);
 
-$link = app(ProgramAttendanceLinkService::class)->create($program, 'اليوم الأول', 30);
+$link = app(ProgramAttendanceLinkService::class)->create($program, 'اليوم الأول');
 app(ProgramAttendanceLinkService::class)->open($link);
 
 $identities = [];
