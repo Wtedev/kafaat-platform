@@ -23,6 +23,7 @@ use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
 use Livewire\Livewire;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
@@ -212,16 +213,81 @@ class ProgramAttendanceLinksTest extends TestCase
             ->assertSee(ProgramAttendanceLinkService::UNAVAILABLE_MESSAGE);
 
         $reopened = $service->open($link->fresh());
-        $this->assertSame(15, (int) $reopened->opens_at->diffInMinutes($reopened->closes_at));
+        $this->assertSame(60, (int) $reopened->opens_at->diffInMinutes($reopened->closes_at));
         Carbon::setTestNow($reopened->closes_at);
         $this->get(route('public.attendance.show', $link->token))
             ->assertOk()
             ->assertSee(ProgramAttendanceLinkService::UNAVAILABLE_MESSAGE);
-
-        $custom = $service->create($program, 'اليوم الأول', 20);
-        $customOpened = $service->open($custom);
-        $this->assertSame(20, (int) $customOpened->opens_at->diffInMinutes($customOpened->closes_at));
         $this->assertDatabaseCount('program_attendance_marks', 0);
+    }
+
+    public function test_a_new_link_stays_open_for_one_hour_even_if_another_duration_is_sent(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-10-11 16:20:00', 'Asia/Riyadh'));
+
+        try {
+            $program = $this->program();
+            $service = app(ProgramAttendanceLinkService::class);
+            $user = $this->beneficiary('نورة', 'سعد', '1000000888');
+            $this->register($program, $user, RegistrationStatus::Approved);
+
+            $ignored = $program->attendanceLinks()->create([
+                'name' => 'قيمة مرفوضة',
+                'open_minutes' => 20,
+            ]);
+            $this->assertSame(60, (int) $ignored->open_minutes);
+            $this->assertSame(ProgramAttendanceLinkService::OPEN_MINUTES, $ignored->openMinutes());
+
+            $opened = $service->open($service->create($program, 'اللقاء الثاني'));
+            $this->assertSame(60, (int) $opened->open_minutes);
+            $this->assertTrue($opened->closes_at->equalTo(Carbon::parse('2026-10-11 17:20:00', 'Asia/Riyadh')));
+            $this->assertSame('يُغلق الساعة ٥:٢٠ م', $opened->closesAtLabel());
+
+            Carbon::setTestNow(Carbon::parse('2026-10-11 17:19:00', 'Asia/Riyadh'));
+            $this->assertTrue($opened->fresh()->isOpen());
+            $this->assertSame('match', $service->identify($opened->fresh(), '1000000888')['status']);
+
+            Carbon::setTestNow(Carbon::parse('2026-10-11 17:21:00', 'Asia/Riyadh'));
+            $this->assertFalse($opened->fresh()->isOpen());
+            $this->assertSame('closed', $service->identify($opened->fresh(), '1000000888')['status']);
+            $this->assertDatabaseCount('program_attendance_marks', 0);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function test_the_one_hour_migration_does_not_change_an_existing_window(): void
+    {
+        $program = $this->program();
+        $user = $this->beneficiary('نورة', 'سعد');
+        $registration = $this->register($program, $user, RegistrationStatus::Approved);
+        $link = app(ProgramAttendanceLinkService::class)->create($program, 'رابط سابق');
+        $opens = '2026-10-10 13:00:00';
+        $closes = '2026-10-10 13:15:00';
+        DB::table('program_attendance_links')->where('id', $link->id)->update([
+            'open_minutes' => 15,
+            'opens_at' => $opens,
+            'closes_at' => $closes,
+            'cancelled_at' => null,
+        ]);
+        DB::table('program_attendance_marks')->insert([
+            'program_attendance_link_id' => $link->id,
+            'program_registration_id' => $registration->id,
+            'attended_at' => $opens,
+            'source' => AttendanceMarkSource::PublicLink->value,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $migration = require database_path('migrations/2026_10_11_172500_set_attendance_link_open_minutes_to_sixty.php');
+        $migration->up();
+
+        $row = DB::table('program_attendance_links')->where('id', $link->id)->first();
+        $this->assertSame(60, (int) $row->open_minutes);
+        $this->assertTrue(Carbon::parse($row->opens_at)->equalTo(Carbon::parse($opens)));
+        $this->assertTrue(Carbon::parse($row->closes_at)->equalTo(Carbon::parse($closes)));
+        $this->assertNull($row->cancelled_at);
+        $this->assertSame(1, DB::table('program_attendance_marks')->count());
     }
 
     public function test_a_cancelled_link_rejects_check_in(): void
@@ -372,14 +438,35 @@ class ProgramAttendanceLinksTest extends TestCase
                 'ownerRecord' => $program,
                 'pageClass' => ViewTrainingProgram::class,
             ])
-            ->callAction(TestAction::make('create')->table(), [
+            ->mountAction(TestAction::make('create')->table())
+            ->assertMountedActionModalSee('اسم الرابط')
+            ->assertMountedActionModalDontSee('مدة الفتح بالدقائق')
+            ->fillForm([
                 'name' => 'اللقاء الأول – د. عبدالله العمير',
             ])
+            ->callMountedAction()
             ->assertSee('اللقاء الأول – د. عبدالله العمير')
-            ->assertSee('0');
+            ->assertSee('ساعة')
+            ->assertDontSee('20 د');
 
         $link = ProgramAttendanceLink::query()->firstOrFail();
         $this->assertSame(40, strlen($link->token));
+        $this->assertSame(60, (int) $link->open_minutes);
+
+        Carbon::setTestNow(Carbon::parse('2026-10-11 16:20:00', 'Asia/Riyadh'));
+        try {
+            Livewire::actingAs($admin)
+                ->test(ProgramAttendanceLinksRelationManager::class, [
+                    'ownerRecord' => $program,
+                    'pageClass' => ViewTrainingProgram::class,
+                ])
+                ->mountAction(TestAction::make('open')->table($link))
+                ->assertMountedActionModalSee('سيبقى الرابط مفتوحًا لمدة ساعة')
+                ->callMountedAction()
+                ->assertSee('يُغلق الساعة ٥:٢٠ م');
+        } finally {
+            Carbon::setTestNow();
+        }
 
         Livewire::actingAs($admin)
             ->test(ProgramAttendanceLinksRelationManager::class, [

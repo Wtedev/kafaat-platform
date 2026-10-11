@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Attendance\ProgramAttendanceLinkService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -37,9 +38,7 @@ class ProgramAttendanceLink extends Model
                 $link->token = Str::random(40);
             }
 
-            if (! filled($link->open_minutes)) {
-                $link->open_minutes = 15;
-            }
+            $link->open_minutes = ProgramAttendanceLinkService::OPEN_MINUTES;
         });
     }
 
@@ -89,9 +88,31 @@ class ProgramAttendanceLink extends Model
 
     public function openMinutes(): int
     {
-        $minutes = (int) $this->open_minutes;
+        return ProgramAttendanceLinkService::OPEN_MINUTES;
+    }
 
-        return $minutes > 0 ? $minutes : 15;
+    public function closesAtLabel(): ?string
+    {
+        if (! $this->isOpen() || $this->closes_at === null) {
+            return null;
+        }
+
+        $at = $this->closes_at->timezone('Asia/Riyadh');
+        $clock = strtr($at->format('g:i'), [
+            '0' => '٠',
+            '1' => '١',
+            '2' => '٢',
+            '3' => '٣',
+            '4' => '٤',
+            '5' => '٥',
+            '6' => '٦',
+            '7' => '٧',
+            '8' => '٨',
+            '9' => '٩',
+        ]);
+        $suffix = ((int) $at->format('G')) < 12 ? 'ص' : 'م';
+
+        return 'يُغلق الساعة '.$clock.' '.$suffix;
     }
 
     public function publicUrl(): string
