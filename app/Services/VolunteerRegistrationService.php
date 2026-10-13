@@ -7,6 +7,7 @@ use App\Enums\RegistrationStatus;
 use App\Exceptions\DuplicateRegistrationException;
 use App\Exceptions\OpportunityCapacityExceededException;
 use App\Exceptions\OpportunityNotPublishedException;
+use App\Exceptions\RegistrationRejectedException;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
@@ -24,7 +25,14 @@ class VolunteerRegistrationService
     /**
      * Register a user for a volunteer opportunity.
      *
+     * Rules:
+     *  - a rejected registration is final: the volunteer cannot register again;
+     *  - a cancelled registration is re-opened as pending (the database allows
+     *    only one registration per opportunity and user);
+     *  - any other existing registration is a duplicate.
+     *
      * @throws OpportunityNotPublishedException
+     * @throws RegistrationRejectedException
      * @throws DuplicateRegistrationException
      * @throws OpportunityCapacityExceededException
      */
@@ -34,15 +42,15 @@ class VolunteerRegistrationService
             throw new OpportunityNotPublishedException;
         }
 
-        $exists = VolunteerRegistration::where('opportunity_id', $opportunity->id)
+        $existing = VolunteerRegistration::where('opportunity_id', $opportunity->id)
             ->where('user_id', $user->id)
-            ->whereNotIn('status', [
-                RegistrationStatus::Rejected->value,
-                RegistrationStatus::Cancelled->value,
-            ])
-            ->exists();
+            ->first();
 
-        if ($exists) {
+        if ($existing !== null && $existing->status === RegistrationStatus::Rejected) {
+            throw new RegistrationRejectedException;
+        }
+
+        if ($existing !== null && $existing->status !== RegistrationStatus::Cancelled) {
             throw new DuplicateRegistrationException;
         }
 
@@ -50,11 +58,26 @@ class VolunteerRegistrationService
             throw new OpportunityCapacityExceededException;
         }
 
-        $registration = VolunteerRegistration::create([
-            'opportunity_id' => $opportunity->id,
-            'user_id' => $user->id,
-            'status' => RegistrationStatus::Pending,
-        ]);
+        if ($existing !== null) {
+            // تسجيل ملغي: نعيد فتحه بدل إنشاء صف جديد (قيد unique في قاعدة البيانات).
+            $existing->update([
+                'status' => RegistrationStatus::Pending,
+                'approved_by' => null,
+                'approved_at' => null,
+                'rejected_reason' => null,
+            ]);
+
+            $registration = $existing->fresh();
+
+            // الحدث created لا يعمل عند التحديث، فنُنبّه الموظفين يدوياً.
+            $this->inboxNotifications->notifyStaffOfNewVolunteerRegistration($registration);
+        } else {
+            $registration = VolunteerRegistration::create([
+                'opportunity_id' => $opportunity->id,
+                'user_id' => $user->id,
+                'status' => RegistrationStatus::Pending,
+            ]);
+        }
 
         UserActivityLogger::logVolunteerRegistration($user, $opportunity->title ?? 'فرصة تطوعية');
 
