@@ -56,7 +56,7 @@ class PublicVolunteerOpportunityController extends Controller
 
             return back()->with('success', 'تم تسجيلك بنجاح! سيتم مراجعة طلبك قريباً.');
         } catch (RegistrationRejectedException) {
-            return back()->with('error', 'تم رفض تسجيلك السابق في هذه الفرصة التطوعية، ولا يمكن إعادة التقديم عليها.');
+            return back()->with('error', 'لا يمكن إعادة التقديم على هذه الفرصة التطوعية لأن تسجيلك السابق فيها رُفض أو أُغلق من قبل الإدارة.');
         } catch (DuplicateRegistrationException) {
             return back()->with('error', 'لديك تسجيل نشط بالفعل في هذه الفرصة التطوعية.');
         } catch (OpportunityNotPublishedException) {

@@ -120,23 +120,25 @@ class VolunteerRegistrationServiceTest extends TestCase
     }
 
     /**
-     * التسجيل الملغي يُعاد فتحه كـ"قيد الانتظار" (قيد unique يمنع صفاً ثانياً).
-     * هذا السلوك مبني على افتراض، وينتظر تأكيد المشرفة.
+     * التحكم كله بيد الإدارة (لا يوجد إلغاء من المتطوع): التسجيل الملغي
+     * يُعامل كالمرفوض ولا يمكن إعادة التقديم عليه.
      */
-    public function test_register_again_after_cancellation_reopens_the_same_registration(): void
+    public function test_cancelled_registration_cannot_register_again(): void
     {
         $opportunity = $this->makeOpportunity();
         $cancelled = $this->makeRegistration($opportunity, RegistrationStatus::Cancelled);
         $user = $cancelled->user;
 
-        $result = $this->service->register($user, $opportunity);
-
-        $this->assertSame($cancelled->id, $result->id);
-        $this->assertSame(RegistrationStatus::Pending, $result->status);
-        $this->assertSame(1, VolunteerRegistration::query()
-            ->where('opportunity_id', $opportunity->id)
-            ->where('user_id', $user->id)
-            ->count());
+        try {
+            $this->service->register($user, $opportunity);
+            $this->fail('كان يجب أن يرمي استثناء التسجيل المغلق.');
+        } catch (RegistrationRejectedException) {
+            $this->assertSame(RegistrationStatus::Cancelled, $cancelled->fresh()->status);
+            $this->assertSame(1, VolunteerRegistration::query()
+                ->where('opportunity_id', $opportunity->id)
+                ->where('user_id', $user->id)
+                ->count());
+        }
     }
 
     public function test_rejected_volunteer_posting_again_sees_a_clear_message_not_a_server_error(): void

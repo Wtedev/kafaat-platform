@@ -25,10 +25,10 @@ class VolunteerRegistrationService
     /**
      * Register a user for a volunteer opportunity.
      *
-     * Rules:
-     *  - a rejected registration is final: the volunteer cannot register again;
-     *  - a cancelled registration is re-opened as pending (the database allows
-     *    only one registration per opportunity and user);
+     * Rules (all control stays with the administration):
+     *  - a rejected or cancelled registration is final: the volunteer cannot
+     *    register again (the database also allows one registration per
+     *    opportunity and user);
      *  - any other existing registration is a duplicate.
      *
      * @throws OpportunityNotPublishedException
@@ -46,11 +46,11 @@ class VolunteerRegistrationService
             ->where('user_id', $user->id)
             ->first();
 
-        if ($existing !== null && $existing->status === RegistrationStatus::Rejected) {
-            throw new RegistrationRejectedException;
-        }
+        if ($existing !== null) {
+            if (in_array($existing->status, [RegistrationStatus::Rejected, RegistrationStatus::Cancelled], true)) {
+                throw new RegistrationRejectedException;
+            }
 
-        if ($existing !== null && $existing->status !== RegistrationStatus::Cancelled) {
             throw new DuplicateRegistrationException;
         }
 
@@ -58,26 +58,11 @@ class VolunteerRegistrationService
             throw new OpportunityCapacityExceededException;
         }
 
-        if ($existing !== null) {
-            // تسجيل ملغي: نعيد فتحه بدل إنشاء صف جديد (قيد unique في قاعدة البيانات).
-            $existing->update([
-                'status' => RegistrationStatus::Pending,
-                'approved_by' => null,
-                'approved_at' => null,
-                'rejected_reason' => null,
-            ]);
-
-            $registration = $existing->fresh();
-
-            // الحدث created لا يعمل عند التحديث، فنُنبّه الموظفين يدوياً.
-            $this->inboxNotifications->notifyStaffOfNewVolunteerRegistration($registration);
-        } else {
-            $registration = VolunteerRegistration::create([
-                'opportunity_id' => $opportunity->id,
-                'user_id' => $user->id,
-                'status' => RegistrationStatus::Pending,
-            ]);
-        }
+        $registration = VolunteerRegistration::create([
+            'opportunity_id' => $opportunity->id,
+            'user_id' => $user->id,
+            'status' => RegistrationStatus::Pending,
+        ]);
 
         UserActivityLogger::logVolunteerRegistration($user, $opportunity->title ?? 'فرصة تطوعية');
 
