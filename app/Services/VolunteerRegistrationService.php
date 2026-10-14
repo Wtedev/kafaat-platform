@@ -7,6 +7,7 @@ use App\Enums\RegistrationStatus;
 use App\Exceptions\DuplicateRegistrationException;
 use App\Exceptions\OpportunityCapacityExceededException;
 use App\Exceptions\OpportunityNotPublishedException;
+use App\Exceptions\RegistrationRejectedException;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
@@ -24,7 +25,14 @@ class VolunteerRegistrationService
     /**
      * Register a user for a volunteer opportunity.
      *
+     * Rules (all control stays with the administration):
+     *  - a rejected or cancelled registration is final: the volunteer cannot
+     *    register again (the database also allows one registration per
+     *    opportunity and user);
+     *  - any other existing registration is a duplicate.
+     *
      * @throws OpportunityNotPublishedException
+     * @throws RegistrationRejectedException
      * @throws DuplicateRegistrationException
      * @throws OpportunityCapacityExceededException
      */
@@ -34,15 +42,15 @@ class VolunteerRegistrationService
             throw new OpportunityNotPublishedException;
         }
 
-        $exists = VolunteerRegistration::where('opportunity_id', $opportunity->id)
+        $existing = VolunteerRegistration::where('opportunity_id', $opportunity->id)
             ->where('user_id', $user->id)
-            ->whereNotIn('status', [
-                RegistrationStatus::Rejected->value,
-                RegistrationStatus::Cancelled->value,
-            ])
-            ->exists();
+            ->first();
 
-        if ($exists) {
+        if ($existing !== null) {
+            if (in_array($existing->status, [RegistrationStatus::Rejected, RegistrationStatus::Cancelled], true)) {
+                throw new RegistrationRejectedException;
+            }
+
             throw new DuplicateRegistrationException;
         }
 
