@@ -325,7 +325,7 @@ class InboxNotificationService
     public function registrationApprovedProgram(User $recipient, TrainingProgram $program, ?User $approver = null): void
     {
         $whatsappUrl = ProgramApprovalMail::groupUrl($program, $recipient);
-        $title = ProgramApprovalMail::isForumMessage($program) ? 'مبارك قبولك النهائي' : 'تم قبول تسجيلك';
+        $title = ProgramApprovalMail::isForumMessage($program) ? 'مبارك قبولك في الهاكاثون' : 'تم قبول تسجيلك';
 
         $msg = new NotificationMessage(
             type: InboxNotificationType::RegistrationApproved,
