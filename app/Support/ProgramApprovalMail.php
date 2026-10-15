@@ -8,22 +8,28 @@ use App\Models\User;
 
 final class ProgramApprovalMail
 {
-    public const FORUM_SUBJECT = 'قبولك النهائي في ملتقى تحليل البيانات – النسخة الثانية';
+    public const FORUM_SUBJECT = 'قبولك في الهاكاثون – ملتقى تحليل البيانات في القطاع غير الربحي';
+
+    public const FORUM_INBOX = 'مبارك قبولك في هاكاثون تحليل البيانات 🎉 دليل الهاكاثون ورابط التسجيل في بريدك الإلكتروني.';
 
     public const PENDING_LINE = 'سيتم تزويدك برابط المجموعة قريباً';
 
     public const BUTTON_LABEL = 'الانضمام إلى مجموعة البرنامج';
 
+    public const GROUP_MARKER = '<!--approval-group-->';
+
     public const FORUM_BODY = <<<'HTML'
 <p style="margin:0 0 16px;text-align:center;">رسالة من فريق كفاءات بخصوص ملتقى تحليل البيانات في القطاع غير الربحي – النسخة الثانية.</p>
-<p style="margin:0 0 16px;text-align:center;">يسر جمعية كفاءات الأهلية لبناء قدرات الشباب أن تتقدم لك بخالص التهنئة بمناسبة <strong>قبولك النهائي في الملتقى</strong>.</p>
-<p style="margin:0 0 8px;text-align:center;"><strong>تفاصيل الملتقى:</strong></p>
-<p style="margin:0 0 8px;text-align:center;"><strong>تاريخ الانطلاق:</strong> 10 أكتوبر 2026م</p>
-<p style="margin:0 0 8px;text-align:center;"><strong>نوع اللقاء:</strong> عن بُعد عبر منصة Zoom</p>
-<p style="margin:0 0 16px;text-align:center;"><strong>مواعيد اللقاء:</strong> تُقام المرحلة النظرية من 10 إلى 12 أكتوبر، من الساعة 4 مساءً حتى الساعة 7 مساءً. أما مواعيد المراحل اللاحقة فسيتم تزويد المشاركين بها تباعًا وفق سير الملتقى.</p>
-<p style="margin:0 0 8px;text-align:center;"><strong>تنويه:</strong></p>
-<p style="margin:0 0 16px;text-align:center;">نأمل منك الانضمام إلى مجموعة الملتقى على تيليجرام لمتابعة التنبيهات والتحديثات وروابط اللقاءات والمعلومات المتعلقة بمراحل الملتقى.</p>
-<p style="margin:0 0 16px;text-align:center;">سعداء بانضمامك، ونتطلع إلى مشاركتك في <strong>رحلة</strong> <strong>تبدأ بالبيانات.. وتمتد إلى ما وراء الأرقام.</strong></p>
+<p style="margin:0 0 16px;text-align:center;">يسر جمعية كفاءات الأهلية لبناء قدرات الشباب أن تهنئك بقبولك في هاكاثون تحليل البيانات، المرحلة التطبيقية من الملتقى، بعد اختتام المرحلة النظرية بنجاح.</p>
+<p style="margin:16px 0 0;text-align:center;"><strong>دليل الهاكاثون</strong></p>
+<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:8px auto 16px;"><tr><td align="center" bgcolor="#1a9399" style="border-radius:4px;background-color:#1a9399;"><a href="https://drive.google.com/file/d/1XjBjiYW_UCdVuZqicMA3O23pdpHbqdte/view?usp=drivesdk" target="_blank" rel="noopener" style="display:inline-block;padding:12px 18px;color:#ffffff;text-decoration:none;font-weight:bold;">دليل الهاكاثون</a></td></tr></table>
+<p style="margin:16px 0 0;text-align:center;"><strong>رابط التسجيل في الهاكاثون</strong></p>
+<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:8px auto 16px;"><tr><td align="center" bgcolor="#1a9399" style="border-radius:4px;background-color:#1a9399;"><a href="https://forms.gle/SoVgeTnoSb7re3WL6" target="_blank" rel="noopener" style="display:inline-block;padding:12px 18px;color:#ffffff;text-decoration:none;font-weight:bold;">التسجيل في الهاكاثون</a></td></tr></table>
+<p style="margin:16px 0 0;text-align:center;"><strong>رابط طلب الاستشارات</strong></p>
+<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:8px auto 16px;"><tr><td align="center" bgcolor="#1a9399" style="border-radius:4px;background-color:#1a9399;"><a href="https://web-production-ade28.up.railway.app" target="_blank" rel="noopener" style="display:inline-block;padding:12px 18px;color:#ffffff;text-decoration:none;font-weight:bold;">طلب الاستشارات</a></td></tr></table>
+<p style="margin:8px 0 0;text-align:center;"><strong>تنويه:</strong></p>
+<p style="margin:0 0 4px;text-align:center;">نأمل منك الانضمام إلى مجموعة الملتقى على تيليجرام إن لم تكن قد انضممت بعد، لمتابعة التنبيهات والتحديثات الخاصة بالهاكاثون.</p>
+<!--approval-group-->
 <p style="margin:0;text-align:center;">مع تحيات فريق جمعية كفاءات الأهلية لبناء قدرات الشباب</p>
 HTML;
 
@@ -44,7 +50,7 @@ HTML;
     public static function inboxMessage(TrainingProgram $program): string
     {
         if (self::isForumMessage($program)) {
-            return 'مبارك قبولك النهائي في ملتقى تحليل البيانات. تفاصيل الملتقى ورابط مجموعة تيليجرام في بريدك الإلكتروني.';
+            return self::FORUM_INBOX;
         }
 
         if (filled($program->approval_message)) {

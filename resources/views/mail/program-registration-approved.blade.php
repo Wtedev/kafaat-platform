@@ -22,7 +22,15 @@
 </tr>
 <tr>
 <td dir="rtl" align="center" style="padding:8px 32px 32px;direction:rtl;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.7;color:#52525b;">
-{!! $bodyHtml !!}
+@php
+    $groupMarker = \App\Support\ProgramApprovalMail::GROUP_MARKER;
+    $beforeGroup = $bodyHtml;
+    $afterGroup = '';
+    if (str_contains($bodyHtml, $groupMarker)) {
+        [$beforeGroup, $afterGroup] = explode($groupMarker, $bodyHtml, 2);
+    }
+@endphp
+{!! $beforeGroup !!}
 @if (filled($groupUrl))
 <table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:8px auto 20px;">
 <tr>
@@ -34,6 +42,7 @@
 @elseif (! empty($showPendingLine))
 <p style="margin:0 0 16px;text-align:center;">{{ \App\Support\ProgramApprovalMail::PENDING_LINE }}</p>
 @endif
+{!! $afterGroup !!}
 </td>
 </tr>
 </table>
