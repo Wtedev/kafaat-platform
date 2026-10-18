@@ -203,19 +203,26 @@ class VolunteerHoursServiceTest extends TestCase
     }
 
     /**
-     * يوثّق السلوك الحالي: لو فشل إصدار الشهادة بعد اكتمال التسجيل، تبقى الساعات
-     * "معتمدة" والتسجيل "مكتمل" بدون شهادة، ولا تعيد المحاولة التالية إصدارها
-     * لأن approveHours() يخرج مبكراً للساعات المعتمدة.
+     * لو فشل إصدار الشهادة يُلغى الاعتماد كله (الساعات والإكمال)، فتنجح
+     * إعادة المحاولة لاحقاً بدل أن يبقى تسجيل «مكتمل» بلا شهادة.
      */
-    public function test_certificate_failure_leaves_completed_registration_without_certificate(): void
+    public function test_certificate_failure_rolls_back_the_approval_and_retry_succeeds(): void
     {
         $admin = $this->makeAdmin();
         $opportunity = $this->makeOpportunity(['hours_expected' => 5]);
         $registration = $this->makeApprovedRegistration($opportunity);
         $hour = $this->makeHour($registration, 5);
 
-        $this->mock(CertificateService::class, function ($mock): void {
-            $mock->shouldReceive('issue')->once()->andThrow(new RuntimeException('PDF failed'));
+        $calls = 0;
+        $this->mock(CertificateService::class, function ($mock) use (&$calls): void {
+            $mock->shouldReceive('issue')->twice()->andReturnUsing(function () use (&$calls) {
+                $calls++;
+                if ($calls === 1) {
+                    throw new RuntimeException('PDF failed');
+                }
+
+                return new Certificate;
+            });
         });
         $service = app(VolunteerHoursService::class);
 
@@ -226,12 +233,13 @@ class VolunteerHoursServiceTest extends TestCase
             // متوقع
         }
 
+        $this->assertSame(VolunteerHoursStatus::Pending, $hour->fresh()->status);
+        $this->assertSame(RegistrationStatus::Approved, $registration->fresh()->status);
+
+        $service->approveHours($hour->fresh(), $admin);
+
         $this->assertSame(VolunteerHoursStatus::Approved, $hour->fresh()->status);
         $this->assertSame(RegistrationStatus::Completed, $registration->fresh()->status);
-        $this->assertSame(0, Certificate::query()->count());
-
-        // إعادة المحاولة لا تستدعي issue() مرة ثانية (once() أعلاه يتحقق من ذلك)
-        $service->approveHours($hour->fresh(), $admin);
     }
 
     // ─── لوحة الإدارة: تبويب "ساعات التطوع" داخل صفحة الفرصة ────────────────
@@ -272,6 +280,27 @@ class VolunteerHoursServiceTest extends TestCase
             ]);
 
         $this->assertSame(VolunteerHoursStatus::Rejected, $hour->fresh()->status);
+    }
+
+    /**
+     * الساعات المعتمدة أو المرفوضة مقفلة: لا تعديل ولا حذف إلا للساعات
+     * «قيد الانتظار»، حتى لا تتغير الأرقام بعد الاعتماد أو إصدار الشهادة.
+     */
+    public function test_only_pending_hours_can_be_edited_or_deleted_in_the_hours_tab(): void
+    {
+        [$admin, $opportunity, $pending] = $this->adminOpportunityAndPendingHour();
+        $registration = VolunteerRegistration::query()->where('opportunity_id', $opportunity->id)->first();
+        $approved = $this->makeHour($registration, 3, VolunteerHoursStatus::Approved);
+
+        Livewire::actingAs($admin)
+            ->test(VolunteerHoursRelationManager::class, [
+                'ownerRecord' => $opportunity,
+                'pageClass' => EditVolunteerOpportunity::class,
+            ])
+            ->assertActionVisible(TestAction::make('edit')->table($pending))
+            ->assertActionHidden(TestAction::make('edit')->table($approved))
+            ->assertActionVisible(TestAction::make('delete')->table($pending))
+            ->assertActionHidden(TestAction::make('delete')->table($approved));
     }
 
     /**

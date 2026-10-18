@@ -14,6 +14,7 @@ use App\Models\VolunteerRegistration;
 use App\Notifications\VolunteerRegistrationApproved;
 use App\Notifications\VolunteerRegistrationRejected;
 use App\Services\Inbox\InboxNotificationService;
+use Illuminate\Support\Facades\DB;
 
 class VolunteerRegistrationService
 {
@@ -82,21 +83,27 @@ class VolunteerRegistrationService
 
         $opportunity = $registration->opportunity;
 
-        if ($opportunity->capacity !== null) {
-            $approvedCount = $opportunity->registrations()
-                ->where('status', RegistrationStatus::Approved->value)
-                ->count();
+        DB::transaction(function () use ($registration, $opportunity, $approvedBy): void {
+            // قفل صف الفرصة أثناء فحص السعة والقبول، حتى لا يتجاوز مشرفان
+            // السعة إذا قبلا بنفس اللحظة.
+            VolunteerOpportunity::query()->whereKey($opportunity->id)->lockForUpdate()->first();
 
-            if ($approvedCount >= $opportunity->capacity) {
-                throw new OpportunityCapacityExceededException;
+            if ($opportunity->capacity !== null) {
+                $approvedCount = $opportunity->registrations()
+                    ->where('status', RegistrationStatus::Approved->value)
+                    ->count();
+
+                if ($approvedCount >= $opportunity->capacity) {
+                    throw new OpportunityCapacityExceededException;
+                }
             }
-        }
 
-        $registration->update([
-            'status' => RegistrationStatus::Approved,
-            'approved_by' => $approvedBy->id,
-            'approved_at' => now(),
-        ]);
+            $registration->update([
+                'status' => RegistrationStatus::Approved,
+                'approved_by' => $approvedBy->id,
+                'approved_at' => now(),
+            ]);
+        });
 
         $registration->loadMissing('user');
 
