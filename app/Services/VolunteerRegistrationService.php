@@ -88,14 +88,8 @@ class VolunteerRegistrationService
             // السعة إذا قبلا بنفس اللحظة.
             VolunteerOpportunity::query()->whereKey($opportunity->id)->lockForUpdate()->first();
 
-            if ($opportunity->capacity !== null) {
-                $approvedCount = $opportunity->registrations()
-                    ->where('status', RegistrationStatus::Approved->value)
-                    ->count();
-
-                if ($approvedCount >= $opportunity->capacity) {
-                    throw new OpportunityCapacityExceededException;
-                }
+            if ($opportunity->capacity !== null && $opportunity->approvedRegistrationsCount() >= $opportunity->capacity) {
+                throw new OpportunityCapacityExceededException;
             }
 
             $registration->update([

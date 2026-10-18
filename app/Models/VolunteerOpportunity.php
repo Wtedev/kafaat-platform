@@ -146,10 +146,17 @@ class VolunteerOpportunity extends Model
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
+    /**
+     * Seats taken: approved volunteers plus those who already completed their
+     * hours (a completed volunteer still counts toward the required number).
+     */
     public function approvedRegistrationsCount(): int
     {
         return $this->registrations()
-            ->where('status', RegistrationStatus::Approved->value)
+            ->whereIn('status', [
+                RegistrationStatus::Approved->value,
+                RegistrationStatus::Completed->value,
+            ])
             ->count();
     }
 
