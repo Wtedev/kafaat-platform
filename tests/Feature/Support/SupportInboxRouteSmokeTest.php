@@ -18,9 +18,10 @@ class SupportInboxRouteSmokeTest extends TestCase
             'SupportInbox class missing'
         );
 
+        // نوحّد فواصل المسارات حتى ينجح الاختبار على ويندوز (\\) ولينكس (/).
         $this->assertSame(
-            base_path('app/Filament/Pages/SupportInbox.php'),
-            (new \ReflectionClass(SupportInbox::class))->getFileName()
+            str_replace('\\', '/', base_path('app/Filament/Pages/SupportInbox.php')),
+            str_replace('\\', '/', (new \ReflectionClass(SupportInbox::class))->getFileName())
         );
 
         $pages = Filament::getPanel('admin')->getPages();
