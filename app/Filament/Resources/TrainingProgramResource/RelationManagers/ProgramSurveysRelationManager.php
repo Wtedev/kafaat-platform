@@ -5,12 +5,14 @@ namespace App\Filament\Resources\TrainingProgramResource\RelationManagers;
 use App\Enums\SurveyQuestionType;
 use App\Enums\SurveyType;
 use App\Exports\ProgramSurveyExport;
+use App\Exports\ProgramSurveyWorkbookExport;
 use App\Models\ProgramSurvey;
 use App\Models\SurveyTemplate;
 use App\Models\TrainingProgram;
 use App\Services\Surveys\ProgramSurveyService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
@@ -18,6 +20,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -158,10 +161,44 @@ class ProgramSurveysRelationManager extends RelationManager
                     }),
                 Action::make('export')
                     ->label('تصدير Excel')
-                    ->action(fn (ProgramSurvey $record) => Excel::download(
-                        new ProgramSurveyExport($record),
-                        'survey-'.$record->type->value.'.xlsx',
-                    )),
+                    ->modalHeading('تصدير استجابات الاستبيان')
+                    ->modalDescription(fn (ProgramSurvey $record): string => $record->is_anonymous
+                        ? 'هذا الاستبيان مجهول، لذلك لا تُربط الإجابة باسم صاحبها. يمكن إضافة ورقة منفصلة بأسماء من أكملوه.'
+                        : 'اختر الأعمدة المطلوبة. الاسم ورقم التسجيل يظهران مع كل استجابة.')
+                    ->modalSubmitActionLabel('تصدير')
+                    ->form(fn (ProgramSurvey $record): array => [
+                        CheckboxList::make('columns')
+                            ->label('الأعمدة')
+                            ->options(ProgramSurveyExport::columnOptions($record))
+                            ->default(array_keys(ProgramSurveyExport::columnOptions($record)))
+                            ->bulkToggleable()
+                            ->columns(1)
+                            ->required()
+                            ->minItems(1),
+                        Toggle::make('include_completers')
+                            ->label('إضافة ورقة بأسماء من أكملوا الاستبيان')
+                            ->default(true)
+                            ->visible(fn (): bool => $record->is_anonymous),
+                    ])
+                    ->action(function (ProgramSurvey $record, array $data) {
+                        $allowed = array_keys(ProgramSurveyExport::columnOptions($record));
+                        $keys = array_values(array_intersect($data['columns'] ?? [], $allowed));
+                        if ($keys === []) {
+                            Notification::make()
+                                ->title('اختر عموداً واحداً على الأقل')
+                                ->danger()
+                                ->send();
+
+                            return null;
+                        }
+
+                        $includeCompleters = $record->is_anonymous && (bool) ($data['include_completers'] ?? false);
+                        $export = $includeCompleters
+                            ? new ProgramSurveyWorkbookExport($record, $keys, true)
+                            : new ProgramSurveyExport($record, $keys);
+
+                        return Excel::download($export, 'survey-'.$record->type->value.'.xlsx');
+                    }),
                 EditAction::make()
                     ->label('تعديل')
                     ->modalDescription(function (ProgramSurvey $record): ?string {

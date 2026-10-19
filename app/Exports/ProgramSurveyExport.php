@@ -9,19 +9,56 @@ use App\Services\Surveys\ProgramSurveyService;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
-class ProgramSurveyExport implements FromCollection, WithHeadings
+class ProgramSurveyExport implements FromCollection, WithHeadings, WithTitle
 {
-    public function __construct(private readonly ProgramSurvey $survey) {}
+    /**
+     * @param  list<string>|null  $columnKeys
+     */
+    public function __construct(
+        private readonly ProgramSurvey $survey,
+        private readonly ?array $columnKeys = null,
+    ) {}
+
+    /**
+     * @return array<string, string>
+     */
+    public static function columnOptions(ProgramSurvey $survey): array
+    {
+        $options = [];
+        if (! $survey->is_anonymous) {
+            $options['name'] = 'الاسم';
+            $options['registration'] = 'رقم التسجيل';
+        }
+
+        foreach ($survey->questions()->orderBy('position')->get() as $question) {
+            $label = trim($question->prompt);
+            if (mb_strlen($label) > 80) {
+                $label = mb_substr($label, 0, 77).'...';
+            }
+            $options['q:'.$question->id] = $label !== '' ? $label : 'سؤال '.$question->position;
+        }
+
+        return $options;
+    }
+
+    public function title(): string
+    {
+        return 'الاستجابات';
+    }
 
     public function headings(): array
     {
         $headings = [];
-        if (! $this->survey->is_anonymous) {
+        if ($this->include('name')) {
+            $headings[] = 'الاسم';
+        }
+        if ($this->include('registration')) {
             $headings[] = 'رقم التسجيل';
         }
 
-        foreach ($this->questions() as $question) {
+        foreach ($this->selectedQuestions() as $question) {
             $headings[] = $question->prompt;
         }
 
@@ -30,12 +67,18 @@ class ProgramSurveyExport implements FromCollection, WithHeadings
 
     public function collection(): Collection
     {
-        $questions = $this->questions();
+        $questions = $this->selectedQuestions();
         $responses = app(ProgramSurveyService::class)->exportResponses($this->survey);
+        if ($this->include('name') || $this->include('registration')) {
+            $responses->load('registration.user');
+        }
 
         return $responses->map(function (SurveyResponse $response) use ($questions): array {
             $row = [];
-            if (! $this->survey->is_anonymous) {
+            if ($this->include('name')) {
+                $row[] = $response->registration?->user?->fullName() ?? '';
+            }
+            if ($this->include('registration')) {
                 $row[] = $response->registration_id;
             }
 
@@ -49,11 +92,29 @@ class ProgramSurveyExport implements FromCollection, WithHeadings
         });
     }
 
+    private function include(string $key): bool
+    {
+        if ($this->survey->is_anonymous) {
+            return false;
+        }
+
+        return $this->columnKeys === null || in_array($key, $this->columnKeys, true);
+    }
+
     /**
      * @return Collection<int, ProgramSurveyQuestion>
      */
-    private function questions(): Collection
+    private function selectedQuestions(): Collection
     {
-        return $this->survey->questions()->orderBy('position')->get();
+        $questions = $this->survey->questions()->orderBy('position')->get();
+        if ($this->columnKeys === null) {
+            return $questions;
+        }
+
+        $ids = collect($this->columnKeys)
+            ->filter(fn (string $key): bool => str_starts_with($key, 'q:'))
+            ->map(fn (string $key): int => (int) substr($key, 2));
+
+        return $questions->whereIn('id', $ids->all())->values();
     }
 }
