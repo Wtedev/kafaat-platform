@@ -20,6 +20,7 @@ use App\Models\VolunteerRegistration;
 use App\Notifications\InboxNotificationEmail;
 use App\Services\EmailLogService;
 use App\Services\Rbac\RbacCatalog;
+use App\Support\DataForumAcceptance;
 use App\Support\ProgramApprovalMail;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -644,6 +645,41 @@ class InboxNotificationService
             context: self::inboxContext('program_registration', (int) $registration->getKey()),
         );
         $this->dispatch($msg, $this->resolveAdminAndTrainingManagerIds());
+        $this->emailAdminsOfForumRegistration($registration, $user);
+    }
+
+    private function emailAdminsOfForumRegistration(ProgramRegistration $registration, User $registrant): void
+    {
+        $program = $registration->trainingProgram;
+        if (! DataForumAcceptance::matches($program)) {
+            return;
+        }
+
+        $admins = User::query()
+            ->where('is_active', true)
+            ->whereNotNull('email')
+            ->where(function ($query): void {
+                $query->where('role_type', 'admin')
+                    ->orWhereHas('roles', fn ($roles) => $roles->where('name', RbacCatalog::ROLE_ADMIN));
+            })
+            ->get();
+
+        if ($admins->isEmpty()) {
+            return;
+        }
+
+        $title = 'تسجيل جديد في ملتقى تحليل البيانات';
+        $message = 'سجّل '.$registrant->fullName().' في ملتقى تحليل البيانات. الطلب قيد الانتظار.';
+        $actionUrl = rtrim((string) config('app.url'), '/').'/admin/training-programs/'.$program->getKey();
+
+        foreach ($admins as $admin) {
+            $this->emailLog->send(
+                recipient: $admin,
+                notification: new InboxNotificationEmail($title, $message, $actionUrl),
+                templateKey: 'forum.registration_created',
+                subject: $title,
+            );
+        }
     }
 
     public function notifyStaffOfNewPathRegistration(PathRegistration $registration): void

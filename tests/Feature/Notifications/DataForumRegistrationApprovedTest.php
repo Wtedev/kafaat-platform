@@ -10,6 +10,7 @@ use App\Models\Profile;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Notifications\InboxNotificationEmail;
 use App\Notifications\ProgramRegistrationApproved;
 use App\Services\ProgramRegistrationService;
 use App\Support\DataForumAcceptance;
@@ -50,6 +51,49 @@ class DataForumRegistrationApprovedTest extends TestCase
                 ->where('message', 'like', '%تم قبول طلبك في البرنامج التدريبي%')
                 ->count(),
         );
+    }
+
+    public function test_a_new_forum_registration_emails_the_admin(): void
+    {
+        Notification::fake();
+
+        $admin = User::factory()->create([
+            'role_type' => 'admin',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $beneficiary = $this->beneficiary(ProfileGender::Female);
+        $program = $this->program(DataForumAcceptance::SLUG, 'ملتقى تحليل البيانات 2');
+
+        $this->registration($program, $beneficiary);
+
+        Notification::assertSentTo(
+            $admin,
+            InboxNotificationEmail::class,
+            function (InboxNotificationEmail $notification) use ($beneficiary, $program): bool {
+                return $notification->titleText === 'تسجيل جديد في ملتقى تحليل البيانات'
+                    && str_contains($notification->bodyText, $beneficiary->fullName())
+                    && str_contains($notification->bodyText, 'قيد الانتظار')
+                    && str_ends_with((string) $notification->actionUrl, '/admin/training-programs/'.$program->getKey());
+            },
+        );
+    }
+
+    public function test_a_new_registration_outside_the_forum_does_not_email_the_admin(): void
+    {
+        Notification::fake();
+
+        $admin = User::factory()->create([
+            'role_type' => 'admin',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $beneficiary = $this->beneficiary(ProfileGender::Male);
+        $program = $this->program('other-program-'.uniqid(), 'برنامج آخر');
+
+        $this->registration($program, $beneficiary);
+
+        Notification::assertNotSentTo($admin, InboxNotificationEmail::class);
     }
 
     public function test_other_programs_keep_the_default_approval_mail(): void
