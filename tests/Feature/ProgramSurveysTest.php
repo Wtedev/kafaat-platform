@@ -8,6 +8,7 @@ use App\Enums\RegistrationStatus;
 use App\Enums\SurveyQuestionType;
 use App\Enums\SurveyType;
 use App\Exports\ProgramSurveyExport;
+use App\Exports\ProgramSurveyWorkbookExport;
 use App\Filament\Resources\TrainingProgramResource\Pages\ViewTrainingProgram;
 use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramSurveysRelationManager;
 use App\Models\ProgramRegistration;
@@ -309,6 +310,43 @@ class ProgramSurveysTest extends TestCase
         $this->assertSame(['أ', 'ب', 'ج'], $exported);
         $this->assertNotSame(['ج', 'أ', 'ب'], $exported);
         $this->assertNotContains('رقم التسجيل', (new ProgramSurveyExport($survey))->headings());
+        $this->assertNotContains('الاسم', (new ProgramSurveyExport($survey))->headings());
+
+        $names = (new ProgramSurveyWorkbookExport($survey->fresh(), ['q:'.$question->id], true))
+            ->sheets()[1]
+            ->collection()
+            ->flatten()
+            ->all();
+        $this->assertCount(3, $names);
+        $this->assertNotContains('أ', $names);
+    }
+
+    public function test_named_survey_export_keeps_only_the_selected_columns(): void
+    {
+        [$program, $pre, $identity] = $this->openPreSurvey();
+        $user = $this->beneficiary($identity, 'نورة', 'فهد', 'سعد', 'القحطاني');
+        $this->register($program, $user, RegistrationStatus::Approved);
+        $question = $pre->questions()->firstOrFail();
+        $this->answer($pre, $identity, [$question->id => 4]);
+
+        $selected = new ProgramSurveyExport($pre->fresh(), ['name', 'q:'.$question->id]);
+
+        $this->assertSame(['الاسم', 'ما مدى جاهزيتك؟'], $selected->headings());
+        $this->assertSame(['نورة فهد سعد القحطاني', 4], $selected->collection()->first());
+
+        $all = new ProgramSurveyExport($pre->fresh());
+        $this->assertSame(['الاسم', 'رقم التسجيل', 'ما مدى جاهزيتك؟'], $all->headings());
+
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Livewire::actingAs($this->admin())
+            ->test(ProgramSurveysRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->mountAction(TestAction::make('export')->table($pre))
+            ->assertMountedActionModalSee('الاسم')
+            ->assertMountedActionModalSee('ما مدى جاهزيتك؟')
+            ->assertMountedActionModalSee('رقم التسجيل');
     }
 
     public function test_the_post_survey_copies_the_pre_questions_and_later_template_edits_do_not_change_them(): void
