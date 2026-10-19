@@ -89,7 +89,8 @@ class DataForumRegistrationApprovedTest extends TestCase
         $this->assertStringContainsString('قبولك في هاكاثون تحليل البيانات', $maleHtml);
         $this->assertStringContainsString('#1a9399', $maleHtml);
         $this->assertStringContainsString('دليل الهاكاثون', $maleHtml);
-        $this->assertStringContainsString('https://forms.gle/SoVgeTnoSb7re3WL6', $maleHtml);
+        $this->assertStringContainsString('ابحث عن فريق', $maleHtml);
+        $this->assertStringNotContainsString('forms.gle', $maleHtml);
         $this->assertLessThan(
             strpos($maleHtml, 'مع تحيات فريق جمعية كفاءات'),
             strpos($maleHtml, ProgramApprovalMail::BUTTON_LABEL),

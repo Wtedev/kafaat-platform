@@ -10,7 +10,7 @@ final class ProgramApprovalMail
 {
     public const FORUM_SUBJECT = 'قبولك في الهاكاثون – ملتقى تحليل البيانات في القطاع غير الربحي';
 
-    public const FORUM_INBOX = 'مبارك قبولك في هاكاثون تحليل البيانات 🎉 دليل الهاكاثون ورابط التسجيل في بريدك الإلكتروني.';
+    public const FORUM_INBOX = 'مبارك قبولك في هاكاثون تحليل البيانات 🎉 دليل الهاكاثون ورابط البحث عن فريق في بريدك الإلكتروني.';
 
     public const PENDING_LINE = 'سيتم تزويدك برابط المجموعة قريباً';
 
@@ -23,8 +23,8 @@ final class ProgramApprovalMail
 <p style="margin:0 0 16px;text-align:center;">يسر جمعية كفاءات الأهلية لبناء قدرات الشباب أن تهنئك بقبولك في هاكاثون تحليل البيانات، المرحلة التطبيقية من الملتقى، بعد اختتام المرحلة النظرية بنجاح.</p>
 <p style="margin:16px 0 0;text-align:center;"><strong>دليل الهاكاثون</strong></p>
 <table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:8px auto 16px;"><tr><td align="center" bgcolor="#1a9399" style="border-radius:4px;background-color:#1a9399;"><a href="https://drive.google.com/file/d/1XjBjiYW_UCdVuZqicMA3O23pdpHbqdte/view?usp=drivesdk" target="_blank" rel="noopener" style="display:inline-block;padding:12px 18px;color:#ffffff;text-decoration:none;font-weight:bold;">دليل الهاكاثون</a></td></tr></table>
-<p style="margin:16px 0 0;text-align:center;"><strong>رابط التسجيل في الهاكاثون</strong></p>
-<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:8px auto 16px;"><tr><td align="center" bgcolor="#1a9399" style="border-radius:4px;background-color:#1a9399;"><a href="https://forms.gle/SoVgeTnoSb7re3WL6" target="_blank" rel="noopener" style="display:inline-block;padding:12px 18px;color:#ffffff;text-decoration:none;font-weight:bold;">التسجيل في الهاكاثون</a></td></tr></table>
+<p style="margin:16px 0 0;text-align:center;"><strong>ابحث عن فريق</strong></p>
+<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:8px auto 16px;"><tr><td align="center" bgcolor="#1a9399" style="border-radius:4px;background-color:#1a9399;"><a href="https://t.me/+BS-rRPh5I8wwZjM8" target="_blank" rel="noopener" style="display:inline-block;padding:12px 18px;color:#ffffff;text-decoration:none;font-weight:bold;">ابحث عن فريق</a></td></tr></table>
 <p style="margin:16px 0 0;text-align:center;"><strong>رابط طلب الاستشارات</strong></p>
 <table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:8px auto 16px;"><tr><td align="center" bgcolor="#1a9399" style="border-radius:4px;background-color:#1a9399;"><a href="https://web-production-ade28.up.railway.app" target="_blank" rel="noopener" style="display:inline-block;padding:12px 18px;color:#ffffff;text-decoration:none;font-weight:bold;">طلب الاستشارات</a></td></tr></table>
 <p style="margin:8px 0 0;text-align:center;"><strong>تنويه:</strong></p>

@@ -11,7 +11,7 @@ final class DataForumAcceptance
 
     public const SUBJECT = 'قبولك في الهاكاثون – ملتقى تحليل البيانات في القطاع غير الربحي';
 
-    public const INBOX_MESSAGE = 'مبارك قبولك في هاكاثون تحليل البيانات 🎉 دليل الهاكاثون ورابط التسجيل في بريدك الإلكتروني.';
+    public const INBOX_MESSAGE = 'مبارك قبولك في هاكاثون تحليل البيانات 🎉 دليل الهاكاثون ورابط البحث عن فريق في بريدك الإلكتروني.';
 
     public const TELEGRAM_PENDING_LINE = 'سيتم تزويدك برابط مجموعة الملتقى قريباً.';
 
