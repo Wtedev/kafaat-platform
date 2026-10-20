@@ -30,44 +30,49 @@
     @if ($open) data-open-on-load @endif
     aria-labelledby="program-register-count"
 >
-    <form method="POST" action="{{ $action }}" class="flex max-h-[min(42rem,calc(100dvh-2rem))] flex-col">
+    <form method="POST" action="{{ $action }}" class="flex max-h-[min(40rem,calc(100dvh-2rem))] flex-col">
         @csrf
-        <div class="border-b border-[#e6edf5] px-5 pb-4 pt-5 sm:px-6">
-            <div class="flex items-start justify-between gap-4">
-                <div class="min-w-0">
-                    <p class="text-xs font-semibold text-[#1FA4AE]">{{ $title }}</p>
-                    <p id="program-register-count" class="mt-1 text-2xl font-extrabold text-[#173F73]">{{ $count }} أسئلة</p>
-                    <p class="mt-1 text-sm text-gray-500" data-registration-progress>سؤال {{ $initialStep + 1 }} من {{ $count }}</p>
-                </div>
-                <button type="button" data-close-program-register class="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#f4f7fb] text-lg leading-none text-[#335483]" aria-label="إغلاق">×</button>
+        <div class="border-b border-[#e6edf5] px-5 pb-4 pt-4 sm:px-6">
+            <div class="flex items-center justify-between gap-3">
+                <p class="truncate text-sm font-semibold text-[#1FA4AE]">{{ $title }}</p>
+                <button type="button" data-close-program-register class="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#f4f7fb] text-lg leading-none text-[#335483]" aria-label="إغلاق">×</button>
             </div>
-            <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-[#e6edf5]">
-                <div data-registration-bar class="h-full rounded-full bg-[#335483]" style="width: {{ round((($initialStep + 1) / $count) * 100) }}%"></div>
+            <div class="mt-3 flex items-baseline justify-between gap-3">
+                <p class="text-sm font-semibold text-[#173F73]" data-registration-progress>سؤال {{ $initialStep + 1 }} من {{ $count }}</p>
+                <p id="program-register-count" class="text-sm text-gray-500">{{ $count }} أسئلة</p>
+            </div>
+            <div class="mt-3 flex gap-1.5" data-registration-dots aria-hidden="true">
+                @for ($dot = 0; $dot < $count; $dot++)
+                    <span data-registration-dot class="h-1.5 flex-1 rounded-full {{ $dot <= $initialStep ? 'bg-[#335483]' : 'bg-gray-200' }}"></span>
+                @endfor
             </div>
         </div>
 
-        <div class="overflow-y-auto px-5 py-5 sm:px-6">
+        <div class="min-h-56 overflow-y-auto px-5 py-5 sm:px-6" data-registration-body>
             @foreach ($questions as $index => $question)
                 <div data-registration-step="{{ $index }}" @if ($index !== $initialStep) hidden @endif>
-                    <p class="text-base font-semibold leading-relaxed text-[#173F73]">
-                        {{ $question['label'] }}
-                        @if ($question['required'])
-                            <span class="text-red-600">*</span>
-                        @else
-                            <span class="text-sm font-normal text-gray-400">اختياري</span>
-                        @endif
-                    </p>
+                    <div class="flex items-start justify-between gap-3">
+                        <p class="text-lg font-bold leading-8 text-[#173F73]">
+                            {{ $question['label'] }}
+                            @if ($question['required'])
+                                <span class="text-red-600">*</span>
+                            @endif
+                        </p>
+                        @unless ($question['required'])
+                            <span class="mt-1 shrink-0 rounded-full bg-[#f4f7fb] px-2.5 py-1 text-xs font-medium text-gray-500">اختياري</span>
+                        @endunless
+                    </div>
 
                     <div class="mt-4">
                         @if ($question['type'] === 'choice')
                             <div class="space-y-2">
                                 @foreach ($question['options'] as $optionIndex => $option)
-                                    <label class="flex cursor-pointer items-center gap-3 rounded-2xl border border-[#d5e0ec] bg-white px-4 py-3 text-sm text-gray-700 transition has-[:checked]:border-[#335483] has-[:checked]:bg-[#f4f7fb]">
+                                    <label class="flex cursor-pointer items-center gap-3 rounded-2xl border border-[#d5e0ec] bg-white px-4 py-3.5 text-sm text-gray-800 transition has-[:checked]:border-[#335483] has-[:checked]:bg-[#f4f7fb] has-[:checked]:font-semibold">
                                         <input
                                             type="radio"
                                             name="answers[{{ $question['key'] }}]"
                                             value="{{ $option }}"
-                                            class="size-4 border-gray-300 text-[#335483] focus:ring-[#335483]"
+                                            class="size-4 shrink-0 border-gray-300 text-[#335483] focus:ring-[#335483]"
                                             @checked(old('answers.'.$question['key']) === $option)
                                             @if ($question['required'] && $optionIndex === 0) required @endif
                                         >
@@ -78,11 +83,11 @@
                         @elseif ($question['type'] === 'textarea' || $question['type'] === 'pledge')
                             <textarea
                                 name="answers[{{ $question['key'] }}]"
-                                rows="4"
+                                rows="5"
                                 @if ($question['required']) required @endif
                                 @if ($question['type'] === 'pledge') pattern="^\s*\S+(?:\s+\S+){2,}\s+\d{10}\s*$" title="اكتب الاسم الثلاثي ثم السجل المدني المكوّن من 10 أرقام" @endif
                                 placeholder="{{ $question['placeholder'] }}"
-                                class="w-full rounded-2xl border border-[#d5e0ec] bg-white px-4 py-3 text-sm text-gray-800 focus:border-[#335483] focus:outline-none focus:ring-2 focus:ring-[#335483]/20"
+                                class="w-full resize-none rounded-2xl border border-[#d5e0ec] bg-gray-50 px-4 py-3 text-base text-gray-800 focus:border-[#335483] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#335483]/20"
                             >{{ old('answers.'.$question['key']) }}</textarea>
                         @else
                             <input
@@ -92,8 +97,11 @@
                                 @if ($question['required']) required @endif
                                 @if ($question['key'] === 'linkedin_url') dir="ltr" @endif
                                 placeholder="{{ $question['placeholder'] }}"
-                                class="w-full rounded-2xl border border-[#d5e0ec] bg-white px-4 py-3 text-sm text-gray-800 focus:border-[#335483] focus:outline-none focus:ring-2 focus:ring-[#335483]/20"
+                                class="w-full rounded-2xl border border-[#d5e0ec] bg-gray-50 px-4 py-3.5 text-base text-gray-800 focus:border-[#335483] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#335483]/20"
                             >
+                            @if ($question['key'] === 'linkedin_url')
+                                <p class="mt-2 text-xs leading-5 text-gray-500">يمكنك المتابعة بدون رابط.</p>
+                            @endif
                         @endif
                     </div>
 
@@ -103,10 +111,10 @@
                 </div>
             @endforeach
 
-            <div class="mt-5" data-registration-ack @if ($initialStep !== $count - 1) hidden @endif>
-                <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-[#c5d4e4]/80 bg-[#F7FAFC] p-4">
-                    <input type="checkbox" name="attendance_acknowledgement" value="1" required class="mt-1 size-4 shrink-0 rounded border-gray-300 text-[#335483] focus:ring-[#335483]" @checked(old('attendance_acknowledgement'))>
-                    <span class="text-sm leading-relaxed text-gray-700">{{ $ackLabel }}</span>
+            <div class="mt-4" data-registration-ack @if ($initialStep !== $count - 1) hidden @endif>
+                <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-[#c5d4e4] bg-[#F7FAFC] p-4 has-[:checked]:border-[#335483]">
+                    <input type="checkbox" name="attendance_acknowledgement" value="1" required class="mt-0.5 size-4 shrink-0 rounded border-gray-300 text-[#335483] focus:ring-[#335483]" @checked(old('attendance_acknowledgement'))>
+                    <span class="text-sm font-medium leading-relaxed text-[#173F73]">{{ $ackLabel }}</span>
                 </label>
                 @error('attendance_acknowledgement')
                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -115,9 +123,9 @@
         </div>
 
         <div class="flex items-center gap-3 border-t border-[#e6edf5] px-5 py-4 sm:px-6">
-            <button type="button" data-registration-prev class="rounded-2xl border border-[#335483] px-5 py-2.5 text-sm font-semibold text-[#335483]" @if ($initialStep === 0) hidden @endif>رجوع</button>
-            <button type="button" data-registration-next class="ms-auto rounded-2xl bg-[#335483] px-6 py-2.5 text-sm font-semibold text-white" @if ($initialStep === $count - 1) hidden @endif>التالي</button>
-            <button type="submit" data-registration-submit class="ms-auto rounded-2xl bg-[#335483] px-6 py-2.5 text-sm font-semibold text-white" @if ($initialStep !== $count - 1) hidden @endif>سجّل في البرنامج</button>
+            <button type="button" data-registration-prev class="rounded-2xl px-4 py-3 text-sm font-semibold text-[#335483]" @if ($initialStep === 0) hidden @endif>رجوع</button>
+            <button type="button" data-registration-next class="flex-1 rounded-2xl bg-[#335483] px-6 py-3 text-sm font-semibold text-white" @if ($initialStep === $count - 1) hidden @endif>التالي</button>
+            <button type="submit" data-registration-submit class="flex-1 rounded-2xl bg-[#335483] px-6 py-3 text-sm font-semibold text-white" @if ($initialStep !== $count - 1) hidden @endif>سجّل في البرنامج</button>
         </div>
     </form>
 </dialog>
@@ -130,25 +138,34 @@
     if (!dialog) return;
     var steps = Array.prototype.slice.call(dialog.querySelectorAll('[data-registration-step]'));
     var progress = dialog.querySelector('[data-registration-progress]');
-    var bar = dialog.querySelector('[data-registration-bar]');
+    var dots = Array.prototype.slice.call(dialog.querySelectorAll('[data-registration-dot]'));
+    var body = dialog.querySelector('[data-registration-body]');
     var prev = dialog.querySelector('[data-registration-prev]');
     var next = dialog.querySelector('[data-registration-next]');
     var submit = dialog.querySelector('[data-registration-submit]');
     var ack = dialog.querySelector('[data-registration-ack]');
     var index = Number(dialog.getAttribute('data-initial-step') || 0);
 
-    function show(nextIndex) {
+    function show(nextIndex, shouldFocus) {
         index = nextIndex;
         var last = index === steps.length - 1;
         steps.forEach(function (step, stepIndex) {
             step.hidden = stepIndex !== index;
         });
         if (progress) progress.textContent = 'سؤال ' + (index + 1) + ' من ' + steps.length;
-        if (bar) bar.style.width = Math.round(((index + 1) / steps.length) * 100) + '%';
+        dots.forEach(function (dot, dotIndex) {
+            dot.classList.toggle('bg-[#335483]', dotIndex <= index);
+            dot.classList.toggle('bg-gray-200', dotIndex > index);
+        });
         if (prev) prev.hidden = index === 0;
         if (next) next.hidden = last;
         if (submit) submit.hidden = !last;
         if (ack) ack.hidden = !last;
+        if (body) body.scrollTop = 0;
+        if (shouldFocus && dialog.open) {
+            var field = steps[index].querySelector('input, textarea');
+            if (field) field.focus();
+        }
     }
 
     function currentIsValid() {
@@ -165,6 +182,7 @@
     document.querySelectorAll('[data-open-program-register]').forEach(function (button) {
         button.addEventListener('click', function () {
             if (typeof dialog.showModal === 'function') dialog.showModal();
+            show(index, true);
         });
     });
     var closeButton = dialog.querySelector('[data-close-program-register]');
@@ -175,15 +193,21 @@
     if (next) {
         next.addEventListener('click', function () {
             if (!currentIsValid() || index >= steps.length - 1) return;
-            show(index + 1);
+            show(index + 1, true);
         });
     }
     if (prev) {
         prev.addEventListener('click', function () {
             if (index === 0) return;
-            show(index - 1);
+            show(index - 1, true);
         });
     }
+    dialog.querySelector('form').addEventListener('keydown', function (event) {
+        if (event.key !== 'Enter' || event.target.tagName === 'TEXTAREA') return;
+        if (index >= steps.length - 1) return;
+        event.preventDefault();
+        if (next) next.click();
+    });
     if (dialog.hasAttribute('data-open-on-load') && typeof dialog.showModal === 'function') {
         dialog.showModal();
     }
