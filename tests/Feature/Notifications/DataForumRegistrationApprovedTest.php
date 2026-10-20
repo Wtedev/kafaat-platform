@@ -130,8 +130,15 @@ class DataForumRegistrationApprovedTest extends TestCase
         $this->assertStringContainsString(self::MALE_URL, $maleHtml);
         $this->assertStringNotContainsString(self::FEMALE_URL, $maleHtml);
         $this->assertStringContainsString(ProgramApprovalMail::BUTTON_LABEL, $maleHtml);
-        $this->assertStringContainsString('قبولك النهائي في الملتقى', $maleHtml);
-        $this->assertStringContainsString('<strong>رحلة</strong>', $maleHtml);
+        $this->assertStringContainsString('قبولك في هاكاثون تحليل البيانات', $maleHtml);
+        $this->assertStringContainsString('#1a9399', $maleHtml);
+        $this->assertStringContainsString('دليل الهاكاثون', $maleHtml);
+        $this->assertStringContainsString('ابحث عن فريق', $maleHtml);
+        $this->assertStringNotContainsString('forms.gle', $maleHtml);
+        $this->assertLessThan(
+            strpos($maleHtml, 'مع تحيات فريق جمعية كفاءات'),
+            strpos($maleHtml, ProgramApprovalMail::BUTTON_LABEL),
+        );
         $this->assertStringContainsString('dir="rtl"', $maleHtml);
         $this->assertStringContainsString('text-align:center', $maleHtml);
         $this->assertStringContainsString(DataForumAcceptance::logoUrl(), $maleHtml);
