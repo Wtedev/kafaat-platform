@@ -95,7 +95,7 @@
             ? 'flex h-48 items-center justify-center overflow-hidden bg-white'
             : 'h-48 overflow-hidden';
         $imgClass = $fitContain
-            ? 'h-28 w-auto max-w-[68%] object-contain'
+            ? 'h-36 w-auto max-w-[82%] object-contain'
             : 'h-full w-full object-cover group-hover:scale-105 transition-transform duration-300';
     }
 @endphp
