@@ -61,13 +61,14 @@ $staffPreview = (bool) ($staffPreview ?? false);
     <x-slot:afterDescription>
         @php
             $isDataForum = $trainingProgram->slug === 'multaqa-tahlil-al-bayanat-2';
+            $hideTopicOwners = $isDataForum || str_starts_with((string) $trainingProgram->slug, 'tatawaa-waei');
         @endphp
         <x-public.program-session-topics
             :enabled="(bool) $trainingProgram->session_topics_enabled"
             :topics="$trainingProgram->session_topics"
             :heading="$isDataForum ? 'مراحل الملتقى' : 'محاور البرنامج'"
             :intro="$isDataForum ? '' : 'مراحل البرنامج ومحاوره.'"
-            :detail-label="$isDataForum ? '' : 'المسؤولون / المدربون'"
+            :detail-label="$hideTopicOwners ? '' : 'المسؤولون / المدربون'"
             @class([
                 'mt-8 border-t border-[#c5d4e4]/70 pt-8' => filled($trainingProgram->description),
                 'mt-0 border-0 pt-0' => blank($trainingProgram->description),
