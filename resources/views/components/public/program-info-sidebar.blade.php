@@ -8,8 +8,13 @@ use App\Support\VolunteerLeadersProgramPeriod;
 $viaPathOnly = $trainingProgram->learning_path_id !== null;
 
 $isVolunteerLeaders = VolunteerLeadersProgramPeriod::applies($trainingProgram);
+$startDateOnly = str_starts_with((string) $trainingProgram->slug, 'tatawaa-waei');
 $programDateRange = null;
-if ($trainingProgram->start_date && $trainingProgram->end_date) {
+$programDateLabel = 'فترة البرنامج';
+if ($startDateOnly && $trainingProgram->start_date) {
+    $programDateLabel = 'تاريخ بداية البرنامج';
+    $programDateRange = ar_date($trainingProgram->start_date, 'd MMM y');
+} elseif ($trainingProgram->start_date && $trainingProgram->end_date) {
     $programDateRange = ar_date($trainingProgram->start_date, 'd MMM y').' – '.ar_date($trainingProgram->end_date, 'd MMM y');
 } elseif ($trainingProgram->start_date) {
     $programDateRange = ar_date($trainingProgram->start_date, 'd MMM y');
@@ -83,14 +88,16 @@ if (is_array($acceptance) && ($acceptance['min_age'] !== null || $acceptance['ma
         </x-public.info-sidebar-item>
         @endforeach
 
+        @unless ($startDateOnly)
         <x-public.info-sidebar-item dense label="مدة البرنامج" :value="en_digits($trainingProgram->programDurationDescription())">
             <x-slot:icon>
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </x-slot:icon>
         </x-public.info-sidebar-item>
+        @endunless
 
         @if (! $isVolunteerLeaders && $programDateRange)
-        <x-public.info-sidebar-item dense label="فترة البرنامج" :value="en_digits($programDateRange)">
+        <x-public.info-sidebar-item dense :label="$programDateLabel" :value="en_digits($programDateRange)">
             <x-slot:icon>
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </x-slot:icon>
