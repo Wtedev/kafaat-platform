@@ -66,8 +66,8 @@
         ],
     };
 
-    // Catalog/thumb cards always cover the media frame. Contain is only for detail hero.
-    $fitContain = $variant === 'hero' && $objectFit === 'contain';
+    // Catalog cards cover the frame unless a logo is explicitly marked contain.
+    $fitContain = $objectFit === 'contain' && in_array($variant, ['hero', 'catalog'], true);
     $surface = is_string($surfaceColor) ? trim($surfaceColor) : '';
     $containSurface = 'background:'.($surface !== '' ? $surface : '#eef2f6');
 
@@ -88,12 +88,15 @@
         $imgWrap = '';
         $imgClass = 'h-full w-full object-cover';
     } else {
-        // Catalog cards: fixed-height media, image always fills (cover), never padded contain.
         $heightWrap = 'h-48 flex items-center justify-center';
         $bgStyle = $catalogBgs[$index % count($catalogBgs)];
         $iconWrap = 'w-14 h-14 opacity-30';
-        $imgWrap = 'h-48 overflow-hidden';
-        $imgClass = 'h-full w-full object-cover group-hover:scale-105 transition-transform duration-300';
+        $imgWrap = $fitContain
+            ? 'flex h-48 items-center justify-center overflow-hidden bg-white'
+            : 'h-48 overflow-hidden';
+        $imgClass = $fitContain
+            ? 'h-28 w-auto max-w-[68%] object-contain'
+            : 'h-full w-full object-cover group-hover:scale-105 transition-transform duration-300';
     }
 @endphp
 

@@ -558,7 +558,7 @@
         }
 
         /* Always fill the media frame — no letterboxing around wide logos. */
-        .track-program-card .h-48 img {
+        .track-program-card .h-48 img:not(.object-contain) {
             width: 100%;
             height: 100%;
             object-fit: cover;
