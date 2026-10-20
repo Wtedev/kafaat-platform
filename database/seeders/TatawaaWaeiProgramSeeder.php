@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Creates the normal «تطوع واعي» program and its extra registration questions.
+ * The written name-and-id pledge is not a question; commitment is the checkbox only.
  * Safe to re-run.
  */
 class TatawaaWaeiProgramSeeder extends Seeder

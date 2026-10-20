@@ -70,13 +70,6 @@ final class ProgramRegistrationQuestions
                     'لا',
                 ],
             ],
-            [
-                'key' => 'acknowledgment',
-                'label' => 'إقرار بالالتزام: أقر أنا المدون اسمي أدناه بالالتزام التام حتى نهاية البرنامج ديسمبر 2026م. (فضلاً أضف الاسم الثلاثي ثم السجل المدني)',
-                'type' => 'pledge',
-                'required' => true,
-                'placeholder' => 'مثال: الاسم الثلاثي 1234567890',
-            ],
         ]);
     }
 

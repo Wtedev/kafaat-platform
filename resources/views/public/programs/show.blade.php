@@ -31,6 +31,9 @@ $alreadyRegistered = $userRegistration !== null;
 $ackLabel = $inPerson
 ? 'أقر بأنني قرأت جميع تفاصيل البرنامج وأعرف مدينة وموقع إقامته ('.$venueHint.') وأستطيع الحضور.'
 : 'أقر بأنني قرأت جميع تفاصيل البرنامج وأستطيع الالتزام بمواعيده.';
+if (str_starts_with((string) $trainingProgram->slug, 'tatawaa-waei')) {
+    $ackLabel = 'أقر بالالتزام التام حتى نهاية الحملة ديسمبر 2026م';
+}
 $staffPreview = (bool) ($staffPreview ?? false);
 @endphp
 

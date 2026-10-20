@@ -38,8 +38,10 @@ class TatawaaWaeiRegistrationQuestionsTest extends TestCase
         $response->assertOk();
         $response->assertSee('سجل الآن', false);
         $response->assertSee('id="program-register-dialog"', false);
-        $response->assertSee('7 أسئلة', false);
-        $response->assertSee('سؤال 1 من 7', false);
+        $response->assertSee('6 أسئلة', false);
+        $response->assertSee('سؤال 1 من 6', false);
+        $response->assertSee('أقر بالالتزام التام حتى نهاية الحملة ديسمبر 2026م', false);
+        $response->assertDontSee('الاسم الثلاثي ثم السجل المدني', false);
         $response->assertSee('رابط حسابك الحالي على منصة LinkedIn (إن وجد)', false);
         $response->assertSee('التخصص الأكاديمي أو المهني الحالي', false);
         $response->assertSee('data-registration-step="1"', false);
@@ -61,7 +63,6 @@ class TatawaaWaeiRegistrationQuestionsTest extends TestCase
                     'ai_knowledge' => 'أستخدمها بشكل محدود',
                     'reason_to_join' => 'أريد أن أصنع محتوى يخدم المجتمع.',
                     'commitment_ready' => 'نعم، ملتزم تماماً',
-                    'acknowledgment' => 'عبدالله محمد العمير 1010101010',
                 ],
             ]);
 
@@ -76,7 +77,7 @@ class TatawaaWaeiRegistrationQuestionsTest extends TestCase
             'registration' => $registration->id,
         ]));
         $this->assertSame('علوم حاسب', $registration->registration_answers['major']);
-        $this->assertSame('عبدالله محمد العمير 1010101010', $registration->registration_answers['acknowledgment']);
+        $this->assertArrayNotHasKey('acknowledgment', $registration->registration_answers);
     }
 
     public function test_registration_rejects_a_missing_required_answer(): void
@@ -115,7 +116,6 @@ class TatawaaWaeiRegistrationQuestionsTest extends TestCase
                     'ai_knowledge' => 'لم يسبق لي استخدامها',
                     'reason_to_join' => 'أرغب في التعلم.',
                     'commitment_ready' => 'نعم، حسب تفرغي',
-                    'acknowledgment' => 'نورة سعد العتيبي 2020202020',
                 ],
             ])
             ->assertRedirect();
