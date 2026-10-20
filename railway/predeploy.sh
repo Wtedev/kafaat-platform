@@ -20,6 +20,7 @@
 # VolunteerLeadersProgramFemaleCapacitySeeder marks female seats full with capacity messaging (males remain open).
 # FaeqoonProgramArchiveSeeder archives «فائقون وفائقات» (slug faykon-ofaykat) so redeploys do not republish it.
 # NewsCoverAssetsSeeder only sets image=images/news/... for named articles (git-backed covers).
+# TatawaaWaeiProgramSeeder upserts «تطوع واعي» (slug tatawaa-waei) and its registration questions.
 set -euo pipefail
 
 if [[ "${RAILWAY_ENVIRONMENT_NAME:-}" == "staging" && "${APP_ENV:-}" != "staging" ]]; then

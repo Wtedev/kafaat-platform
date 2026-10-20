@@ -13,6 +13,7 @@ use App\Models\TrainingProgram;
 use App\Services\ProgramAcceptanceConditionEvaluator;
 use App\Services\ProgramRegistrationService;
 use App\Support\ProgramAcceptanceConditions;
+use App\Support\ProgramRegistrationQuestions;
 use App\Support\ProgramRegistrationSuccessPresenter;
 use Illuminate\Http\Request;
 
@@ -105,19 +106,26 @@ class PublicTrainingProgramController extends Controller
             ]);
         }
 
+        $questions = ProgramRegistrationQuestions::normalize($trainingProgram->registration_questions);
         $request->validate(
             [
                 'attendance_acknowledgement' => ['accepted'],
+                ...ProgramRegistrationQuestions::rules($questions),
             ],
             [
                 'attendance_acknowledgement.accepted' => $inPerson
                     ? 'يلزم الإقرار بأنك قرأت تفاصيل البرنامج وتعرف موقع انعقاده وتستطيع الحضور.'
                     : 'يلزم الإقرار بأنك قرأت جميع تفاصيل البرنامج.',
+                ...ProgramRegistrationQuestions::messages($questions),
             ],
         );
 
         try {
-            $registration = $this->registrationService->register($trainingProgram, $request->user());
+            $registration = $this->registrationService->register(
+                $trainingProgram,
+                $request->user(),
+                ProgramRegistrationQuestions::answersFrom($request, $questions),
+            );
 
             return redirect()->route('public.programs.registered', [
                 'trainingProgram' => $trainingProgram->slug,

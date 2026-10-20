@@ -12,6 +12,7 @@ use Database\Seeders\PartnerSeeder;
 use Database\Seeders\PrivacyPolicyGenderUpdateSeeder;
 use Database\Seeders\PrivacyPolicySeeder;
 use Database\Seeders\RegulationsSeeder;
+use Database\Seeders\TatawaaWaeiProgramSeeder;
 use Database\Seeders\VolunteerLeadersProgramCoverSeeder;
 use Database\Seeders\VolunteerLeadersProgramDatesSeeder;
 use Database\Seeders\VolunteerLeadersProgramDeliverySeeder;
@@ -49,6 +50,7 @@ class SeedContentIfChangedCommand extends Command
         VolunteerLeadersProgramFemaleCapacitySeeder::class,
         FaeqoonProgramArchiveSeeder::class,
         DataForumProgramSeeder::class,
+        TatawaaWaeiProgramSeeder::class,
         NewsCoverAssetsSeeder::class,
     ];
 

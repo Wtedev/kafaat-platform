@@ -17,6 +17,7 @@ use App\Services\Exports\ProgramRegistrationExportService;
 use App\Services\ProgramRegistration\BulkProgramRegistrationProcessor;
 use App\Services\ProgramRegistrationService;
 use App\Support\Exports\ProgramRegistrationExportColumns;
+use App\Support\ProgramRegistrationQuestions;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
@@ -28,6 +29,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\HtmlString;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProgramRegistrationsRelationManager extends RelationManager
@@ -77,6 +79,27 @@ class ProgramRegistrationsRelationManager extends RelationManager
             ->selectable()
             ->selectCurrentPageOnly(false)
             ->actions([
+                Action::make('registrationAnswers')
+                    ->label('إجابات الأسئلة')
+                    ->icon('heroicon-o-chat-bubble-left-right')
+                    ->visible(fn (ProgramRegistration $record): bool => is_array($record->registration_answers) && $record->registration_answers !== [])
+                    ->modalHeading('إجابات أسئلة التسجيل')
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('إغلاق')
+                    ->modalContent(function (ProgramRegistration $record): HtmlString {
+                        $program = $record->trainingProgram;
+                        $rows = ProgramRegistrationQuestions::present(
+                            ProgramRegistrationQuestions::normalize($program?->registration_questions),
+                            $record->registration_answers,
+                        );
+                        $html = '<dl class="space-y-3 text-sm">';
+                        foreach ($rows as $row) {
+                            $html .= '<div><dt class="font-semibold text-gray-800">'.e($row['label']).'</dt><dd class="mt-1 whitespace-pre-wrap text-gray-600">'.e($row['value']).'</dd></div>';
+                        }
+                        $html .= '</dl>';
+
+                        return new HtmlString($html);
+                    }),
                 Action::make('approve')
                     ->label('قبول')
                     ->icon('heroicon-o-check-circle')

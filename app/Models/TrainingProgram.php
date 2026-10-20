@@ -83,6 +83,7 @@ class TrainingProgram extends Model
         'learning_path_id',
         'path_sort_order',
         'assigned_to',
+        'registration_questions',
     ];
 
     protected function casts(): array
@@ -109,6 +110,7 @@ class TrainingProgram extends Model
             'session_topics_enabled' => 'boolean',
             'session_topics' => 'array',
             'program_presenters' => 'array',
+            'registration_questions' => 'array',
             'whatsapp_groups_enabled' => 'boolean',
         ];
     }

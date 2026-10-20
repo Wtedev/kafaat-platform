@@ -172,6 +172,8 @@ $staffPreview = (bool) ($staffPreview ?? false);
                     <p class="mt-1 text-sm leading-relaxed text-gray-500">قبل الإرسال، أكّد اطلاعك على التفاصيل أدناه.</p>
                 </div>
 
+                <x-public.program-registration-questions :questions="$trainingProgram->registration_questions" />
+
                 <label class="program-register-ack flex cursor-pointer items-start gap-3 rounded-2xl border border-[#c5d4e4]/80 bg-[#F7FAFC] p-4 transition hover:border-[#335483]/40">
                     <input type="checkbox" name="attendance_acknowledgement" value="1" required class="mt-1 size-4 shrink-0 rounded border-gray-300 text-[#335483] focus:ring-[#335483]" @checked(old('attendance_acknowledgement'))>
                     <span class="text-sm leading-relaxed text-gray-700">{{ $ackLabel }}</span>

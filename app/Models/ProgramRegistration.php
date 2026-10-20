@@ -23,6 +23,7 @@ class ProgramRegistration extends Model
         'rejected_reason',
         'attendance_percentage',
         'score',
+        'registration_answers',
     ];
 
     protected function casts(): array
@@ -32,6 +33,7 @@ class ProgramRegistration extends Model
             'approved_at' => 'datetime',
             'attendance_percentage' => 'decimal:2',
             'score' => 'decimal:2',
+            'registration_answers' => 'array',
         ];
     }
 

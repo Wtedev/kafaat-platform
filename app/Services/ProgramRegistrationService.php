@@ -40,7 +40,7 @@ class ProgramRegistrationService
      * @throws RegistrationNotEligibleException
      * @throws ProgramCapacityExceededException
      */
-    public function register(TrainingProgram $program, User $user): ProgramRegistration
+    public function register(TrainingProgram $program, User $user, array $registrationAnswers = []): ProgramRegistration
     {
         if ($program->learning_path_id !== null) {
             throw new ProgramBelongsToLearningPathException;
@@ -66,6 +66,7 @@ class ProgramRegistrationService
             ],
             [
                 'status' => RegistrationStatus::Pending,
+                'registration_answers' => $registrationAnswers === [] ? null : $registrationAnswers,
             ]
         );
 
