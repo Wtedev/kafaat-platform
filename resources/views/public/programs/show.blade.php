@@ -165,14 +165,27 @@ $staffPreview = (bool) ($staffPreview ?? false);
                 @endif
             </div>
             @elseif ($canRegister)
+            @php
+                $registrationQuestions = \App\Support\ProgramRegistrationQuestions::normalize($trainingProgram->registration_questions);
+            @endphp
+            @if ($registrationQuestions !== [])
+            <div class="flex justify-end">
+                <x-public.register-cta-button type="button" data-open-program-register>سجل الآن</x-public.register-cta-button>
+            </div>
+            <x-public.program-registration-questions
+                :questions="$registrationQuestions"
+                :action="route('public.programs.register', $trainingProgram->slug)"
+                :ack-label="$ackLabel"
+                :title="$trainingProgram->title"
+                :open="$errors->any()"
+            />
+            @else
             <form method="POST" action="{{ route('public.programs.register', $trainingProgram->slug) }}" id="program-register-form" class="program-register-form space-y-4">
                 @csrf
                 <div>
                     <p class="text-sm font-medium text-gray-800">سجّل الآن للانضمام إلى هذا البرنامج</p>
                     <p class="mt-1 text-sm leading-relaxed text-gray-500">قبل الإرسال، أكّد اطلاعك على التفاصيل أدناه.</p>
                 </div>
-
-                <x-public.program-registration-questions :questions="$trainingProgram->registration_questions" />
 
                 <label class="program-register-ack flex cursor-pointer items-start gap-3 rounded-2xl border border-[#c5d4e4]/80 bg-[#F7FAFC] p-4 transition hover:border-[#335483]/40">
                     <input type="checkbox" name="attendance_acknowledgement" value="1" required class="mt-1 size-4 shrink-0 rounded border-gray-300 text-[#335483] focus:ring-[#335483]" @checked(old('attendance_acknowledgement'))>
@@ -187,6 +200,7 @@ $staffPreview = (bool) ($staffPreview ?? false);
                     <x-public.register-cta-button type="submit">سجّل في البرنامج</x-public.register-cta-button>
                 </div>
             </form>
+            @endif
             @elseif (! auth()->check())
             <div class="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-center sm:justify-end">
                 <p class="text-sm leading-relaxed text-gray-500">يجب تسجيل الدخول للتسجيل في البرنامج.</p>

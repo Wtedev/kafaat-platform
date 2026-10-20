@@ -36,6 +36,8 @@ class TatawaaWaeiRegistrationQuestionsTest extends TestCase
             ->get(route('public.programs.show', $program));
 
         $response->assertOk();
+        $response->assertSee('سجل الآن', false);
+        $response->assertSee('id="program-register-dialog"', false);
         $response->assertSee('7 أسئلة', false);
         $response->assertSee('سؤال 1 من 7', false);
         $response->assertSee('رابط حسابك الحالي على منصة LinkedIn (إن وجد)', false);
