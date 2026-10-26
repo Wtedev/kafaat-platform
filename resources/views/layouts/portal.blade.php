@@ -124,7 +124,6 @@
             $rn = request()->route()?->getName() ?? '';
             $isDash = $rn === 'portal.dashboard';
             $isPrograms = str_starts_with($rn, 'portal.programs');
-            $isVol = $rn === 'portal.volunteering';
             $isCert = $rn === 'portal.certificates';
             $isSettings = str_starts_with($rn, 'portal.settings') || $rn === 'portal.notifications.settings' || $rn === 'portal.profile';
             $isCompetency = str_starts_with($rn, 'portal.competency');
@@ -166,10 +165,6 @@
                             <svg class="portal-nav-chevron h-3.5 w-3.5 shrink-0 text-slate-300 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </summary>
                         <div class="mt-1 space-y-0.5">
-                            <a href="{{ route('portal.volunteering') }}" class="{{ $isVol ? $navActive : $navIdle }}" @if($isVol) aria-current="page" @endif>
-                                <svg class="{{ $navIcon }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                <span class="min-w-0 flex-1 truncate">الفرص التطوعية</span>
-                            </a>
                             <a href="{{ route('portal.certificates') }}" class="{{ $isCert ? $navActive : $navIdle }}" @if($isCert) aria-current="page" @endif>
                                 <svg class="{{ $navIcon }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
                                 <span>شهاداتي</span>
