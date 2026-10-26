@@ -16,7 +16,6 @@ use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\Certificate;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
-use App\Services\CertificateService;
 use App\Services\ProgramRegistrationService;
 use App\Support\RegistrationEligibilitySupport;
 use App\Support\StaffUi\StaffUiModule;
@@ -364,7 +363,7 @@ class ProgramRegistrationResource extends Resource
                             ->numeric()
                             ->minValue(0)
                             ->maxValue(100)
-                            ->helperText('الحد الأدنى لإصدار الشهادة: 60'),
+                            ->helperText('من 0 إلى 100'),
                     ])
                     ->action(function (ProgramRegistration $record, array $data): void {
                         try {
@@ -377,24 +376,10 @@ class ProgramRegistrationResource extends Resource
                                 attendancePercentage: (float) $data['attendance_percentage'],
                             );
 
-                            $hasCert = Certificate::query()
-                                ->where('user_id', $record->user_id)
-                                ->where('certificateable_type', TrainingProgram::class)
-                                ->where('certificateable_id', $record->training_program_id)
-                                ->exists();
-
-                            if ($hasCert) {
-                                Notification::make()
-                                    ->title('تم تحديد التسجيل كمكتمل وصدرت الشهادة')
-                                    ->success()
-                                    ->send();
-                            } else {
-                                Notification::make()
-                                    ->title('تم تحديد التسجيل كمكتمل')
-                                    ->body('لم تُصدر شهادة — يجب أن يكون الحضور ≥ 80% والدرجة ≥ 60')
-                                    ->warning()
-                                    ->send();
-                            }
+                            Notification::make()
+                                ->title('تم تحديد التسجيل كمكتمل')
+                                ->success()
+                                ->send();
                         } catch (RegistrationNotApprovedException) {
                             Notification::make()
                                 ->title('لا يمكن إكمال تسجيل غير مقبول')
@@ -403,30 +388,6 @@ class ProgramRegistrationResource extends Resource
                         }
                     }),
 
-                Action::make('issueCertificate')
-                    ->label('إصدار شهادة')
-                    ->icon('heroicon-o-academic-cap')
-                    ->color('success')
-                    ->visible(fn (ProgramRegistration $record): bool => $record->isCompleted())
-                    ->requiresConfirmation()
-                    ->authorize('update')
-                    ->action(function (ProgramRegistration $record): void {
-                        if (! $record->isEligibleForCertificate()) {
-                            Notification::make()
-                                ->title('غير مؤهل للحصول على شهادة')
-                                ->body('يجب أن يكون الحضور ≥ 80% والدرجة ≥ 60')
-                                ->danger()
-                                ->send();
-
-                            return;
-                        }
-                        $record->loadMissing(['user', 'trainingProgram']);
-                        app(CertificateService::class)->issue($record->user, $record->trainingProgram, auth()->user());
-                        Notification::make()
-                            ->title('تم إصدار الشهادة بنجاح')
-                            ->success()
-                            ->send();
-                    }),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
