@@ -10,6 +10,8 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/css/staff-ui.css',
                 'resources/js/staff-ui.js',
+                'resources/css/certificate-designer.css',
+                'resources/js/certificate-designer.js',
             ],
             refresh: true,
         }),

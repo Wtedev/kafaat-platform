@@ -3,12 +3,14 @@
 namespace App\Services;
 
 use App\Models\Certificate;
+use App\Models\TrainingProgram;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Mpdf\Config\ConfigVariables;
 use Mpdf\Config\FontVariables;
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination;
+use Symfony\Component\HttpFoundation\Response;
 
 class CertificatePdfService
 {
@@ -60,6 +62,11 @@ class CertificatePdfService
         $certificate->update(['file_path' => $path]);
 
         return $path;
+    }
+
+    public function previewResponse(TrainingProgram $program): Response
+    {
+        abort(404);
     }
 
     private function newMpdf(): Mpdf
