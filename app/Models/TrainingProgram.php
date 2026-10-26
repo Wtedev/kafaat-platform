@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -644,6 +645,11 @@ class TrainingProgram extends Model
     public function certificates(): MorphMany
     {
         return $this->morphMany(Certificate::class, 'certificateable');
+    }
+
+    public function certificateTemplate(): HasOne
+    {
+        return $this->hasOne(CertificateTemplate::class);
     }
 
     public function learningPath(): BelongsTo
