@@ -19,6 +19,7 @@ use App\Services\Certificates\ProgramCertificateEligibility;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -105,6 +106,39 @@ class ProgramCertificateEligibilityTest extends TestCase
         $this->assertSame(2, app(ProgramCertificateEligibility::class)->count($program));
     }
 
+    public function test_eligibility_uses_the_same_number_of_queries_for_a_larger_cohort(): void
+    {
+        $program = $this->program();
+        $day = $this->link($program, 'اليوم الأول', now()->subDay());
+        $survey = ProgramSurvey::query()->create([
+            'training_program_id' => $program->id,
+            'type' => SurveyType::Satisfaction,
+            'is_anonymous' => true,
+            'opens_at' => now()->subDay(),
+            'closes_at' => now()->addDay(),
+        ]);
+
+        $seed = function (int $count) use ($program, $day, $survey): void {
+            for ($i = 0; $i < $count; $i++) {
+                $registration = $this->registration($program, RegistrationStatus::Approved);
+                $this->mark($day, $registration);
+                SurveyCompletion::query()->create([
+                    'program_survey_id' => $survey->id,
+                    'registration_id' => $registration->id,
+                ]);
+            }
+        };
+
+        $seed(2);
+        $small = $this->eligibilityQueryCount($program, [$day->id]);
+        $seed(8);
+        $large = $this->eligibilityQueryCount($program, [$day->id]);
+
+        $this->assertSame($small, $large);
+        $this->assertLessThanOrEqual(4, $small);
+        $this->assertSame(10, app(ProgramCertificateEligibility::class)->count($program, [$day->id], [SurveyType::Satisfaction]));
+    }
+
     public function test_a_beneficiary_cannot_hold_two_certificates_for_the_same_program(): void
     {
         $this->assertTrue(Schema::hasColumn('certificates', 'emailed_at'));
@@ -118,6 +152,22 @@ class ProgramCertificateEligibilityTest extends TestCase
 
         $this->expectException(QueryException::class);
         $this->certificate($registration);
+    }
+
+    /**
+     * @param  list<int>  $attendanceLinkIds
+     */
+    private function eligibilityQueryCount(TrainingProgram $program, array $attendanceLinkIds): int
+    {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        app(ProgramCertificateEligibility::class)->eligible($program, $attendanceLinkIds, [SurveyType::Satisfaction]);
+
+        $count = count(DB::getQueryLog());
+        DB::disableQueryLog();
+
+        return $count;
     }
 
     private function program(): TrainingProgram

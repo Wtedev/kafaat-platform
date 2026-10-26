@@ -10,14 +10,16 @@ return new class extends Migration
     public function up(): void
     {
         $duplicates = DB::table('certificates')
-            ->select('user_id', 'certificateable_type', 'certificateable_id')
+            ->select('user_id', 'certificateable_type', 'certificateable_id', DB::raw('COUNT(*) as copies'))
             ->groupBy('user_id', 'certificateable_type', 'certificateable_id')
             ->havingRaw('COUNT(*) > 1')
             ->get();
 
         if ($duplicates->isNotEmpty()) {
+            $duplicateRows = (int) $duplicates->sum('copies');
+
             throw new RuntimeException(
-                'Refusing to add the certificate uniqueness index because duplicate certificates exist for the same beneficiary and activity.'
+                'Refusing to add the certificate uniqueness index because '.$duplicateRows.' duplicate certificate rows exist for the same beneficiary and activity.'
             );
         }
 
