@@ -4,6 +4,7 @@ namespace Tests\Feature\Exports;
 
 use App\Enums\AttendanceStatus;
 use App\Enums\AuditLogResult;
+use App\Enums\IdentityCategory;
 use App\Enums\IdentityType;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
@@ -73,9 +74,41 @@ class ProgramRegistrantsExcelExportTest extends TestCase
         $defaults = ProgramRegistrationExportColumns::defaultKeys($admin);
 
         $this->assertSame(
-            ['user_name', 'user_email', 'user_phone', 'status', 'registered_at'],
+            ['user_name', 'user_email', 'user_phone', 'is_saudi', 'status', 'registered_at'],
             $defaults,
         );
+    }
+
+    public function test_saudi_column_is_default_for_every_program(): void
+    {
+        $admin = $this->makeAdmin();
+        $program = $this->makeProgram(['slug' => 'saudi-col-'.uniqid()]);
+
+        $this->assertContains('is_saudi', ProgramRegistrationExportColumns::defaultKeys($admin, $program));
+        $this->assertSame('سعودي', ProgramRegistrationExportColumns::optionLabels($admin, $program)['is_saudi']);
+
+        $saudi = $this->makeBeneficiary(['email' => 'saudi-'.uniqid().'@ex.com']);
+        $saudi->forceFill(['identity_category' => IdentityCategory::Saudi])->save();
+        $resident = $this->makeBeneficiary(['email' => 'resident-'.uniqid().'@ex.com']);
+        $resident->forceFill(['identity_category' => IdentityCategory::Resident])->save();
+        $unknown = $this->makeBeneficiary(['email' => 'unknown-'.uniqid().'@ex.com']);
+        $unknown->forceFill(['identity_category' => null])->save();
+
+        $this->assertSame('نعم', ProgramRegistrationExportColumns::resolve(
+            $this->register($program, $saudi, RegistrationStatus::Pending),
+            'is_saudi',
+            $admin,
+        ));
+        $this->assertSame('لا', ProgramRegistrationExportColumns::resolve(
+            $this->register($program, $resident, RegistrationStatus::Pending),
+            'is_saudi',
+            $admin,
+        ));
+        $this->assertSame('غير محدد', ProgramRegistrationExportColumns::resolve(
+            $this->register($program, $unknown, RegistrationStatus::Pending),
+            'is_saudi',
+            $admin,
+        ));
     }
 
     public function test_column_allowlist_rejects_unknown_and_forbidden_keys(): void

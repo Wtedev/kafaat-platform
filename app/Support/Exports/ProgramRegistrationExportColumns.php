@@ -2,6 +2,7 @@
 
 namespace App\Support\Exports;
 
+use App\Enums\IdentityCategory;
 use App\Enums\ProfileGender;
 use App\Enums\RegistrationStatus;
 use App\Models\ProgramRegistration;
@@ -160,6 +161,7 @@ final class ProgramRegistrationExportColumns
                 ? $user?->phone
                 : SensitiveContactMasker::maskPhone($user?->phone),
             'identity_masked' => $user?->maskedIdentityNumber(),
+            'is_saudi' => self::saudiLabel($user?->identity_category),
             'gender' => self::genderLabel($profile?->gender),
             'birth_date' => $profile?->birth_date?->format('Y-m-d'),
             'city' => $profile?->city,
@@ -226,6 +228,11 @@ final class ProgramRegistrationExportColumns
             ],
             'user_phone' => [
                 'label' => 'رقم الجوال',
+                'group' => self::GROUP_ACCOUNT,
+                'default' => true,
+            ],
+            'is_saudi' => [
+                'label' => 'سعودي',
                 'group' => self::GROUP_ACCOUNT,
                 'default' => true,
             ],
@@ -296,7 +303,7 @@ final class ProgramRegistrationExportColumns
 
         // Stable order: account → profile → registration
         $order = [
-            'user_name', 'user_email', 'user_phone', 'identity_masked',
+            'user_name', 'user_email', 'user_phone', 'is_saudi', 'identity_masked',
             'gender', 'birth_date', 'city', 'job_title',
             'registration_id', 'status', 'registered_at', 'approved_at',
             'approved_by_name', 'rejected_reason', 'attendance_percentage', 'score',
@@ -331,6 +338,15 @@ final class ProgramRegistrationExportColumns
         $answers = is_array($registration->registration_answers) ? $registration->registration_answers : [];
 
         return $answers[substr($key, strlen('answer_'))] ?? null;
+    }
+
+    private static function saudiLabel(mixed $category): string
+    {
+        return match ($category) {
+            IdentityCategory::Saudi, 'saudi' => 'نعم',
+            IdentityCategory::Resident, 'resident' => 'لا',
+            default => 'غير محدد',
+        };
     }
 
     private static function genderLabel(mixed $gender): ?string
