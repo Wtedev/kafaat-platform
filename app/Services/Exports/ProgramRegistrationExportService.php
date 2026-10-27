@@ -10,6 +10,7 @@ use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
+use App\Support\Exports\ProgramRegistrationExportColumns;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -103,9 +104,14 @@ final class ProgramRegistrationExportService
     ): ?BinaryFileResponse {
         abort_unless(ProgramRegistrationExportAuthorization::canExport($actor, $program), 403);
 
-        $keys = ProgramRegistrationExportAuthorization::filterAllowedColumnKeys(
+        $keys = ProgramRegistrationExportColumns::withRegistrationAnswers(
+            ProgramRegistrationExportAuthorization::filterAllowedColumnKeys(
+                $actor,
+                $requestedColumnKeys,
+                $program,
+            ),
+            $program,
             $actor,
-            $requestedColumnKeys,
         );
 
         if ($keys === []) {
@@ -158,7 +164,7 @@ final class ProgramRegistrationExportService
             );
 
             return Excel::download(
-                new ProgramRegistrationsExport($registrations, $keys, $actor),
+                new ProgramRegistrationsExport($registrations, $keys, $actor, $program),
                 $filename,
             );
         } catch (Throwable $exception) {

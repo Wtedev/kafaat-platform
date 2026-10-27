@@ -43,6 +43,7 @@ final class ExportProgramRegistrantsAction
             ->modalHeading('تصدير المسجلين إلى Excel')
             ->modalDescription(
                 'اختر الأعمدة ونطاق التصدير. التصدير يقتصر على مسجّلي هذا البرنامج فقط.'
+                .' إجابات أسئلة التسجيل تُضاف تلقائياً في نفس الصف مع بيانات المسجّل.'
                 .' عند اختيار «وفق فلاتر الجدول الحالي» تُحترم فلاتر جدول المسجلين إن وُجدت.'
             )
             ->modalSubmitActionLabel('تصدير')
@@ -51,10 +52,12 @@ final class ExportProgramRegistrantsAction
                 $actorUser = $actor instanceof User ? $actor : null;
                 $hasRelationTable = $relationManager !== null;
 
-                $groups = ProgramRegistrationExportColumns::groupedOptionLabels($actorUser);
+                $resolvedProgram = self::resolveProgram($program);
+                $groups = ProgramRegistrationExportColumns::groupedOptionLabels($actorUser, $resolvedProgram);
                 $titles = ProgramRegistrationExportColumns::groupTitles();
                 $defaults = ProgramRegistrationExportAuthorization::defaultColumnKeysFor(
                     $actorUser ?? new User,
+                    $resolvedProgram,
                 );
 
                 $columnFields = [];
@@ -101,7 +104,7 @@ final class ExportProgramRegistrantsAction
                                 return '—';
                             }
 
-                            $keys = self::collectColumnKeys($get, $actorUser);
+                            $keys = self::collectColumnKeys($get, $actorUser, $resolved);
                             $scope = (string) ($get('scope') ?: ProgramRegistrationExportService::SCOPE_ALL);
                             $service = app(ProgramRegistrationExportService::class);
 
@@ -142,7 +145,7 @@ final class ExportProgramRegistrantsAction
                         $keys = [...$keys, ...$part];
                     }
                 }
-                $keys = ProgramRegistrationExportAuthorization::filterAllowedColumnKeys($actor, $keys);
+                $keys = ProgramRegistrationExportAuthorization::filterAllowedColumnKeys($actor, $keys, $resolved);
 
                 if ($keys === []) {
                     Notification::make()
@@ -219,7 +222,7 @@ final class ExportProgramRegistrantsAction
     /**
      * @return list<string>
      */
-    private static function collectColumnKeys(Get $get, User $actor): array
+    private static function collectColumnKeys(Get $get, User $actor, ?TrainingProgram $program = null): array
     {
         $keys = [];
         foreach (array_keys(ProgramRegistrationExportColumns::groupTitles()) as $groupKey) {
@@ -229,6 +232,10 @@ final class ExportProgramRegistrantsAction
             }
         }
 
-        return ProgramRegistrationExportAuthorization::filterAllowedColumnKeys($actor, $keys);
+        return ProgramRegistrationExportColumns::withRegistrationAnswers(
+            ProgramRegistrationExportAuthorization::filterAllowedColumnKeys($actor, $keys, $program),
+            $program,
+            $actor,
+        );
     }
 }

@@ -42,7 +42,9 @@ class TatawaaWaeiRegistrationQuestionsTest extends TestCase
         $response->assertSee('سؤال 1 من 6', false);
         $response->assertSee('أقر بالالتزام التام حتى نهاية الحملة ديسمبر 2026م', false);
         $response->assertDontSee('الاسم الثلاثي ثم السجل المدني', false);
-        $response->assertSee('رابط حسابك الحالي على منصة LinkedIn (إن وجد)', false);
+        $response->assertSee('رابط حسابك على منصة LinkedIn', false);
+        $response->assertDontSee('(إن وجد)', false);
+        $response->assertDontSee('يمكنك المتابعة بدون رابط', false);
         $response->assertSee('التخصص الأكاديمي أو المهني الحالي', false);
         $response->assertSee('data-registration-step="1"', false);
         $response->assertSee('data-registration-next', false);
@@ -101,12 +103,28 @@ class TatawaaWaeiRegistrationQuestionsTest extends TestCase
         ]);
     }
 
-    public function test_linkedin_can_be_left_empty(): void
+    public function test_linkedin_is_required_even_when_an_older_copy_marks_it_optional(): void
     {
         $user = $this->makePortalUser();
         $program = $this->makeProgram();
+        $questions = $program->registration_questions;
+        foreach ($questions as $index => $question) {
+            if ($question['key'] === 'linkedin_url') {
+                $questions[$index]['required'] = false;
+                $questions[$index]['label'] = 'رابط حسابك الحالي على منصة LinkedIn (إن وجد)';
+            }
+        }
+        $program->forceFill(['registration_questions' => $questions])->save();
 
         $this->actingAsOtpVerified($user)
+            ->get(route('public.programs.show', $program))
+            ->assertOk()
+            ->assertSee('رابط حسابك على منصة LinkedIn', false)
+            ->assertDontSee('(إن وجد)', false)
+            ->assertDontSee('يمكنك المتابعة بدون رابط', false);
+
+        $this->actingAsOtpVerified($user)
+            ->from(route('public.programs.show', $program))
             ->post(route('public.programs.register', $program), [
                 'attendance_acknowledgement' => '1',
                 'answers' => [
@@ -118,10 +136,27 @@ class TatawaaWaeiRegistrationQuestionsTest extends TestCase
                     'commitment_ready' => 'نعم، حسب تفرغي',
                 ],
             ])
-            ->assertRedirect();
+            ->assertSessionHasErrors('answers.linkedin_url');
 
-        $answers = ProgramRegistration::query()->firstOrFail()->registration_answers;
-        $this->assertArrayNotHasKey('linkedin_url', $answers);
+        $this->actingAsOtpVerified($user)
+            ->from(route('public.programs.show', $program))
+            ->post(route('public.programs.register', $program), [
+                'attendance_acknowledgement' => '1',
+                'answers' => [
+                    'linkedin_url' => 'https://example.com/in/name',
+                    'major' => 'علوم حاسب',
+                    'content_experience' => 'لا توجد خبرة',
+                    'ai_knowledge' => 'لم يسبق لي استخدامها',
+                    'reason_to_join' => 'أرغب في التعلم.',
+                    'commitment_ready' => 'نعم، حسب تفرغي',
+                ],
+            ])
+            ->assertSessionHasErrors('answers.linkedin_url');
+
+        $this->assertDatabaseMissing('program_registrations', [
+            'training_program_id' => $program->id,
+            'user_id' => $user->id,
+        ]);
     }
 
     private function makePortalUser(): User

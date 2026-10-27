@@ -5,8 +5,10 @@ namespace App\Support\Exports;
 use App\Enums\ProfileGender;
 use App\Enums\RegistrationStatus;
 use App\Models\ProgramRegistration;
+use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Support\Privacy\SensitiveContactMasker;
+use App\Support\ProgramRegistrationQuestions;
 
 /**
  * Allowlisted column catalog for program registrant Excel export.
@@ -20,13 +22,15 @@ final class ProgramRegistrationExportColumns
 
     public const GROUP_REGISTRATION = 'registration';
 
+    public const GROUP_ANSWERS = 'answers';
+
     /**
      * @return array<string, string> key => Arabic label (flat, for CheckboxList)
      */
-    public static function optionLabels(?User $actor = null): array
+    public static function optionLabels(?User $actor = null, ?TrainingProgram $program = null): array
     {
         $out = [];
-        foreach (self::definitions($actor) as $key => $def) {
+        foreach (self::definitions($actor, $program) as $key => $def) {
             $out[$key] = $def['label'];
         }
 
@@ -36,15 +40,16 @@ final class ProgramRegistrationExportColumns
     /**
      * @return array<string, array<string, string>> group => [key => label]
      */
-    public static function groupedOptionLabels(?User $actor = null): array
+    public static function groupedOptionLabels(?User $actor = null, ?TrainingProgram $program = null): array
     {
         $groups = [
             self::GROUP_ACCOUNT => [],
             self::GROUP_PROFILE => [],
             self::GROUP_REGISTRATION => [],
+            self::GROUP_ANSWERS => [],
         ];
 
-        foreach (self::definitions($actor) as $key => $def) {
+        foreach (self::definitions($actor, $program) as $key => $def) {
             $groups[$def['group']][$key] = $def['label'];
         }
 
@@ -60,16 +65,23 @@ final class ProgramRegistrationExportColumns
             self::GROUP_ACCOUNT => 'بيانات الحساب',
             self::GROUP_PROFILE => 'الملف الشخصي',
             self::GROUP_REGISTRATION => 'بيانات التسجيل',
+            self::GROUP_ANSWERS => 'أسئلة التسجيل',
         ];
     }
 
     /**
      * @return list<string>
      */
-    public static function defaultKeys(?User $actor = null): array
+    public static function defaultKeys(?User $actor = null, ?TrainingProgram $program = null): array
     {
+        $definitions = self::definitions($actor, $program);
+
+        if ($program instanceof TrainingProgram && ProgramRegistrationQuestions::isTatawaaWaei($program)) {
+            return array_keys($definitions);
+        }
+
         return array_keys(array_filter(
-            self::definitions($actor),
+            $definitions,
             fn (array $def): bool => $def['default'] ?? false,
         ));
     }
@@ -77,18 +89,38 @@ final class ProgramRegistrationExportColumns
     /**
      * @return list<string>
      */
-    public static function allowlistedKeys(?User $actor = null): array
+    public static function allowlistedKeys(?User $actor = null, ?TrainingProgram $program = null): array
     {
-        return array_keys(self::definitions($actor));
+        return array_keys(self::definitions($actor, $program));
+    }
+
+    /**
+     * Registration answers always travel with the selected registrant columns.
+     *
+     * @param  list<string>  $keys
+     * @return list<string>
+     */
+    public static function withRegistrationAnswers(array $keys, ?TrainingProgram $program, ?User $actor = null): array
+    {
+        if (! $program instanceof TrainingProgram) {
+            return array_values($keys);
+        }
+
+        $answerKeys = array_values(array_filter(
+            self::allowlistedKeys($actor, $program),
+            fn (string $key): bool => str_starts_with($key, 'answer_'),
+        ));
+
+        return array_values(array_unique([...$keys, ...$answerKeys]));
     }
 
     /**
      * @param  list<string>  $keys
      * @return list<string>
      */
-    public static function labelsForKeys(array $keys, ?User $actor = null): array
+    public static function labelsForKeys(array $keys, ?User $actor = null, ?TrainingProgram $program = null): array
     {
-        $defs = self::definitions($actor);
+        $defs = self::definitions($actor, $program);
 
         return array_map(
             fn (string $key): string => $defs[$key]['label'] ?? $key,
@@ -143,7 +175,7 @@ final class ProgramRegistrationExportColumns
                 ? '—'
                 : $pct,
             'score' => $registration->score,
-            default => null,
+            default => self::answerValue($registration, $key),
         };
 
         return ExcelFormulaInjectionGuard::sanitize(
@@ -174,7 +206,7 @@ final class ProgramRegistrationExportColumns
     /**
      * @return array<string, array{label: string, group: string, default?: bool}>
      */
-    private static function definitions(?User $actor = null): array
+    private static function definitions(?User $actor = null, ?TrainingProgram $program = null): array
     {
         $defs = [
             'registration_id' => [
@@ -277,7 +309,28 @@ final class ProgramRegistrationExportColumns
             }
         }
 
+        if ($program instanceof TrainingProgram) {
+            foreach (ProgramRegistrationQuestions::forProgram($program) as $question) {
+                $ordered['answer_'.$question['key']] = [
+                    'label' => $question['label'],
+                    'group' => self::GROUP_ANSWERS,
+                    'default' => true,
+                ];
+            }
+        }
+
         return $ordered;
+    }
+
+    private static function answerValue(ProgramRegistration $registration, string $key): mixed
+    {
+        if (! str_starts_with($key, 'answer_')) {
+            return null;
+        }
+
+        $answers = is_array($registration->registration_answers) ? $registration->registration_answers : [];
+
+        return $answers[substr($key, strlen('answer_'))] ?? null;
     }
 
     private static function genderLabel(mixed $gender): ?string

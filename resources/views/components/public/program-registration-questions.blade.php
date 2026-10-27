@@ -99,7 +99,7 @@
                                 placeholder="{{ $question['placeholder'] }}"
                                 class="w-full rounded-2xl border border-[#d5e0ec] bg-gray-50 px-4 py-3.5 text-base text-gray-800 focus:border-[#335483] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#335483]/20"
                             >
-                            @if ($question['key'] === 'linkedin_url')
+                            @if ($question['key'] === 'linkedin_url' && ! $question['required'])
                                 <p class="mt-2 text-xs leading-5 text-gray-500">يمكنك المتابعة بدون رابط.</p>
                             @endif
                         @endif

@@ -21,9 +21,9 @@ final class ProgramRegistrationExportAuthorization
      * @param  list<string>  $requestedKeys
      * @return list<string>
      */
-    public static function filterAllowedColumnKeys(User $actor, array $requestedKeys): array
+    public static function filterAllowedColumnKeys(User $actor, array $requestedKeys, ?TrainingProgram $program = null): array
     {
-        $allowed = ProgramRegistrationExportColumns::allowlistedKeys($actor);
+        $allowed = ProgramRegistrationExportColumns::allowlistedKeys($actor, $program);
 
         return array_values(array_intersect($requestedKeys, $allowed));
     }
@@ -31,11 +31,12 @@ final class ProgramRegistrationExportAuthorization
     /**
      * @return list<string>
      */
-    public static function defaultColumnKeysFor(User $actor): array
+    public static function defaultColumnKeysFor(User $actor, ?TrainingProgram $program = null): array
     {
         return self::filterAllowedColumnKeys(
             $actor,
-            ProgramRegistrationExportColumns::defaultKeys($actor),
+            ProgramRegistrationExportColumns::defaultKeys($actor, $program),
+            $program,
         );
     }
 }
