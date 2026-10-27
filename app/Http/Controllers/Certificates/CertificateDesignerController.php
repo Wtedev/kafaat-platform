@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Certificates;
 
 use App\Enums\CertificateFieldKey;
-use App\Filament\Resources\TrainingProgramResource;
-use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationCertificatesRelationManager;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Certificates\SaveCertificateDesignRequest;
 use App\Http\Requests\Certificates\StoreCertificateBackgroundRequest;
@@ -39,6 +37,7 @@ class CertificateDesignerController extends Controller
                 'saveUrl' => route('certificate-designer.update', $program),
                 'backgroundUrl' => route('certificate-designer.background', $program),
                 'previewUrl' => route('certificate-designer.preview', $program),
+                'previewPageUrl' => route('certificate-designer.preview-page', $program),
                 'samples' => $samples,
                 'qrDataUri' => CertificateQr::dataUri($samples[CertificateFieldKey::VerificationQr->value]),
                 'elements' => $template?->elements ?? [],
@@ -96,6 +95,16 @@ class CertificateDesignerController extends Controller
         return app(CertificatePdfService::class)->previewResponse($program);
     }
 
+    public function previewPage(Request $request, TrainingProgram $program): View
+    {
+        $this->authorizeDesigner($request, $program);
+
+        return view('certificate-designer.preview', [
+            'program' => $program,
+            'pdfUrl' => route('certificate-designer.preview', $program),
+        ]);
+    }
+
     private function authorizeDesigner(Request $request, TrainingProgram $program): void
     {
         abort_unless($request->user()?->can('designCertificate', $program) ?? false, 403);
@@ -103,14 +112,6 @@ class CertificateDesignerController extends Controller
 
     private function certificatesTabUrl(TrainingProgram $program): string
     {
-        $relations = array_values(TrainingProgramResource::getRelations());
-        $index = array_search(ProgramRegistrationCertificatesRelationManager::class, $relations, true);
-        $url = url('/admin/training-programs/'.$program->getKey());
-
-        if ($index === false) {
-            return $url;
-        }
-
-        return $url.'?relation='.$index;
+        return url('/admin/training-programs/'.$program->getKey()).'?relation=certificates';
     }
 }

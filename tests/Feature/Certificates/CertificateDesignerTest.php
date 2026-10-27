@@ -48,6 +48,10 @@ class CertificateDesignerTest extends TestCase
         $this->actingAsOtpVerified($staff)
             ->get(route('certificate-designer.preview', $program))
             ->assertForbidden();
+
+        $this->actingAsOtpVerified($staff)
+            ->get(route('certificate-designer.preview-page', $program))
+            ->assertForbidden();
     }
 
     public function test_a_beneficiary_cannot_use_the_designer(): void
@@ -76,6 +80,10 @@ class CertificateDesignerTest extends TestCase
         $this->actingAsOtpVerified($beneficiary)
             ->get(route('certificate-designer.preview', $program))
             ->assertForbidden();
+
+        $this->actingAsOtpVerified($beneficiary)
+            ->get(route('certificate-designer.preview-page', $program))
+            ->assertForbidden();
     }
 
     public function test_either_certificate_permission_opens_the_designer(): void
@@ -87,7 +95,8 @@ class CertificateDesignerTest extends TestCase
             ->assertOk()
             ->assertSee($program->title)
             ->assertSee('اسم المستفيد')
-            ->assertSee('مقاس A4 أفقي');
+            ->assertSee('مقاس A4 أفقي')
+            ->assertSee('?relation=certificates', false);
 
         $this->actingAsOtpVerified($this->staff('issue_certificates'))
             ->get(route('certificate-designer.edit', $program))

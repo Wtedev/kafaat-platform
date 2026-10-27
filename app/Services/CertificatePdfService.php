@@ -140,8 +140,18 @@ class CertificatePdfService
     private function renderDesign(CertificateTemplate $template, array $values): string
     {
         $mpdf = $this->newMpdf(true);
-        $background = Storage::disk('public')->path((string) $template->background_path);
-        $mpdf->Image($background, 0, 0, self::PAGE_WIDTH_MM, self::PAGE_HEIGHT_MM, '', '', true, false);
+        // Image() writes straight into the document buffer until a page is open,
+        // which shifts the cross-reference table and makes the PDF unreadable.
+        $mpdf->AddPage();
+        $source = Storage::disk('public')->path((string) $template->background_path);
+        $background = $this->jpegForPdf($source);
+        try {
+            $mpdf->Image($background, 0, 0, self::PAGE_WIDTH_MM, self::PAGE_HEIGHT_MM, '', '', true, false);
+        } finally {
+            if ($background !== $source && is_file($background)) {
+                unlink($background);
+            }
+        }
 
         foreach ($template->elements ?? [] as $key => $element) {
             if (! is_string($key) || ! is_array($element) || ! array_key_exists($key, $values)) {
@@ -178,12 +188,11 @@ class CertificatePdfService
     private function binary(Mpdf $mpdf): string
     {
         $binary = $mpdf->Output('', Destination::STRING_RETURN);
-        $start = strpos($binary, '%PDF');
-        if ($start === false) {
+        if (! str_starts_with($binary, '%PDF')) {
             throw new RuntimeException('mPDF did not produce a PDF.');
         }
 
-        return $start === 0 ? $binary : substr($binary, $start);
+        return $binary;
     }
 
     /**
@@ -199,7 +208,8 @@ class CertificatePdfService
         $centerX = self::PAGE_WIDTH_MM * $this->bounded($element['x'] ?? 50, 0, 100) / 100;
         $centerY = self::PAGE_HEIGHT_MM * $this->bounded($element['y'] ?? 50, 0, 100) / 100;
         $size = $this->bounded($element['size'] ?? 16, 8, 96);
-        $boxHeight = max(($size * 25.4 / 72) * 1.6, 8);
+        // Same model as the designer canvas: a line box of font-size × 1.2, centered on (x, y).
+        $boxHeight = ($size * 25.4 / 72) * 1.2;
         $font = ($element['font'] ?? 'shamel') === 'ibmplex' ? 'ibmplexsansarabic' : 'shamel';
         $weight = ($element['weight'] ?? 'regular') === 'bold' ? 'bold' : 'normal';
         $align = in_array($element['align'] ?? 'center', ['right', 'center', 'left'], true)
@@ -247,6 +257,46 @@ class CertificatePdfService
                 @unlink($temporary);
             }
         }
+    }
+
+    /**
+     * Chrome's PDF viewer paints a black page for a full-bleed PNG stored with
+     * a PNG predictor. A JPEG uses DCTDecode, which that viewer can paint.
+     */
+    private function jpegForPdf(string $path): string
+    {
+        $mime = mime_content_type($path);
+        if ($mime === 'image/jpeg') {
+            return $path;
+        }
+
+        $image = @imagecreatefromstring((string) file_get_contents($path));
+        if ($image === false) {
+            return $path;
+        }
+
+        $width = imagesx($image);
+        $height = imagesy($image);
+        $flat = imagecreatetruecolor($width, $height);
+        if ($flat === false) {
+            imagedestroy($image);
+
+            return $path;
+        }
+
+        $white = imagecolorallocate($flat, 255, 255, 255);
+        imagefilledrectangle($flat, 0, 0, $width, $height, $white);
+        imagecopy($flat, $image, 0, 0, 0, 0, $width, $height);
+        imagedestroy($image);
+
+        $temporary = storage_path('app/mpdf/bg-'.bin2hex(random_bytes(8)).'.jpg');
+        if (! is_dir(dirname($temporary))) {
+            mkdir(dirname($temporary), 0755, true);
+        }
+        imagejpeg($flat, $temporary, 90);
+        imagedestroy($flat);
+
+        return $temporary;
     }
 
     private function bounded(mixed $value, float $min, float $max): float

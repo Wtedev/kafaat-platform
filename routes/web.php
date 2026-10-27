@@ -132,6 +132,7 @@ Route::middleware(['auth', 'otp.verified', 'operational'])
         Route::post('/certificate', [CertificateDesignerController::class, 'update'])->name('update');
         Route::post('/certificate/background', [CertificateDesignerController::class, 'background'])->name('background');
         Route::get('/certificate/preview', [CertificateDesignerController::class, 'preview'])->name('preview');
+        Route::get('/certificate/preview-page', [CertificateDesignerController::class, 'previewPage'])->name('preview-page');
     });
 
 Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.StaffUiModule::USERS, 'staff-ui.maintenance:'.StaffUiModule::USERS])

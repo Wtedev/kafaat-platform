@@ -11,7 +11,6 @@ use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\CertificatePdfService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\SeedsRbacRoles;
@@ -40,10 +39,19 @@ class CertificateDesignPdfTest extends TestCase
             ->get(route('certificate-designer.preview', $program));
 
         $response->assertOk()->assertHeader('content-type', 'application/pdf');
-        $this->assertStringStartsWith('%PDF', $response->getContent());
+        $response->assertHeaderMissing('Content-Security-Policy');
+        $response->assertHeaderMissing('Cross-Origin-Opener-Policy');
+        $this->assertReadablePdf($response->getContent());
         $this->assertStringContainsString('FFShamelFamily', $response->getContent());
+        $this->assertStringContainsString('DCTDecode', $response->getContent());
 
         $this->assertSame(0, Certificate::query()->count());
+
+        $this->actingAsOtpVerified($staff)
+            ->get(route('certificate-designer.preview-page', $program))
+            ->assertOk()
+            ->assertSee('تنزيل PDF')
+            ->assertSee(route('certificate-designer.preview', $program), false);
     }
 
     public function test_render_sample_writes_a_pdf_without_creating_a_certificate(): void
@@ -55,7 +63,7 @@ class CertificateDesignPdfTest extends TestCase
 
         Storage::disk('local')->assertExists('certificate-samples/'.$program->id.'.pdf');
         $sample = Storage::disk('local')->get('certificate-samples/'.$program->id.'.pdf');
-        $this->assertStringStartsWith('%PDF', $sample);
+        $this->assertReadablePdf($sample);
         $this->assertStringContainsString('FFShamelFamily', $sample);
         $this->assertSame(0, Certificate::query()->count());
     }
@@ -84,7 +92,7 @@ class CertificateDesignPdfTest extends TestCase
         $stored = app(CertificatePdfService::class)->generate($certificate);
         $bytes = Storage::disk('public')->get($stored);
 
-        $this->assertStringStartsWith('%PDF', $bytes);
+        $this->assertReadablePdf($bytes);
         $this->assertStringContainsString('IBMPlexSansArabic', $bytes);
         $this->assertStringNotContainsString('FFShamelFamily', $bytes);
     }
@@ -114,9 +122,16 @@ class CertificateDesignPdfTest extends TestCase
         $stored = app(CertificatePdfService::class)->generate($certificate);
 
         $bytes = Storage::disk('public')->get($stored);
-        $this->assertStringStartsWith('%PDF', $bytes);
+        $this->assertReadablePdf($bytes);
         $this->assertStringContainsString('IBMPlexSansArabic', $bytes);
         $this->assertStringNotContainsString('FFShamelFamily', $bytes);
+    }
+
+    private function assertReadablePdf(string $bytes): void
+    {
+        $this->assertStringStartsWith('%PDF', $bytes);
+        $this->assertSame(1, preg_match('/startxref\s+(\d+)\s+%%EOF\s*$/', $bytes, $matches));
+        $this->assertSame('xref', substr($bytes, (int) $matches[1], 4));
     }
 
     private function designedProgram(): TrainingProgram
@@ -129,8 +144,15 @@ class CertificateDesignPdfTest extends TestCase
             'start_date' => '2026-10-10',
             'end_date' => '2026-10-12',
         ]);
-        $background = UploadedFile::fake()->image('bg.jpg', 80, 50)
-            ->store('certificate-templates/'.$program->id, 'public');
+        $relative = 'certificate-templates/'.$program->id.'/bg.png';
+        Storage::disk('public')->makeDirectory('certificate-templates/'.$program->id);
+        $absolute = Storage::disk('public')->path($relative);
+        $image = imagecreatetruecolor(40, 20);
+        $color = imagecolorallocate($image, 20, 80, 160);
+        imagefilledrectangle($image, 0, 0, 40, 20, $color);
+        imagepng($image, $absolute);
+        imagedestroy($image);
+        $background = $relative;
         CertificateTemplate::query()->create([
             'training_program_id' => $program->id,
             'background_path' => $background,

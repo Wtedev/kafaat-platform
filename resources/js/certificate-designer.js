@@ -142,10 +142,10 @@ function boot() {
 
         empty.hidden = true;
         settings.hidden = false;
-        settings.classList.toggle('is-qr', field.qr);
+        settings.classList.toggle('is-qr', Boolean(field.qr));
         sizeUnit.textContent = field.qr ? 'مليمتر' : 'نقطة';
         sizeInput.value = element.size;
-        if (textual) {
+        if (!field.qr) {
             fontInput.value = element.font;
             weightInput.value = element.weight;
             colorInput.value = element.color;
@@ -424,7 +424,7 @@ function boot() {
             setStatus('احفظ التصميم أولاً قبل المعاينة.', 'error');
             return;
         }
-        window.open(data.previewUrl, '_blank', 'noopener');
+        window.open(data.previewPageUrl || data.previewUrl, '_blank', 'noopener');
     });
 
     document.getElementById('certificate-designer-background').addEventListener('change', async (event) => {
