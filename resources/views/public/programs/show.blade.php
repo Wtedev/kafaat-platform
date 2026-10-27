@@ -170,7 +170,7 @@ $staffPreview = (bool) ($staffPreview ?? false);
             </div>
             @elseif ($canRegister)
             @php
-                $registrationQuestions = \App\Support\ProgramRegistrationQuestions::normalize($trainingProgram->registration_questions);
+                $registrationQuestions = \App\Support\ProgramRegistrationQuestions::forProgram($trainingProgram);
             @endphp
             @if ($registrationQuestions !== [])
             <div class="flex justify-end">

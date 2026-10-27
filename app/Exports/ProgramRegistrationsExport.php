@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\ProgramRegistration;
+use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Support\Exports\ProgramRegistrationExportColumns;
 use Illuminate\Support\Collection;
@@ -28,11 +29,12 @@ class ProgramRegistrationsExport implements FromCollection, ShouldAutoSize, With
         private readonly Collection $registrations,
         private readonly array $columnKeys,
         private readonly ?User $actor = null,
+        private readonly ?TrainingProgram $program = null,
     ) {}
 
     public function headings(): array
     {
-        return ProgramRegistrationExportColumns::labelsForKeys($this->columnKeys, $this->actor);
+        return ProgramRegistrationExportColumns::labelsForKeys($this->columnKeys, $this->actor, $this->program);
     }
 
     public function collection(): Collection

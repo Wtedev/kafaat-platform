@@ -19,6 +19,7 @@ use App\Services\Exports\ProgramRegistrationExportService;
 use App\Services\Identity\IdentityNumberService;
 use App\Support\Exports\ExcelFormulaInjectionGuard;
 use App\Support\Exports\ProgramRegistrationExportColumns;
+use App\Support\ProgramRegistrationQuestions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -359,6 +360,77 @@ class ProgramRegistrantsExcelExportTest extends TestCase
         $this->assertCount(1, $rows);
         $this->assertSame($r1->id, $rows->first()->id);
         $this->assertNotSame($r2->id, $rows->first()->id);
+    }
+
+    public function test_tatawaa_waei_export_includes_every_field_and_the_popup_answers(): void
+    {
+        $admin = $this->makeAdmin();
+        $program = $this->makeProgram([
+            'title' => 'تطوع واعي',
+            'slug' => 'tatawaa-waei',
+            'registration_questions' => ProgramRegistrationQuestions::forTatawaaWaei(),
+        ]);
+        $beneficiary = $this->makeBeneficiary([
+            'name' => 'نورة التصدير',
+            'email' => 'noura-export@example.com',
+        ]);
+        $registration = $this->register($program, $beneficiary, RegistrationStatus::Approved);
+        $registration->forceFill([
+            'registration_answers' => [
+                'linkedin_url' => 'https://www.linkedin.com/in/noura',
+                'major' => 'علوم حاسب',
+                'content_experience' => 'لا توجد خبرة',
+                'ai_knowledge' => 'أستخدمها بشكل محدود',
+                'reason_to_join' => 'أريد صناعة محتوى.',
+                'commitment_ready' => 'نعم، ملتزم تماماً',
+            ],
+        ])->save();
+
+        $defaults = ProgramRegistrationExportColumns::defaultKeys($admin, $program);
+
+        $this->assertSame(
+            ProgramRegistrationExportColumns::allowlistedKeys($admin, $program),
+            $defaults,
+        );
+        $this->assertContains('city', $defaults);
+        $this->assertContains('answer_linkedin_url', $defaults);
+        $this->assertContains('answer_reason_to_join', $defaults);
+
+        $this->actingAs($admin);
+        Excel::fake();
+
+        $response = app(ProgramRegistrationExportService::class)->download(
+            $admin,
+            $program,
+            ['user_name', 'status'],
+            ProgramRegistrationExportService::SCOPE_ALL,
+        );
+
+        $this->assertNotNull($response);
+        Excel::assertDownloaded(
+            'مسجلو-برنامج-tatawaa-waei-'.now()->timezone(config('app.timezone'))->format('Y-m-d').'.xlsx',
+            function (ProgramRegistrationsExport $export) use ($registration): bool {
+                $headings = $export->headings();
+                $this->assertContains('الاسم الكامل', $headings);
+                $this->assertContains('رابط حسابك على منصة LinkedIn', $headings);
+                $this->assertContains('لماذا ترغب في الانضمام لبرنامج «تطوع واعي»؟ وماذا تتوقع أن يضيف لهويتك المهنية؟', $headings);
+                $this->assertNotContains('المدينة', $headings);
+
+                $nameIndex = array_search('الاسم الكامل', $headings, true);
+                $linkedinIndex = array_search('رابط حسابك على منصة LinkedIn', $headings, true);
+                $majorIndex = array_search('التخصص الأكاديمي أو المهني الحالي', $headings, true);
+                $row = $export->collection()->first();
+                $this->assertSame('نورة التصدير', $row[$nameIndex]);
+                $this->assertSame('https://www.linkedin.com/in/noura', $row[$linkedinIndex]);
+                $this->assertSame('علوم حاسب', $row[$majorIndex]);
+                $this->assertSame(
+                    'https://www.linkedin.com/in/noura',
+                    ProgramRegistrationExportColumns::resolve($registration, 'answer_linkedin_url', null),
+                );
+
+                return true;
+            },
+        );
     }
 
     public function test_no_password_or_token_columns_exist_in_catalog(): void

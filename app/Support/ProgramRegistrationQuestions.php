@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\TrainingProgram;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -18,10 +19,10 @@ final class ProgramRegistrationQuestions
         return self::normalize([
             [
                 'key' => 'linkedin_url',
-                'label' => 'رابط حسابك الحالي على منصة LinkedIn (إن وجد)',
+                'label' => 'رابط حسابك على منصة LinkedIn',
                 'type' => 'text',
-                'required' => false,
-                'placeholder' => 'https://linkedin.com/in/username',
+                'required' => true,
+                'placeholder' => 'https://www.linkedin.com/in/username',
             ],
             [
                 'key' => 'major',
@@ -127,6 +128,54 @@ final class ProgramRegistrationQuestions
         return $normalized;
     }
 
+    public static function isTatawaaWaei(TrainingProgram $program): bool
+    {
+        return $program->slug === 'tatawaa-waei' || $program->title === 'تطوع واعي';
+    }
+
+    /**
+     * Questions shown and validated for a program. «تطوع واعي» keeps LinkedIn required
+     * even when an older saved copy still marks the field optional.
+     *
+     * @return list<array{key: string, label: string, type: string, required: bool, placeholder: string, options: list<string>}>
+     */
+    public static function forProgram(TrainingProgram $program): array
+    {
+        $questions = self::normalize($program->registration_questions);
+
+        if (! self::isTatawaaWaei($program)) {
+            return $questions;
+        }
+
+        $linkedin = null;
+        foreach (self::forTatawaaWaei() as $question) {
+            if ($question['key'] === 'linkedin_url') {
+                $linkedin = $question;
+                break;
+            }
+        }
+
+        if ($linkedin === null) {
+            return $questions;
+        }
+
+        $replaced = false;
+        foreach ($questions as $index => $question) {
+            if ($question['key'] !== 'linkedin_url') {
+                continue;
+            }
+
+            $questions[$index] = $linkedin;
+            $replaced = true;
+        }
+
+        if (! $replaced) {
+            array_unshift($questions, $linkedin);
+        }
+
+        return $questions;
+    }
+
     /**
      * @param  list<array{key: string, label: string, type: string, required: bool, placeholder: string, options: list<string>}>  $questions
      * @return array<string, list<mixed>>
@@ -150,6 +199,7 @@ final class ProgramRegistrationQuestions
 
             if ($question['key'] === 'linkedin_url') {
                 $field[] = 'url';
+                $field[] = 'regex:/^https?:\/\/([a-z0-9-]+\.)*linkedin\.com\/\S+$/i';
             }
 
             $rules['answers.'.$question['key']] = $field;
@@ -170,8 +220,10 @@ final class ProgramRegistrationQuestions
             $key = 'answers.'.$question['key'];
             $messages[$key.'.required'] = 'أجب عن هذا السؤال قبل المتابعة.';
             $messages[$key.'.in'] = 'اختر إحدى الإجابات المتاحة.';
-            $messages[$key.'.url'] = 'أدخل رابطاً صحيحاً، أو اترك الحقل فارغاً.';
-            $messages[$key.'.regex'] = 'اكتب الاسم الثلاثي ثم السجل المدني المكوّن من 10 أرقام.';
+            $messages[$key.'.url'] = 'أدخل رابط حسابك على لينكدإن.';
+            $messages[$key.'.regex'] = $question['key'] === 'linkedin_url'
+                ? 'أدخل رابط حسابك على لينكدإن.'
+                : 'اكتب الاسم الثلاثي ثم السجل المدني المكوّن من 10 أرقام.';
         }
 
         return $messages;

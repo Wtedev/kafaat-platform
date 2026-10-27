@@ -106,7 +106,7 @@ class PublicTrainingProgramController extends Controller
             ]);
         }
 
-        $questions = ProgramRegistrationQuestions::normalize($trainingProgram->registration_questions);
+        $questions = ProgramRegistrationQuestions::forProgram($trainingProgram);
         $request->validate(
             [
                 'attendance_acknowledgement' => ['accepted'],

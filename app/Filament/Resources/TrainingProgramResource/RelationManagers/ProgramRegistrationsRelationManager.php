@@ -89,7 +89,9 @@ class ProgramRegistrationsRelationManager extends RelationManager
                     ->modalContent(function (ProgramRegistration $record): HtmlString {
                         $program = $record->trainingProgram;
                         $rows = ProgramRegistrationQuestions::present(
-                            ProgramRegistrationQuestions::normalize($program?->registration_questions),
+                            $program instanceof TrainingProgram
+                                ? ProgramRegistrationQuestions::forProgram($program)
+                                : [],
                             $record->registration_answers,
                         );
                         $html = '<dl class="space-y-3 text-sm">';
@@ -288,8 +290,8 @@ class ProgramRegistrationsRelationManager extends RelationManager
 
                 abort_unless(ProgramRegistrationExportAuthorization::canExport($actor, $program), 403);
 
-                $keys = ProgramRegistrationExportAuthorization::defaultColumnKeysFor($actor);
-                $keys = ProgramRegistrationExportAuthorization::filterAllowedColumnKeys($actor, $keys);
+                $keys = ProgramRegistrationExportAuthorization::defaultColumnKeysFor($actor, $program);
+                $keys = ProgramRegistrationExportAuthorization::filterAllowedColumnKeys($actor, $keys, $program);
                 if ($keys === []) {
                     $keys = array_keys(ProgramRegistrationExportColumns::optionLabels($actor));
                 }
