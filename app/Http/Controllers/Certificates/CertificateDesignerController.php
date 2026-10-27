@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Certificates;
 
 use App\Enums\CertificateFieldKey;
+use App\Filament\Resources\TrainingProgramResource\RelationManagers\ProgramRegistrationCertificatesRelationManager;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Certificates\SaveCertificateDesignRequest;
 use App\Http\Requests\Certificates\StoreCertificateBackgroundRequest;
@@ -112,6 +113,7 @@ class CertificateDesignerController extends Controller
 
     private function certificatesTabUrl(TrainingProgram $program): string
     {
-        return url('/admin/training-programs/'.$program->getKey()).'?relation=certificates';
+        return url('/admin/training-programs/'.$program->getKey())
+            .'?relation='.ProgramRegistrationCertificatesRelationManager::TAB_KEY;
     }
 }

@@ -516,7 +516,7 @@ class TrainingProgramResource extends Resource
             ProgramPrepDaysRelationManager::class,
             ProgramAttendanceCheckersRelationManager::class,
             ProgramGradesRelationManager::class,
-            ProgramRegistrationCertificatesRelationManager::class,
+            ProgramRegistrationCertificatesRelationManager::TAB_KEY => ProgramRegistrationCertificatesRelationManager::class,
             EntityNotesRelationManager::class,
         ];
     }
