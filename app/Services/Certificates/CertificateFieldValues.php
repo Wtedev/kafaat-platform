@@ -10,7 +10,8 @@ use Illuminate\Support\Carbon;
 
 final class CertificateFieldValues
 {
-    public const SAMPLE_NAME = 'عبدالعزيز بن محمد السالم';
+    // A long four-part name, so the designer shows how real names fit the width.
+    public const SAMPLE_NAME = 'عبدالعزيز بن محمد بن عبدالله السالم';
 
     public const SAMPLE_NUMBER = 'CERT-SAMPLE-00000000';
 
@@ -104,6 +105,9 @@ final class CertificateFieldValues
             return '';
         }
 
-        return LocaleFormat::number($value, 2, '.', '');
+        // 12.00 prints as 12 and 12.50 as 12.5, the way people write hours.
+        $formatted = LocaleFormat::number($value, 2, '.', '');
+
+        return str_contains($formatted, '.') ? rtrim(rtrim($formatted, '0'), '.') : $formatted;
     }
 }

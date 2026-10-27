@@ -227,7 +227,10 @@ class CertificatePdfService
             $centerY - ($boxHeight / 2),
             $width,
             $boxHeight,
-            'visible',
+            // 'auto' shrinks the font until the text fits the one-line box, so a long
+            // name stays on one line inside the width set in the designer instead of
+            // wrapping onto the design below it.
+            'auto',
         );
     }
 
@@ -349,6 +352,10 @@ class CertificatePdfService
             'directionality' => 'rtl',
             'autoScriptToLang' => true,
             'autoLangToFont' => false,
+            // Shamel has no Latin letters, so a number like CERT-20261027-AB12CD34
+            // borrows the missing glyphs from IBM Plex instead of printing boxes.
+            'useSubstitutions' => true,
+            'backupSubsFont' => ['ibmplexsansarabic'],
             'tempDir' => $tempDir,
         ]);
     }

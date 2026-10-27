@@ -10,6 +10,7 @@ use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\CertificatePdfService;
+use App\Services\Certificates\CertificateFieldValues;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
@@ -125,6 +126,50 @@ class CertificateDesignPdfTest extends TestCase
         $this->assertReadablePdf($bytes);
         $this->assertStringContainsString('IBMPlexSansArabic', $bytes);
         $this->assertStringNotContainsString('FFShamelFamily', $bytes);
+    }
+
+    public function test_hours_print_without_trailing_zeros(): void
+    {
+        $program = $this->designedProgram();
+
+        $program->certificateTemplate->update(['hours' => 12]);
+        $this->assertSame('12', CertificateFieldValues::forPreview($program->fresh())['hours']);
+
+        $program->certificateTemplate->update(['hours' => 12.5]);
+        $this->assertSame('12.5', CertificateFieldValues::forPreview($program->fresh())['hours']);
+    }
+
+    public function test_a_long_name_and_a_latin_certificate_number_render_on_the_design(): void
+    {
+        $program = $this->designedProgram();
+        $program->certificateTemplate->update([
+            'elements' => [
+                'beneficiary_name' => [
+                    'x' => 50, 'y' => 40, 'font' => 'shamel', 'weight' => 'bold',
+                    'size' => 40, 'color' => '#1a1a1a', 'align' => 'center', 'width' => 30,
+                ],
+                'certificate_number' => [
+                    'x' => 20, 'y' => 85, 'font' => 'shamel', 'weight' => 'regular',
+                    'size' => 11, 'color' => '#1a1a1a', 'align' => 'center', 'width' => 30,
+                ],
+            ],
+        ]);
+        $user = User::factory()->create(['name' => 'عبدالرحمن محمد بن عبدالله آل سعود الشمري']);
+        $certificate = Certificate::query()->create([
+            'user_id' => $user->id,
+            'certificateable_type' => $program->getMorphClass(),
+            'certificateable_id' => $program->id,
+            'certificate_number' => 'CERT-20261027-AB12CD34',
+            'verification_code' => str_repeat('b', 32),
+            'issued_at' => now(),
+        ]);
+
+        $bytes = Storage::disk('public')->get(app(CertificatePdfService::class)->generate($certificate));
+
+        $this->assertReadablePdf($bytes);
+        // Shamel has no Latin letters; IBM Plex is embedded to supply them.
+        $this->assertStringContainsString('FFShamelFamily', $bytes);
+        $this->assertStringContainsString('IBMPlexSansArabic', $bytes);
     }
 
     private function assertReadablePdf(string $bytes): void
