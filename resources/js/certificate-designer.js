@@ -57,32 +57,47 @@ function boot() {
 
     const fieldByKey = (key) => data.fields.find((field) => field.key === key);
 
+    // Each field starts in its own spot so new fields never pile up on one another.
+    const DEFAULT_PLACEMENT = {
+        beneficiary_name: { x: 50, y: 42, size: 32, width: 70 },
+        program_title: { x: 50, y: 55, size: 22, width: 70 },
+        hours: { x: 50, y: 64, size: 16, width: 40 },
+        issue_date: { x: 50, y: 73, size: 14, width: 30 },
+        start_date: { x: 30, y: 73, size: 14, width: 30 },
+        end_date: { x: 70, y: 73, size: 14, width: 30 },
+        certificate_number: { x: 22, y: 86, size: 11, width: 30 },
+    };
+
     const defaultElement = (key) => {
         if (fieldByKey(key)?.qr) {
             return { x: 82, y: 78, size: 28 };
         }
 
+        const placement = DEFAULT_PLACEMENT[key] || { x: 50, y: 50, size: 18, width: 50 };
+
         return {
-            x: 50,
-            y: 42,
+            x: placement.x,
+            y: placement.y,
             font: 'shamel',
             weight: 'regular',
-            size: 24,
+            size: placement.size,
             color: '#1a1a1a',
             align: 'center',
-            width: 70,
+            width: placement.width,
         };
     };
 
     const textFor = (key) => {
         if (key === 'hours') {
-            return hours.value.trim();
+            const value = hours.value.trim();
+            // Match the PDF: 12.00 shows as 12 and 12.50 as 12.5.
+            return value !== '' && Number.isFinite(Number(value)) ? String(Number(value)) : value;
         }
 
         return data.samples[key] || '';
     };
 
-    const fontFamily = (font) => (font === 'ibmplex' ? 'IBM Plex Sans Arabic' : 'FF Shamel');
+    const fontFamily = (font) => (font === 'ibmplex' ? '"IBM Plex Sans Arabic", sans-serif' : '"FF Shamel", "IBM Plex Sans Arabic", sans-serif');
 
     const fontPx = (pt) => (Number(pt) * canvas.clientWidth) / PAGE_WIDTH_PT;
 
@@ -110,7 +125,14 @@ function boot() {
         node.style.fontSize = `${fontPx(element.size)}px`;
         node.style.color = element.color;
         node.style.textAlign = element.align;
-        node.querySelector('span').textContent = textFor(key);
+        const span = node.querySelector('span');
+        span.textContent = textFor(key);
+        // Match the PDF: text that is wider than its box shrinks to stay on one line.
+        const available = node.clientWidth;
+        const needed = span.scrollWidth;
+        if (available > 0 && needed > available) {
+            node.style.fontSize = `${(fontPx(element.size) * available) / needed}px`;
+        }
     };
 
     const paintAll = () => {
@@ -178,6 +200,10 @@ function boot() {
         node.addEventListener('pointerdown', (event) => {
             if (!enabled.has(key)) {
                 return;
+            }
+            // Leave any settings box so the arrow keys move this element right away.
+            if (document.activeElement instanceof HTMLElement && document.activeElement.matches('input, select, textarea')) {
+                document.activeElement.blur();
             }
             select(key);
             drag = {
