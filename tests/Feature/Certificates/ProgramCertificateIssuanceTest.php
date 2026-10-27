@@ -292,9 +292,9 @@ class ProgramCertificateIssuanceTest extends TestCase
             ]);
 
         $component
-            ->assertSee('المقبولون: 2')
-            ->assertSee('الصادرة: 0')
-            ->assertSee('المتبقون: 2')
+            ->assertSeeHtml('المقبولون: <strong>2</strong>')
+            ->assertSeeHtml('الصادرة: <strong>0</strong>')
+            ->assertSeeHtml('المتبقون: <strong>2</strong>')
             ->assertSee('أحمد')
             ->assertSee('سارة')
             ->assertDontSee('خالد')
@@ -420,7 +420,8 @@ class ProgramCertificateIssuanceTest extends TestCase
 
         $disabled = collect($component->instance()->getTable()->getHeaderActions())
             ->first(fn ($action): bool => $action->getName() === 'issueCertificates');
-        $this->assertSame('احفظ تصميم الشهادة أولاً', $disabled?->getTooltip());
+        // A saved design whose file is gone asks staff to upload it again.
+        $this->assertSame('ملف تصميم الشهادة مفقود، أعد رفعه', $disabled?->getTooltip());
 
         $this->saveBackground($program->fresh());
 

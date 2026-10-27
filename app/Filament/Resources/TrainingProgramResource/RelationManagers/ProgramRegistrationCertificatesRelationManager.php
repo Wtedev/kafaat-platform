@@ -117,7 +117,7 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
                     ->icon('heroicon-o-academic-cap')
                     ->color('success')
                     ->disabled(fn (): bool => ! $this->savedBackgroundExists())
-                    ->tooltip(fn (): ?string => $this->savedBackgroundExists() ? null : 'احفظ تصميم الشهادة أولاً')
+                    ->tooltip(fn (): ?string => $this->issueBlockedReason())
                     ->authorize(fn (): bool => $this->canIssueCertificates())
                     ->modalHeading('إصدار الشهادات')
                     ->modalSubmitActionLabel(fn (): string => CertificateBeneficiaryCount::buttonLabel($this->certificateIssueCount))
@@ -530,6 +530,21 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
         }
 
         return Storage::disk('public')->exists($template->background_path);
+    }
+
+    /**
+     * Why issuing is blocked, or null when it is allowed. A saved design whose
+     * file has gone missing gets its own message so staff know to upload it again.
+     */
+    private function issueBlockedReason(): ?string
+    {
+        if ($this->savedBackgroundExists()) {
+            return null;
+        }
+
+        return filled($this->ownerProgram()->certificateTemplate?->background_path)
+            ? 'ملف تصميم الشهادة مفقود، أعد رفعه'
+            : 'احفظ تصميم الشهادة أولاً';
     }
 
     private function canIssueCertificates(): bool
