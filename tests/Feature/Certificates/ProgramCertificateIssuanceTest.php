@@ -207,17 +207,22 @@ class ProgramCertificateIssuanceTest extends TestCase
         Storage::fake('public');
         [$program, $registration, $beneficiary, $issuer] = $this->approvedRegistration();
 
+        // Another worker inserts the same certificate right after issue() checks for an
+        // existing one and before it inserts its own. The row is written outside issue()'s
+        // insert, as a second worker's committed row would be.
         self::$armCertificateRace = true;
-        Certificate::creating(function (Certificate $certificate): void {
-            if (! self::$armCertificateRace) {
+        DB::listen(function ($query) use ($beneficiary, $program): void {
+            if (! self::$armCertificateRace
+                || ! str_starts_with(strtolower(ltrim($query->sql)), 'select')
+                || ! str_contains($query->sql, 'certificates')) {
                 return;
             }
 
             self::$armCertificateRace = false;
             DB::table('certificates')->insert([
-                'user_id' => $certificate->user_id,
-                'certificateable_type' => $certificate->certificateable_type,
-                'certificateable_id' => $certificate->certificateable_id,
+                'user_id' => $beneficiary->id,
+                'certificateable_type' => $program->getMorphClass(),
+                'certificateable_id' => $program->id,
                 'certificate_number' => 'CERT-RACE-WINNER',
                 'verification_code' => bin2hex(random_bytes(16)),
                 'issued_at' => now(),

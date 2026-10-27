@@ -14,6 +14,7 @@ use App\Notifications\CertificateReadyEmail;
 use App\Services\Inbox\InboxNotificationService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class CertificateService
@@ -42,15 +43,20 @@ class CertificateService
             return $existing;
         }
 
+        $attributes = [
+            'user_id' => $user->id,
+            'certificateable_type' => $certificateable->getMorphClass(),
+            'certificateable_id' => $certificateable->getKey(),
+            'certificate_number' => $this->generateCertificateNumber(),
+            'verification_code' => $this->generateVerificationCode(),
+            'issued_at' => now(),
+        ];
+
         try {
-            $certificate = Certificate::create([
-                'user_id' => $user->id,
-                'certificateable_type' => $certificateable->getMorphClass(),
-                'certificateable_id' => $certificateable->getKey(),
-                'certificate_number' => $this->generateCertificateNumber(),
-                'verification_code' => $this->generateVerificationCode(),
-                'issued_at' => now(),
-            ]);
+            // Run the insert in its own transaction. Inside a caller's transaction this
+            // becomes a savepoint, so on PostgreSQL a unique violation rolls back only
+            // the insert and the lookup for the winning row below can still run.
+            $certificate = DB::transaction(fn (): Certificate => Certificate::create($attributes));
         } catch (QueryException $exception) {
             if (! $this->isUniqueViolation($exception)) {
                 throw $exception;
