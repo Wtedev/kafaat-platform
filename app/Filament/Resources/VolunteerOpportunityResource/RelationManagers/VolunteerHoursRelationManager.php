@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources\VolunteerOpportunityResource\RelationManagers;
 
+use App\Enums\RegistrationStatus;
 use App\Enums\VolunteerHoursStatus;
 use App\Filament\Support\RegistrationFilamentTableSupport;
+use App\Models\User;
 use App\Models\VolunteerHour;
 use App\Services\VolunteerHoursService;
 use Filament\Actions\Action;
@@ -12,6 +14,7 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -31,6 +34,16 @@ class VolunteerHoursRelationManager extends RelationManager
     public function form(Schema $schema): Schema
     {
         return $schema->components([
+            Select::make('user_id')
+                ->label('المتطوع')
+                ->options(fn () => User::query()
+                    ->whereIn('id', $this->getOwnerRecord()->registrations()
+                        ->where('status', RegistrationStatus::Approved->value)
+                        ->select('user_id'))
+                    ->pluck('name', 'id'))
+                ->searchable()
+                ->required(),
+
             TextInput::make('hours')
                 ->label('الساعات')
                 ->numeric()
@@ -89,7 +102,8 @@ class VolunteerHoursRelationManager extends RelationManager
                 CreateAction::make(),
             ])
             ->actions([
-                EditAction::make(),
+                EditAction::make()
+                    ->visible(fn (VolunteerHour $record): bool => $record->status === VolunteerHoursStatus::Pending),
 
                 Action::make('approve')
                     ->label('موافقة على الساعات')
@@ -98,7 +112,7 @@ class VolunteerHoursRelationManager extends RelationManager
                     ->requiresConfirmation()
                     ->visible(fn (VolunteerHour $record): bool => $record->status === VolunteerHoursStatus::Pending)
                     ->action(function (VolunteerHour $record): void {
-                        app(VolunteerHoursService::class)->approve($record, auth()->user());
+                        app(VolunteerHoursService::class)->approveHours($record, auth()->user());
                         Notification::make()->title('تمت الموافقة على الساعات')->success()->send();
                     }),
 
@@ -114,14 +128,15 @@ class VolunteerHoursRelationManager extends RelationManager
                     ])
                     ->visible(fn (VolunteerHour $record): bool => $record->status === VolunteerHoursStatus::Pending)
                     ->action(function (VolunteerHour $record, array $data): void {
-                        app(VolunteerHoursService::class)->reject(
-                            $record,
-                            $data['notes'] ?? null
-                        );
+                        if (! empty($data['notes'])) {
+                            $record->update(['notes' => $data['notes']]);
+                        }
+                        app(VolunteerHoursService::class)->rejectHours($record, auth()->user());
                         Notification::make()->title('تم رفض الساعات')->warning()->send();
                     }),
 
-                DeleteAction::make(),
+                DeleteAction::make()
+                    ->visible(fn (VolunteerHour $record): bool => $record->status === VolunteerHoursStatus::Pending),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

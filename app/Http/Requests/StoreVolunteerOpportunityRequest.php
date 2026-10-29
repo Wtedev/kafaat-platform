@@ -20,6 +20,7 @@ class StoreVolunteerOpportunityRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', 'unique:volunteer_opportunities,slug', 'regex:/^[a-z0-9-]+$/'],
             'description' => ['nullable', 'string'],
+            'external_url' => ['nullable', 'url:http,https', 'max:2048'],
             'capacity' => ['nullable', 'integer', 'min:1'],
             'hours_expected' => ['nullable', 'numeric', 'min:0.01', 'max:9999.99'],
             'start_date' => ['nullable', 'date'],

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\VolunteerHour;
 use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
+use Illuminate\Support\Facades\DB;
 
 class VolunteerHoursService
 {
@@ -43,15 +44,20 @@ class VolunteerHoursService
             return $record;
         }
 
-        $record->update([
-            'status' => VolunteerHoursStatus::Approved,
-            'approved_by' => $admin->id,
-            'approved_at' => now(),
-        ]);
+        // كل الخطوات في معاملة واحدة: لو فشل إصدار الشهادة يُلغى الاعتماد
+        // والإكمال معاً، فيمكن للمشرف إعادة المحاولة بدل أن يبقى تسجيل
+        // «مكتمل» بلا شهادة.
+        return DB::transaction(function () use ($record, $admin): VolunteerHour {
+            $record->update([
+                'status' => VolunteerHoursStatus::Approved,
+                'approved_by' => $admin->id,
+                'approved_at' => now(),
+            ]);
 
-        $this->checkAndCompleteRegistration($record, $admin);
+            $this->checkAndCompleteRegistration($record, $admin);
 
-        return $record->fresh();
+            return $record->fresh();
+        });
     }
 
     /**

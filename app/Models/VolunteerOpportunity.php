@@ -26,6 +26,7 @@ class VolunteerOpportunity extends Model
         'slug',
         'description',
         'image',
+        'external_url',
         'capacity',
         'hours_expected',
         'start_date',
@@ -103,7 +104,7 @@ class VolunteerOpportunity extends Model
             }
 
             $watched = [
-                'title', 'slug', 'description', 'image', 'capacity', 'hours_expected',
+                'title', 'slug', 'description', 'image', 'external_url', 'capacity', 'hours_expected',
                 'start_date', 'end_date', 'status', 'published_at',
             ];
 
@@ -202,6 +203,12 @@ class VolunteerOpportunity extends Model
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    /** هل للفرصة رابط تسجيل في المنصة الوطنية للتطوع؟ */
+    public function hasExternalUrl(): bool
+    {
+        return filled($this->external_url);
     }
 
     /** رابط الصورة للموقع العام أو لوحة الإدارة (أو صورة افتراضية). */

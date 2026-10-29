@@ -34,6 +34,30 @@ The app will be available at **http://localhost:8000**.
 
 ---
 
+## 1.1 Running the Automated Test Suite
+
+The tests use an in-memory SQLite database, so no PostgreSQL is needed to run them.
+
+**Requirements**
+
+- **PHP 8.4** (do not use 8.5 yet: `phpoffice/phpspreadsheet` supports PHP up to 8.4, so `composer install` fails on 8.5).
+- PHP extensions enabled in `php.ini`: `gd`, `intl`, `pdo_pgsql`, `pgsql`, `pdo_sqlite`, `sqlite3`, `mbstring`, `zip`, `fileinfo`, `curl`, `openssl`.
+- Build the frontend **before** running the tests: `npm install && npm run build`. Without it, tests that render pages fail with `Vite manifest not found`.
+
+**Commands**
+
+```bash
+php artisan test                                    # whole suite
+php artisan test --filter=Volunteering              # volunteer registration and hours tests
+```
+
+**Windows notes**
+
+- The repository contains photo folders whose names include `|` and `:`, which Windows cannot create. A normal `git clone`/`git reset` stops with `invalid path`. As a workaround run git with `-c core.protectNTFS=false`; the real fix is to rename those folders.
+- When writing file paths in assertions, normalise the separators (`str_replace('\\', '/', $path)`) so the test passes on Windows and Linux.
+
+---
+
 ## 2. Test Accounts
 
 | Role        | Email                     | Password   | Dashboard                    |

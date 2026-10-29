@@ -15,6 +15,9 @@ $canRegister = auth()->check()
     && $userRegistration === null;
 
 $alreadyRegistered = $userRegistration !== null;
+
+// إذا وُجد رابط للمنصة الوطنية للتطوع يذهب الزر إليه مباشرة في تبويب جديد
+$externalUrl = $volunteerOpportunity->hasExternalUrl() ? $volunteerOpportunity->external_url : null;
 @endphp
 
 @extends('layouts.public')
@@ -37,7 +40,10 @@ $alreadyRegistered = $userRegistration !== null;
 
     <x-slot:action>
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            @if ($alreadyRegistered)
+            @if ($externalUrl)
+                <p class="text-sm leading-relaxed text-gray-500 sm:max-w-md">التسجيل في هذه الفرصة يتم عبر المنصة الوطنية للتطوع.</p>
+                <x-public.register-cta-button :href="$externalUrl" target="_blank" rel="noopener noreferrer" class="hidden md:inline-flex">سجّل في الفرصة</x-public.register-cta-button>
+            @elseif ($alreadyRegistered)
                 @php $sv = $userRegistration->status->value; @endphp
                 <div class="flex flex-wrap items-center gap-3">
                     <span class="rounded-full px-3 py-1 text-sm font-medium {{ $statusColors[$sv] ?? 'bg-gray-100 text-gray-600' }}">
@@ -63,7 +69,9 @@ $alreadyRegistered = $userRegistration !== null;
     </x-slot:action>
 
     <x-slot:mobileStickyAction>
-        @if ($canRegister)
+        @if ($externalUrl)
+            <x-public.register-cta-button :href="$externalUrl" target="_blank" rel="noopener noreferrer" class="w-full">سجّل في الفرصة</x-public.register-cta-button>
+        @elseif ($canRegister)
             <x-public.register-cta-button type="submit" form="volunteer-register-form" class="w-full">قدّم طلبك</x-public.register-cta-button>
         @elseif (! auth()->check())
             <x-public.register-cta-button :href="route('login')" class="w-full">سجّل الدخول للتسجيل</x-public.register-cta-button>
