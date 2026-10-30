@@ -365,6 +365,24 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
             });
     }
 
+    /**
+     * The public disk is the web volume. A separate worker cannot read that
+     * file, so a local disk has to render the certificate in this request.
+     * Shared storage (S3) can keep the job on the queue.
+     */
+    private function queueCertificateJob(int $registrationId, ?int $actorId): void
+    {
+        $job = new IssueProgramCertificateJob($registrationId, $actorId);
+
+        if (config('filesystems.disks.public.driver') === 'local') {
+            dispatch_sync($job);
+
+            return;
+        }
+
+        dispatch($job);
+    }
+
     private function dispatchSelected(Collection $records): void
     {
         $actor = auth()->user();
@@ -386,7 +404,7 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
         }
 
         foreach ($pending as $registration) {
-            IssueProgramCertificateJob::dispatch($registration->id, $actor->id);
+            $this->queueCertificateJob($registration->id, $actor->id);
         }
 
         app(AuditLogger::class)->record(
@@ -401,7 +419,7 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
         );
 
         Notification::make()
-            ->title('جارٍ إصدار '.$pending->count().' شهادة للمحددين، ستظهر خلال دقائق')
+            ->title('تم إصدار '.$pending->count().' شهادة للمحددين')
             ->success()
             ->send();
     }
@@ -560,7 +578,7 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
         }
 
         foreach ($registrations as $registration) {
-            IssueProgramCertificateJob::dispatch($registration->id, $actor->id);
+            $this->queueCertificateJob($registration->id, $actor->id);
         }
 
         app(AuditLogger::class)->record(
@@ -576,7 +594,7 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
         );
 
         Notification::make()
-            ->title('جارٍ إصدار '.$registrations->count().' شهادة، ستظهر للمستفيدين خلال دقائق')
+            ->title('تم إصدار '.$registrations->count().' شهادة')
             ->success()
             ->send();
     }
