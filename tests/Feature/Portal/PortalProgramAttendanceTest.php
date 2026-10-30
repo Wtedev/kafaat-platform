@@ -138,8 +138,21 @@ class PortalProgramAttendanceTest extends TestCase
             'program_survey_id' => $satisfaction->id,
             'registration_id' => $registration->id,
         ]);
+        $second = TrainingProgram::query()->create([
+            'title' => 'برنامج ثانٍ',
+            'slug' => 'second-program-'.uniqid(),
+            'status' => ProgramStatus::Published,
+            'published_at' => now(),
+            'learning_path_id' => null,
+            'delivery_mode' => ProgramDeliveryMode::Remote,
+        ]);
+        ProgramRegistration::query()->create([
+            'user_id' => $user->id,
+            'training_program_id' => $second->id,
+            'status' => RegistrationStatus::Pending,
+        ]);
 
-        $this->actingAsOtpVerified($user)
+        $response = $this->actingAsOtpVerified($user)
             ->get(route('portal.programs'))
             ->assertOk()
             ->assertSeeInOrder([
@@ -164,7 +177,10 @@ class PortalProgramAttendanceTest extends TestCase
             ->assertSee('بانتظار البيانات', false)
             ->assertSee('يلزم تسجيل الحضور والدرجة', false)
             ->assertDontSee('نسبة الحضور', false)
-            ->assertDontSee('لا شهادة بعد', false);
+            ->assertDontSee('لا شهادة بعد', false)
+            ->assertSee($second->title, false);
+
+        $this->assertSame(1, substr_count($response->getContent(), 'portal-programs-card'));
 
         $this->assertSame('غير مؤهل', RegistrationEligibilitySupport::beneficiaryCertificateCopy(40, 50, true, false)['status']);
         $this->assertSame('مؤهل', RegistrationEligibilitySupport::beneficiaryCertificateCopy(80, 90, true, false)['status']);
