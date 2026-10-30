@@ -14,9 +14,12 @@ class PortalDashboardController extends Controller
     {
         $user = $request->user()->load('profile');
 
-        $programsRegistered = $user->programRegistrations()->count()
+        $programsRegistered = $user->programRegistrations()
+            ->whereHas('trainingProgram', fn ($query) => $query->published())
+            ->count()
             + $user->learningPathRegistrations()->count();
         $programsCompleted = $user->programRegistrations()
+            ->whereHas('trainingProgram', fn ($query) => $query->published())
             ->where('status', RegistrationStatus::Completed)
             ->count()
             + $user->learningPathRegistrations()
