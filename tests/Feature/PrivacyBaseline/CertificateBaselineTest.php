@@ -61,7 +61,10 @@ class CertificateBaselineTest extends TestCase
             ->assertOk()
             ->assertSee('سارة الشهادة')
             ->assertSee($certificate->certificate_number)
-            ->assertSee('شهادة صحيحة');
+            ->assertSee('شهادة معتمدة من كفاءات')
+            ->assertSee('تم إصدار هذه الشهادة من قبل جمعية كفاءات الأهلية لبناء قدرات الشباب')
+            ->assertSee('text-left font-semibold', false)
+            ->assertSee('dir="ltr"', false);
     }
 
     public function test_public_verification_returns_invalid_state_for_unknown_code(): void

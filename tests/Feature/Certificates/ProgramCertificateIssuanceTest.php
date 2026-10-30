@@ -121,7 +121,7 @@ class ProgramCertificateIssuanceTest extends TestCase
 
         $this->get(route('certificates.verify', $certificate->verification_code))
             ->assertOk()
-            ->assertSee('شهادة صحيحة')
+            ->assertSee('شهادة معتمدة من كفاءات')
             ->assertSee($certificate->certificate_number);
     }
 
