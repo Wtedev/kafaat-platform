@@ -6,11 +6,15 @@ use App\Enums\AttendanceStatus;
 use App\Enums\ProgramPrepDayType;
 use App\Http\Controllers\Controller;
 use App\Models\AttendanceLiveSession;
+use App\Models\ProgramRegistration;
+use App\Models\SurveyCompletion;
+use App\Models\SurveyResponse;
 use App\Services\AttendanceLiveSessionService;
 use App\Services\ProgramAttendanceService;
 use App\Support\ProgramRegistrationSuccessPresenter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class PortalProgramController extends Controller
 {
@@ -23,6 +27,7 @@ class PortalProgramController extends Controller
             ->whereHas('trainingProgram', fn ($query) => $query->published())
             ->with([
                 'trainingProgram.prepDays',
+                'trainingProgram.surveys',
                 'attendanceRecords' => fn ($q) => $q->whereDate('training_date', $today),
             ])
             ->latest()
@@ -79,7 +84,39 @@ class PortalProgramController extends Controller
 
         return view('portal.programs', [
             'registrations' => $registrations,
+            'answeredSurveyKeys' => $this->answeredSurveyKeys($registrations->getCollection()),
             'openAttendanceProgramId' => $request->integer('open_attendance') ?: null,
         ]);
+    }
+
+    /**
+     * @param  Collection<int, ProgramRegistration>  $registrations
+     * @return Collection<string, true>
+     */
+    private function answeredSurveyKeys(Collection $registrations): Collection
+    {
+        $registrationIds = $registrations->pluck('id');
+        $surveyIds = $registrations
+            ->flatMap(fn ($registration) => $registration->trainingProgram?->surveys?->modelKeys() ?? [])
+            ->unique()
+            ->values();
+
+        if ($registrationIds->isEmpty() || $surveyIds->isEmpty()) {
+            return collect();
+        }
+
+        $pairs = SurveyCompletion::query()
+            ->whereIn('registration_id', $registrationIds)
+            ->whereIn('program_survey_id', $surveyIds)
+            ->get(['registration_id', 'program_survey_id'])
+            ->concat(
+                SurveyResponse::query()
+                    ->whereIn('registration_id', $registrationIds)
+                    ->whereIn('program_survey_id', $surveyIds)
+                    ->get(['registration_id', 'program_survey_id'])
+            );
+
+        return $pairs
+            ->mapWithKeys(fn ($row): array => [$row->registration_id.':'.$row->program_survey_id => true]);
     }
 }

@@ -1,10 +1,9 @@
 @php
 use App\Enums\ProgramDeliveryMode;
 use App\Enums\RegistrationStatus;
+use App\Enums\SurveyType;
 use App\Support\RegistrationEligibilitySupport;
 use App\Support\TrainingProgramExtrasSupport;
-
-$statusColors = RegistrationStatus::badgeClasses();
 
 $statusLabels = [
     RegistrationStatus::Pending->value => 'قيد المراجعة',
@@ -75,7 +74,6 @@ $statusLabels = [
             $whatsappUrl = $isAccepted && $program
                 ? TrainingProgramExtrasSupport::whatsappGroupUrlFor($program, auth()->user())
                 : null;
-            $timingLabel = $program?->portalTimingLabel();
             $programShowUrl = ($program && filled($program->slug))
                 ? route('public.programs.show', $program)
                 : null;
@@ -104,46 +102,32 @@ $statusLabels = [
             }
             $sessionEndedToday = (bool) ($reg->live_session_ended_today ?? false);
 
-            $showElig = in_array($reg->status->value, [
-                RegistrationStatus::Approved->value,
-                RegistrationStatus::Completed->value,
-            ], true);
             $effectiveAttendance = $reg->effectiveAttendancePercentage();
             $scoreValue = $reg->score !== null ? (float) $reg->score : null;
-
-            $attendanceDisplay = $effectiveAttendance !== null
-                ? number_format($effectiveAttendance, 1).'%'
+            $attendanceOfHundred = $effectiveAttendance === null
+                ? '—'
+                : RegistrationEligibilitySupport::plainAmount($effectiveAttendance).' من 100';
+            $programStartLabel = $program?->start_date ? ar_date($program->start_date) : '—';
+            $competencyTrack = $program?->competency_track;
+            $competencyLabel = $competencyTrack instanceof \App\Enums\CompetencyTrack
+                ? $competencyTrack->label()
                 : '—';
-            $scoreDisplay = $scoreValue !== null
-                ? number_format($scoreValue, 1)
-                : '—';
-
-            if ($showElig) {
-                $eligDisplay = RegistrationEligibilitySupport::eligibilityLabel($effectiveAttendance, $scoreValue);
-                if ($eligDisplay === 'مؤهل') {
-                    $eligDisplay = 'مؤهل ✓';
-                    $eligClass = config('brand.classes.badge_secondary');
-                } elseif ($eligDisplay === 'بانتظار البيانات') {
-                    $eligDisplay = '—';
-                    $eligClass = null;
-                } else {
-                    $eligClass = config('brand.classes.badge_danger');
-                }
-            } else {
-                $eligDisplay = '—';
-                $eligClass = null;
-            }
+            $certificateCopy = RegistrationEligibilitySupport::beneficiaryCertificateCopy(
+                $effectiveAttendance,
+                $scoreValue,
+                $isAccepted,
+                $reg->certificate !== null,
+            );
+            $surveysByType = ($program?->surveys ?? collect())->keyBy(
+                fn ($survey) => $survey->type instanceof SurveyType ? $survey->type->value : (string) $survey->type,
+            );
+            $surveySlots = [
+                ['label' => 'الاستبيان القبلي', 'type' => SurveyType::Pre],
+                ['label' => 'استبيان الرضا', 'type' => SurveyType::Satisfaction],
+                ['label' => 'الاستبيان البعدي', 'type' => SurveyType::Post],
+            ];
 
             $checkInLabel = $isInPersonToday ? 'QR الحضور' : ($isRemoteToday ? 'تسجيل حضوري' : 'التحضير');
-            $checkInMeta = ! $isAccepted
-                ? 'بعد القبول'
-                : ($isInPersonToday
-                    ? 'QR الحضور'
-                    : ($isRemoteToday
-                        ? ($alreadyPresentToday
-                            ? 'تم التسجيل'
-                            : ($canRemoteCheckIn ? 'جلسة مفتوحة' : ($sessionEndedToday ? 'انتهت الجلسة' : 'بانتظار فتح الجلسة')))
-                        : 'لا يوجد تحضير اليوم'));
         @endphp
 
         <li>
@@ -155,102 +139,63 @@ $statusLabels = [
                     </span>
 
                     <div class="min-w-0 flex-1 text-right">
-                        <div class="flex flex-wrap items-start justify-between gap-2">
-                            <div class="min-w-0 flex-1">
-                                @if ($programShowUrl)
-                                <a href="{{ $programShowUrl }}" class="text-sm font-bold leading-snug text-[#335483] transition hover:opacity-80 sm:text-[0.95rem]">
-                                    {{ $program->title }}
-                                </a>
-                                @else
-                                <h2 class="text-sm font-bold leading-snug text-[#335483] sm:text-[0.95rem]">—</h2>
-                                @endif
+                        <p class="mb-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] leading-5 text-gray-500">
+                            <span>تاريخ البرنامج <span class="font-semibold text-gray-800">{{ $programStartLabel }}</span></span>
+                            <span aria-hidden="true">·</span>
+                            <span>حالة القبول <span class="font-semibold text-gray-800">{{ $statusLabels[$sv] ?? $sv }}</span></span>
+                            <span aria-hidden="true">·</span>
+                            <span>مسار الكفاءة <span class="font-semibold text-gray-800">{{ $competencyLabel }}</span></span>
+                        </p>
 
-                                <div class="mt-1.5 flex flex-wrap items-center gap-2">
-                                    <span class="inline-flex items-center rounded-lg px-2 py-0.5 text-[11px] font-semibold {{ $statusColors[$sv] ?? 'bg-gray-100 text-gray-600' }}">
-                                        {{ $statusLabels[$sv] ?? $sv }}
-                                    </span>
+                        @if ($programShowUrl)
+                        <a href="{{ $programShowUrl }}" class="text-sm font-bold leading-snug text-[#335483] transition hover:opacity-80 sm:text-[0.95rem]">
+                            {{ $program->title }}
+                        </a>
+                        @else
+                        <h2 class="text-sm font-bold leading-snug text-[#335483] sm:text-[0.95rem]">—</h2>
+                        @endif
 
-                                    @if ($timingLabel)
-                                        @if ($programShowUrl)
-                                        <a href="{{ $programShowUrl }}" class="text-xs font-medium text-gray-500 transition hover:text-[#335483]">{{ $timingLabel }}</a>
-                                        @else
-                                        <span class="text-xs font-medium text-gray-500">{{ $timingLabel }}</span>
-                                        @endif
-                                    @else
-                                        <span class="text-xs text-gray-400">وقت البرنامج غير محدد</span>
-                                    @endif
-
-                                    @if ($programShowUrl)
-                                    <a href="{{ $programShowUrl }}" class="inline-flex items-center gap-1 text-xs font-semibold transition hover:opacity-80" style="color:#335483">
-                                        تفاصيل البرنامج
-                                        <svg class="h-3.5 w-3.5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                    </a>
-                                    @endif
-                                </div>
-                            </div>
+                        @if ($programShowUrl)
+                        <div class="mt-1">
+                            <a href="{{ $programShowUrl }}" class="inline-flex items-center gap-1 text-[11px] font-semibold transition hover:opacity-80" style="color:#335483">
+                                تفاصيل البرنامج
+                                <svg class="h-3.5 w-3.5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </a>
                         </div>
-
-                        <ul class="mt-3.5 space-y-2 border-t border-gray-100 pt-3.5" role="list">
-                            <li class="flex items-center gap-2.5 text-right">
-                                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#e9eff6] text-[#335483]" aria-hidden="true">
-                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                </span>
-                                <span class="min-w-0 flex-1 text-xs font-medium text-gray-500">وقت البرنامج</span>
-                                <span class="shrink-0 text-xs font-bold tabular-nums text-gray-900">
-                                    @if ($programShowUrl && $timingLabel)
-                                    <a href="{{ $programShowUrl }}" class="text-[#335483] transition hover:underline">{{ $timingLabel }}</a>
-                                    @elseif ($timingLabel)
-                                    {{ $timingLabel }}
-                                    @else
-                                    <span class="font-medium text-gray-400">—</span>
-                                    @endif
-                                </span>
-                            </li>
-                            <li class="flex items-center gap-2.5 text-right">
-                                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#e9eff6] text-[#335483]" aria-hidden="true">
-                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                </span>
-                                <span class="min-w-0 flex-1 text-xs font-medium text-gray-500">نسبة الحضور</span>
-                                <span class="shrink-0 text-xs font-bold tabular-nums text-gray-900">{{ $attendanceDisplay }}</span>
-                            </li>
-                            <li class="flex items-center gap-2.5 text-right">
-                                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#e9eff6] text-[#335483]" aria-hidden="true">
-                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
-                                </span>
-                                <span class="min-w-0 flex-1 text-xs font-medium text-gray-500">الدرجة</span>
-                                <span class="shrink-0 text-xs font-bold tabular-nums text-gray-900">{{ $scoreDisplay }}</span>
-                            </li>
-                            <li class="flex items-center gap-2.5 text-right">
-                                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#e9eff6] text-[#335483]" aria-hidden="true">
-                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                                </span>
-                                <span class="min-w-0 flex-1 text-xs font-medium text-gray-500">أهلية الشهادة</span>
-                                <span class="shrink-0 text-xs font-bold text-gray-900">
-                                    @if ($eligClass)
-                                    <span class="inline-flex rounded-lg px-2 py-0.5 text-[11px] font-semibold {{ $eligClass }}">{{ $eligDisplay }}</span>
-                                    @else
-                                    <span class="font-medium text-gray-400">{{ $eligDisplay }}</span>
-                                    @endif
-                                </span>
-                            </li>
-                            <li class="flex items-center gap-2.5 text-right">
-                                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#e9eff6] text-[#335483]" aria-hidden="true">
-                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25V9m-3 0h12m-12 0l.53 9.01a2.25 2.25 0 002.246 2.115h6.448a2.25 2.25 0 002.246-2.115L18.75 9"/></svg>
-                                </span>
-                                <span class="min-w-0 flex-1 text-xs font-medium text-gray-500">التحضير</span>
-                                <span class="shrink-0 text-xs font-bold text-gray-900">
-                                    @if ($canOpenAttendance && $attendanceModalId)
-                                    {{ $checkInMeta }}
-                                    @elseif ($program)
-                                    <span class="font-medium text-gray-400">{{ $checkInMeta }}</span>
-                                    @else
-                                    <span class="font-medium text-gray-400">—</span>
-                                    @endif
-                                </span>
-                            </li>
-                        </ul>
+                        @endif
 
                         <div class="mt-3.5 flex flex-wrap items-center gap-2">
+                            @if ($whatsappUrl)
+                            <a
+                                href="{{ $whatsappUrl }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:opacity-95"
+                                style="background:#25D366"
+                            >
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                                انضم لمجموعة البرنامج
+                            </a>
+                            @elseif ($isAccepted)
+                            <span class="inline-flex items-center rounded-xl px-3 py-2 text-xs font-medium text-gray-400 ring-1 ring-gray-200">
+                                واتساب غير متاح
+                            </span>
+                            @else
+                            <span class="inline-flex items-center rounded-xl px-3 py-2 text-xs font-medium text-gray-400 ring-1 ring-gray-200">
+                                واتساب: بعد القبول
+                            </span>
+                            @endif
+
+                            <button
+                                type="button"
+                                class="portal-card-toggle inline-flex h-9 w-9 items-center justify-center rounded-xl text-[#335483] ring-1 ring-[#c5d4e4] transition hover:bg-[#e9eff6]"
+                                aria-expanded="false"
+                                aria-controls="portal-card-extra-{{ $reg->id }}"
+                                aria-label="تفاصيل التسجيل"
+                            >
+                                <svg data-chevron class="h-4 w-4 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+                            </button>
+
                             @if ($canOpenAttendance && $showQrModal)
                             <button
                                 type="button"
@@ -291,43 +236,43 @@ $statusLabels = [
                                 التحضير: بعد القبول
                             </span>
                             @endif
+                        </div>
 
-                            @if ($whatsappUrl)
-                            <a
-                                href="{{ $whatsappUrl }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:opacity-95"
-                                style="background:#25D366"
-                            >
-                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                                انضم لمجموعة البرنامج
-                            </a>
-                            @elseif ($isAccepted)
-                            <span class="inline-flex items-center rounded-xl px-3 py-2 text-xs font-medium text-gray-400 ring-1 ring-gray-200">
-                                واتساب غير متاح
-                            </span>
-                            @else
-                            <span class="inline-flex items-center rounded-xl px-3 py-2 text-xs font-medium text-gray-400 ring-1 ring-gray-200">
-                                واتساب: بعد القبول
-                            </span>
-                            @endif
-
-                            @if ($reg->certificate)
-                                @if ($reg->certificate->downloadUrl())
-                                <a href="{{ $reg->certificate->downloadUrl() }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-xl bg-brand px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:opacity-95">
-                                    تحميل الشهادة
-                                </a>
-                                @else
-                                <span class="inline-flex items-center rounded-xl bg-[#e9eff6] px-3.5 py-2 text-xs font-semibold text-[#335483] ring-1 ring-[#c5d4e4]/70">
-                                    شهادة صادرة
-                                </span>
-                                @endif
-                            @else
-                            <span class="inline-flex items-center rounded-xl px-3 py-2 text-xs font-medium text-gray-400 ring-1 ring-gray-200">
-                                لا شهادة بعد
-                            </span>
-                            @endif
+                        <div id="portal-card-extra-{{ $reg->id }}" class="mt-3 border-t border-gray-100 pt-3" hidden>
+                            <ul class="space-y-2.5 text-xs" role="list">
+                                <li class="flex items-center justify-between gap-3">
+                                    <span class="font-medium text-gray-500">حضور المستفيد</span>
+                                    <span class="font-bold tabular-nums text-gray-900">{{ $attendanceOfHundred }}</span>
+                                </li>
+                                @foreach ($surveySlots as $slot)
+                                    @php
+                                        $survey = $surveysByType->get($slot['type']->value);
+                                        $surveyAnswered = $survey && ($answeredSurveyKeys ?? collect())->has($reg->id.':'.$survey->id);
+                                    @endphp
+                                    <li class="flex items-center justify-between gap-3">
+                                        <span class="font-medium text-gray-500">{{ $slot['label'] }}</span>
+                                        @if (! $survey)
+                                        <span class="font-semibold text-gray-400">غير متاح</span>
+                                        @elseif ($surveyAnswered)
+                                        <span class="font-semibold text-[#1a9399]">مكتمل</span>
+                                        @elseif ($survey->isOpen())
+                                        <a href="{{ $survey->publicUrl() }}" class="inline-flex items-center rounded-lg px-2.5 py-1 text-[11px] font-semibold text-white transition hover:opacity-90" style="background:#335483">تعبئة</a>
+                                        @else
+                                        <span class="font-semibold text-gray-400">مغلق</span>
+                                        @endif
+                                    </li>
+                                @endforeach
+                                <li class="flex items-start justify-between gap-3">
+                                    <span class="font-medium text-gray-500">الشهادة</span>
+                                    <span class="text-left">
+                                        <span class="block font-bold text-gray-900">{{ $certificateCopy['status'] }}</span>
+                                        <span class="mt-0.5 block text-[11px] leading-5 text-gray-500">{{ $certificateCopy['reason'] }}</span>
+                                        @if ($reg->certificate?->downloadUrl())
+                                        <a href="{{ $reg->certificate->downloadUrl() }}" target="_blank" rel="noopener noreferrer" class="mt-1 inline-flex items-center rounded-lg px-2.5 py-1 text-[11px] font-semibold text-white transition hover:opacity-90" style="background:#335483">تحميل الشهادة</a>
+                                        @endif
+                                    </span>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -425,6 +370,22 @@ $statusLabels = [
     document.querySelectorAll('.portal-attendance-open').forEach(function (button) {
         button.addEventListener('click', function () {
             openPortalAttendanceModal(button.dataset.attendanceModal);
+        });
+    });
+
+    document.querySelectorAll('.portal-card-toggle').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var panel = document.getElementById(button.getAttribute('aria-controls'));
+            if (! panel) {
+                return;
+            }
+            var open = button.getAttribute('aria-expanded') !== 'true';
+            button.setAttribute('aria-expanded', open ? 'true' : 'false');
+            panel.hidden = ! open;
+            var chevron = button.querySelector('[data-chevron]');
+            if (chevron) {
+                chevron.classList.toggle('rotate-180', open);
+            }
         });
     });
 

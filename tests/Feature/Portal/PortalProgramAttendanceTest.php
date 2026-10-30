@@ -2,15 +2,20 @@
 
 namespace Tests\Feature\Portal;
 
+use App\Enums\CompetencyTrack;
 use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramPrepDayType;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
+use App\Enums\SurveyType;
 use App\Models\ProgramPrepDay;
 use App\Models\ProgramRegistration;
+use App\Models\ProgramSurvey;
+use App\Models\SurveyCompletion;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Portal\PortalDashboardComposer;
+use App\Support\RegistrationEligibilitySupport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
@@ -104,6 +109,67 @@ class PortalProgramAttendanceTest extends TestCase
         $this->assertTrue(
             $composed['activities']->where('title', $program->title)->isEmpty()
         );
+    }
+
+    public function test_program_card_puts_the_start_date_and_path_above_the_title(): void
+    {
+        [$user, $program] = $this->registeredBeneficiaryWithProgram();
+        $program->forceFill([
+            'start_date' => '2026-08-01',
+            'competency_track' => CompetencyTrack::Professional,
+        ])->save();
+
+        $registration = ProgramRegistration::query()->where('user_id', $user->id)->firstOrFail();
+        $pre = ProgramSurvey::query()->create([
+            'training_program_id' => $program->id,
+            'type' => SurveyType::Pre,
+            'is_anonymous' => true,
+            'opens_at' => now()->subDay(),
+            'closes_at' => now()->addDay(),
+        ]);
+        $satisfaction = ProgramSurvey::query()->create([
+            'training_program_id' => $program->id,
+            'type' => SurveyType::Satisfaction,
+            'is_anonymous' => true,
+            'opens_at' => now()->subDay(),
+            'closes_at' => now()->addDay(),
+        ]);
+        SurveyCompletion::query()->create([
+            'program_survey_id' => $satisfaction->id,
+            'registration_id' => $registration->id,
+        ]);
+
+        $this->actingAsOtpVerified($user)
+            ->get(route('portal.programs'))
+            ->assertOk()
+            ->assertSeeInOrder([
+                'تاريخ البرنامج',
+                ar_date($program->fresh()->start_date),
+                'حالة القبول',
+                'مقبول',
+                'مسار الكفاءة',
+                'الكفاءة المهنية',
+                $program->title,
+            ], false)
+            ->assertSee('aria-label="تفاصيل التسجيل"', false)
+            ->assertSee('حضور المستفيد', false)
+            ->assertSee('الاستبيان القبلي', false)
+            ->assertSee(route('public.surveys.show', $pre->public_token), false)
+            ->assertSee('تعبئة', false)
+            ->assertSee('استبيان الرضا', false)
+            ->assertSee('مكتمل', false)
+            ->assertSee('الاستبيان البعدي', false)
+            ->assertSee('غير متاح', false)
+            ->assertSee('الشهادة', false)
+            ->assertSee('بانتظار البيانات', false)
+            ->assertSee('يلزم تسجيل الحضور والدرجة', false)
+            ->assertDontSee('نسبة الحضور', false)
+            ->assertDontSee('لا شهادة بعد', false);
+
+        $this->assertSame('غير مؤهل', RegistrationEligibilitySupport::beneficiaryCertificateCopy(40, 50, true, false)['status']);
+        $this->assertSame('مؤهل', RegistrationEligibilitySupport::beneficiaryCertificateCopy(80, 90, true, false)['status']);
+        $this->assertSame('صادرة', RegistrationEligibilitySupport::beneficiaryCertificateCopy(80, 90, true, true)['status']);
+        $this->assertSame('بعد القبول', RegistrationEligibilitySupport::beneficiaryCertificateCopy(null, null, false, false)['status']);
     }
 
     public function test_dashboard_program_activity_links_to_public_program_page(): void
