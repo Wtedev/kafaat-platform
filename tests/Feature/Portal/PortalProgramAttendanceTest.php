@@ -87,6 +87,25 @@ class PortalProgramAttendanceTest extends TestCase
             ->assertDontSee('id="program-attendance-qr-'.$program->id.'"', false);
     }
 
+    public function test_unpublished_program_stays_off_the_beneficiary_portal(): void
+    {
+        [$user, $program] = $this->registeredBeneficiaryWithProgram();
+        $program->forceFill([
+            'status' => ProgramStatus::Draft,
+            'published_at' => null,
+        ])->save();
+
+        $this->actingAsOtpVerified($user)
+            ->get(route('portal.programs'))
+            ->assertOk()
+            ->assertDontSee($program->title, false);
+
+        $composed = PortalDashboardComposer::compose($user->fresh());
+        $this->assertTrue(
+            $composed['activities']->where('title', $program->title)->isEmpty()
+        );
+    }
+
     public function test_dashboard_program_activity_links_to_public_program_page(): void
     {
         [$user, $program] = $this->registeredBeneficiaryWithProgram();

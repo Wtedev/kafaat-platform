@@ -2,6 +2,7 @@
 
 namespace App\Services\Portal;
 
+use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
@@ -154,7 +155,9 @@ final class PortalDashboardComposer
 
         foreach ($user->programRegistrations->sortByDesc('updated_at') as $reg) {
             $program = $reg->trainingProgram;
-            if ($program !== null && $program->learning_path_id !== null) {
+            if ($program === null
+                || $program->learning_path_id !== null
+                || $program->status !== ProgramStatus::Published) {
                 continue;
             }
 

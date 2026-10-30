@@ -20,6 +20,7 @@ class PortalProgramController extends Controller
         $today = Carbon::today(config('app.timezone'))->toDateString();
 
         $registrations = $user->programRegistrations()
+            ->whereHas('trainingProgram', fn ($query) => $query->published())
             ->with([
                 'trainingProgram.prepDays',
                 'attendanceRecords' => fn ($q) => $q->whereDate('training_date', $today),

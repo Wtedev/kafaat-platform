@@ -34,6 +34,7 @@ final class CompetencyProfilePresenter
 
         $completedPrograms = $user->programRegistrations()
             ->where('status', RegistrationStatus::Completed)
+            ->whereHas('trainingProgram', fn ($query) => $query->published())
             ->with('trainingProgram')
             ->latest('updated_at')
             ->get();
