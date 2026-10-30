@@ -31,6 +31,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -116,6 +117,7 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
                     ->getStateUsing(fn (ProgramRegistration $record): string => $this->surveySummary($record)),
             ])
             ->filters($this->certificateFilters())
+            ->filtersLayout(FiltersLayout::AboveContentCollapsible)
             ->deferFilters(false)
             ->selectable()
             ->selectCurrentPageOnly(false)
