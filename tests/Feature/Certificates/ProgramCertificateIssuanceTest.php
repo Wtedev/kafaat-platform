@@ -368,6 +368,89 @@ class ProgramCertificateIssuanceTest extends TestCase
         Queue::assertPushed(IssueProgramCertificateJob::class, 1);
     }
 
+    public function test_selected_rows_can_be_issued_and_filters_narrow_the_list(): void
+    {
+        Storage::fake('public');
+        Queue::fake();
+
+        $program = $this->program();
+        $this->saveBackground($program);
+        $full = $this->beneficiary('أحمد');
+        $partial = $this->beneficiary('سارة');
+        $absent = $this->beneficiary('خالد');
+        $fullRegistration = $this->registration($program, $full, RegistrationStatus::Approved);
+        $partialRegistration = $this->registration($program, $partial, RegistrationStatus::Approved);
+        $absentRegistration = $this->registration($program, $absent, RegistrationStatus::Approved);
+
+        $firstDay = $this->attendanceLink($program, 'اليوم الأول', '2026-10-01 09:00:00');
+        $secondDay = $this->attendanceLink($program, 'اليوم الثاني', '2026-10-02 09:00:00');
+        foreach ([$firstDay, $secondDay] as $day) {
+            ProgramAttendanceMark::query()->create([
+                'program_attendance_link_id' => $day->id,
+                'program_registration_id' => $fullRegistration->id,
+                'attended_at' => now(),
+                'source' => AttendanceMarkSource::Manual,
+            ]);
+        }
+        ProgramAttendanceMark::query()->create([
+            'program_attendance_link_id' => $firstDay->id,
+            'program_registration_id' => $partialRegistration->id,
+            'attended_at' => now(),
+            'source' => AttendanceMarkSource::Manual,
+        ]);
+
+        $pre = ProgramSurvey::query()->create([
+            'training_program_id' => $program->id,
+            'type' => SurveyType::Pre,
+            'is_anonymous' => true,
+        ]);
+        SurveyCompletion::query()->create([
+            'program_survey_id' => $pre->id,
+            'registration_id' => $fullRegistration->id,
+        ]);
+
+        $issuer = $this->staff('certificates.issue');
+        $component = Livewire::actingAs($issuer)
+            ->test(ProgramRegistrationCertificatesRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->assertTableBulkActionExists('issueSelected')
+            ->assertTableFilterExists('attended')
+            ->assertTableFilterExists('attendance_percent')
+            ->assertTableFilterExists('survey_pre')
+            ->assertTableFilterExists('survey_post')
+            ->assertTableFilterExists('survey_satisfaction');
+
+        $component
+            ->filterTable('attended', 'present')
+            ->assertCanSeeTableRecords([$fullRegistration, $partialRegistration])
+            ->assertCanNotSeeTableRecords([$absentRegistration])
+            ->resetTableFilters()
+            ->filterTable('attended', 'absent')
+            ->assertCanSeeTableRecords([$absentRegistration])
+            ->assertCanNotSeeTableRecords([$fullRegistration, $partialRegistration])
+            ->resetTableFilters()
+            ->filterTable('attendance_percent', ['minimum' => 100])
+            ->assertCanSeeTableRecords([$fullRegistration])
+            ->assertCanNotSeeTableRecords([$partialRegistration, $absentRegistration])
+            ->resetTableFilters()
+            ->filterTable('survey_pre', 'done')
+            ->assertCanSeeTableRecords([$fullRegistration])
+            ->assertCanNotSeeTableRecords([$partialRegistration, $absentRegistration]);
+
+        $component
+            ->resetTableFilters()
+            ->callTableBulkAction('issueSelected', [$partialRegistration])
+            ->assertNotified('جارٍ إصدار 1 شهادة للمحددين، ستظهر خلال دقائق');
+
+        Queue::assertPushed(IssueProgramCertificateJob::class, 1);
+        Queue::assertPushed(
+            IssueProgramCertificateJob::class,
+            fn (IssueProgramCertificateJob $job): bool => $job->registrationId === $partialRegistration->id,
+        );
+    }
+
     public function test_resend_sends_the_program_email_again(): void
     {
         Storage::fake('public');

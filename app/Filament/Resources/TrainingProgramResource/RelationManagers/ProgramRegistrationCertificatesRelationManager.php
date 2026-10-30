@@ -16,20 +16,26 @@ use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use App\Services\Certificates\ProgramCertificateEligibility;
 use App\Services\Certificates\ProgramCertificateIssuance;
+use App\Services\Surveys\ProgramSurveyService;
 use App\Support\CertificateAuthorization;
 use App\Support\Certificates\CertificateBeneficiaryCount;
 use App\Support\PublicDiskPath;
 use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -85,7 +91,10 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
         return RegistrationFilamentTableSupport::configureBeneficiaryRowNavigation($table)
             ->modifyQueryUsing(fn (Builder $query): Builder => $this->scopeCertificateRows($query))
             ->description(fn (): HtmlString => new HtmlString(
-                view('filament.certificates.program-certificate-stats', $this->certificateStats())->render()
+                view('filament.certificates.program-certificate-stats', [
+                    ...$this->certificateStats(),
+                    'blocked' => $this->issueBlockedReason(),
+                ])->render()
             ))
             ->emptyStateHeading('لا يوجد مستفيدون مقبولون')
             ->emptyStateDescription('يظهر هنا المسجلون المقبولون أو المكتملون.')
@@ -106,6 +115,10 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
                     ->label('الاستبيانات')
                     ->getStateUsing(fn (ProgramRegistration $record): string => $this->surveySummary($record)),
             ])
+            ->filters($this->certificateFilters())
+            ->deferFilters(false)
+            ->selectable()
+            ->selectCurrentPageOnly(false)
             ->headerActions([
                 Action::make('designCertificate')
                     ->label('تخصيص الشهادة')
@@ -129,6 +142,9 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
                     ->action(function (array $data): void {
                         $this->dispatchCertificates($data);
                     }),
+            ])
+            ->toolbarActions([
+                $this->issueSelectedAction(),
             ])
             ->actions([
                 Action::make('downloadCertificate')
@@ -270,6 +286,187 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
                 ->count(),
             'remaining' => app(ProgramCertificateEligibility::class)->count($program),
         ];
+    }
+
+    /**
+     * @return array<int, Filter|SelectFilter>
+     */
+    private function certificateFilters(): array
+    {
+        return [
+            SelectFilter::make('attended')
+                ->label('الحضور')
+                ->options([
+                    'present' => 'حاضر',
+                    'absent' => 'لم يحضر',
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    $value = $data['value'] ?? null;
+                    if (! filled($value)) {
+                        return $query;
+                    }
+
+                    [$sql, $bindings] = $this->attendanceCountExpression();
+
+                    return $query->whereRaw($sql.($value === 'present' ? ' >= 1' : ' = 0'), $bindings);
+                }),
+            Filter::make('attendance_percent')
+                ->label('نسبة الحضور من الأيام')
+                ->form([
+                    TextInput::make('minimum')
+                        ->label('الحد الأدنى %')
+                        ->numeric()
+                        ->minValue(0)
+                        ->maxValue(100)
+                        ->placeholder('مثال: 75'),
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    if (! filled($data['minimum'] ?? null)) {
+                        return $query;
+                    }
+
+                    $minimum = max(0, min(100, (int) $data['minimum']));
+                    $total = count($this->openAttendanceLinkIds);
+                    if ($total === 0) {
+                        return $minimum === 0 ? $query : $query->whereRaw('0 = 1');
+                    }
+
+                    $needed = (int) ceil($total * $minimum / 100);
+                    [$sql, $bindings] = $this->attendanceCountExpression();
+
+                    return $query->whereRaw($sql.' >= ?', [...$bindings, $needed]);
+                }),
+            $this->surveyFilter('survey_pre', SurveyType::Pre, 'الاستبيان القبلي'),
+            $this->surveyFilter('survey_post', SurveyType::Post, 'الاستبيان البعدي'),
+            $this->surveyFilter('survey_satisfaction', SurveyType::Satisfaction, 'استبيان الرضا'),
+        ];
+    }
+
+    private function issueSelectedAction(): BulkAction
+    {
+        return BulkAction::make('issueSelected')
+            ->label('إصدار الشهادات')
+            ->icon('heroicon-o-academic-cap')
+            ->color('success')
+            ->authorize(fn (): bool => $this->canIssueCertificates())
+            ->requiresConfirmation()
+            ->modalHeading('إصدار الشهادات للمحددين')
+            ->modalDescription(function (Collection $records): string {
+                $ready = $records->filter(fn (ProgramRegistration $record): bool => $this->issuedRow($record) === null)->count();
+
+                return 'سيُصدر '.$ready.' شهادة من أصل '.$records->count().' محدداً. من صدرت له شهادة يُتجاوز.';
+            })
+            ->modalSubmitActionLabel('إصدار')
+            ->deselectRecordsAfterCompletion()
+            ->action(function (Collection $records): void {
+                $this->dispatchSelected($records);
+            });
+    }
+
+    private function dispatchSelected(Collection $records): void
+    {
+        $actor = auth()->user();
+        if (! $actor instanceof User || ! CertificateAuthorization::canIssue($actor)) {
+            abort(403);
+        }
+
+        if (! $this->savedBackgroundExists()) {
+            Notification::make()->title('ارفع خلفية الشهادة أولاً')->warning()->send();
+
+            return;
+        }
+
+        $pending = $records->filter(fn (ProgramRegistration $record): bool => $this->issuedRow($record) === null);
+        if ($pending->isEmpty()) {
+            Notification::make()->title('لا توجد شهادات جديدة بين المحددين')->warning()->send();
+
+            return;
+        }
+
+        foreach ($pending as $registration) {
+            IssueProgramCertificateJob::dispatch($registration->id, $actor->id);
+        }
+
+        app(AuditLogger::class)->record(
+            actor: $actor,
+            action: 'program_certificates.issued',
+            resource: $this->ownerProgram(),
+            metadata: [
+                'count' => $pending->count(),
+                'selected' => true,
+                'registration_ids' => $pending->pluck('id')->map(fn ($id): int => (int) $id)->all(),
+            ],
+        );
+
+        Notification::make()
+            ->title('جارٍ إصدار '.$pending->count().' شهادة للمحددين، ستظهر خلال دقائق')
+            ->success()
+            ->send();
+    }
+
+    /**
+     * @return array{0: string, 1: list<int>}
+     */
+    private function attendanceCountExpression(): array
+    {
+        $ids = $this->openAttendanceLinkIds;
+        if ($ids === []) {
+            return ['0', []];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+        return [
+            '(select count(*) from program_attendance_marks where program_attendance_marks.program_registration_id = program_registrations.id and program_attendance_marks.program_attendance_link_id in ('.$placeholders.'))',
+            $ids,
+        ];
+    }
+
+    private function surveyFilter(string $name, SurveyType $type, string $label): SelectFilter
+    {
+        return SelectFilter::make($name)
+            ->label($label)
+            ->options([
+                'done' => 'مكتمل',
+                'missing' => 'غير مكتمل',
+            ])
+            ->query(function (Builder $query, array $data) use ($type): Builder {
+                $value = $data['value'] ?? null;
+                if (! filled($value)) {
+                    return $query;
+                }
+
+                return $this->constrainSurvey($query, $type, $value === 'done');
+            });
+    }
+
+    /**
+     * @param  Builder<ProgramRegistration>  $query
+     * @return Builder<ProgramRegistration>
+     */
+    private function constrainSurvey(Builder $query, SurveyType $type, bool $completed): Builder
+    {
+        $survey = ProgramSurvey::query()
+            ->where('training_program_id', $this->ownerProgram()->getKey())
+            ->where('type', $type->value)
+            ->first();
+
+        if (! $survey instanceof ProgramSurvey) {
+            return $completed ? $query->whereRaw('0 = 1') : $query;
+        }
+
+        if ($completed) {
+            return app(ProgramSurveyService::class)->whereRegistrationAnswered($query, $survey);
+        }
+
+        $table = $survey->is_anonymous ? 'survey_completions' : 'survey_responses';
+
+        return $query->whereNotExists(function ($inner) use ($survey, $table): void {
+            $inner->selectRaw('1')
+                ->from($table)
+                ->whereColumn($table.'.registration_id', 'program_registrations.id')
+                ->where($table.'.program_survey_id', $survey->getKey());
+        });
     }
 
     /**
