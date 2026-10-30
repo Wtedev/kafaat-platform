@@ -99,9 +99,23 @@ function boot() {
 
     const fontFamily = (font) => (font === 'ibmplex' ? '"IBM Plex Sans Arabic", sans-serif' : '"FF Shamel", "IBM Plex Sans Arabic", sans-serif');
 
-    const fontPx = (pt) => (Number(pt) * canvas.clientWidth) / PAGE_WIDTH_PT;
+    const naturalTextWidth = (node, text) => {
+        const probe = document.createElement('span');
+        probe.textContent = text;
+        probe.style.position = 'fixed';
+        probe.style.left = '-9999px';
+        probe.style.top = '0';
+        probe.style.whiteSpace = 'nowrap';
+        probe.style.visibility = 'hidden';
+        probe.style.fontFamily = node.style.fontFamily;
+        probe.style.fontWeight = node.style.fontWeight;
+        probe.style.fontSize = getComputedStyle(node).fontSize;
+        document.body.append(probe);
+        const width = probe.getBoundingClientRect().width;
+        probe.remove();
 
-    const mmToPx = (mm) => (Number(mm) * canvas.clientWidth) / 297;
+        return width;
+    };
 
     const paint = (key) => {
         const node = canvas.querySelector(`[data-key="${key}"]`);
@@ -113,26 +127,28 @@ function boot() {
         node.style.left = `${element.x}%`;
         node.style.top = `${element.y}%`;
         if (fieldByKey(key)?.qr) {
-            const size = mmToPx(element.size);
-            node.style.width = `${size}px`;
-            node.style.height = `${size}px`;
+            const size = `calc(${Number(element.size)} * 100cqw / 297)`;
+            node.style.width = size;
+            node.style.height = size;
             return;
         }
 
         node.style.width = `${element.width}%`;
         node.style.fontFamily = fontFamily(element.font);
         node.style.fontWeight = element.weight === 'bold' ? '700' : '400';
-        node.style.fontSize = `${fontPx(element.size)}px`;
         node.style.color = element.color;
         node.style.textAlign = element.align;
         const span = node.querySelector('span');
         span.textContent = textFor(key);
-        // Match the PDF: text that is wider than its box shrinks to stay on one line.
+        // cqw follows the canvas if the side panels change its width after the
+        // first paint. A one-time pixel size stayed large and spilled off the page.
+        node.style.fontSize = `calc(${Number(element.size)} * 100cqw / ${PAGE_WIDTH_PT})`;
         const available = node.clientWidth;
-        const needed = span.scrollWidth;
-        if (available > 0 && needed > available) {
-            node.style.fontSize = `${(fontPx(element.size) * available) / needed}px`;
-        }
+        const needed = naturalTextWidth(node, span.textContent);
+        const fitted = available > 0 && needed > available
+            ? Number(element.size) * available / needed
+            : Number(element.size);
+        node.style.fontSize = `calc(${fitted} * 100cqw / ${PAGE_WIDTH_PT})`;
     };
 
     const paintAll = () => {
@@ -398,6 +414,12 @@ function boot() {
     });
 
     window.addEventListener('resize', paintAll);
+    if (document.fonts?.ready) {
+        document.fonts.ready.then(paintAll);
+    }
+    if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(paintAll).observe(canvas);
+    }
 
     window.addEventListener('beforeunload', (event) => {
         if (!dirty) {

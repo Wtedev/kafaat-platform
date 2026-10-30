@@ -251,6 +251,7 @@ body {
 
 .certificate-canvas {
     position: relative;
+    container-type: inline-size;
     width: min(100%, 920px);
     aspect-ratio: 297 / 210;
     background: #fff center / cover no-repeat;
