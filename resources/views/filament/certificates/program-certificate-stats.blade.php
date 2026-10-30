@@ -3,4 +3,7 @@
     <span>المقبولون: <strong>{{ $accepted }}</strong></span>
     <span>الصادرة: <strong>{{ $issued }}</strong></span>
     <span>المتبقون: <strong>{{ $remaining }}</strong></span>
+    @if (filled($blocked ?? null))
+        <span style="color: #b45309;">{{ $blocked }}</span>
+    @endif
 </div>
