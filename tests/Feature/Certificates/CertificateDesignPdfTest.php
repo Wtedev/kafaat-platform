@@ -52,6 +52,7 @@ class CertificateDesignPdfTest extends TestCase
             ->get(route('certificate-designer.preview-page', $program))
             ->assertOk()
             ->assertSee('تنزيل PDF')
+            ->assertSee('id="certificate-preview-canvas" dir="ltr"', false)
             ->assertSee(route('certificate-designer.preview', $program), false);
     }
 
