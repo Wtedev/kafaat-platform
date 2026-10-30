@@ -15,7 +15,7 @@
         @endif
     </div>
     <h1 class="text-xl font-bold {{ $certificate ? 'text-brand-secondary' : 'text-brand-danger' }}">
-        {{ $certificate ? 'شهادة صحيحة ✓' : 'الشهادة غير صالحة' }}
+        {{ $certificate ? 'شهادة معتمدة من كفاءات' : 'الشهادة غير صالحة' }}
     </h1>
 </div>
 
@@ -29,9 +29,9 @@ default => 'الموضوع',
 };
 @endphp
 <div class="divide-y divide-gray-100 rounded-xl border border-gray-200 overflow-hidden text-sm">
-    <div class="flex items-center justify-between px-4 py-3 bg-gray-50">
-        <span class="text-gray-500">اسم المستفيد</span>
-        <span class="font-semibold text-gray-800">{{ $certificate->user->certificateName() }}</span>
+    <div class="flex items-center gap-3 px-4 py-3 bg-gray-50">
+        <span class="shrink-0 text-gray-500">اسم المستفيد</span>
+        <span class="min-w-0 flex-1 text-left font-semibold text-gray-800">{{ $certificate->user->certificateName() }}</span>
     </div>
     <div class="flex items-center justify-between px-4 py-3">
         <span class="text-gray-500">{{ $certTypeLabel }}</span>
@@ -39,9 +39,9 @@ default => 'الموضوع',
             {{ $certificate->certificateable?->title ?? '—' }}
         </span>
     </div>
-    <div class="flex items-center justify-between px-4 py-3 bg-gray-50">
-        <span class="text-gray-500">رقم الشهادة</span>
-        <span class="font-mono text-gray-700">{{ $certificate->certificate_number }}</span>
+    <div class="flex items-center gap-3 px-4 py-3 bg-gray-50">
+        <span class="shrink-0 text-gray-500">رقم الشهادة</span>
+        <span dir="ltr" class="min-w-0 flex-1 text-left font-mono text-gray-700">{{ $certificate->certificate_number }}</span>
     </div>
     <div class="flex items-center justify-between px-4 py-3">
         <span class="text-gray-500">تاريخ الإصدار</span>
@@ -50,7 +50,7 @@ default => 'الموضوع',
 </div>
 
 <p class="mt-5 text-center text-xs text-gray-400">
-    تم إصدار هذه الشهادة من قِبَل جمعية كفاءات للتدريب والتطوير المهني.
+    تم إصدار هذه الشهادة من قبل جمعية كفاءات الأهلية لبناء قدرات الشباب
 </p>
 @else
 <p class="text-center text-gray-500 text-sm mt-2">
