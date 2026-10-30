@@ -338,7 +338,7 @@ class ProgramCertificateIssuanceTest extends TestCase
 
         $issuerComponent
             ->callMountedAction()
-            ->assertNotified('جارٍ إصدار 2 شهادة، ستظهر للمستفيدين خلال دقائق');
+            ->assertNotified('تم إصدار 2 شهادة');
 
         Queue::assertPushed(IssueProgramCertificateJob::class, 2);
 
@@ -442,13 +442,37 @@ class ProgramCertificateIssuanceTest extends TestCase
         $component
             ->resetTableFilters()
             ->callTableBulkAction('issueSelected', [$partialRegistration])
-            ->assertNotified('جارٍ إصدار 1 شهادة للمحددين، ستظهر خلال دقائق');
+            ->assertNotified('تم إصدار 1 شهادة للمحددين');
 
         Queue::assertPushed(IssueProgramCertificateJob::class, 1);
         Queue::assertPushed(
             IssueProgramCertificateJob::class,
             fn (IssueProgramCertificateJob $job): bool => $job->registrationId === $partialRegistration->id,
         );
+    }
+
+    public function test_a_local_public_disk_issues_the_certificate_in_the_request(): void
+    {
+        Storage::fake('public');
+        Notification::fake();
+        config(['queue.default' => 'database']);
+
+        [$program, $registration, $beneficiary] = $this->approvedRegistration();
+        $this->saveBackground($program);
+        $beneficiary->forceFill(['notify_email' => false])->save();
+        $issuer = $this->staff('certificates.issue');
+
+        Livewire::actingAs($issuer)
+            ->test(ProgramRegistrationCertificatesRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->callTableBulkAction('issueSelected', [$registration])
+            ->assertNotified('تم إصدار 1 شهادة للمحددين');
+
+        $this->assertSame(1, Certificate::query()->count());
+        $this->assertSame(0, DB::table('jobs')->count());
+        Storage::disk('public')->assertExists(Certificate::query()->firstOrFail()->file_path);
     }
 
     public function test_resend_sends_the_program_email_again(): void
