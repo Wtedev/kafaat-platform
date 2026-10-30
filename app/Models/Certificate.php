@@ -18,12 +18,14 @@ class Certificate extends Model
         'verification_code',
         'file_path',
         'issued_at',
+        'emailed_at',
     ];
 
     protected function casts(): array
     {
         return [
             'issued_at' => 'datetime',
+            'emailed_at' => 'datetime',
         ];
     }
 

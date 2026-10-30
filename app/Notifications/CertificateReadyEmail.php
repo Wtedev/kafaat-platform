@@ -15,6 +15,11 @@ class CertificateReadyEmail extends Notification implements ShouldQueue
     public function __construct(
         public readonly Certificate $certificate,
         public readonly string $activityLabel,
+        public readonly ?string $subjectLine = null,
+        public readonly ?string $introLine = null,
+        public readonly ?string $buttonLabel = null,
+        public readonly ?string $buttonUrl = null,
+        public readonly bool $attachPdf = false,
     ) {}
 
     /**
@@ -27,6 +32,10 @@ class CertificateReadyEmail extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
+        if ($this->subjectLine !== null) {
+            return $this->programMail($notifiable);
+        }
+
         $downloadUrl = $this->certificate->downloadUrl();
         $verifyUrl = route('certificates.verify', $this->certificate->verification_code);
 
@@ -46,5 +55,29 @@ class CertificateReadyEmail extends Notification implements ShouldQueue
         return $mail
             ->line('يمكنك أيضاً استعراض شهاداتك من بوابة المستفيد.')
             ->salutation('مع تحيات فريق كفاءات');
+    }
+
+    private function programMail(object $notifiable): MailMessage
+    {
+        $mail = (new MailMessage)
+            ->subject($this->subjectLine ?? ('شهادتك جاهزة — '.$this->activityLabel))
+            ->greeting('مرحباً '.($notifiable->name ?? '').'،')
+            ->line($this->introLine ?? ('صدرت شهادتك المتعلقة بـ «'.$this->activityLabel.'».'));
+
+        if ($this->buttonLabel !== null && $this->buttonUrl !== null) {
+            $mail->action($this->buttonLabel, $this->buttonUrl);
+        }
+
+        if ($this->attachPdf) {
+            $path = $this->certificate->absolutePath();
+            if (is_string($path) && is_file($path)) {
+                $mail->attach($path, [
+                    'as' => $this->certificate->certificate_number.'.pdf',
+                    'mime' => 'application/pdf',
+                ]);
+            }
+        }
+
+        return $mail->salutation('مع تحيات فريق كفاءات');
     }
 }

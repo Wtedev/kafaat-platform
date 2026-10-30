@@ -19,6 +19,24 @@ class ApplySecurityHeaders
         $response->headers->set('Permissions-Policy', (string) config('security.headers.permissions_policy'));
         $response->headers->set('X-Frame-Options', (string) config('security.headers.frame_options'));
 
+        if ($request->isSecure() && config('security.hsts.enabled', false)) {
+            $maxAge = (int) config('security.hsts.max_age', 31536000);
+            $directive = 'max-age='.$maxAge;
+            if (config('security.hsts.include_subdomains', false)) {
+                $directive .= '; includeSubDomains';
+            }
+            if (config('security.hsts.preload', false)) {
+                $directive .= '; preload';
+            }
+            $response->headers->set('Strict-Transport-Security', $directive);
+        }
+
+        // Chrome's built-in viewer paints a blank page when a PDF response
+        // carries a page CSP or cross-origin isolation headers.
+        if ($this->isPdf($response)) {
+            return $response;
+        }
+
         if ($request->routeIs('gate.*')) {
             $response->headers->set('Referrer-Policy', 'no-referrer');
             $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
@@ -46,19 +64,12 @@ class ApplySecurityHeaders
             $response->headers->set($header, $csp);
         }
 
-        if ($request->isSecure() && config('security.hsts.enabled', false)) {
-            $maxAge = (int) config('security.hsts.max_age', 31536000);
-            $directive = 'max-age='.$maxAge;
-            if (config('security.hsts.include_subdomains', false)) {
-                $directive .= '; includeSubDomains';
-            }
-            if (config('security.hsts.preload', false)) {
-                $directive .= '; preload';
-            }
-            $response->headers->set('Strict-Transport-Security', $directive);
-        }
-
         return $response;
+    }
+
+    private function isPdf(Response $response): bool
+    {
+        return str_starts_with(strtolower((string) $response->headers->get('Content-Type')), 'application/pdf');
     }
 
     private function contentSecurityPolicy(): string

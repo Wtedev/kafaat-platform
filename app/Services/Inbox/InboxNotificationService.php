@@ -447,7 +447,7 @@ class InboxNotificationService
             senderId: $issuedBy?->id,
             targetType: NotificationTargetType::SingleUser,
             context: self::inboxContext('certificate', (int) $certificate->getKey()),
-            emailable: true,
+            emailable: ! $certificateable instanceof TrainingProgram,
         );
         $this->dispatch($msg, [$recipient->id]);
     }

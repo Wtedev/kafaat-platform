@@ -17,6 +17,8 @@ use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Identity\IdentityNumberService;
 use App\Support\Surveys\SurveyNationalIdHasher;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -462,13 +464,40 @@ final class ProgramSurveyService
         return Carbon::parse($value);
     }
 
-    private function alreadyAnswered(ProgramSurvey $survey, ProgramRegistration $registration): bool
+    public function alreadyAnswered(ProgramSurvey $survey, ProgramRegistration $registration): bool
     {
-        if ($survey->is_anonymous) {
-            return $survey->completions()->where('registration_id', $registration->id)->exists();
-        }
+        return $this->answerRows($survey)
+            ->where('registration_id', $registration->id)
+            ->exists();
+    }
 
-        return $survey->responses()->where('registration_id', $registration->id)->exists();
+    /**
+     * Restrict a registration query to people who finished this survey.
+     * Anonymous surveys are counted from survey_completions. Named surveys are counted from survey_responses.
+     *
+     * @param  Builder<ProgramRegistration>  $registrations
+     * @return Builder<ProgramRegistration>
+     */
+    public function whereRegistrationAnswered(Builder $registrations, ProgramSurvey $survey): Builder
+    {
+        $table = $this->countsCompletions($survey) ? 'survey_completions' : 'survey_responses';
+
+        return $registrations->whereExists(function ($query) use ($survey, $table): void {
+            $query->selectRaw('1')
+                ->from($table)
+                ->whereColumn($table.'.registration_id', 'program_registrations.id')
+                ->where($table.'.program_survey_id', $survey->getKey());
+        });
+    }
+
+    private function countsCompletions(ProgramSurvey $survey): bool
+    {
+        return (bool) $survey->is_anonymous;
+    }
+
+    private function answerRows(ProgramSurvey $survey): HasMany
+    {
+        return $this->countsCompletions($survey) ? $survey->completions() : $survey->responses();
     }
 
     /**

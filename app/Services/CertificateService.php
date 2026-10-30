@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\RegistrationStatus;
+use App\Jobs\IssueProgramCertificateJob;
 use App\Models\Certificate;
 use App\Models\LearningPath;
 use App\Models\PathRegistration;
@@ -12,6 +13,8 @@ use App\Models\User;
 use App\Notifications\CertificateReadyEmail;
 use App\Services\Inbox\InboxNotificationService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class CertificateService
@@ -40,14 +43,37 @@ class CertificateService
             return $existing;
         }
 
-        $certificate = Certificate::create([
+        $attributes = [
             'user_id' => $user->id,
             'certificateable_type' => $certificateable->getMorphClass(),
             'certificateable_id' => $certificateable->getKey(),
             'certificate_number' => $this->generateCertificateNumber(),
             'verification_code' => $this->generateVerificationCode(),
             'issued_at' => now(),
-        ]);
+        ];
+
+        try {
+            // Run the insert in its own transaction. Inside a caller's transaction this
+            // becomes a savepoint, so on PostgreSQL a unique violation rolls back only
+            // the insert and the lookup for the winning row below can still run.
+            $certificate = DB::transaction(fn (): Certificate => Certificate::create($attributes));
+        } catch (QueryException $exception) {
+            if (! $this->isUniqueViolation($exception)) {
+                throw $exception;
+            }
+
+            $winner = Certificate::query()
+                ->where('user_id', $user->id)
+                ->where('certificateable_type', $certificateable->getMorphClass())
+                ->where('certificateable_id', $certificateable->getKey())
+                ->first();
+
+            if ($winner === null) {
+                throw $exception;
+            }
+
+            return $winner;
+        }
 
         // Generate PDF and attach path
         $filePath = $this->pdfService->generate($certificate);
@@ -58,6 +84,10 @@ class CertificateService
         return $certificate->fresh();
     }
 
+    /**
+     * @deprecated Program certificates are issued manually from the certificates tab.
+     *             Learning paths still use {@see issueForPathRegistration()}.
+     */
     public function issueForProgramRegistration(ProgramRegistration $registration, ?User $issuedBy = null): ?Certificate
     {
         $registration->loadMissing(['user', 'trainingProgram']);
@@ -93,6 +123,10 @@ class CertificateService
         return $this->issue($registration->user, $registration->learningPath, $issuedBy);
     }
 
+    /**
+     * @deprecated Program certificates are queued from the certificates tab.
+     *             This still applies the old 75% rule and is no longer called by the tab.
+     */
     public function issueEligibleProgramRegistrations(TrainingProgram $program, ?User $issuedBy = null): int
     {
         $count = 0;
@@ -156,6 +190,10 @@ class CertificateService
         return true;
     }
 
+    /**
+     * @deprecated Program certificate email is sent by {@see IssueProgramCertificateJob}.
+     *             Learning paths still use {@see emailEligiblePathCertificates()}.
+     */
     public function emailEligibleProgramCertificates(TrainingProgram $program, ?User $sentBy = null): int
     {
         $count = 0;
@@ -231,5 +269,10 @@ class CertificateService
         } while (Certificate::where('verification_code', $code)->exists());
 
         return $code;
+    }
+
+    private function isUniqueViolation(QueryException $exception): bool
+    {
+        return in_array((string) $exception->getCode(), ['23000', '23505'], true);
     }
 }

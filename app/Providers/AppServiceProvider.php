@@ -7,6 +7,7 @@ use App\Enums\SecurityLogResult;
 use App\Enums\SecurityLogSeverity;
 use App\Models\AuditLog;
 use App\Models\BoardMember;
+use App\Models\CertificateTemplate;
 use App\Models\GovernanceCommittee;
 use App\Models\GovernanceDocument;
 use App\Models\InboxNotification;
@@ -26,6 +27,7 @@ use App\Models\SupportTicket;
 use App\Models\User;
 use App\Policies\AuditLogPolicy;
 use App\Policies\BoardMemberPolicy;
+use App\Policies\CertificateTemplatePolicy;
 use App\Policies\GovernanceCommitteePolicy;
 use App\Policies\GovernanceDocumentPolicy;
 use App\Policies\InboxNotificationPolicy;
@@ -121,6 +123,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(BoardMember::class, BoardMemberPolicy::class);
         Gate::policy(MediaPhoto::class, MediaPhotoPolicy::class);
         Gate::policy(SupportTicket::class, SupportTicketPolicy::class);
+        Gate::policy(CertificateTemplate::class, CertificateTemplatePolicy::class);
+
+        Gate::define('designCertificate', [CertificateTemplatePolicy::class, 'design']);
 
         Gate::define('accessSendInAppNotificationPage', function (?User $user): bool {
             if ($user === null || ! $user->is_active) {

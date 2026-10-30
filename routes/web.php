@@ -14,6 +14,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\SignupVerificationController;
 use App\Http\Controllers\CertificateDownloadController;
+use App\Http\Controllers\Certificates\CertificateDesignerController;
 use App\Http\Controllers\Gate\GateAttendanceController;
 use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\Portal\PortalAccountDeletionController;
@@ -122,6 +123,17 @@ Route::middleware(['auth', 'otp.verified', 'operational'])->group(function () {
     Route::post('/notification-prefs/ack', [NotificationPreferenceController::class, 'acknowledge'])
         ->name('notification-prefs.ack');
 });
+
+Route::middleware(['auth', 'otp.verified', 'operational'])
+    ->prefix('admin-tools/programs/{program}')
+    ->name('certificate-designer.')
+    ->group(function () {
+        Route::get('/certificate', [CertificateDesignerController::class, 'edit'])->name('edit');
+        Route::post('/certificate', [CertificateDesignerController::class, 'update'])->name('update');
+        Route::post('/certificate/background', [CertificateDesignerController::class, 'background'])->name('background');
+        Route::get('/certificate/preview', [CertificateDesignerController::class, 'preview'])->name('preview');
+        Route::get('/certificate/preview-page', [CertificateDesignerController::class, 'previewPage'])->name('preview-page');
+    });
 
 Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.StaffUiModule::USERS, 'staff-ui.maintenance:'.StaffUiModule::USERS])
     ->prefix('staff-ui')
