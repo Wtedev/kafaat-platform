@@ -97,7 +97,17 @@ function boot() {
         return data.samples[key] || '';
     };
 
-    const fontFamily = (font) => (font === 'ibmplex' ? '"IBM Plex Sans Arabic", sans-serif' : '"FF Shamel", "IBM Plex Sans Arabic", sans-serif');
+    const fontFamily = (font) => {
+        if (font === 'ibmplex') {
+            return '"IBM Plex Sans Arabic", sans-serif';
+        }
+
+        if (font === 'diodrum') {
+            return '"Diodrum Arabic", sans-serif';
+        }
+
+        return '"FF Shamel", "IBM Plex Sans Arabic", sans-serif';
+    };
 
     const naturalTextWidth = (node, text) => {
         const probe = document.createElement('span');
