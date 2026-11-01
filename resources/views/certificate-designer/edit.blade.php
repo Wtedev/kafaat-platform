@@ -12,6 +12,8 @@
             <p class="certificate-designer__status" id="certificate-designer-status" role="status"></p>
             <div class="certificate-designer__actions">
                 <a class="sui-btn sui-btn--ghost sui-btn--md" href="{{ $backUrl }}">رجوع للبرنامج</a>
+                <button class="sui-btn sui-btn--secondary sui-btn--md" type="button" id="certificate-designer-undo" disabled>تراجع</button>
+                <button class="sui-btn sui-btn--secondary sui-btn--md" type="button" id="certificate-designer-redo" disabled>إعادة</button>
                 <button class="sui-btn sui-btn--secondary sui-btn--md" type="button" id="certificate-designer-preview">معاينة PDF</button>
                 <button class="sui-btn sui-btn--primary sui-btn--md" type="button" id="certificate-designer-save">حفظ</button>
             </div>
