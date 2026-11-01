@@ -45,14 +45,119 @@ function boot() {
         canvas.style.backgroundImage = `url("${data.backgroundUrlImage}")`;
     }
 
-    const markDirty = () => {
-        dirty = true;
-        setStatus('');
-    };
-
     const setStatus = (message, kind = '') => {
         status.textContent = message;
         status.className = 'certificate-designer__status' + (kind ? ` is-${kind}` : '');
+    };
+
+    const undoButton = document.getElementById('certificate-designer-undo');
+    const redoButton = document.getElementById('certificate-designer-redo');
+    const undoStack = [];
+    const redoStack = [];
+    let restoring = false;
+    let baseline = '';
+
+    const designSignature = () => JSON.stringify({
+        hours: hours.value,
+        enabled: [...enabled].sort(),
+        draft: Object.fromEntries([...enabled].sort().map((key) => [key, draft[key]])),
+    });
+
+    const markDirty = () => {
+        dirty = baseline !== '' && designSignature() !== baseline;
+        setStatus('');
+    };
+
+    const capture = () => ({
+        draft: structuredClone(draft),
+        enabled: [...enabled],
+        hours: hours.value,
+        selected,
+    });
+
+    const syncHistoryButtons = () => {
+        if (undoButton) {
+            undoButton.disabled = undoStack.length === 0;
+        }
+        if (redoButton) {
+            redoButton.disabled = redoStack.length === 0;
+        }
+    };
+
+    const pushUndo = () => {
+        if (restoring) {
+            return;
+        }
+        const shot = JSON.stringify(capture());
+        if (undoStack.length > 0 && undoStack[undoStack.length - 1] === shot) {
+            return;
+        }
+        undoStack.push(shot);
+        if (undoStack.length > 100) {
+            undoStack.shift();
+        }
+        redoStack.length = 0;
+        syncHistoryButtons();
+    };
+
+    const applyHistory = (shot) => {
+        const state = JSON.parse(shot);
+        Object.keys(draft).forEach((key) => {
+            delete draft[key];
+        });
+        Object.assign(draft, state.draft);
+        enabled.clear();
+        state.enabled.forEach((key) => enabled.add(key));
+        hours.value = state.hours;
+        fields.querySelectorAll('input[data-field]').forEach((input) => {
+            const key = input.dataset.field;
+            input.checked = enabled.has(key);
+            const node = canvas.querySelector(`[data-key="${key}"]`);
+            if (enabled.has(key)) {
+                ensureNode(key).hidden = false;
+                paint(key);
+            } else if (node) {
+                node.hidden = true;
+                node.classList.remove('is-selected');
+            }
+        });
+        hideGuides();
+        if (state.selected && enabled.has(state.selected)) {
+            select(state.selected);
+        } else {
+            selected = null;
+            settings.hidden = true;
+            empty.hidden = false;
+            canvas.querySelectorAll('.certificate-element').forEach((node) => {
+                node.classList.remove('is-selected');
+            });
+        }
+    };
+
+    const undo = () => {
+        if (undoStack.length === 0) {
+            return;
+        }
+        restoring = true;
+        redoStack.push(JSON.stringify(capture()));
+        applyHistory(undoStack.pop());
+        restoring = false;
+        markDirty();
+        setStatus('تم التراجع');
+        syncHistoryButtons();
+    };
+
+    const redo = () => {
+        if (redoStack.length === 0) {
+            return;
+        }
+        restoring = true;
+        undoStack.push(JSON.stringify(capture()));
+        applyHistory(redoStack.pop());
+        restoring = false;
+        markDirty();
+        setStatus('تمت الإعادة');
+        syncHistoryButtons();
     };
 
     const fieldByKey = (key) => data.fields.find((field) => field.key === key);
@@ -274,6 +379,7 @@ function boot() {
     fields.querySelectorAll('input[data-field]').forEach((input) => {
         const key = input.dataset.field;
         input.addEventListener('change', () => {
+            pushUndo();
             if (input.checked) {
                 showField(key);
             } else {
@@ -285,6 +391,28 @@ function boot() {
             showField(key);
         }
     });
+
+    baseline = designSignature();
+    syncHistoryButtons();
+
+    const rememberOnce = (input) => {
+        let open = false;
+        const start = () => {
+            if (open) {
+                return;
+            }
+            pushUndo();
+            open = true;
+        };
+        input.addEventListener('beforeinput', start);
+        input.addEventListener('input', start);
+        input.addEventListener('change', () => {
+            open = false;
+        });
+        input.addEventListener('blur', () => {
+            open = false;
+        });
+    };
 
     const current = () => (selected ? draft[selected] : null);
 
@@ -303,6 +431,7 @@ function boot() {
         if (!element || fieldByKey(selected)?.qr) {
             return;
         }
+        pushUndo();
         element.font = fontInput.value;
         refreshSelected();
     });
@@ -312,10 +441,12 @@ function boot() {
         if (!element || fieldByKey(selected)?.qr) {
             return;
         }
+        pushUndo();
         element.weight = weightInput.value;
         refreshSelected();
     });
 
+    rememberOnce(sizeInput);
     sizeInput.addEventListener('input', () => {
         const element = current();
         if (!element) {
@@ -325,6 +456,7 @@ function boot() {
         refreshSelected();
     });
 
+    rememberOnce(colorInput);
     colorInput.addEventListener('input', () => {
         const element = current();
         if (!element || fieldByKey(selected)?.qr) {
@@ -335,6 +467,7 @@ function boot() {
         refreshSelected();
     });
 
+    rememberOnce(hexInput);
     hexInput.addEventListener('change', () => {
         const element = current();
         const match = /^#[0-9A-Fa-f]{6}$/.exec(hexInput.value.trim());
@@ -353,11 +486,13 @@ function boot() {
         if (!button || !element || fieldByKey(selected)?.qr) {
             return;
         }
+        pushUndo();
         element.align = button.dataset.align;
         select(selected);
         refreshSelected();
     });
 
+    rememberOnce(widthInput);
     widthInput.addEventListener('input', () => {
         const element = current();
         if (!element || fieldByKey(selected)?.qr) {
@@ -367,6 +502,7 @@ function boot() {
         refreshSelected();
     });
 
+    rememberOnce(hours);
     hours.addEventListener('input', () => {
         if (enabled.has('hours')) {
             paint('hours');
@@ -377,6 +513,10 @@ function boot() {
     window.addEventListener('pointermove', (event) => {
         if (!drag || event.pointerId !== drag.pointerId) {
             return;
+        }
+        if (!drag.remembered) {
+            pushUndo();
+            drag.remembered = true;
         }
         const element = draft[drag.key];
         let x = drag.originX + ((event.clientX - drag.startX) / canvas.clientWidth) * 100;
@@ -400,7 +540,25 @@ function boot() {
         drag = null;
     });
 
+    let lastArrowAt = 0;
+
     window.addEventListener('keydown', (event) => {
+        const shortcut = (event.metaKey || event.ctrlKey) && !event.altKey;
+        if (shortcut && event.key.toLowerCase() === 'z') {
+            event.preventDefault();
+            if (event.shiftKey) {
+                redo();
+            } else {
+                undo();
+            }
+            return;
+        }
+        if (shortcut && event.key.toLowerCase() === 'y') {
+            event.preventDefault();
+            redo();
+            return;
+        }
+
         const element = current();
         if (!element || event.target.matches('input, select, textarea')) {
             return;
@@ -417,6 +575,10 @@ function boot() {
             return;
         }
         event.preventDefault();
+        if (Date.now() - lastArrowAt > 500) {
+            pushUndo();
+        }
+        lastArrowAt = Date.now();
         element[move[0]] = Math.min(100, Math.max(0, Math.round((element[move[0]] + move[1]) * 100) / 100));
         paint(selected);
         showGuides(element);
@@ -472,6 +634,9 @@ function boot() {
         setStatus(body.message || 'تم حفظ تصميم الشهادة.', 'ok');
         return true;
     };
+
+    undoButton?.addEventListener('click', undo);
+    redoButton?.addEventListener('click', redo);
 
     document.getElementById('certificate-designer-save').addEventListener('click', () => {
         save();

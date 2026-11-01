@@ -97,6 +97,9 @@ class CertificateDesignerTest extends TestCase
             ->assertSee('اسم المستفيد')
             ->assertSee('مقاس A4 أفقي')
             ->assertSee('Diodrum Arabic')
+            ->assertSee('id="certificate-designer-undo"', false)
+            ->assertSee('تراجع')
+            ->assertSee('إعادة')
             ->assertSee('?relation=certificates', false);
 
         $this->actingAsOtpVerified($this->staff('issue_certificates'))

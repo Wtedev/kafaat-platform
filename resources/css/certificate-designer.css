@@ -158,6 +158,11 @@ body {
     gap: var(--sui-space-2);
 }
 
+.certificate-designer__actions button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
 .certificate-designer__workspace {
     flex: 1;
     display: grid;
