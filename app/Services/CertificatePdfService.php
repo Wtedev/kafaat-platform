@@ -210,7 +210,11 @@ class CertificatePdfService
         $size = $this->bounded($element['size'] ?? 16, 8, 96);
         // Same model as the designer canvas: a line box of font-size × 1.2, centered on (x, y).
         $boxHeight = ($size * 25.4 / 72) * 1.2;
-        $font = ($element['font'] ?? 'shamel') === 'ibmplex' ? 'ibmplexsansarabic' : 'shamel';
+        $font = match ($element['font'] ?? 'shamel') {
+            'ibmplex' => 'ibmplexsansarabic',
+            'diodrum' => 'diodrumarabic',
+            default => 'shamel',
+        };
         $weight = ($element['weight'] ?? 'regular') === 'bold' ? 'bold' : 'normal';
         $align = in_array($element['align'] ?? 'center', ['right', 'center', 'left'], true)
             ? $element['align']
@@ -327,6 +331,12 @@ class CertificatePdfService
         $fontdata['shamel'] = [
             'R' => 'FFShamelFamily-SansOneBook.ttf',
             'B' => 'FFShamelFamily-SansOneBold.ttf',
+            'useOTL' => 0xFF,
+            'useKashida' => 75,
+        ];
+        $fontdata['diodrumarabic'] = [
+            'R' => 'DiodrumArabic-Regular.ttf',
+            'B' => 'DiodrumArabic-Bold.ttf',
             'useOTL' => 0xFF,
             'useKashida' => 75,
         ];

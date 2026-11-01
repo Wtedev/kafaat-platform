@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 class CertificateDesignService
 {
     /** @var list<string> */
-    public const FONTS = ['shamel', 'ibmplex'];
+    public const FONTS = ['shamel', 'ibmplex', 'diodrum'];
 
     /** @var list<string> */
     public const WEIGHTS = ['regular', 'bold'];

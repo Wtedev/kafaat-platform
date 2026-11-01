@@ -52,6 +52,7 @@
                     <select class="is-text-only" id="certificate-font">
                         <option value="shamel">شامل</option>
                         <option value="ibmplex">IBM Plex Arabic</option>
+                        <option value="diodrum">Diodrum Arabic</option>
                     </select>
                     <label class="is-text-only" for="certificate-weight">الوزن</label>
                     <select class="is-text-only" id="certificate-weight">

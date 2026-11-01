@@ -173,6 +173,28 @@ class CertificateDesignPdfTest extends TestCase
         $this->assertStringContainsString('IBMPlexSansArabic', $bytes);
     }
 
+    public function test_diodrum_arabic_is_embedded_when_a_field_uses_it(): void
+    {
+        $program = $this->designedProgram();
+        $elements = $program->certificateTemplate->elements;
+        $elements['beneficiary_name']['font'] = 'diodrum';
+        $program->certificateTemplate->update(['elements' => $elements]);
+        $user = User::factory()->create(['name' => 'نورة العبدالله']);
+        $certificate = Certificate::query()->create([
+            'user_id' => $user->id,
+            'certificateable_type' => $program->getMorphClass(),
+            'certificateable_id' => $program->id,
+            'certificate_number' => 'CERT-DIODRUM-0001',
+            'verification_code' => str_repeat('c', 32),
+            'issued_at' => now(),
+        ]);
+
+        $bytes = Storage::disk('public')->get(app(CertificatePdfService::class)->generate($certificate));
+
+        $this->assertReadablePdf($bytes);
+        $this->assertStringContainsString('DiodrumArabic', $bytes);
+    }
+
     private function assertReadablePdf(string $bytes): void
     {
         $this->assertStringStartsWith('%PDF', $bytes);
