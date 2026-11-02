@@ -26,6 +26,9 @@ function boot() {
     const status = document.getElementById('certificate-designer-status');
     const fields = document.getElementById('certificate-designer-fields');
     const hours = document.getElementById('certificate-designer-hours');
+    const startDateInput = document.getElementById('certificate-designer-start');
+    const endDateInput = document.getElementById('certificate-designer-end');
+    const programDates = data.programDates || {};
     const settings = document.getElementById('certificate-designer-settings-form');
     const empty = document.getElementById('certificate-designer-empty');
     const guideX = document.getElementById('certificate-guide-x');
@@ -41,6 +44,12 @@ function boot() {
     const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
     hours.value = data.hours ?? '';
+    if (startDateInput) {
+        startDateInput.value = draft.start_date?.value || programDates.start_date || '';
+    }
+    if (endDateInput) {
+        endDateInput.value = draft.end_date?.value || programDates.end_date || '';
+    }
     if (data.backgroundUrlImage) {
         canvas.style.backgroundImage = `url("${data.backgroundUrlImage}")`;
     }
@@ -59,6 +68,8 @@ function boot() {
 
     const designSignature = () => JSON.stringify({
         hours: hours.value,
+        startDate: startDateInput?.value || '',
+        endDate: endDateInput?.value || '',
         enabled: [...enabled].sort(),
         draft: Object.fromEntries([...enabled].sort().map((key) => [key, draft[key]])),
     });
@@ -72,6 +83,8 @@ function boot() {
         draft: structuredClone(draft),
         enabled: [...enabled],
         hours: hours.value,
+        startDate: startDateInput?.value || '',
+        endDate: endDateInput?.value || '',
         selected,
     });
 
@@ -84,11 +97,11 @@ function boot() {
         }
     };
 
-    const pushUndo = () => {
+    const pushShot = (state) => {
         if (restoring) {
             return;
         }
-        const shot = JSON.stringify(capture());
+        const shot = JSON.stringify(state);
         if (undoStack.length > 0 && undoStack[undoStack.length - 1] === shot) {
             return;
         }
@@ -100,6 +113,10 @@ function boot() {
         syncHistoryButtons();
     };
 
+    const pushUndo = () => {
+        pushShot(capture());
+    };
+
     const applyHistory = (shot) => {
         const state = JSON.parse(shot);
         Object.keys(draft).forEach((key) => {
@@ -109,6 +126,16 @@ function boot() {
         enabled.clear();
         state.enabled.forEach((key) => enabled.add(key));
         hours.value = state.hours;
+        if (startDateInput && state.startDate !== undefined) {
+            startDateInput.value = state.startDate;
+            startDateInput.dataset.committed = state.startDate;
+            startDateInput.dataset.undoPushed = '0';
+        }
+        if (endDateInput && state.endDate !== undefined) {
+            endDateInput.value = state.endDate;
+            endDateInput.dataset.committed = state.endDate;
+            endDateInput.dataset.undoPushed = '0';
+        }
         fields.querySelectorAll('input[data-field]').forEach((input) => {
             const key = input.dataset.field;
             input.checked = enabled.has(key);
@@ -192,11 +219,21 @@ function boot() {
         };
     };
 
+    const printedDate = (iso) => (/^\d{4}-\d{2}-\d{2}$/.test(iso || '') ? iso.replaceAll('-', '/') : '');
+
     const textFor = (key) => {
         if (key === 'hours') {
             const value = hours.value.trim();
             // Match the PDF: 12.00 shows as 12 and 12.50 as 12.5.
             return value !== '' && Number.isFinite(Number(value)) ? String(Number(value)) : value;
+        }
+
+        if (key === 'start_date' || key === 'end_date') {
+            const input = key === 'start_date' ? startDateInput : endDateInput;
+            const printed = printedDate(input?.value || programDates[key] || '');
+            if (printed !== '') {
+                return printed;
+            }
         }
 
         return data.samples[key] || '';
@@ -510,6 +547,46 @@ function boot() {
         markDirty();
     });
 
+    const paintBoundaryDates = () => {
+        ['start_date', 'end_date'].forEach((key) => {
+            if (enabled.has(key)) {
+                paint(key);
+            }
+        });
+        markDirty();
+    };
+
+    const watchBoundaryDate = (input, key) => {
+        if (!input) {
+            return;
+        }
+        const field = key === 'start_date' ? 'startDate' : 'endDate';
+        input.dataset.committed = input.value;
+        input.dataset.undoPushed = '0';
+        const note = () => {
+            if (input.dataset.undoPushed !== '1' && input.value !== input.dataset.committed) {
+                const shot = capture();
+                shot[field] = input.dataset.committed || '';
+                pushShot(shot);
+                input.dataset.undoPushed = '1';
+            }
+            paintBoundaryDates();
+        };
+        const settle = () => {
+            input.dataset.committed = input.value;
+            input.dataset.undoPushed = '0';
+        };
+        input.addEventListener('input', note);
+        input.addEventListener('change', () => {
+            note();
+            settle();
+        });
+        input.addEventListener('blur', settle);
+    };
+
+    watchBoundaryDate(startDateInput, 'start_date');
+    watchBoundaryDate(endDateInput, 'end_date');
+
     window.addEventListener('pointermove', (event) => {
         if (!drag || event.pointerId !== drag.pointerId) {
             return;
@@ -604,7 +681,17 @@ function boot() {
     const payload = () => {
         const elements = {};
         enabled.forEach((key) => {
-            elements[key] = draft[key];
+            const element = { ...draft[key] };
+            if (key === 'start_date' || key === 'end_date') {
+                const chosen = (key === 'start_date' ? startDateInput : endDateInput)?.value || '';
+                const automatic = programDates[key] || '';
+                if (chosen && chosen !== automatic) {
+                    element.value = chosen;
+                } else {
+                    delete element.value;
+                }
+            }
+            elements[key] = element;
         });
 
         return {

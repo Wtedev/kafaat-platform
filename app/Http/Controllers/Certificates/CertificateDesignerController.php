@@ -43,6 +43,10 @@ class CertificateDesignerController extends Controller
                 'qrDataUri' => CertificateQr::dataUri($samples[CertificateFieldKey::VerificationQr->value]),
                 'elements' => $template?->elements ?? [],
                 'hours' => $template?->hours,
+                'programDates' => [
+                    'start_date' => $program->start_date?->toDateString(),
+                    'end_date' => $program->end_date?->toDateString(),
+                ],
                 'backgroundUrlImage' => PublicDiskPath::url($template?->background_path),
                 'fields' => array_map(
                     fn (CertificateFieldKey $field): array => [
