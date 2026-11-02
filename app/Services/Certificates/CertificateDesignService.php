@@ -30,12 +30,37 @@ class CertificateDesignService
         $template = $this->templateFor($program, $editor);
         $template->fill([
             'hours' => $this->hours($hours),
-            'elements' => $this->validatedElements($elements),
+            'elements' => $this->withoutAutomaticDates($program, $this->validatedElements($elements)),
             'updated_by' => $editor->id,
         ]);
         $template->save();
 
         return $template->fresh() ?? $template;
+    }
+
+    /**
+     * A date that matches the program is left empty so a later program change still prints.
+     *
+     * @param  array<string, array<string, float|int|string>>  $elements
+     * @return array<string, array<string, float|int|string>>
+     */
+    private function withoutAutomaticDates(TrainingProgram $program, array $elements): array
+    {
+        $automatic = [
+            'start_date' => $program->start_date?->toDateString(),
+            'end_date' => $program->end_date?->toDateString(),
+        ];
+
+        foreach ($automatic as $key => $programDate) {
+            if (! isset($elements[$key]['value']) || $programDate === null) {
+                continue;
+            }
+            if ($elements[$key]['value'] === $programDate) {
+                unset($elements[$key]['value']);
+            }
+        }
+
+        return $elements;
     }
 
     public function storeBackground(TrainingProgram $program, User $editor, UploadedFile $file): CertificateTemplate
@@ -169,7 +194,11 @@ class CertificateDesignService
      */
     private function validatedText(array $value, string $key): array
     {
-        $this->rejectUnknown($value, ['x', 'y', 'font', 'weight', 'size', 'color', 'align', 'width'], $key);
+        $allowed = ['x', 'y', 'font', 'weight', 'size', 'color', 'align', 'width'];
+        if (in_array($key, ['start_date', 'end_date'], true)) {
+            $allowed[] = 'value';
+        }
+        $this->rejectUnknown($value, $allowed, $key);
 
         $font = $value['font'] ?? null;
         $weight = $value['weight'] ?? null;
@@ -200,7 +229,7 @@ class CertificateDesignService
             ]);
         }
 
-        return [
+        $clean = [
             'x' => $this->percent($value['x'] ?? null, $key),
             'y' => $this->percent($value['y'] ?? null, $key),
             'font' => $font,
@@ -210,6 +239,12 @@ class CertificateDesignService
             'align' => $align,
             'width' => $this->width($value['width'] ?? null, $key),
         ];
+        $date = $this->optionalDate($value['value'] ?? null, $key);
+        if ($date !== null) {
+            $clean['value'] = $date;
+        }
+
+        return $clean;
     }
 
     /**
@@ -240,6 +275,29 @@ class CertificateDesignService
                 ]);
             }
         }
+    }
+
+    private function optionalDate(mixed $value, string $key): ?string
+    {
+        if (! in_array($key, ['start_date', 'end_date'], true) || $value === null || $value === '') {
+            return null;
+        }
+
+        if (! is_string($value) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) !== 1) {
+            throw ValidationException::withMessages([
+                'elements.'.$key => 'التاريخ يجب أن يكون بصيغة سنة-شهر-يوم.',
+            ]);
+        }
+
+        $parsed = \DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+        $errors = \DateTimeImmutable::getLastErrors();
+        if ($parsed === false || ($errors !== false && (($errors['warning_count'] ?? 0) > 0 || ($errors['error_count'] ?? 0) > 0))) {
+            throw ValidationException::withMessages([
+                'elements.'.$key => 'التاريخ غير صالح.',
+            ]);
+        }
+
+        return $parsed->format('Y-m-d');
     }
 
     private function percent(mixed $value, string $key): float

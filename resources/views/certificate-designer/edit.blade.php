@@ -34,6 +34,11 @@
                 </ul>
                 <label class="certificate-designer__hours" for="certificate-designer-hours">عدد الساعات</label>
                 <input id="certificate-designer-hours" type="number" min="0" max="9999.99" step="0.01" inputmode="decimal">
+                <label class="certificate-designer__hours" for="certificate-designer-start">تاريخ البداية</label>
+                <input id="certificate-designer-start" type="date">
+                <label class="certificate-designer__hours" for="certificate-designer-end">تاريخ النهاية</label>
+                <input id="certificate-designer-end" type="date">
+                <p class="certificate-designer__note">يُملأ تاريخ البداية والنهاية تلقائياً من البرنامج، ويمكن تغييرهما.</p>
                 <label class="certificate-designer__upload" for="certificate-designer-background">خلفية التصميم</label>
                 <input id="certificate-designer-background" type="file" accept="image/png,image/jpeg">
                 <p class="certificate-designer__note">مقاس A4 أفقي (297×210mm). PNG أو JPG، بحد أقصى 5MB.</p>

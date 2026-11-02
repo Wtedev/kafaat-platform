@@ -34,8 +34,8 @@ final class CertificateFieldValues
             name: $certificate->user?->certificateName() ?? '',
             title: (string) ($certificate->certificateable->title ?? ''),
             issuedAt: $certificate->issued_at,
-            startsAt: $program?->start_date,
-            endsAt: $program?->end_date,
+            startsAt: self::boundaryDate($program, CertificateFieldKey::StartDate->value, $program?->start_date),
+            endsAt: self::boundaryDate($program, CertificateFieldKey::EndDate->value, $program?->end_date),
             hours: $program?->certificateTemplate?->hours,
             number: (string) $certificate->certificate_number,
             verificationCode: (string) $certificate->verification_code,
@@ -55,8 +55,8 @@ final class CertificateFieldValues
             name: self::SAMPLE_NAME,
             title: (string) $program->title,
             issuedAt: Carbon::now(config('app.timezone')),
-            startsAt: $program->start_date,
-            endsAt: $program->end_date,
+            startsAt: self::boundaryDate($program, CertificateFieldKey::StartDate->value, $program->start_date),
+            endsAt: self::boundaryDate($program, CertificateFieldKey::EndDate->value, $program->end_date),
             hours: $program->certificateTemplate?->hours,
             number: self::SAMPLE_NUMBER,
             verificationCode: self::SAMPLE_CODE,
@@ -86,6 +86,19 @@ final class CertificateFieldValues
             CertificateFieldKey::CertificateNumber->value => $number,
             CertificateFieldKey::VerificationQr->value => route('certificates.verify', $verificationCode),
         ];
+    }
+
+    /**
+     * A date typed in the designer replaces the program date. An empty value keeps the program date.
+     */
+    private static function boundaryDate(?TrainingProgram $program, string $key, mixed $programDate): mixed
+    {
+        $value = $program?->certificateTemplate?->elements[$key]['value'] ?? null;
+        if (is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) === 1) {
+            return $value;
+        }
+
+        return $programDate;
     }
 
     private static function date(mixed $value): string

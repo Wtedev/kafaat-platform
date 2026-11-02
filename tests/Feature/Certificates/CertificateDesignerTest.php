@@ -100,6 +100,9 @@ class CertificateDesignerTest extends TestCase
             ->assertSee('id="certificate-designer-undo"', false)
             ->assertSee('تراجع')
             ->assertSee('إعادة')
+            ->assertSee('id="certificate-designer-start"', false)
+            ->assertSee('id="certificate-designer-end"', false)
+            ->assertSee('يُملأ تاريخ البداية والنهاية تلقائياً من البرنامج')
             ->assertSee('?relation=certificates', false);
 
         $this->actingAsOtpVerified($this->staff('issue_certificates'))
@@ -167,6 +170,49 @@ class CertificateDesignerTest extends TestCase
         $this->assertEquals(12.5, (float) $template->hours);
         $this->assertEquals(50, $template->elements['beneficiary_name']['x']);
         $this->assertSame('shamel', $template->elements['beneficiary_name']['font']);
+    }
+
+    public function test_a_custom_boundary_date_is_saved_and_the_program_date_stays_automatic(): void
+    {
+        $program = $this->program();
+        $staff = $this->staff('certificates.issue');
+        $start = $this->textElement();
+        $end = $this->textElement();
+        $start['value'] = '2026-01-05';
+        $end['value'] = '2026-10-12';
+
+        $this->actingAsOtpVerified($staff)
+            ->postJson(route('certificate-designer.update', $program), [
+                'hours' => 3,
+                'elements' => [
+                    'start_date' => $start,
+                    'end_date' => $end,
+                ],
+            ])
+            ->assertOk();
+
+        $elements = $program->fresh()->certificateTemplate->elements;
+        $this->assertSame('2026-01-05', $elements['start_date']['value']);
+        $this->assertArrayNotHasKey('value', $elements['end_date']);
+
+        $start['value'] = '2026-02-31';
+        $this->actingAsOtpVerified($staff)
+            ->postJson(route('certificate-designer.update', $program), [
+                'hours' => 3,
+                'elements' => ['start_date' => $start],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['elements.start_date']);
+
+        $name = $this->textElement();
+        $name['value'] = '2026-01-05';
+        $this->actingAsOtpVerified($staff)
+            ->postJson(route('certificate-designer.update', $program), [
+                'hours' => 3,
+                'elements' => ['beneficiary_name' => $name],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['elements.beneficiary_name']);
     }
 
     public function test_a_file_that_is_not_an_image_is_rejected(): void

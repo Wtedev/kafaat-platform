@@ -140,6 +140,33 @@ class CertificateDesignPdfTest extends TestCase
         $this->assertSame('12.5', CertificateFieldValues::forPreview($program->fresh())['hours']);
     }
 
+    public function test_boundary_dates_follow_the_program_until_a_custom_date_is_saved(): void
+    {
+        $program = $this->designedProgram();
+
+        $preview = CertificateFieldValues::forPreview($program->fresh());
+        $this->assertSame('2026/10/10', $preview['start_date']);
+        $this->assertSame('2026/10/12', $preview['end_date']);
+
+        $elements = $program->certificateTemplate->elements;
+        $elements['start_date']['value'] = '2027-03-01';
+        $program->certificateTemplate->update(['elements' => $elements]);
+
+        $user = User::factory()->create(['name' => 'نورة العبدالله']);
+        $certificate = Certificate::query()->create([
+            'user_id' => $user->id,
+            'certificateable_type' => $program->getMorphClass(),
+            'certificateable_id' => $program->id,
+            'certificate_number' => 'CERT-DATES-0001',
+            'verification_code' => str_repeat('d', 32),
+            'issued_at' => now(),
+        ]);
+
+        $printed = CertificateFieldValues::forCertificate($certificate);
+        $this->assertSame('2027/03/01', $printed['start_date']);
+        $this->assertSame('2026/10/12', $printed['end_date']);
+    }
+
     public function test_a_long_name_and_a_latin_certificate_number_render_on_the_design(): void
     {
         $program = $this->designedProgram();
