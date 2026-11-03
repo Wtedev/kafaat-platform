@@ -103,9 +103,11 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
                 RegistrationFilamentTableSupport::beneficiaryNameColumn(),
                 TextColumn::make('certificate_status')
                     ->label('الشهادة')
-                    ->badge()
-                    ->getStateUsing(fn (ProgramRegistration $record): string => $this->issuedRow($record) !== null ? 'صادرة' : 'لم تصدر')
-                    ->color(fn (ProgramRegistration $record): string => $this->issuedRow($record) !== null ? 'success' : 'gray'),
+                    ->getStateUsing(fn (ProgramRegistration $record): string => $this->issuedRow($record) !== null ? 'مصدرة' : 'إصدار الشهادة')
+                    ->icon(fn (ProgramRegistration $record): ?string => $this->issuedRow($record) !== null ? 'heroicon-o-check-circle' : null)
+                    ->color(fn (ProgramRegistration $record): string => $this->issuedRow($record) !== null ? 'success' : 'primary')
+                    ->tooltip(fn (ProgramRegistration $record): ?string => $this->issuedRow($record) !== null ? null : $this->issueBlockedReason())
+                    ->action($this->issueOneAction()),
                 TextColumn::make('certificate_issued_on')
                     ->label('تاريخ الإصدار')
                     ->getStateUsing(fn (ProgramRegistration $record): string => $this->issuedRow($record)['issued_on'] ?? '—'),
@@ -362,6 +364,25 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
             ->deselectRecordsAfterCompletion()
             ->action(function (Collection $records): void {
                 $this->dispatchSelected($records);
+            });
+    }
+
+    private function issueOneAction(): Action
+    {
+        return Action::make('issueOne')
+            ->label('إصدار الشهادة')
+            ->icon('heroicon-o-academic-cap')
+            ->color('primary')
+            ->authorize(fn (): bool => $this->canIssueCertificates())
+            ->visible(fn (ProgramRegistration $record): bool => $this->issuedRow($record) === null)
+            ->disabled(fn (): bool => ! $this->savedBackgroundExists())
+            ->tooltip(fn (): ?string => $this->issueBlockedReason())
+            ->requiresConfirmation()
+            ->modalHeading('إصدار الشهادة')
+            ->modalDescription('هل تريد إصدار شهادة لهذا المستفيد؟')
+            ->modalSubmitActionLabel('إصدار')
+            ->action(function (ProgramRegistration $record): void {
+                $this->dispatchSelected(new Collection([$record]));
             });
     }
 
