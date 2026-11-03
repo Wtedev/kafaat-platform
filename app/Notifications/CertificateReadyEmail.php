@@ -3,6 +3,8 @@
 namespace App\Notifications;
 
 use App\Models\Certificate;
+use App\Models\User;
+use App\Support\CertificateReadyMail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -59,13 +61,27 @@ class CertificateReadyEmail extends Notification implements ShouldQueue
 
     private function programMail(object $notifiable): MailMessage
     {
-        $mail = (new MailMessage)
-            ->subject($this->subjectLine ?? ('شهادتك جاهزة — '.$this->activityLabel))
-            ->greeting('مرحباً '.($notifiable->name ?? '').'،')
-            ->line($this->introLine ?? ('صدرت شهادتك المتعلقة بـ «'.$this->activityLabel.'».'));
+        $name = $notifiable instanceof User
+            ? ($notifiable->certificateName() ?: (string) $notifiable->name)
+            : (string) ($notifiable->name ?? '');
 
-        if ($this->buttonLabel !== null && $this->buttonUrl !== null) {
-            $mail->action($this->buttonLabel, $this->buttonUrl);
+        $subject = $this->subjectLine ?: CertificateReadyMail::SUBJECT;
+        $buttonLabel = $this->buttonLabel ?: CertificateReadyMail::BUTTON_LABEL;
+        $buttonUrl = $this->buttonUrl ?: route('portal.certificates');
+
+        $mail = (new MailMessage)
+            ->subject($subject)
+            ->view('mail.certificate-program-ready', [
+                'subjectLine' => $subject,
+                'beneficiaryName' => $name,
+                'programTitle' => $this->activityLabel,
+                'buttonLabel' => $buttonLabel,
+                'buttonUrl' => $buttonUrl,
+                'logoUrl' => rtrim((string) config('site.website_url'), '/').'/'.ltrim((string) config('brand.logos.kafaat_mail'), '/'),
+            ]);
+
+        foreach (CertificateReadyMail::copyEmailsExcept($notifiable->email ?? null) as $copyEmail) {
+            $mail->bcc($copyEmail);
         }
 
         if ($this->attachPdf) {
@@ -78,6 +94,6 @@ class CertificateReadyEmail extends Notification implements ShouldQueue
             }
         }
 
-        return $mail->salutation('مع تحيات فريق كفاءات');
+        return $mail;
     }
 }

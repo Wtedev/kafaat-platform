@@ -31,6 +31,7 @@ use App\Notifications\InboxNotificationEmail;
 use App\Services\Certificates\ProgramCertificateIssuance;
 use App\Services\CertificateService;
 use App\Services\EmailLogService;
+use App\Support\CertificateReadyMail;
 use App\Support\Certificates\CertificateBeneficiaryCount;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
@@ -99,14 +100,21 @@ class ProgramCertificateIssuanceTest extends TestCase
         Notification::assertSentToTimes($beneficiary, CertificateReadyEmail::class, 1);
         Notification::assertSentTo($beneficiary, CertificateReadyEmail::class, function (CertificateReadyEmail $notification) use ($beneficiary, $program, $certificate): bool {
             $mail = $notification->toMail($beneficiary);
+            $html = view($mail->view, $mail->viewData)->render();
 
-            return $mail->subject === 'تم إصدار شهادتك — '.$program->title
+            return $mail->subject === CertificateReadyMail::SUBJECT
                 && $notification->attachPdf === true
-                && $notification->buttonLabel === 'عرض الشهادة'
+                && $notification->buttonLabel === CertificateReadyMail::BUTTON_LABEL
                 && $notification->buttonUrl === route('portal.certificates')
                 && count($mail->attachments) === 1
                 && $mail->attachments[0]['options']['mime'] === 'application/pdf'
-                && str_contains($mail->attachments[0]['file'], $certificate->certificate_number);
+                && str_contains($mail->attachments[0]['file'], $certificate->certificate_number)
+                && str_contains($html, $program->title)
+                && str_contains($html, 'عرض الشهادة')
+                && str_contains($html, 'فريق جمعية كفاءات الأهلية')
+                && str_contains($html, 'منصات التواصل الاجتماعي')
+                && collect($mail->bcc)->pluck(0)->contains('lama@kafaat.org.sa')
+                && collect($mail->bcc)->pluck(0)->contains('wejdanalsmanii@gmail.com');
         });
 
         $legacy = (new CertificateReadyEmail($certificate, $program->title))->toMail($beneficiary);

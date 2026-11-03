@@ -16,6 +16,7 @@ use App\Services\CertificateService;
 use App\Services\EmailLogService;
 use App\Services\Inbox\InboxNotificationService;
 use App\Services\ProgramRegistrationService;
+use App\Support\CertificateReadyMail;
 use App\Support\PublicDiskPath;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
@@ -115,15 +116,14 @@ final class ProgramCertificateIssuance
             return;
         }
 
-        $subject = 'تم إصدار شهادتك — '.$program->title;
+        $subject = CertificateReadyMail::SUBJECT;
         $this->emailLogs->send(
             recipient: $recipient,
             notification: new CertificateReadyEmail(
                 certificate: $certificate,
                 activityLabel: $program->title,
                 subjectLine: $subject,
-                introLine: 'صدرت شهادتك في «'.$program->title.'». يمكنك تنزيلها من البوابة أو من المرفق.',
-                buttonLabel: 'عرض الشهادة',
+                buttonLabel: CertificateReadyMail::BUTTON_LABEL,
                 buttonUrl: route('portal.certificates'),
                 attachPdf: true,
             ),
