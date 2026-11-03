@@ -113,8 +113,7 @@ class ProgramCertificateIssuanceTest extends TestCase
                 && str_contains($html, 'عرض الشهادة')
                 && str_contains($html, 'فريق جمعية كفاءات الأهلية')
                 && str_contains($html, 'منصات التواصل الاجتماعي')
-                && collect($mail->bcc)->pluck(0)->contains('lamaalmushyqih@gmail.com')
-                && collect($mail->bcc)->pluck(0)->contains('wejdanalsmanii@gmail.com');
+                && $mail->bcc === [];
         });
 
         $legacy = (new CertificateReadyEmail($certificate, $program->title))->toMail($beneficiary);

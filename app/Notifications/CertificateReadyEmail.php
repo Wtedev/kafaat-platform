@@ -80,10 +80,6 @@ class CertificateReadyEmail extends Notification implements ShouldQueue
                 'logoUrl' => rtrim((string) config('site.website_url'), '/').'/'.ltrim((string) config('brand.logos.kafaat_mail'), '/'),
             ]);
 
-        foreach (CertificateReadyMail::copyEmailsExcept($notifiable->email ?? null) as $copyEmail) {
-            $mail->bcc($copyEmail);
-        }
-
         if ($this->attachPdf) {
             $path = $this->certificate->absolutePath();
             if (is_string($path) && is_file($path)) {
