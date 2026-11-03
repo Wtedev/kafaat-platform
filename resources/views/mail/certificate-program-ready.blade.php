@@ -4,7 +4,7 @@
     $social = collect(config('site.social', []))->filter(fn ($item): bool => filled($item['url'] ?? null));
     $phoneDigits = preg_replace('/\D+/', '', (string) config('site.contact_phone_e164', ''));
     $whatsappHref = $phoneDigits !== '' ? 'https://wa.me/'.$phoneDigits : null;
-    $socialIconUrl = fn (string $key): string => $siteBase.'/images/mail/social/'.$key.'.png?v=20261103c';
+    $socialIconUrl = fn (string $key): string => $siteBase.'/images/mail/social/'.$key.'.png?v=20261103d';
 @endphp
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -48,17 +48,17 @@
 @foreach ($social as $item)
 @php $iconKey = (string) ($item['key'] ?? ''); @endphp
 @if ($iconKey !== '' && in_array($iconKey, ['youtube', 'linkedin', 'x', 'tiktok', 'instagram'], true))
-<td align="center" valign="middle" style="padding:0 4px;">
+<td align="center" valign="middle" style="padding:0 3px;">
 <a href="{{ $item['url'] }}" target="_blank" rel="noopener noreferrer" aria-label="{{ $item['label'] }}" style="display:inline-block;text-decoration:none;border:0;line-height:0;">
-<img src="{{ $socialIconUrl($iconKey) }}" alt="{{ $item['label'] }}" width="28" height="28" style="display:block;border:0;outline:none;width:28px;height:28px;max-width:28px;">
+<img src="{{ $socialIconUrl($iconKey) }}" alt="{{ $item['label'] }}" width="20" height="20" style="display:block;border:0;outline:none;width:20px;height:20px;max-width:20px;">
 </a>
 </td>
 @endif
 @endforeach
 @if (filled($whatsappHref))
-<td align="center" valign="middle" style="padding:0 4px;">
+<td align="center" valign="middle" style="padding:0 3px;">
 <a href="{{ $whatsappHref }}" target="_blank" rel="noopener noreferrer" aria-label="واتساب" style="display:inline-block;text-decoration:none;border:0;line-height:0;">
-<img src="{{ $socialIconUrl('whatsapp') }}" alt="واتساب" width="28" height="28" style="display:block;border:0;outline:none;width:28px;height:28px;max-width:28px;">
+<img src="{{ $socialIconUrl('whatsapp') }}" alt="واتساب" width="20" height="20" style="display:block;border:0;outline:none;width:20px;height:20px;max-width:20px;">
 </a>
 </td>
 @endif
