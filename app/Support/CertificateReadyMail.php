@@ -15,7 +15,7 @@ final class CertificateReadyMail
      * @var list<string>
      */
     public const COPY_EMAILS = [
-        'lama@kafaat.org.sa',
+        'lamaalmushyqih@gmail.com',
         'wejdanalsmanii@gmail.com',
     ];
 
