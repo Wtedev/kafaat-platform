@@ -25,7 +25,7 @@
 <td dir="rtl" align="center" style="padding:8px 32px 32px;direction:rtl;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.7;color:#52525b;">
 <p style="margin:0 0 16px;text-align:center;">مرحبًا {{ $beneficiaryName }}</p>
 <p style="margin:0 0 16px;text-align:center;">سعدنا بمشاركتك معنا في {{ $programTitle }}، ونقدّر حضورك وتفاعلك الذي كان جزءًا من نجاح هذه التجربة.</p>
-<p style="margin:0 0 16px;text-align:center;">يسرّنا إبلاغك بصدور شهادتك، ويمكنك الاطلاع عليها وتحميلها من خلال الزر أدناه، أو عبر المرفق.</p>
+<p style="margin:0 0 16px;text-align:center;">يسرّنا إبلاغك بصدور شهادتك. شهادتك مرفقة بهذا البريد بصيغة PDF، ويمكنك فتحها من المرفقات، أو الاطلاع عليها وتحميلها من خلال الزر أدناه.</p>
 <table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:8px auto 20px;">
 <tr>
 <td align="center" bgcolor="#335483" style="border-radius:4px;background-color:#335483;">
