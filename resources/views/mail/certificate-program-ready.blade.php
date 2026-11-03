@@ -42,22 +42,23 @@
 <p style="margin:0 0 28px;text-align:center;">فريق جمعية كفاءات الأهلية</p>
 <p style="margin:0 0 16px;text-align:center;font-size:14px;line-height:1.8;color:#71717a;">ولأن رحلتنا معكم لا تنتهي بانتهاء البرنامج، يسعدنا بقاؤكم بالقرب منّا عبر منصات التواصل الاجتماعي، للاطلاع على برامجنا وفرصنا القادمة.</p>
 @if ($social->isNotEmpty() || filled($whatsappHref))
-<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+{{-- dir=ltr keeps icon order stable across clients; matches the public footer sequence. --}}
+<table role="presentation" align="center" dir="ltr" cellpadding="0" cellspacing="0" style="margin:0 auto;border-collapse:collapse;">
 <tr>
 @foreach ($social as $item)
 @php $iconKey = (string) ($item['key'] ?? ''); @endphp
 @if ($iconKey !== '' && in_array($iconKey, ['youtube', 'linkedin', 'x', 'tiktok', 'instagram'], true))
-<td align="center" style="padding:0 5px;">
+<td align="center" valign="middle" style="padding:0 6px;">
 <a href="{{ $item['url'] }}" target="_blank" rel="noopener noreferrer" aria-label="{{ $item['label'] }}" style="display:inline-block;text-decoration:none;border:0;line-height:0;">
-<img src="{{ $socialIconUrl($iconKey) }}" alt="{{ $item['label'] }}" width="40" height="40" style="display:block;border:0;width:40px;height:40px;">
+<img src="{{ $socialIconUrl($iconKey) }}" alt="{{ $item['label'] }}" width="44" height="44" style="display:block;border:0;outline:none;width:44px;height:44px;max-width:44px;">
 </a>
 </td>
 @endif
 @endforeach
 @if (filled($whatsappHref))
-<td align="center" style="padding:0 5px;">
+<td align="center" valign="middle" style="padding:0 6px;">
 <a href="{{ $whatsappHref }}" target="_blank" rel="noopener noreferrer" aria-label="واتساب" style="display:inline-block;text-decoration:none;border:0;line-height:0;">
-<img src="{{ $socialIconUrl('whatsapp') }}" alt="واتساب" width="40" height="40" style="display:block;border:0;width:40px;height:40px;">
+<img src="{{ $socialIconUrl('whatsapp') }}" alt="واتساب" width="44" height="44" style="display:block;border:0;outline:none;width:44px;height:44px;max-width:44px;">
 </a>
 </td>
 @endif
