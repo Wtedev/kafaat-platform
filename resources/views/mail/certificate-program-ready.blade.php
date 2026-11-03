@@ -33,7 +33,7 @@
 </td>
 </tr>
 </table>
-<p style="margin:0 0 16px;text-align:center;">نتطلع إلى لقائك في برامج وتجارب قادمة، تحمل لك مزيدًا من المعرفة والأثر. ✨</p>
+<p style="margin:0 0 16px;text-align:center;">نتطلع إلى لقائك في برامج وتجارب قادمة، تحمل لك مزيدًا من المعرفة والأثر.</p>
 <p style="margin:0 0 4px;text-align:center;">مع خالص التقدير،</p>
 <p style="margin:0 0 28px;text-align:center;">فريق جمعية كفاءات الأهلية</p>
 <p style="margin:0 0 16px;text-align:center;font-size:14px;line-height:1.8;color:#71717a;">ولأن رحلتنا معكم لا تنتهي بانتهاء البرنامج، يسعدنا بقاؤكم بالقرب منّا عبر منصات التواصل الاجتماعي، للاطلاع على برامجنا وفرصنا القادمة.</p>
