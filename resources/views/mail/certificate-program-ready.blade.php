@@ -4,7 +4,7 @@
     $social = collect(config('site.social', []))->filter(fn ($item): bool => filled($item['url'] ?? null));
     $phoneDigits = preg_replace('/\D+/', '', (string) config('site.contact_phone_e164', ''));
     $whatsappHref = $phoneDigits !== '' ? 'https://wa.me/'.$phoneDigits : null;
-    $socialIconUrl = fn (string $key): string => $siteBase.'/images/mail/social/'.$key.'.png';
+    $socialIconUrl = fn (string $key): string => $siteBase.'/images/mail/social/'.$key.'.png?v=20261103b';
 @endphp
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
