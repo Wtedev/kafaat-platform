@@ -210,12 +210,7 @@ class CertificatePdfService
         $size = $this->bounded($element['size'] ?? 16, 8, 96);
         // Same model as the designer canvas: a line box of font-size × 1.2, centered on (x, y).
         $boxHeight = ($size * 25.4 / 72) * 1.2;
-        $font = match ($element['font'] ?? 'shamel') {
-            'ibmplex' => 'ibmplexsansarabic',
-            'diodrum' => 'diodrumarabic',
-            default => 'shamel',
-        };
-        $weight = ($element['weight'] ?? 'regular') === 'bold' ? 'bold' : 'normal';
+        [$font, $weight] = $this->fontFace($element);
         $align = in_array($element['align'] ?? 'center', ['right', 'center', 'left'], true)
             ? $element['align']
             : 'center';
@@ -313,6 +308,38 @@ class CertificatePdfService
         return min($max, max($min, $number));
     }
 
+    /**
+     * @param  array<string, mixed>  $element
+     * @return array{0: string, 1: string}
+     */
+    private function fontFace(array $element): array
+    {
+        $fontKey = is_string($element['font'] ?? null) ? $element['font'] : 'shamel';
+        $weightKey = is_string($element['weight'] ?? null) ? $element['weight'] : 'regular';
+
+        if ($fontKey === 'diodrum') {
+            $family = match ($weightKey) {
+                'extralight' => 'diodrumarabicextralight',
+                'light' => 'diodrumarabiclight',
+                'medium' => 'diodrumarabicmedium',
+                'semibold' => 'diodrumarabicsemibold',
+                'bold' => 'diodrumarabicbold',
+                'heavy' => 'diodrumarabicheavy',
+                default => 'diodrumarabic',
+            };
+
+            // Each Diodrum cut is registered as its own regular face.
+            return [$family, 'normal'];
+        }
+
+        $family = match ($fontKey) {
+            'ibmplex' => 'ibmplexsansarabic',
+            default => 'shamel',
+        };
+
+        return [$family, $weightKey === 'bold' ? 'bold' : 'normal'];
+    }
+
     private function newMpdf(bool $fullBleed): Mpdf
     {
         $fontDir = resource_path('fonts/certificates');
@@ -334,12 +361,23 @@ class CertificatePdfService
             'useOTL' => 0xFF,
             'useKashida' => 75,
         ];
-        $fontdata['diodrumarabic'] = [
-            'R' => 'DiodrumArabic-Regular.ttf',
-            'B' => 'DiodrumArabic-Bold.ttf',
-            'useOTL' => 0xFF,
-            'useKashida' => 75,
-        ];
+        foreach ([
+            'diodrumarabic' => 'DiodrumArabic-Regular.ttf',
+            'diodrumarabicextralight' => 'DiodrumArabic-Extralight.ttf',
+            'diodrumarabiclight' => 'DiodrumArabic-Light.ttf',
+            'diodrumarabicmedium' => 'DiodrumArabic-Medium.ttf',
+            'diodrumarabicsemibold' => 'DiodrumArabic-Semibold.ttf',
+            'diodrumarabicbold' => 'DiodrumArabic-Bold.ttf',
+            'diodrumarabicheavy' => 'DiodrumArabic-Heavy.ttf',
+        ] as $family => $file) {
+            $fontdata[$family] = [
+                'R' => $file,
+                'useOTL' => 0xFF,
+                'useKashida' => 75,
+            ];
+        }
+        // Keep Bold as B on the regular family for older designs that only set weight=bold.
+        $fontdata['diodrumarabic']['B'] = 'DiodrumArabic-Bold.ttf';
 
         $tempDir = storage_path('app/mpdf');
         if (! is_dir($tempDir)) {

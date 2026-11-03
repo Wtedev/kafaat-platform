@@ -32,6 +32,22 @@
 
 @font-face {
     font-family: 'Diodrum Arabic';
+    src: url('/fonts/certificates/DiodrumArabic-Extralight.ttf') format('truetype');
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Diodrum Arabic';
+    src: url('/fonts/certificates/DiodrumArabic-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Diodrum Arabic';
     src: url('/fonts/certificates/DiodrumArabic-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
@@ -40,8 +56,32 @@
 
 @font-face {
     font-family: 'Diodrum Arabic';
+    src: url('/fonts/certificates/DiodrumArabic-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Diodrum Arabic';
+    src: url('/fonts/certificates/DiodrumArabic-Semibold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Diodrum Arabic';
     src: url('/fonts/certificates/DiodrumArabic-Bold.ttf') format('truetype');
     font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Diodrum Arabic';
+    src: url('/fonts/certificates/DiodrumArabic-Heavy.ttf') format('truetype');
+    font-weight: 800;
     font-style: normal;
     font-display: swap;
 }

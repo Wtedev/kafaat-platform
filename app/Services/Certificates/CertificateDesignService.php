@@ -19,8 +19,28 @@ class CertificateDesignService
     /** @var list<string> */
     public const WEIGHTS = ['regular', 'bold'];
 
+    /** All Diodrum Arabic cuts shipped with the designer and PDF. */
+    /** @var list<string> */
+    public const DIODRUM_WEIGHTS = [
+        'extralight',
+        'light',
+        'regular',
+        'medium',
+        'semibold',
+        'bold',
+        'heavy',
+    ];
+
     /** @var list<string> */
     public const ALIGNS = ['right', 'center', 'left'];
+
+    /**
+     * @return list<string>
+     */
+    public static function weightsFor(string $font): array
+    {
+        return $font === 'diodrum' ? self::DIODRUM_WEIGHTS : self::WEIGHTS;
+    }
 
     /**
      * @param  array<mixed>  $elements
@@ -211,7 +231,7 @@ class CertificateDesignService
             ]);
         }
 
-        if (! is_string($weight) || ! in_array($weight, self::WEIGHTS, true)) {
+        if (! is_string($weight) || ! in_array($weight, self::weightsFor($font), true)) {
             throw ValidationException::withMessages([
                 'elements.'.$key => 'وزن الخط غير مدعوم.',
             ]);
