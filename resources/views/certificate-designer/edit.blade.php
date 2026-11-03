@@ -63,8 +63,13 @@
                     </select>
                     <label class="is-text-only" for="certificate-weight">الوزن</label>
                     <select class="is-text-only" id="certificate-weight">
-                        <option value="regular">عادي</option>
-                        <option value="bold">عريض</option>
+                        <option value="extralight" data-fonts="diodrum">خفيف جداً</option>
+                        <option value="light" data-fonts="diodrum">خفيف</option>
+                        <option value="regular" data-fonts="shamel ibmplex diodrum">عادي</option>
+                        <option value="medium" data-fonts="diodrum">متوسط</option>
+                        <option value="semibold" data-fonts="diodrum">شبه عريض</option>
+                        <option value="bold" data-fonts="shamel ibmplex diodrum">عريض</option>
+                        <option value="heavy" data-fonts="diodrum">ثقيل</option>
                     </select>
                     <label for="certificate-size">الحجم</label>
                     <input id="certificate-size" type="number" min="8" max="96" step="1">

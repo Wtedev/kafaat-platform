@@ -222,6 +222,30 @@ class CertificateDesignPdfTest extends TestCase
         $this->assertStringContainsString('DiodrumArabic', $bytes);
     }
 
+    public function test_each_diodrum_weight_is_embedded_in_the_pdf(): void
+    {
+        $program = $this->designedProgram();
+        $elements = $program->certificateTemplate->elements;
+        $elements['beneficiary_name']['font'] = 'diodrum';
+        $elements['beneficiary_name']['weight'] = 'medium';
+        $program->certificateTemplate->update(['elements' => $elements]);
+        $user = User::factory()->create(['name' => 'نورة العبدالله']);
+        $certificate = Certificate::query()->create([
+            'user_id' => $user->id,
+            'certificateable_type' => $program->getMorphClass(),
+            'certificateable_id' => $program->id,
+            'certificate_number' => 'CERT-DIODRUM-MED',
+            'verification_code' => str_repeat('e', 32),
+            'issued_at' => now(),
+        ]);
+
+        $bytes = Storage::disk('public')->get(app(CertificatePdfService::class)->generate($certificate));
+
+        $this->assertReadablePdf($bytes);
+        $this->assertStringContainsString('DiodrumArabic', $bytes);
+        $this->assertStringContainsString('Medium', $bytes);
+    }
+
     private function assertReadablePdf(string $bytes): void
     {
         $this->assertStringStartsWith('%PDF', $bytes);

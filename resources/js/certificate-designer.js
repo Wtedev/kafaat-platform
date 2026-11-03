@@ -251,6 +251,31 @@ function boot() {
         return '"FF Shamel", "IBM Plex Sans Arabic", sans-serif';
     };
 
+    const fontWeight = (weight) => ({
+        extralight: '200',
+        light: '300',
+        regular: '400',
+        medium: '500',
+        semibold: '600',
+        bold: '700',
+        heavy: '800',
+    }[weight] || '400');
+
+    const syncWeightOptions = (font, preferred) => {
+        let matched = false;
+        [...weightInput.options].forEach((option) => {
+            const fonts = (option.dataset.fonts || '').split(/\s+/).filter(Boolean);
+            const allowed = fonts.length === 0 || fonts.includes(font);
+            option.hidden = ! allowed;
+            option.disabled = ! allowed;
+            if (allowed && option.value === preferred) {
+                matched = true;
+            }
+        });
+        weightInput.value = matched ? preferred : 'regular';
+        return weightInput.value;
+    };
+
     const naturalTextWidth = (node, text) => {
         const probe = document.createElement('span');
         probe.textContent = text;
@@ -287,7 +312,7 @@ function boot() {
 
         node.style.width = `${element.width}%`;
         node.style.fontFamily = fontFamily(element.font);
-        node.style.fontWeight = element.weight === 'bold' ? '700' : '400';
+        node.style.fontWeight = fontWeight(element.weight);
         node.style.color = element.color;
         node.style.textAlign = element.align;
         const span = node.querySelector('span');
@@ -337,7 +362,7 @@ function boot() {
         sizeInput.value = element.size;
         if (!field.qr) {
             fontInput.value = element.font;
-            weightInput.value = element.weight;
+            element.weight = syncWeightOptions(element.font, element.weight || 'regular');
             colorInput.value = element.color;
             hexInput.value = element.color;
             widthInput.value = element.width;
@@ -470,6 +495,7 @@ function boot() {
         }
         pushUndo();
         element.font = fontInput.value;
+        element.weight = syncWeightOptions(element.font, element.weight || 'regular');
         refreshSelected();
     });
 
