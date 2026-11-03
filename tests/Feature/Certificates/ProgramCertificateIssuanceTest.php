@@ -303,7 +303,8 @@ class ProgramCertificateIssuanceTest extends TestCase
             ->assertSee('أحمد')
             ->assertSee('سارة')
             ->assertDontSee('خالد')
-            ->assertSee('لم تصدر')
+            ->assertSee('إصدار الشهادة')
+            ->assertDontSee('لم تصدر')
             ->assertSee('1 من 3')
             ->assertSee('0 من 3')
             ->assertSee('قبلي ✗')
@@ -475,6 +476,28 @@ class ProgramCertificateIssuanceTest extends TestCase
         Storage::disk('public')->assertExists(Certificate::query()->firstOrFail()->file_path);
     }
 
+    public function test_the_status_column_issues_one_certificate(): void
+    {
+        Storage::fake('public');
+        Queue::fake();
+
+        [$program, $registration, $beneficiary] = $this->approvedRegistration();
+        $this->saveBackground($program);
+        $beneficiary->forceFill(['notify_email' => false])->save();
+        $issuer = $this->staff('certificates.issue');
+
+        Livewire::actingAs($issuer)
+            ->test(ProgramRegistrationCertificatesRelationManager::class, [
+                'ownerRecord' => $program,
+                'pageClass' => ViewTrainingProgram::class,
+            ])
+            ->assertSee('إصدار الشهادة')
+            ->callTableAction('issueOne', $registration)
+            ->assertNotified('تم إصدار 1 شهادة للمحددين');
+
+        Queue::assertPushed(IssueProgramCertificateJob::class, 1);
+    }
+
     public function test_resend_sends_the_program_email_again(): void
     {
         Storage::fake('public');
@@ -492,6 +515,8 @@ class ProgramCertificateIssuanceTest extends TestCase
                 'ownerRecord' => $program->fresh(),
                 'pageClass' => ViewTrainingProgram::class,
             ])
+            ->assertSee('مصدرة')
+            ->assertDontSee('لم تصدر')
             ->assertTableActionVisible('resendCertificateEmail', $registration)
             ->assertTableActionVisible('downloadCertificate', $registration)
             ->mountTableAction('resendCertificateEmail', $registration)
