@@ -75,9 +75,16 @@ class CertificateService
             return $winner;
         }
 
-        // Generate PDF and attach path
-        $filePath = $this->pdfService->generate($certificate);
-        $certificate->update(['file_path' => $filePath]);
+        // Generate PDF and attach path. If rendering fails after the row was
+        // created, remove the orphan so the UI can re-issue cleanly.
+        try {
+            $filePath = $this->pdfService->generate($certificate);
+            $certificate->update(['file_path' => $filePath]);
+        } catch (\Throwable $exception) {
+            $certificate->delete();
+
+            throw $exception;
+        }
 
         $this->inboxNotifications->certificateIssued($user, $certificate, $issuedBy);
 

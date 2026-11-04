@@ -29,6 +29,7 @@ use App\Models\VolunteerOpportunity;
 use App\Notifications\CertificateReadyEmail;
 use App\Notifications\InboxNotificationEmail;
 use App\Services\Certificates\ProgramCertificateIssuance;
+use App\Services\CertificatePdfService;
 use App\Services\CertificateService;
 use App\Services\EmailLogService;
 use App\Support\CertificateReadyMail;
@@ -244,6 +245,27 @@ class ProgramCertificateIssuanceTest extends TestCase
         $this->assertSame(1, Certificate::query()->count());
         $this->assertSame(0, InboxNotification::query()->count());
         $this->assertNull($certificate->file_path);
+    }
+
+    public function test_a_failed_pdf_does_not_leave_an_issued_certificate_without_a_file(): void
+    {
+        Storage::fake('public');
+        [$program, , $beneficiary, $issuer] = $this->approvedRegistration();
+        $this->saveBackground($program);
+
+        $this->mock(CertificatePdfService::class, function ($mock): void {
+            $mock->shouldReceive('generate')->once()->andThrow(new RuntimeException('pdf boom'));
+        });
+
+        try {
+            app(CertificateService::class)->issue($beneficiary, $program, $issuer);
+            $this->fail('PDF generation should fail.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('pdf boom', $exception->getMessage());
+        }
+
+        $this->assertSame(0, Certificate::query()->count());
+        $this->assertSame(0, InboxNotification::query()->count());
     }
 
     public function test_the_tab_queues_one_job_per_eligible_person_and_hides_the_old_buttons(): void
