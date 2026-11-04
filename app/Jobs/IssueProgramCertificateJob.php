@@ -16,6 +16,8 @@ class IssueProgramCertificateJob implements ShouldBeUnique, ShouldQueue
     /** @var list<int> */
     public array $backoff = [30, 120];
 
+    public int $timeout = 180;
+
     public int $uniqueFor = 3600;
 
     public function __construct(

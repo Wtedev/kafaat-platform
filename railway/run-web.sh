@@ -75,4 +75,28 @@ else
 fi
 
 php artisan optimize
+
+# Certificate PDF/email jobs need the web volume (local public disk). Process
+# only the dedicated `certificates` queue here; the worker service keeps
+# handling the default queue (mail, broadcasts, exports, …).
+certificates_worker_pid=
+cleanup_certificates_worker() {
+  if [[ -n "${certificates_worker_pid}" ]] && kill -0 "${certificates_worker_pid}" 2>/dev/null; then
+    kill "${certificates_worker_pid}" 2>/dev/null || true
+    wait "${certificates_worker_pid}" 2>/dev/null || true
+  fi
+}
+trap cleanup_certificates_worker EXIT INT TERM
+
+php artisan queue:work \
+  --queue=certificates \
+  --sleep=1 \
+  --tries=3 \
+  --timeout=180 \
+  --max-time=3600 \
+  --memory=256 \
+  --no-interaction &
+certificates_worker_pid=$!
+echo "Certificates queue worker started (pid ${certificates_worker_pid})"
+
 exec php artisan serve --no-reload --host=0.0.0.0 --port="${PORT:-8080}"
