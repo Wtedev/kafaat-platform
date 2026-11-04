@@ -142,6 +142,14 @@ class VolunteerOpportunityResource extends Resource
                     ->helperText('يُنشأ تلقائياً من العنوان إذا تُرك فارغاً')
                     ->columnSpanFull(),
 
+                TextInput::make('external_url')
+                    ->label('رابط الفرصة في المنصة الوطنية للتطوع')
+                    ->url()
+                    ->maxLength(2048)
+                    ->placeholder('https://')
+                    ->helperText('عند تعبئته، يفتح زر «سجّل» هذا الرابط مباشرة في تبويب جديد')
+                    ->columnSpanFull(),
+
                 TrainingEntityFormSupport::descriptionField(),
             ]);
     }

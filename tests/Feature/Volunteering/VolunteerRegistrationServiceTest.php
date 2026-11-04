@@ -266,11 +266,10 @@ class VolunteerRegistrationServiceTest extends TestCase
     }
 
     /**
-     * يوثّق السلوك الحالي (وليس بالضرورة المطلوب): عند تحوّل التسجيل إلى "مكتمل"
-     * يتحرر مقعده لأن حساب السعة يعدّ حالة "مقبول" فقط.
-     * القرار بتغييره أو إبقائه ينتظر رأي المشرفة.
+     * المقعد يبقى محسوباً بعد الإكمال: المتطوع الذي أنهى ساعاته كان جزءاً من
+     * العدد المطلوب، فلا يُفتح مقعد جديد بعد إكماله.
      */
-    public function test_completed_registration_currently_frees_its_capacity_slot(): void
+    public function test_completed_registration_keeps_its_capacity_slot(): void
     {
         $admin = $this->makeAdmin();
         $opportunity = $this->makeOpportunity(['capacity' => 1]);
@@ -280,7 +279,19 @@ class VolunteerRegistrationServiceTest extends TestCase
 
         $this->service->markCompleted($registration, $admin);
 
-        $this->assertTrue($opportunity->fresh()->hasCapacity());
+        $this->assertFalse($opportunity->fresh()->hasCapacity());
+    }
+
+    public function test_approve_throws_when_completed_registrations_fill_capacity(): void
+    {
+        $admin = $this->makeAdmin();
+        $opportunity = $this->makeOpportunity(['capacity' => 1]);
+        $this->makeRegistration($opportunity, RegistrationStatus::Completed);
+        $pending = $this->makeRegistration($opportunity, RegistrationStatus::Pending);
+
+        $this->expectException(OpportunityCapacityExceededException::class);
+
+        $this->service->approve($pending, $admin);
     }
 
     // ─── لوحة الإدارة: تبويب التسجيلات داخل صفحة الفرصة ─────────────────────
