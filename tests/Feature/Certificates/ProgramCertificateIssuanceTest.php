@@ -28,8 +28,8 @@ use App\Models\User;
 use App\Models\VolunteerOpportunity;
 use App\Notifications\CertificateReadyEmail;
 use App\Notifications\InboxNotificationEmail;
-use App\Services\Certificates\ProgramCertificateIssuance;
 use App\Services\CertificatePdfService;
+use App\Services\Certificates\ProgramCertificateIssuance;
 use App\Services\CertificateService;
 use App\Services\EmailLogService;
 use App\Support\CertificateReadyMail;
@@ -250,7 +250,8 @@ class ProgramCertificateIssuanceTest extends TestCase
     public function test_a_failed_pdf_does_not_leave_an_issued_certificate_without_a_file(): void
     {
         Storage::fake('public');
-        [$program, , $beneficiary, $issuer] = $this->approvedRegistration();
+        [$program, $registration, $beneficiary, $issuer] = $this->approvedRegistration();
+        unset($registration);
         $this->saveBackground($program);
 
         $this->mock(CertificatePdfService::class, function ($mock): void {
