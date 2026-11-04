@@ -346,9 +346,13 @@ class ProgramCertificateIssuanceTest extends TestCase
 
         $issuerComponent
             ->callMountedAction()
-            ->assertNotified('تم إصدار 2 شهادة');
+            ->assertNotified('بدأ إصدار 2 شهادة — يكتمل في الخلفية');
 
         Queue::assertPushed(IssueProgramCertificateJob::class, 2);
+        Queue::assertPushed(
+            IssueProgramCertificateJob::class,
+            fn (IssueProgramCertificateJob $job): bool => $job->queue === 'certificates',
+        );
 
         $audit = AuditLog::query()->where('action', 'program_certificates.issued')->first();
         $this->assertNotNull($audit);
@@ -450,19 +454,20 @@ class ProgramCertificateIssuanceTest extends TestCase
         $component
             ->resetTableFilters()
             ->callTableBulkAction('issueSelected', [$partialRegistration])
-            ->assertNotified('تم إصدار 1 شهادة للمحددين');
+            ->assertNotified('بدأ إصدار 1 شهادة للمحددين — يكتمل في الخلفية');
 
         Queue::assertPushed(IssueProgramCertificateJob::class, 1);
         Queue::assertPushed(
             IssueProgramCertificateJob::class,
-            fn (IssueProgramCertificateJob $job): bool => $job->registrationId === $partialRegistration->id,
+            fn (IssueProgramCertificateJob $job): bool => $job->registrationId === $partialRegistration->id
+                && $job->queue === 'certificates',
         );
     }
 
-    public function test_a_local_public_disk_issues_the_certificate_in_the_request(): void
+    public function test_a_local_public_disk_queues_certificates_on_the_web_volume_queue(): void
     {
         Storage::fake('public');
-        Notification::fake();
+        Queue::fake();
         config(['queue.default' => 'database']);
 
         [$program, $registration, $beneficiary] = $this->approvedRegistration();
@@ -476,11 +481,15 @@ class ProgramCertificateIssuanceTest extends TestCase
                 'pageClass' => ViewTrainingProgram::class,
             ])
             ->callTableBulkAction('issueSelected', [$registration])
-            ->assertNotified('تم إصدار 1 شهادة للمحددين');
+            ->assertNotified('بدأ إصدار 1 شهادة للمحددين — يكتمل في الخلفية');
 
-        $this->assertSame(1, Certificate::query()->count());
-        $this->assertSame(0, DB::table('jobs')->count());
-        Storage::disk('public')->assertExists(Certificate::query()->firstOrFail()->file_path);
+        Queue::assertPushed(IssueProgramCertificateJob::class, 1);
+        Queue::assertPushed(
+            IssueProgramCertificateJob::class,
+            fn (IssueProgramCertificateJob $job): bool => $job->registrationId === $registration->id
+                && $job->queue === 'certificates',
+        );
+        $this->assertSame(0, Certificate::query()->count());
     }
 
     public function test_the_status_column_issues_one_certificate(): void
@@ -500,9 +509,13 @@ class ProgramCertificateIssuanceTest extends TestCase
             ])
             ->assertSee('إصدار الشهادة')
             ->callTableAction('issueOne', $registration)
-            ->assertNotified('تم إصدار 1 شهادة للمحددين');
+            ->assertNotified('بدأ إصدار 1 شهادة للمحددين — يكتمل في الخلفية');
 
         Queue::assertPushed(IssueProgramCertificateJob::class, 1);
+        Queue::assertPushed(
+            IssueProgramCertificateJob::class,
+            fn (IssueProgramCertificateJob $job): bool => $job->queue === 'certificates',
+        );
     }
 
     public function test_resend_sends_the_program_email_again(): void

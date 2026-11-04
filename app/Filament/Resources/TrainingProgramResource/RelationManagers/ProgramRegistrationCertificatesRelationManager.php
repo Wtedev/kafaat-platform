@@ -387,16 +387,16 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
     }
 
     /**
-     * The public disk is the web volume. A separate worker cannot read that
-     * file, so a local disk has to render the certificate in this request.
-     * Shared storage (S3) can keep the job on the queue.
+     * Local public disk lives on the web volume — queue on the dedicated
+     * `certificates` queue (processed by the web service). Shared storage
+     * (S3) can use the default worker queue.
      */
     private function queueCertificateJob(int $registrationId, ?int $actorId): void
     {
         $job = new IssueProgramCertificateJob($registrationId, $actorId);
 
         if (config('filesystems.disks.public.driver') === 'local') {
-            dispatch_sync($job);
+            dispatch($job->onQueue('certificates'));
 
             return;
         }
@@ -440,7 +440,7 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
         );
 
         Notification::make()
-            ->title('تم إصدار '.$pending->count().' شهادة للمحددين')
+            ->title('بدأ إصدار '.$pending->count().' شهادة للمحددين — يكتمل في الخلفية')
             ->success()
             ->send();
     }
@@ -615,7 +615,7 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
         );
 
         Notification::make()
-            ->title('تم إصدار '.$registrations->count().' شهادة')
+            ->title('بدأ إصدار '.$registrations->count().' شهادة — يكتمل في الخلفية')
             ->success()
             ->send();
     }
