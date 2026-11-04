@@ -5,14 +5,17 @@ namespace Database\Seeders;
 use App\Enums\OpportunityStatus;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
-use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
 class VolunteerOpportunitySeeder extends Seeder
 {
+    /**
+     * The only volunteer opportunities on the platform. Anything else is deleted
+     * (with its registrations) on deploy. Registration happens on the National
+     * Volunteering Platform via external_url, so no login is needed here.
+     */
     private const KEPT_SLUGS = [
-        'nvg-26060074414',
-        'nvg-26060067032',
+        'nvg-26110305329',
     ];
 
     public function run(): void
@@ -30,40 +33,26 @@ class VolunteerOpportunitySeeder extends Seeder
 
         $items = [
             [
-                'slug' => 'nvg-26060074414',
-                'title' => 'المساهمة في تصميم الإعلانات التعريفية للقاءات الفريق التطوعي',
+                'slug' => 'nvg-26110305329',
+                'title' => 'بالموهبة نخدم الوطن - التصميم والإنتاج المرئي',
                 'description' => implode("\n", [
-                    'فرصة تطوعية تهدف إلى تصميم المواد إعلانية إبداعية للقاءات الفريق التطوعي بما يسهم في إبراز محتواها وتعزيز المشاركة فيها وفق الهوية المعتمدة.',
+                    'المساهمة في إنتاج محتوى وطني إبداعي من خلال الاستفادة من مهارات المتطوعين في التصميم الجرافيكي، وصناعة الفيديو، والمونتاج؛ بهدف تعزيز قيم الانتماء والولاء والاعتزاز بالوطن، وإنتاج مواد مرئية وإبداعية وفق معايير الهوية البصرية المعتمدة، ضمن مبادرة بالموهبة نخدم الوطن.',
                     '',
-                    'مجال التطوع: فني وإبداعي — تصميم الإعلانات',
-                    'المهمة: المونتاج',
+                    'مجال التطوع: فني وإبداعي — تصميم الإعلام والمطبوعات (التصميم الجرافيكي)',
+                    'المهام: المونتاج، التصميم',
                     'نمط العمل: عن بُعد',
-                    'رقم الفرصة على المنصة الوطنية: 26060074414',
-                    'للتسجيل عبر المنصة الوطنية للعمل التطوعي:',
-                    'https://nvg.gov.sa/opportunity/view-opportunity/c88e443e-f36b-1410-8b1e-00bab6d11711',
+                    'الوقت: من 9:00 صباحًا إلى 2:00 ظهرًا',
+                    'المهارات المطلوبة: التفكير الإبداعي والابتكار، التواصل الفعّال، الالتزام والانضباط',
+                    'يحصل المتطوع على: تدريب',
+                    'الفئة العمرية: 15 - 90 سنة — للجنسين — مناسبة لذوي الإعاقة — بدون مقابلة شخصية',
+                    'رقم الفرصة على المنصة الوطنية: 26110305329',
                 ]),
-                'capacity' => 2,
-                'hours_expected' => 30.00,
-                'start_date' => Carbon::create(2026, 6, 22),
-                'end_date' => Carbon::create(2026, 6, 27),
-            ],
-            [
-                'slug' => 'nvg-26060067032',
-                'title' => 'المساهمة في تنفيذ مهام مبادرات الذكاء الاصطناعي',
-                'description' => implode("\n", [
-                    'فرصة تطوعية تتيح للمشاركين استكمال متطلبات المبادرة والمهام المرتبطة بها بما يسهم في تطوير المهارات والمعارف في مجال الذكاء الاصطناعي.',
-                    '',
-                    'مجال التطوع: تقنية المعلومات — الذكاء الاصطناعي',
-                    'المهمة: إعداد التقارير',
-                    'نمط العمل: عن بُعد',
-                    'رقم الفرصة على المنصة الوطنية: 26060067032',
-                    'للتسجيل عبر المنصة الوطنية للعمل التطوعي:',
-                    'https://nvg.gov.sa/opportunity/view-opportunity/e019443e-f36b-1410-8b1e-00bab6d11711',
-                ]),
+                'external_url' => 'https://nvg.gov.sa/opportunity/view-opportunity/f71b493e-f36b-1410-8b1f-00bab6d11711',
                 'capacity' => 50,
                 'hours_expected' => 60.00,
-                'start_date' => Carbon::create(2026, 6, 16),
-                'end_date' => Carbon::create(2026, 6, 27),
+                // Y-m-d strings: Carbon midnight in Asia/Riyadh can persist a day early in PostgreSQL DATE columns.
+                'start_date' => '2026-11-14',
+                'end_date' => '2026-11-25',
             ],
         ];
 
@@ -73,6 +62,7 @@ class VolunteerOpportunitySeeder extends Seeder
                 [
                     'title' => $data['title'],
                     'description' => $data['description'],
+                    'external_url' => $data['external_url'],
                     'capacity' => $data['capacity'],
                     'hours_expected' => $data['hours_expected'],
                     'start_date' => $data['start_date'],
@@ -85,12 +75,18 @@ class VolunteerOpportunitySeeder extends Seeder
             );
         }
 
-        $removed = VolunteerOpportunity::query()
+        // Delete one by one so each model's deleting hook also removes its image.
+        // Registrations are removed by the database (cascadeOnDelete).
+        $removed = 0;
+        VolunteerOpportunity::query()
             ->whereNotIn('slug', self::KEPT_SLUGS)
-            ->delete();
+            ->each(function (VolunteerOpportunity $opportunity) use (&$removed): void {
+                $opportunity->delete();
+                $removed++;
+            });
 
         if ($removed > 0) {
-            $this->command?->info("VolunteerOpportunitySeeder: removed {$removed} non-NVG volunteer opportunities.");
+            $this->command?->info("VolunteerOpportunitySeeder: removed {$removed} old volunteer opportunities.");
         }
     }
 }
