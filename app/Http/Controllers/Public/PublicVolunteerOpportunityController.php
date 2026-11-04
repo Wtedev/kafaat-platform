@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Public;
 use App\Exceptions\DuplicateRegistrationException;
 use App\Exceptions\OpportunityCapacityExceededException;
 use App\Exceptions\OpportunityNotPublishedException;
+use App\Exceptions\RegistrationRejectedException;
 use App\Http\Controllers\Controller;
 use App\Models\VolunteerOpportunity;
 use App\Services\VolunteerRegistrationService;
@@ -54,6 +55,8 @@ class PublicVolunteerOpportunityController extends Controller
             $this->registrationService->register($request->user(), $volunteerOpportunity);
 
             return back()->with('success', 'تم تسجيلك بنجاح! سيتم مراجعة طلبك قريباً.');
+        } catch (RegistrationRejectedException) {
+            return back()->with('error', 'لا يمكن إعادة التقديم على هذه الفرصة التطوعية لأن تسجيلك السابق فيها رُفض أو أُغلق من قبل الإدارة.');
         } catch (DuplicateRegistrationException) {
             return back()->with('error', 'لديك تسجيل نشط بالفعل في هذه الفرصة التطوعية.');
         } catch (OpportunityNotPublishedException) {

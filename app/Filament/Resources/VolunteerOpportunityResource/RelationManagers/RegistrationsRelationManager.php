@@ -155,6 +155,7 @@ class RegistrationsRelationManager extends RelationManager
                     ->action(function (VolunteerRegistration $record, array $data): void {
                         app(VolunteerRegistrationService::class)->reject(
                             $record,
+                            auth()->user(),
                             $data['rejected_reason'] ?? null
                         );
                         Notification::make()->title('تم رفض التسجيل')->warning()->send();
