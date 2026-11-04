@@ -102,7 +102,8 @@ class VolunteerHoursRelationManager extends RelationManager
                 CreateAction::make(),
             ])
             ->actions([
-                EditAction::make(),
+                EditAction::make()
+                    ->visible(fn (VolunteerHour $record): bool => $record->status === VolunteerHoursStatus::Pending),
 
                 Action::make('approve')
                     ->label('موافقة على الساعات')
@@ -134,7 +135,8 @@ class VolunteerHoursRelationManager extends RelationManager
                         Notification::make()->title('تم رفض الساعات')->warning()->send();
                     }),
 
-                DeleteAction::make(),
+                DeleteAction::make()
+                    ->visible(fn (VolunteerHour $record): bool => $record->status === VolunteerHoursStatus::Pending),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

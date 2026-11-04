@@ -14,8 +14,9 @@
 @else
 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
     @foreach ($opportunities as $index => $opp)
-    <a href="{{ route('public.volunteering.show', $opp->slug) }}" class="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md
-              hover:-translate-y-0.5 transition-all duration-300 block text-right overflow-hidden">
+    <div class="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md
+              hover:-translate-y-0.5 transition-all duration-300 flex flex-col text-right overflow-hidden">
+    <a href="{{ route('public.volunteering.show', $opp->slug) }}" class="block flex-1">
 
         <x-public.card-media
             variant="catalog"
@@ -52,13 +53,27 @@
             </span>
             @endif
         </div>
+        @unless ($opp->hasExternalUrl())
         <div class="mt-4 text-xs font-semibold flex items-center gap-1.5 justify-end" style="color:#335483">
             قدّم طلبك
             <svg class="w-3.5 h-3.5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
         </div>
+        @endunless
         </div>
     </a>
+    @if ($opp->hasExternalUrl())
+    <div class="px-5 pb-5">
+        <a href="{{ $opp->external_url }}" target="_blank" rel="noopener noreferrer"
+           class="inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
+           style="background:linear-gradient(135deg,#335483 0%,#264368 100%)">
+            سجّل في الفرصة
+            <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+        </a>
+    </div>
+    @endif
+    </div>
     @endforeach
 </div>
 
