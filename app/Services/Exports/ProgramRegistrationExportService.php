@@ -5,14 +5,18 @@ namespace App\Services\Exports;
 use App\Enums\AttendanceStatus;
 use App\Enums\AuditLogResult;
 use App\Enums\RegistrationStatus;
+use App\Enums\SurveyType;
 use App\Exports\ProgramRegistrationsExport;
+use App\Models\Certificate;
 use App\Models\ProgramRegistration;
+use App\Models\ProgramSurvey;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use App\Support\Exports\ProgramRegistrationExportColumns;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -197,10 +201,14 @@ final class ProgramRegistrationExportService
         ?Builder $filteredTableQuery = null,
         ?array $selectedIds = null,
     ): Collection {
-        return $this->baseQuery($program, $scope, $filteredTableQuery, $selectedIds)
-            ->with(['user.profile', 'approvedBy'])
+        $registrations = $this->baseQuery($program, $scope, $filteredTableQuery, $selectedIds)
+            ->with(['user.profile', 'approvedBy', 'attendanceMarks'])
             ->orderBy('created_at')
             ->get();
+
+        $this->hydrateProgressRelations($program, $registrations);
+
+        return $registrations;
     }
 
     /**
@@ -218,9 +226,73 @@ final class ProgramRegistrationExportService
         ?array $selectedIds = null,
     ): void {
         $this->baseQuery($program, $scope, $filteredTableQuery, $selectedIds)
-            ->with(['user.profile', 'approvedBy'])
+            ->with(['user.profile', 'approvedBy', 'attendanceMarks'])
             ->orderBy('id')
-            ->chunkById($size, $callback);
+            ->chunkById($size, function (Collection $chunk) use ($callback, $program): void {
+                $this->hydrateProgressRelations($program, $chunk);
+                $callback($chunk);
+            });
+    }
+
+    /**
+     * Attach certificate + survey-answered flags for export columns (no N+1).
+     *
+     * @param  Collection<int, ProgramRegistration>  $registrations
+     */
+    private function hydrateProgressRelations(TrainingProgram $program, Collection $registrations): void
+    {
+        if ($registrations->isEmpty()) {
+            return;
+        }
+
+        $userIds = $registrations->pluck('user_id')->filter()->unique()->values()->all();
+        $registrationIds = $registrations->pluck('id')->filter()->unique()->values()->all();
+
+        $certificates = Certificate::query()
+            ->where('certificateable_type', $program->getMorphClass())
+            ->where('certificateable_id', $program->id)
+            ->whereIn('user_id', $userIds)
+            ->get()
+            ->keyBy(fn (Certificate $certificate): int => (int) $certificate->user_id);
+
+        $surveyFlagsByRegistration = [];
+        foreach ($registrationIds as $registrationId) {
+            $surveyFlagsByRegistration[(int) $registrationId] = [
+                SurveyType::Pre->value => false,
+                SurveyType::Post->value => false,
+                SurveyType::Satisfaction->value => false,
+            ];
+        }
+
+        $surveys = ProgramSurvey::query()
+            ->where('training_program_id', $program->id)
+            ->get(['id', 'type', 'is_anonymous']);
+
+        foreach ($surveys as $survey) {
+            $typeValue = $survey->type instanceof SurveyType
+                ? $survey->type->value
+                : (string) $survey->type;
+            $table = $survey->is_anonymous ? 'survey_completions' : 'survey_responses';
+            $answeredIds = DB::table($table)
+                ->where('program_survey_id', $survey->id)
+                ->whereIn('registration_id', $registrationIds)
+                ->pluck('registration_id');
+
+            foreach ($answeredIds as $answeredId) {
+                $surveyFlagsByRegistration[(int) $answeredId][$typeValue] = true;
+            }
+        }
+
+        foreach ($registrations as $registration) {
+            $registration->setRelation(
+                'exportCertificate',
+                $certificates->get((int) $registration->user_id),
+            );
+            $registration->setAttribute(
+                'export_survey_answered',
+                $surveyFlagsByRegistration[(int) $registration->id] ?? [],
+            );
+        }
     }
 
     public function filename(TrainingProgram $program): string
