@@ -5,9 +5,14 @@ namespace App\Support\Exports;
 use App\Enums\IdentityCategory;
 use App\Enums\ProfileGender;
 use App\Enums\RegistrationStatus;
+use App\Enums\SurveyType;
+use App\Models\Certificate;
+use App\Models\ProgramAttendanceLink;
 use App\Models\ProgramRegistration;
+use App\Models\ProgramSurvey;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Services\Surveys\ProgramSurveyService;
 use App\Support\Privacy\SensitiveContactMasker;
 use App\Support\ProgramRegistrationQuestions;
 
@@ -24,6 +29,14 @@ final class ProgramRegistrationExportColumns
     public const GROUP_REGISTRATION = 'registration';
 
     public const GROUP_ANSWERS = 'answers';
+
+    public const GROUP_PROGRESS = 'progress';
+
+    public const ATTENDANCE_DAY_PREFIX = 'attendance_day_';
+
+    public const SURVEY_PREFIX = 'survey_';
+
+    public const CERTIFICATE_STATUS = 'certificate_status';
 
     /**
      * @return array<string, string> key => Arabic label (flat, for CheckboxList)
@@ -48,6 +61,7 @@ final class ProgramRegistrationExportColumns
             self::GROUP_PROFILE => [],
             self::GROUP_REGISTRATION => [],
             self::GROUP_ANSWERS => [],
+            self::GROUP_PROGRESS => [],
         ];
 
         foreach (self::definitions($actor, $program) as $key => $def) {
@@ -67,6 +81,7 @@ final class ProgramRegistrationExportColumns
             self::GROUP_PROFILE => 'الملف الشخصي',
             self::GROUP_REGISTRATION => 'بيانات التسجيل',
             self::GROUP_ANSWERS => 'أسئلة التسجيل',
+            self::GROUP_PROGRESS => 'الحضور والاستبيانات والشهادة',
         ];
     }
 
@@ -141,8 +156,12 @@ final class ProgramRegistrationExportColumns
         ];
     }
 
-    public static function resolve(ProgramRegistration $registration, string $key, ?User $actor = null): mixed
-    {
+    public static function resolve(
+        ProgramRegistration $registration,
+        string $key,
+        ?User $actor = null,
+        ?TrainingProgram $program = null,
+    ): mixed {
         $registration->loadMissing(['user.profile', 'approvedBy']);
         $user = $registration->user;
         $profile = $user?->profile;
@@ -151,32 +170,42 @@ final class ProgramRegistrationExportColumns
         $canContact = ($actor?->can('exports.training') ?? false)
             || self::actorCanSeeContact($actor);
 
-        $raw = match ($key) {
-            'registration_id' => $registration->id,
-            'user_name' => $user?->name,
-            'user_email' => $canContact
+        $raw = match (true) {
+            $key === 'registration_id' => $registration->id,
+            $key === 'user_name' => $user?->name,
+            $key === 'user_email' => $canContact
                 ? $user?->email
                 : SensitiveContactMasker::maskEmail($user?->email),
-            'user_phone' => $canContact
+            $key === 'user_phone' => $canContact
                 ? $user?->phone
                 : SensitiveContactMasker::maskPhone($user?->phone),
-            'identity_masked' => $user?->maskedIdentityNumber(),
-            'is_saudi' => self::saudiLabel($user?->identity_category),
-            'gender' => self::genderLabel($profile?->gender),
-            'birth_date' => $profile?->birth_date?->format('Y-m-d'),
-            'city' => $profile?->city,
-            'job_title' => $profile?->job_title,
-            'status' => $registration->status instanceof RegistrationStatus
+            $key === 'identity_masked' => $user?->maskedIdentityNumber(),
+            $key === 'is_saudi' => self::saudiLabel($user?->identity_category),
+            $key === 'gender' => self::genderLabel($profile?->gender),
+            $key === 'birth_date' => $profile?->birth_date?->format('Y-m-d'),
+            $key === 'city' => $profile?->city,
+            $key === 'job_title' => $profile?->job_title,
+            $key === 'status' => $registration->status instanceof RegistrationStatus
                 ? $registration->status->label()
                 : (string) $registration->status,
-            'registered_at' => $registration->created_at?->timezone(config('app.timezone'))->format('Y-m-d H:i'),
-            'approved_at' => $registration->approved_at?->timezone(config('app.timezone'))->format('Y-m-d H:i'),
-            'approved_by_name' => $registration->approvedBy?->name,
-            'rejected_reason' => $registration->rejected_reason,
-            'attendance_percentage' => ($pct = $registration->effectiveAttendancePercentage()) === null
+            $key === 'registered_at' => $registration->created_at?->timezone(config('app.timezone'))->format('Y-m-d H:i'),
+            $key === 'approved_at' => $registration->approved_at?->timezone(config('app.timezone'))->format('Y-m-d H:i'),
+            $key === 'approved_by_name' => $registration->approvedBy?->name,
+            $key === 'rejected_reason' => $registration->rejected_reason,
+            $key === 'attendance_percentage' => ($pct = $registration->effectiveAttendancePercentage()) === null
                 ? '—'
                 : $pct,
-            'score' => $registration->score,
+            $key === 'score' => $registration->score,
+            $key === self::CERTIFICATE_STATUS => self::certificateStatusLabel($registration, $program),
+            str_starts_with($key, self::ATTENDANCE_DAY_PREFIX) => self::attendanceDayLabel(
+                $registration,
+                (int) substr($key, strlen(self::ATTENDANCE_DAY_PREFIX)),
+            ),
+            str_starts_with($key, self::SURVEY_PREFIX) => self::surveyAnsweredLabel(
+                $registration,
+                substr($key, strlen(self::SURVEY_PREFIX)),
+                $program,
+            ),
             default => self::answerValue($registration, $key),
         };
 
@@ -324,9 +353,159 @@ final class ProgramRegistrationExportColumns
                     'default' => true,
                 ];
             }
+
+            foreach (self::progressDefinitions($program) as $key => $def) {
+                $ordered[$key] = $def;
+            }
         }
 
         return $ordered;
+    }
+
+    /**
+     * @return array<string, array{label: string, group: string, default?: bool}>
+     */
+    private static function progressDefinitions(TrainingProgram $program): array
+    {
+        $defs = [];
+
+        $links = ProgramAttendanceLink::query()
+            ->where('training_program_id', $program->id)
+            ->whereNull('cancelled_at')
+            ->orderByRaw('opens_at is null')
+            ->orderBy('opens_at')
+            ->orderBy('id')
+            ->get(['id', 'name']);
+
+        foreach ($links as $link) {
+            $dayLabel = filled($link->name) ? (string) $link->name : 'يوم حضور #'.$link->id;
+            $defs[self::ATTENDANCE_DAY_PREFIX.$link->id] = [
+                'label' => 'حضور: '.$dayLabel,
+                'group' => self::GROUP_PROGRESS,
+                'default' => false,
+            ];
+        }
+
+        $surveyTypes = ProgramSurvey::query()
+            ->where('training_program_id', $program->id)
+            ->get(['type'])
+            ->map(fn (ProgramSurvey $survey): string => $survey->type instanceof SurveyType
+                ? $survey->type->value
+                : (string) $survey->type)
+            ->unique()
+            ->all();
+
+        foreach ([SurveyType::Pre, SurveyType::Satisfaction, SurveyType::Post] as $type) {
+            if (! in_array($type->value, $surveyTypes, true)) {
+                continue;
+            }
+
+            $defs[self::SURVEY_PREFIX.$type->value] = [
+                'label' => 'استبيان '.$type->label(),
+                'group' => self::GROUP_PROGRESS,
+                'default' => false,
+            ];
+        }
+
+        $defs[self::CERTIFICATE_STATUS] = [
+            'label' => 'الشهادة والإيميل',
+            'group' => self::GROUP_PROGRESS,
+            'default' => false,
+        ];
+
+        return $defs;
+    }
+
+    private static function attendanceDayLabel(ProgramRegistration $registration, int $linkId): string
+    {
+        if ($linkId < 1) {
+            return 'لم يحضر';
+        }
+
+        $registration->loadMissing('attendanceMarks');
+
+        $present = $registration->attendanceMarks->contains(
+            fn ($mark): bool => (int) $mark->program_attendance_link_id === $linkId,
+        );
+
+        return $present ? 'حاضر' : 'لم يحضر';
+    }
+
+    private static function surveyAnsweredLabel(
+        ProgramRegistration $registration,
+        string $typeValue,
+        ?TrainingProgram $program,
+    ): string {
+        $flags = $registration->getAttribute('export_survey_answered');
+        if (is_array($flags) && array_key_exists($typeValue, $flags)) {
+            return $flags[$typeValue] ? 'نعم' : 'لا';
+        }
+
+        if (! $program instanceof TrainingProgram) {
+            return 'لا';
+        }
+
+        $type = SurveyType::tryFrom($typeValue);
+        if ($type === null) {
+            return 'لا';
+        }
+
+        $survey = ProgramSurvey::query()
+            ->where('training_program_id', $program->id)
+            ->where('type', $type->value)
+            ->first();
+
+        if ($survey === null) {
+            return 'لا';
+        }
+
+        return app(ProgramSurveyService::class)->alreadyAnswered($survey, $registration)
+            ? 'نعم'
+            : 'لا';
+    }
+
+    private static function certificateStatusLabel(
+        ProgramRegistration $registration,
+        ?TrainingProgram $program,
+    ): string {
+        $certificate = self::certificateForExport($registration, $program);
+        if ($certificate === null) {
+            return 'غير مصدرة';
+        }
+
+        $tz = config('app.timezone');
+        $issuedOn = $certificate->issued_at?->timezone($tz)->format('Y-m-d H:i');
+
+        if ($certificate->emailed_at !== null) {
+            $emailedOn = $certificate->emailed_at->timezone($tz)->format('Y-m-d H:i');
+
+            return 'مصدرة — أُرسل إيميل بتاريخ '.$emailedOn;
+        }
+
+        $suffix = $issuedOn !== null ? ' بتاريخ '.$issuedOn : '';
+
+        return 'مصدرة'.$suffix.' — لم يُرسل إيميل';
+    }
+
+    private static function certificateForExport(
+        ProgramRegistration $registration,
+        ?TrainingProgram $program,
+    ): ?Certificate {
+        if ($registration->relationLoaded('exportCertificate')) {
+            $loaded = $registration->getRelation('exportCertificate');
+
+            return $loaded instanceof Certificate ? $loaded : null;
+        }
+
+        if ($program instanceof TrainingProgram) {
+            return Certificate::query()
+                ->where('user_id', $registration->user_id)
+                ->where('certificateable_type', $program->getMorphClass())
+                ->where('certificateable_id', $program->id)
+                ->first();
+        }
+
+        return $registration->certificateForEntity();
     }
 
     private static function answerValue(ProgramRegistration $registration, string $key): mixed

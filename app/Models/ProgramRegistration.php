@@ -139,6 +139,11 @@ class ProgramRegistration extends Model
         return $this->hasMany(ProgramAttendance::class, 'program_registration_id');
     }
 
+    public function attendanceMarks(): HasMany
+    {
+        return $this->hasMany(ProgramAttendanceMark::class, 'program_registration_id');
+    }
+
     // ─── Attendance helpers ───────────────────────────────────────────────────
 
     public function calculateAttendancePercentage(): ?float

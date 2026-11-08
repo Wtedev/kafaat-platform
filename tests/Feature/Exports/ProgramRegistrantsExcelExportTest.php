@@ -2,17 +2,25 @@
 
 namespace Tests\Feature\Exports;
 
+use App\Enums\AttendanceMarkSource;
 use App\Enums\AttendanceStatus;
 use App\Enums\AuditLogResult;
 use App\Enums\IdentityCategory;
 use App\Enums\IdentityType;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
+use App\Enums\SurveyType;
 use App\Exports\ProgramRegistrationsExport;
 use App\Models\AuditLog;
+use App\Models\Certificate;
 use App\Models\Profile;
 use App\Models\ProgramAttendance;
+use App\Models\ProgramAttendanceLink;
+use App\Models\ProgramAttendanceMark;
 use App\Models\ProgramRegistration;
+use App\Models\ProgramSurvey;
+use App\Models\SurveyCompletion;
+use App\Models\SurveyResponse;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Exports\ProgramRegistrationExportAuthorization;
@@ -472,6 +480,153 @@ class ProgramRegistrantsExcelExportTest extends TestCase
         foreach (['password', 'remember_token', 'identity_number_ciphertext', 'otp', 'token', 'deletion_request_id'] as $forbidden) {
             $this->assertNotContains($forbidden, $keys);
         }
+    }
+
+    public function test_progress_columns_cover_attendance_surveys_and_certificate(): void
+    {
+        $admin = $this->makeAdmin();
+        $program = $this->makeProgram(['slug' => 'progress-export-'.uniqid()]);
+        $beneficiary = $this->makeBeneficiary(['email' => 'progress-'.uniqid().'@ex.com', 'name' => 'مستفيد الحضور']);
+        $registration = $this->register($program, $beneficiary, RegistrationStatus::Approved);
+
+        $dayOne = ProgramAttendanceLink::query()->create([
+            'training_program_id' => $program->id,
+            'name' => 'اليوم الأول',
+            'opens_at' => '2026-11-01 09:00:00',
+            'closes_at' => '2026-11-01 10:00:00',
+            'open_minutes' => 60,
+        ]);
+        $dayTwo = ProgramAttendanceLink::query()->create([
+            'training_program_id' => $program->id,
+            'name' => 'اليوم الثاني',
+            'opens_at' => '2026-11-02 09:00:00',
+            'closes_at' => '2026-11-02 10:00:00',
+            'open_minutes' => 60,
+        ]);
+        ProgramAttendanceLink::query()->create([
+            'training_program_id' => $program->id,
+            'name' => 'يوم ملغى',
+            'opens_at' => '2026-11-03 09:00:00',
+            'closes_at' => '2026-11-03 10:00:00',
+            'cancelled_at' => now(),
+            'open_minutes' => 60,
+        ]);
+
+        ProgramSurvey::query()->create([
+            'training_program_id' => $program->id,
+            'type' => SurveyType::Pre,
+            'is_anonymous' => false,
+        ]);
+        $satisfaction = ProgramSurvey::query()->create([
+            'training_program_id' => $program->id,
+            'type' => SurveyType::Satisfaction,
+            'is_anonymous' => true,
+        ]);
+        ProgramSurvey::query()->create([
+            'training_program_id' => $program->id,
+            'type' => SurveyType::Post,
+            'is_anonymous' => false,
+        ]);
+
+        ProgramAttendanceMark::query()->create([
+            'program_attendance_link_id' => $dayOne->id,
+            'program_registration_id' => $registration->id,
+            'attended_at' => now(),
+            'source' => AttendanceMarkSource::Manual,
+        ]);
+        SurveyCompletion::query()->create([
+            'program_survey_id' => $satisfaction->id,
+            'registration_id' => $registration->id,
+        ]);
+        Certificate::query()->create([
+            'user_id' => $beneficiary->id,
+            'certificateable_type' => $program->getMorphClass(),
+            'certificateable_id' => $program->id,
+            'certificate_number' => 'CERT-EXPORT-1',
+            'verification_code' => 'VERIFY-EXPORT-1',
+            'file_path' => 'certificates/export-test.pdf',
+            'issued_at' => now()->timezone(config('app.timezone'))->setDate(2026, 11, 4)->setTime(10, 0),
+            'emailed_at' => now()->timezone(config('app.timezone'))->setDate(2026, 11, 4)->setTime(10, 15),
+        ]);
+
+        $labels = ProgramRegistrationExportColumns::optionLabels($admin, $program);
+        $dayOneKey = 'attendance_day_'.$dayOne->id;
+        $dayTwoKey = 'attendance_day_'.$dayTwo->id;
+
+        $this->assertSame('حضور: اليوم الأول', $labels[$dayOneKey] ?? null);
+        $this->assertSame('حضور: اليوم الثاني', $labels[$dayTwoKey] ?? null);
+        $this->assertArrayNotHasKey(
+            'attendance_day_'.ProgramAttendanceLink::query()->where('name', 'يوم ملغى')->value('id'),
+            $labels,
+        );
+        $this->assertSame('استبيان قبلي', $labels['survey_pre'] ?? null);
+        $this->assertSame('استبيان رضا', $labels['survey_satisfaction'] ?? null);
+        $this->assertSame('استبيان بعدي', $labels['survey_post'] ?? null);
+        $this->assertSame('الشهادة والإيميل', $labels['certificate_status'] ?? null);
+        $this->assertSame(
+            'الحضور والاستبيانات والشهادة',
+            ProgramRegistrationExportColumns::groupTitles()[ProgramRegistrationExportColumns::GROUP_PROGRESS],
+        );
+
+        $keys = [
+            $dayOneKey,
+            $dayTwoKey,
+            'survey_pre',
+            'survey_satisfaction',
+            'survey_post',
+            'certificate_status',
+        ];
+        $this->assertSame(
+            $keys,
+            ProgramRegistrationExportAuthorization::filterAllowedColumnKeys($admin, $keys, $program),
+        );
+
+        $loaded = app(ProgramRegistrationExportService::class)
+            ->loadRegistrations($program, ProgramRegistrationExportService::SCOPE_ALL)
+            ->first();
+        $this->assertNotNull($loaded);
+
+        $this->assertSame('حاضر', ProgramRegistrationExportColumns::resolve($loaded, $dayOneKey, $admin, $program));
+        $this->assertSame('لم يحضر', ProgramRegistrationExportColumns::resolve($loaded, $dayTwoKey, $admin, $program));
+        $this->assertSame('لا', ProgramRegistrationExportColumns::resolve($loaded, 'survey_pre', $admin, $program));
+        $this->assertSame('نعم', ProgramRegistrationExportColumns::resolve($loaded, 'survey_satisfaction', $admin, $program));
+        $this->assertSame('لا', ProgramRegistrationExportColumns::resolve($loaded, 'survey_post', $admin, $program));
+        $this->assertSame(
+            'مصدرة — أُرسل إيميل بتاريخ 2026-11-04 10:15',
+            ProgramRegistrationExportColumns::resolve($loaded, 'certificate_status', $admin, $program),
+        );
+
+        $withoutEmail = $this->makeBeneficiary(['email' => 'no-mail-'.uniqid().'@ex.com']);
+        $regNoMail = $this->register($program, $withoutEmail, RegistrationStatus::Approved);
+        Certificate::query()->create([
+            'user_id' => $withoutEmail->id,
+            'certificateable_type' => $program->getMorphClass(),
+            'certificateable_id' => $program->id,
+            'certificate_number' => 'CERT-EXPORT-2',
+            'verification_code' => 'VERIFY-EXPORT-2',
+            'file_path' => 'certificates/export-test-2.pdf',
+            'issued_at' => now()->timezone(config('app.timezone'))->setDate(2026, 11, 5)->setTime(9, 0),
+            'emailed_at' => null,
+        ]);
+        $loadedNoMail = app(ProgramRegistrationExportService::class)
+            ->loadRegistrations($program, ProgramRegistrationExportService::SCOPE_SELECTED, null, [$regNoMail->id])
+            ->first();
+        $this->assertSame(
+            'مصدرة بتاريخ 2026-11-05 09:00 — لم يُرسل إيميل',
+            ProgramRegistrationExportColumns::resolve($loadedNoMail, 'certificate_status', $admin, $program),
+        );
+
+        SurveyResponse::query()->create([
+            'program_survey_id' => ProgramSurvey::query()
+                ->where('training_program_id', $program->id)
+                ->where('type', SurveyType::Pre)
+                ->value('id'),
+            'registration_id' => $registration->id,
+        ]);
+        $reloaded = app(ProgramRegistrationExportService::class)
+            ->loadRegistrations($program, ProgramRegistrationExportService::SCOPE_SELECTED, null, [$registration->id])
+            ->first();
+        $this->assertSame('نعم', ProgramRegistrationExportColumns::resolve($reloaded, 'survey_pre', $admin, $program));
     }
 
     private function makeAdmin(): User

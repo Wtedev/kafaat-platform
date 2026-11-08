@@ -42,7 +42,12 @@ class ProgramRegistrationsExport implements FromCollection, ShouldAutoSize, With
         return $this->registrations->map(function (ProgramRegistration $registration): array {
             $row = [];
             foreach ($this->columnKeys as $key) {
-                $row[] = ProgramRegistrationExportColumns::resolve($registration, $key, $this->actor);
+                $row[] = ProgramRegistrationExportColumns::resolve(
+                    $registration,
+                    $key,
+                    $this->actor,
+                    $this->program,
+                );
             }
 
             return $row;
