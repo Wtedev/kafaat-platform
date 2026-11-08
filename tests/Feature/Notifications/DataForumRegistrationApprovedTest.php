@@ -152,6 +152,33 @@ class DataForumRegistrationApprovedTest extends TestCase
         $this->assertStringNotContainsString(self::FEMALE_URL, $unspecifiedHtml);
     }
 
+    public function test_group_button_marker_places_the_button_before_the_closing(): void
+    {
+        $program = TrainingProgram::query()->create([
+            'title' => 'تطوع واعي',
+            'slug' => 'tatawaa-waei-button-'.uniqid(),
+            'status' => ProgramStatus::Published,
+            'published_at' => now(),
+            'learning_path_id' => null,
+            'capacity' => 100,
+            'auto_accept_registrations' => false,
+            'whatsapp_groups_enabled' => true,
+            'whatsapp_group_female' => self::FEMALE_URL,
+            'approval_message' => '<p>قبل الزر</p>'.ProgramApprovalMail::GROUP_BUTTON_MARKER.'<p>أهلًا بك</p>',
+        ]);
+
+        $female = $this->beneficiary(ProfileGender::Female);
+        $html = (new ProgramRegistrationApproved($this->registration($program, $female)))->toMail($female)->render();
+
+        $buttonPos = strpos($html, ProgramApprovalMail::BUTTON_LABEL);
+        $closingPos = strpos($html, 'أهلًا بك');
+        $this->assertNotFalse($buttonPos);
+        $this->assertNotFalse($closingPos);
+        $this->assertLessThan($closingPos, $buttonPos);
+        $this->assertStringContainsString(self::FEMALE_URL, $html);
+        $this->assertStringNotContainsString(ProgramApprovalMail::GROUP_BUTTON_MARKER, $html);
+    }
+
     private function beneficiary(?ProfileGender $gender): User
     {
         $user = User::factory()->create([

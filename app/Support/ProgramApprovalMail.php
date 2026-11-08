@@ -14,6 +14,9 @@ final class ProgramApprovalMail
 
     public const BUTTON_LABEL = 'الانضمام إلى مجموعة البرنامج';
 
+    /** Place this HTML comment in approval_message to render the group button mid-body. */
+    public const GROUP_BUTTON_MARKER = '<!--KAFAAT_GROUP_BUTTON-->';
+
     public const FORUM_BODY = <<<'HTML'
 <p style="margin:0 0 16px;text-align:center;">رسالة من فريق كفاءات بخصوص ملتقى تحليل البيانات في القطاع غير الربحي – النسخة الثانية.</p>
 <p style="margin:0 0 16px;text-align:center;">يسر جمعية كفاءات الأهلية لبناء قدرات الشباب أن تتقدم لك بخالص التهنئة بمناسبة <strong>قبولك النهائي في الملتقى</strong>.</p>

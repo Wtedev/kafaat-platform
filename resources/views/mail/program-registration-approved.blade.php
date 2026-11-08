@@ -1,5 +1,17 @@
 @php
     $logoUrl = $logoUrl ?? (rtrim((string) config('site.website_url'), '/').'/'.ltrim((string) config('brand.logos.kafaat_mail'), '/'));
+    $groupButtonMarker = \App\Support\ProgramApprovalMail::GROUP_BUTTON_MARKER;
+    $groupButtonHtml = '';
+    if (filled($groupUrl ?? null)) {
+        $groupButtonHtml = '<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:8px auto 20px;"><tr><td align="center" bgcolor="#335483" style="border-radius:4px;background-color:#335483;"><a href="'.e($groupUrl).'" target="_blank" rel="noopener" style="display:inline-block;padding:12px 18px;color:#ffffff;text-decoration:none;font-weight:bold;">'.e(\App\Support\ProgramApprovalMail::BUTTON_LABEL).'</a></td></tr></table>';
+    }
+    $renderedBody = (string) $bodyHtml;
+    $buttonPlacedInline = filled($groupButtonHtml) && str_contains($renderedBody, $groupButtonMarker);
+    if ($buttonPlacedInline) {
+        $renderedBody = str_replace($groupButtonMarker, $groupButtonHtml, $renderedBody);
+    } else {
+        $renderedBody = str_replace($groupButtonMarker, '', $renderedBody);
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -22,8 +34,8 @@
 </tr>
 <tr>
 <td dir="rtl" align="center" style="padding:8px 32px 32px;direction:rtl;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.7;color:#52525b;">
-{!! $bodyHtml !!}
-@if (filled($groupUrl))
+{!! $renderedBody !!}
+@if (filled($groupUrl) && ! $buttonPlacedInline)
 <table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:8px auto 20px;">
 <tr>
 <td align="center" bgcolor="#335483" style="border-radius:4px;background-color:#335483;">
