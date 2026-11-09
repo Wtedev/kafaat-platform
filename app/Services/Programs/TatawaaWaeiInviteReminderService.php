@@ -42,6 +42,7 @@ final class TatawaaWaeiInviteReminderService
             }
             if (isset($registeredEmails[$email])) {
                 $skippedRegistered++;
+
                 continue;
             }
             $eligible[] = [
