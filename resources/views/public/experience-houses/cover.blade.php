@@ -48,7 +48,7 @@
         .logos .mh { height: clamp(36px, 5.4vh, 54px); width: auto; display: block; }
         .logos .sep { width: 1px; align-self: stretch; background: rgba(255,255,255,.6); }
         .kicker { margin: 0; color: var(--title); font-weight: 700; font-size: clamp(15px, 1.7vw, 22px); line-height: 1.4; }
-        h1 { margin: 2px 0 0; color: var(--title); font-weight: 700; font-size: clamp(34px, 3.7vw, 54px); white-space: nowrap; line-height: 1.15; letter-spacing: -.5px; }
+        h1 { margin: 2px 0 0; color: #fff; font-weight: 700; font-size: clamp(34px, 3.7vw, 54px); white-space: nowrap; line-height: 1.15; letter-spacing: -.5px; }
         .desc { margin: clamp(10px, 2vh, 18px) 0 0; font-size: clamp(16px, 1.7vw, 22px); line-height: 1.6; max-width: 520px; }
 
         .actions { grid-area: actions; align-self: start; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: clamp(18px, 3.4vh, 32px); }
