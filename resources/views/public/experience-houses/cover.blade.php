@@ -1,7 +1,7 @@
 @extends('public.experience-houses._shell')
 @section('title', 'طلب دعم بيوت الخبرة')
 
-@section('kicker', 'جمعية كفاءات الأهلية · مشروع بيوت الخبرة')
+@section('hero_logos', '1')
 @section('headline', 'طلب دعم بيوت الخبرة')
 
 @section('lead')
@@ -14,7 +14,7 @@
             تقديم طلب
             @include('experience-houses.manage._icon', ['name' => 'arrow-left', 'size' => 24, 'stroke' => 2.2])
         </a>
-        <span class="cta-note">@include('experience-houses.manage._icon', ['name' => 'clock', 'size' => 18]) مدة التعبئة: 5 دقائق</span>
+        <span class="cta-note">@include('experience-houses.manage._icon', ['name' => 'clock', 'size' => 18]) حوالي دقيقة واحدة</span>
     </div>
 @endsection
 
@@ -30,7 +30,11 @@
 
 @section('styles')
     .hero { padding-bottom: clamp(70px, 10vw, 110px); }
-    .kicker { font-size: clamp(16px, 2vw, 20px) !important; opacity: .9; }
+    .hero-logos { display: flex; align-items: center; gap: clamp(14px, 2.4vw, 22px); margin-bottom: clamp(20px, 3.4vw, 30px); }
+    .hero-logos .kf { height: clamp(46px, 5.4vw, 62px); width: auto; display: block; }
+    .hero-logos .mh { height: clamp(40px, 4.6vw, 54px); width: auto; display: block; }
+    .hero-logos .sep { width: 1.5px; align-self: stretch; min-height: 44px; background: rgba(255,255,255,.6); }
+    .hero-lead { margin-top: clamp(12px, 2vw, 18px) !important; }
     .hero-card { padding-top: clamp(80px, 9vw, 104px); }
     .ministry { margin-top: clamp(18px, 3vw, 28px); }
     .ministry img { height: clamp(38px, 4.4vw, 50px); }

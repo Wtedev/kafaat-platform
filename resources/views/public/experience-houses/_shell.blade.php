@@ -183,13 +183,23 @@
         <div class="hero-wrap">
             <div class="hero-tab" aria-hidden="true"></div>
             <div class="hero-card">
+                @hasSection('hero_logos')
+                    <div class="hero-logos">
+                        <img class="kf" src="{{ asset('images/brand/kafaat-logo-white.svg') }}" alt="جمعية كفاءات الأهلية">
+                        <span class="sep" aria-hidden="true"></span>
+                        <img class="mh" src="{{ asset('images/experience-houses/mhrsd-white.png') }}" alt="وزارة الموارد البشرية والتنمية الاجتماعية">
+                    </div>
+                @else
                 <p class="kicker">@yield('kicker', 'انطلاقًا من دورها كأحد مراكز التميز المعتمدة')</p>
+                @endif
                 <h1 class="headline">@yield('headline', 'ضمن مشروع بيوت الخبرة')</h1>
+@unless (View::hasSection('hero_logos'))
                 <div class="ministry">
                     <img src="{{ asset('images/experience-houses/mhrsd-white.png') }}" alt="وزارة الموارد البشرية والتنمية الاجتماعية">
                     <span class="sep" aria-hidden="true"></span>
                     <p>التابع لوزارة الموارد البشرية<br>والتنمية الاجتماعية</p>
                 </div>
+                @endunless
                 @hasSection('lead')
                     <p class="hero-lead">@yield('lead')</p>
                 @endif
