@@ -23,10 +23,7 @@ class ExperienceHouseRequestController extends Controller
 
     public function cover(): View
     {
-        return view('public.experience-houses.cover', [
-            'departments' => ExperienceHouseRequest::DEPARTMENTS,
-            'icons' => ExperienceHouseRequest::DEPARTMENT_ICONS,
-        ]);
+        return view('public.experience-houses.cover');
     }
 
     public function create(): View
