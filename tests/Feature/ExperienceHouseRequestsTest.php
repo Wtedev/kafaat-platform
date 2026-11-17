@@ -82,7 +82,7 @@ class ExperienceHouseRequestsTest extends TestCase
         $this->assertSame('1234', $record->license_number);
         $this->assertSame(['strategic_planning', 'governance'], $record->departments);
         $this->assertSame('new', $record->status);
-        $this->assertMatchesRegularExpression('/^BK-\d{4}-0001$/', $record->reference_no);
+        $this->assertSame(sprintf('BK-%s-%04d', $record->created_at->format('Y'), $record->id), $record->reference_no);
         Storage::disk('private_documents')->assertExists($record->attachment_path);
 
         $this->followRedirects($response)->assertSee($record->reference_no);
