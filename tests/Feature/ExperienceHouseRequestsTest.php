@@ -56,7 +56,7 @@ class ExperienceHouseRequestsTest extends TestCase
     {
         $this->get('/experience-houses')
             ->assertOk()
-            ->assertSee('ضمن مشروع بيوت الخبرة')
+            ->assertSee('اطلبوا دعم بيوت الخبرة لجمعيتكم')
             ->assertSee('ابدأ طلب الدعم')
             ->assertSee(route('public.experience-houses.create'), false)
             ->assertSee('noindex', false);

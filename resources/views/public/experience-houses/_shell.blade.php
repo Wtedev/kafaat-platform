@@ -183,8 +183,8 @@
         <div class="hero-wrap">
             <div class="hero-tab" aria-hidden="true"></div>
             <div class="hero-card">
-                <p class="kicker">انطلاقًا من دورها كأحد مراكز التميز المعتمدة</p>
-                <h1 class="headline">ضمن مشروع بيوت الخبرة</h1>
+                <p class="kicker">@yield('kicker', 'انطلاقًا من دورها كأحد مراكز التميز المعتمدة')</p>
+                <h1 class="headline">@yield('headline', 'ضمن مشروع بيوت الخبرة')</h1>
                 <div class="ministry">
                     <img src="{{ asset('images/experience-houses/mhrsd-white.png') }}" alt="وزارة الموارد البشرية والتنمية الاجتماعية">
                     <span class="sep" aria-hidden="true"></span>

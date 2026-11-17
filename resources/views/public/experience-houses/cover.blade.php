@@ -1,9 +1,11 @@
 @extends('public.experience-houses._shell')
-@section('title', 'مشروع بيوت الخبرة')
+@section('title', 'طلب دعم — مشروع بيوت الخبرة')
+
+@section('kicker', 'مشروع بيوت الخبرة · جمعية كفاءات الأهلية')
+@section('headline', 'اطلبوا دعم بيوت الخبرة لجمعيتكم')
 
 @section('lead')
-    تقدّم <strong>جمعية كفاءات الأهلية</strong> خبراتها المؤسسية للجمعيات المستفيدة،
-    لتمكينها من تطبيق أفضل الممارسات وتعزيز كفاءتها
+    حدّدوا الإدارة التي تحتاجون فيها الدعم، ونتواصل معكم لنقل الخبرة إليكم.
 @endsection
 
 @section('hero_extra')
@@ -12,189 +14,129 @@
             ابدأ طلب الدعم
             @include('experience-houses.manage._icon', ['name' => 'arrow-left', 'size' => 24, 'stroke' => 2.2])
         </a>
-        <span class="cta-note">@include('experience-houses.manage._icon', ['name' => 'clock', 'size' => 18]) حوالي 5 دقائق</span>
+        <span class="cta-note">@include('experience-houses.manage._icon', ['name' => 'clock', 'size' => 18]) 5 دقائق تقريباً</span>
     </div>
 @endsection
 
 @section('hero_media')
     <figure class="preview" aria-label="معاينة نظام متابعة الطلبات">
-        <span class="preview-badge">@include('experience-houses.manage._icon', ['name' => 'inbox', 'size' => 17]) هكذا يتابع فريقنا طلبكم</span>
+        <span class="preview-badge">@include('experience-houses.manage._icon', ['name' => 'inbox', 'size' => 17]) هكذا نتابع طلبكم</span>
         <div class="preview-frame">
             <div class="preview-bar"><i></i><i></i><i></i></div>
-            <img src="{{ asset('images/experience-houses/system-preview.jpg') }}" alt="لقطة من نظام متابعة طلبات بيوت الخبرة: مراحل الطلب، وما تحتاجه الجمعية، ووسائل التواصل" loading="eager">
+            <img src="{{ asset('images/experience-houses/system-preview.jpg') }}" alt="لقطة من نظام متابعة طلبات بيوت الخبرة" loading="eager">
         </div>
-        <figcaption>
-            <span>@include('experience-houses.manage._icon', ['name' => 'check', 'size' => 16]) كل طلب يمر بمراحل واضحة من الاستلام حتى الإنجاز</span>
-        </figcaption>
     </figure>
 @endsection
 
 @section('styles')
     .hero { padding-bottom: clamp(70px, 10vw, 110px); }
-    /* معاينة النظام العائمة */
-    .preview { margin: 26px 0 0; position: relative; }
-    .preview-frame { background: #fff; border-radius: 18px; padding: 0 0 6px; box-shadow: 0 40px 70px -30px rgba(4, 30, 45, .7), 0 0 0 1px rgba(255,255,255,.35); overflow: hidden; }
+    .kicker { font-size: clamp(16px, 2vw, 20px) !important; opacity: .9; }
+    .hero-card { padding-top: clamp(80px, 9vw, 104px); }
+    .ministry { margin-top: clamp(18px, 3vw, 28px); }
+    .ministry img { height: clamp(38px, 4.4vw, 50px); }
+    .ministry p { font-size: clamp(14px, 1.7vw, 18px); }
+    .hero-lead { margin-top: clamp(18px, 3vw, 26px); }
+
+    .cta-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: clamp(22px, 3.5vw, 34px); }
+    .cta {
+        display: inline-flex; align-items: center; gap: 14px;
+        background: #fff; color: var(--teal-700); font-weight: 700; font-size: clamp(18px, 2.2vw, 21px);
+        padding: 15px 30px; border-radius: 18px 18px 18px 5px; text-decoration: none;
+        box-shadow: 0 18px 34px -16px rgba(8,60,65,.75); transition: transform .18s, box-shadow .18s;
+    }
+    .cta:hover { transform: translateY(-2px); }
+    .cta svg { transition: transform .18s; }
+    .cta:hover svg { transform: translateX(-4px); }
+    .cta-note { display: inline-flex; align-items: center; gap: 7px; color: rgba(255,255,255,.9); font-size: 15px; }
+
+    /* المعاينة العائمة */
+    .preview { margin: 28px 0 0; position: relative; }
+    .preview-frame { background: #fff; border-radius: 18px; padding-bottom: 6px; box-shadow: 0 40px 70px -30px rgba(4,30,45,.7), 0 0 0 1px rgba(255,255,255,.35); overflow: hidden; }
     .preview-bar { display: flex; gap: 6px; padding: 10px 14px; background: #f1f6f7; direction: ltr; }
     .preview-bar i { width: 10px; height: 10px; border-radius: 50%; background: #d3dfe1; }
     .preview img { display: block; width: 100%; height: auto; }
-    .preview-badge {
-        position: absolute; top: -16px; right: 18px; z-index: 2;
-        display: inline-flex; align-items: center; gap: 7px; background: var(--teal-950); color: #fff;
-        border-radius: 999px; padding: 7px 16px; font-size: 14px; font-weight: 700; box-shadow: 0 10px 20px -10px rgba(0,0,0,.5);
-    }
-    .preview figcaption { margin-top: 14px; display: flex; justify-content: center; }
-    .preview figcaption span { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,.16); color: #fff; border-radius: 12px; padding: 7px 14px; font-size: 14px; backdrop-filter: blur(4px); }
+    .preview-badge { position: absolute; top: -16px; right: 18px; z-index: 2; display: inline-flex; align-items: center; gap: 7px; background: var(--teal-950); color: #fff; border-radius: 999px; padding: 7px 16px; font-size: 14px; font-weight: 700; box-shadow: 0 10px 20px -10px rgba(0,0,0,.5); }
     @media (min-width: 1000px) {
         .hero-wrap, .hero-card { max-width: 1200px; }
         .hero-card { padding-left: 47%; padding-right: 56px; }
-        .headline { font-size: clamp(32px, 3.3vw, 48px); }
-        .kicker { font-size: clamp(18px, 2vw, 26px); }
-        .hero-lead { font-size: clamp(18px, 1.7vw, 24px); }
+        .headline { font-size: clamp(34px, 3.6vw, 50px); }
+        .hero-lead { font-size: clamp(18px, 1.7vw, 22px); }
         .preview { position: absolute; left: -24px; top: 50%; width: 46%; margin: 0; transform: translateY(-50%) perspective(1400px) rotateY(9deg) rotate(-1.5deg); }
         .preview-frame { animation: floaty 6s ease-in-out infinite; }
     }
     @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
     @media (prefers-reduced-motion: reduce) { .preview-frame { animation: none; } }
 
-    .cta-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: clamp(26px, 4vw, 40px); }
-    .cta {
-        display: inline-flex; align-items: center; gap: 14px;
-        background: #fff; color: var(--teal-700); font-weight: 700; font-size: clamp(18px, 2.2vw, 22px);
-        padding: 16px 30px; border-radius: 18px 18px 18px 5px; text-decoration: none;
-        box-shadow: 0 18px 34px -16px rgba(8,60,65,.75); transition: transform .18s, box-shadow .18s;
-    }
-    .cta:hover { transform: translateY(-2px); box-shadow: 0 22px 40px -16px rgba(8,60,65,.85); }
-    .cta svg { transition: transform .18s; }
-    .cta:hover svg { transform: translateX(-4px); }
-    .cta-note { display: inline-flex; align-items: center; gap: 7px; color: rgba(255,255,255,.9); font-size: 15px; }
-
+    /* المحتوى */
     .main { margin-top: calc(-1 * clamp(40px, 6vw, 70px)); }
-    .block { margin-top: 22px; }
-    .block-h { display: flex; align-items: center; gap: 12px; margin: 0 0 18px; }
-    .block-h .bar { width: 6px; height: 30px; border-radius: 4px; background: var(--teal-300); }
-    .block-h h2 { margin: 0; color: var(--teal-600); font-size: clamp(22px, 3vw, 28px); line-height: 1.3; }
+    .sec + .sec { margin-top: clamp(30px, 5vw, 44px); }
+    .sec-h { margin: 0 0 16px; color: var(--teal-600); font-size: clamp(21px, 2.8vw, 26px); line-height: 1.3; display: flex; align-items: center; gap: 10px; }
+    .sec-h::before { content: ''; width: 6px; height: 26px; border-radius: 4px; background: var(--teal-300); }
 
-    .areas { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
-    .area {
-        display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
-        background: var(--pale); border: 1px solid #dcefef; border-radius: 18px; padding: 16px;
-        color: var(--teal-950); font-weight: 700; font-size: 15.5px; line-height: 1.45;
-    }
-    .area .ic {
-        width: 46px; height: 46px; border-radius: 14px 14px 14px 4px; display: grid; place-items: center;
-        background: #fff; color: var(--teal-600); border: 1px solid #dcefef;
-    }
+    .intro { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 720px) { .intro { grid-template-columns: 1fr; } }
+    .intro-card { display: flex; gap: 14px; align-items: flex-start; background: var(--pale); border: 1px solid #dcefef; border-radius: 20px; padding: 18px; }
+    .intro-card .ic { width: 48px; height: 48px; border-radius: 14px 14px 14px 4px; background: var(--teal-300); color: #fff; display: grid; place-items: center; flex: none; }
+    .intro-card h3 { margin: 0 0 4px; color: var(--teal-900); font-size: 18px; }
+    .intro-card p { margin: 0; font-size: 15.5px; line-height: 1.85; color: var(--ink); }
 
-    .how { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; counter-reset: s; }
-    @media (max-width: 720px) { .how { grid-template-columns: 1fr; } }
-    .how div { position: relative; background: #fff; border: 1px solid #dcefef; border-radius: 20px; padding: 20px 18px 18px; }
-    .how .ic { width: 52px; height: 52px; border-radius: 16px 16px 16px 5px; display: grid; place-items: center; background: var(--teal-300); color: #fff; margin-bottom: 12px; }
-    .how b { display: block; color: var(--teal-900); font-size: 18px; }
-    .how span { color: var(--muted); font-size: 15px; }
-    .how div::after { counter-increment: s; content: counter(s); position: absolute; top: 16px; left: 18px; font-size: 40px; font-weight: 700; color: var(--teal-50); line-height: 1; }
+    .areas { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+    .area { display: flex; align-items: center; gap: 10px; border: 1px solid #dcefef; border-radius: 14px; padding: 10px 12px; color: var(--teal-950); font-weight: 700; font-size: 15px; background: #fff; }
+    @media (max-width: 560px) { .areas { grid-template-columns: 1fr 1fr; gap: 8px; } .area { font-size: 13.5px; padding: 9px; gap: 8px; line-height: 1.4; } .area .ic { width: 30px; height: 30px; } }
+    .area .ic { width: 36px; height: 36px; border-radius: 11px 11px 11px 3px; display: grid; place-items: center; background: var(--teal-50); color: var(--teal-600); flex: none; }
 
-    .final { margin-top: 26px; text-align: center; background: linear-gradient(135deg, var(--teal-600), var(--teal-700)); color: #fff; border-radius: 22px; padding: clamp(24px, 4vw, 36px) 20px; }
-    .final h3 { margin: 0 0 14px; font-size: clamp(20px, 2.8vw, 26px); }
-    .final .cta { box-shadow: none; }
-    .about { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 22px; align-items: start; }
-    @media (max-width: 760px) { .about { grid-template-columns: 1fr; } }
-    .about p { margin: 0 0 12px; font-size: 17px; line-height: 1.95; color: var(--ink); }
-    .about p strong { color: var(--teal-900); }
-    .facts { display: grid; gap: 10px; }
-    .fact { display: flex; align-items: center; gap: 12px; background: var(--pale); border: 1px solid #dcefef; border-radius: 16px; padding: 12px 14px; }
-    .fact .ic { width: 42px; height: 42px; border-radius: 13px 13px 13px 4px; background: #fff; border: 1px solid #dcefef; color: var(--teal-600); display: grid; place-items: center; flex: none; }
-    .fact small { display: block; color: var(--muted); font-size: 13px; line-height: 1.4; }
-    .fact b { color: var(--teal-950); font-size: 15px; line-height: 1.5; }
+    .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    @media (max-width: 720px) { .steps { grid-template-columns: 1fr; } }
+    .stp { display: flex; align-items: center; gap: 12px; background: var(--pale); border-radius: 16px; padding: 14px 16px; }
+    .stp .n { width: 38px; height: 38px; border-radius: 12px 12px 12px 4px; background: var(--teal-600); color: #fff; font-weight: 700; display: grid; place-items: center; flex: none; }
+    .stp b { display: block; color: var(--teal-900); font-size: 16px; line-height: 1.4; }
+    .stp span { color: var(--muted); font-size: 14px; }
 
-    .system { margin-top: 36px; background: linear-gradient(160deg, var(--teal-50), #f6fdfd); border: 1px solid #d3eded; border-radius: 24px; padding: clamp(20px, 4vw, 34px); position: relative; overflow: hidden; }
-    .system::before { content: ''; position: absolute; top: 0; left: 0; width: 90px; height: 70px; background: var(--teal-100); clip-path: polygon(0 0, 100% 0, 100% 18%, 30% 100%, 0 100%); border-radius: 24px 0 0 0; }
-    .system .label { display: inline-flex; align-items: center; gap: 7px; background: #fff; color: var(--teal-600); border-radius: 999px; padding: 4px 14px; font-size: 13.5px; font-weight: 700; border: 1px solid #d3eded; }
-    .system h2 { margin: 12px 0 8px; color: var(--teal-900); font-size: clamp(24px, 3.4vw, 32px); line-height: 1.35; }
-    .system > p { margin: 0 0 22px; font-size: 17px; line-height: 1.95; max-width: 760px; }
-    .feats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-    @media (max-width: 760px) { .feats { grid-template-columns: 1fr; } }
-    .feat { background: #fff; border-radius: 18px; padding: 16px; border: 1px solid #dcefef; }
-    .feat .ic { width: 44px; height: 44px; border-radius: 13px 13px 13px 4px; background: var(--teal-300); color: #fff; display: grid; place-items: center; margin-bottom: 10px; }
-    .feat b { display: block; color: var(--teal-900); font-size: 16.5px; }
-    .feat span { color: var(--muted); font-size: 14.5px; line-height: 1.75; }
-    .who { margin-top: 16px; display: flex; align-items: center; gap: 10px; color: var(--teal-900); font-size: 15px; background: #fff; border-radius: 14px; padding: 12px 14px; border: 1px dashed #b7dfe0; }
-    .who svg { color: var(--teal-600); }
+    .final { margin-top: clamp(30px, 5vw, 44px); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; background: linear-gradient(135deg, var(--teal-600), var(--teal-700)); color: #fff; border-radius: 22px; padding: 22px clamp(20px, 4vw, 32px); }
+    .final h3 { margin: 0; font-size: clamp(19px, 2.6vw, 24px); }
+    .final .cta { box-shadow: none; padding: 13px 26px; }
 @endsection
 
 @section('content')
 <div class="panel">
-    {{-- 1. التعريف بالمبادرة --}}
-    <section class="block" style="margin-top:0">
-        <div class="block-h"><span class="bar"></span><h2>عن مشروع بيوت الخبرة</h2></div>
-        <div class="about">
-            <div>
-                <p><strong>بيوت الخبرة</strong> مشروع تابع لوزارة الموارد البشرية والتنمية الاجتماعية، يهدف إلى <strong>نقل الخبرات المؤسسية</strong> وتمكين المنظمات غير الربحية الناشئة من تطبيق أفضل الممارسات، بما يعزّز كفاءتها واستدامة أثرها.</p>
-                <p>وتشارك <strong>جمعية كفاءات الأهلية لبناء قدرات الشباب</strong> في المشروع بصفتها أحد <strong>مراكز التميز المعتمدة</strong>، فتضع خبرتها في العمل المؤسسي بين أيدي الجمعيات المستفيدة، عبر لقاءات متخصصة في مجالات مثل التخطيط الاستراتيجي والحوكمة والإدارة المالية.</p>
+    <section class="sec">
+        <div class="intro">
+            <div class="intro-card">
+                <span class="ic">@include('experience-houses.manage._icon', ['name' => 'building', 'size' => 24])</span>
+                <div>
+                    <h3>ما هو مشروع بيوت الخبرة؟</h3>
+                    <p>مشروع تابع لوزارة الموارد البشرية والتنمية الاجتماعية لنقل الخبرات المؤسسية إلى الجمعيات الناشئة. وتشارك فيه جمعية كفاءات الأهلية كأحد مراكز التميز المعتمدة.</p>
+                </div>
             </div>
-            <div class="facts">
-                <div class="fact"><span class="ic">@include('experience-houses.manage._icon', ['name' => 'building', 'size' => 21])</span><span><small>الجهة المشرفة</small><b>وزارة الموارد البشرية والتنمية الاجتماعية</b></span></div>
-                <div class="fact"><span class="ic">@include('experience-houses.manage._icon', ['name' => 'shield', 'size' => 21])</span><span><small>دور كفاءات</small><b>مركز تميز معتمد ضمن المشروع</b></span></div>
-                <div class="fact"><span class="ic">@include('experience-houses.manage._icon', ['name' => 'users', 'size' => 21])</span><span><small>المستفيدون</small><b>الجمعيات والمنظمات غير الربحية الناشئة</b></span></div>
+            <div class="intro-card">
+                <span class="ic">@include('experience-houses.manage._icon', ['name' => 'inbox', 'size' => 24])</span>
+                <div>
+                    <h3>ما هذه المنصة؟</h3>
+                    <p>بوابة الجمعيات المستفيدة لرفع طلب الدعم إلى كفاءات، ليصلنا احتياجكم واضحاً ونوجّهه للمختص مباشرة.</p>
+                </div>
             </div>
         </div>
     </section>
 
-    {{-- 2. التعريف بالنظام والغاية منه --}}
-    <section class="system">
-        <span class="label">@include('experience-houses.manage._icon', ['name' => 'inbox', 'size' => 16]) عن هذا النظام</span>
-        <h2>نظام طلبات الدعم</h2>
-        <p>هذه المنصة هي البوابة الرسمية للجمعيات المستفيدة لطلب الدعم من جمعية كفاءات ضمن مشروع بيوت الخبرة. الغاية منها أن يصلنا احتياج كل جمعية <strong>واضحاً ومكتملاً من أول مرة</strong>، فنوجّهه للإدارة المختصة ونبدأ معكم بسرعة، بدلاً من تبادل الرسائل والتفاصيل المتفرقة.</p>
-        <div class="feats">
-            <div class="feat">
-                <span class="ic">@include('experience-houses.manage._icon', ['name' => 'clipboard', 'size' => 22])</span>
-                <b>طلب واحد يجمع كل شيء</b>
-                <span>بيانات الجمعية، والإدارة المطلوبة، ووصف الاحتياج في نموذج واحد.</span>
-            </div>
-            <div class="feat">
-                <span class="ic">@include('experience-houses.manage._icon', ['name' => 'target', 'size' => 22])</span>
-                <b>توجيه للمختص مباشرة</b>
-                <span>يصل طلبكم لفريق بيوت الخبرة ويُحال للإدارة المناسبة لاحتياجكم.</span>
-            </div>
-            <div class="feat">
-                <span class="ic">@include('experience-houses.manage._icon', ['name' => 'phone', 'size' => 22])</span>
-                <b>رقم طلب ومتابعة</b>
-                <span>تحصلون على رقم للطلب، ويتواصل معكم الفريق لترتيب الدعم.</span>
-            </div>
-        </div>
-        <div class="who">@include('experience-houses.manage._icon', ['name' => 'check', 'size' => 20]) <span><b>من يمكنه التقديم؟</b> الجمعيات المستفيدة من مشروع بيوت الخبرة، عن طريق ممثل مخوّل من الجمعية.</span></div>
-    </section>
-
-    <section class="block" style="margin-top:36px">
-        <div class="block-h"><span class="bar"></span><h2>مجالات الدعم</h2></div>
+    <section class="sec">
+        <h2 class="sec-h">مجالات الدعم</h2>
         <div class="areas">
             @foreach ($departments as $key => $label)
                 @continue($key === 'other')
                 <div class="area">
-                    <span class="ic">@include('experience-houses.manage._icon', ['name' => $icons[$key] ?? 'dots', 'size' => 24])</span>
+                    <span class="ic">@include('experience-houses.manage._icon', ['name' => $icons[$key] ?? 'dots', 'size' => 19])</span>
                     {{ $label }}
                 </div>
             @endforeach
         </div>
     </section>
 
-    <section class="block" style="margin-top:36px">
-        <div class="block-h"><span class="bar"></span><h2>كيف تتم العملية؟</h2></div>
-        <div class="how">
-            <div>
-                <span class="ic">@include('experience-houses.manage._icon', ['name' => 'send', 'size' => 26])</span>
-                <b>ارفعوا طلبكم</b>
-                <span>حدّدوا الإدارة التي تحتاجون فيها الدعم وصفوا احتياجكم.</span>
-            </div>
-            <div>
-                <span class="ic">@include('experience-houses.manage._icon', ['name' => 'search', 'size' => 26])</span>
-                <b>ندرس الاحتياج</b>
-                <span>يراجع فريق بيوت الخبرة الطلب ويتواصل معكم.</span>
-            </div>
-            <div>
-                <span class="ic">@include('experience-houses.manage._icon', ['name' => 'check', 'size' => 26])</span>
-                <b>نقدّم الدعم</b>
-                <span>استشارة أو ورشة أو مرافقة، بالأسلوب المناسب لكم.</span>
-            </div>
+    <section class="sec">
+        <h2 class="sec-h">كيف تتم العملية؟</h2>
+        <div class="steps">
+            <div class="stp"><span class="n">1</span><span><b>ارفعوا طلبكم</b><span>حدّدوا الإدارة واحتياجكم</span></span></div>
+            <div class="stp"><span class="n">2</span><span><b>ندرس الاحتياج</b><span>ونتواصل مع ممثل الجمعية</span></span></div>
+            <div class="stp"><span class="n">3</span><span><b>نقدّم الدعم</b><span>استشارة أو ورشة أو مرافقة</span></span></div>
         </div>
     </section>
 
@@ -202,7 +144,7 @@
         <h3>جاهزون لنقل الخبرة إلى جمعيتكم</h3>
         <a class="cta" href="{{ route('public.experience-houses.create') }}">
             ابدأ طلب الدعم
-            @include('experience-houses.manage._icon', ['name' => 'arrow-left', 'size' => 24, 'stroke' => 2.2])
+            @include('experience-houses.manage._icon', ['name' => 'arrow-left', 'size' => 22, 'stroke' => 2.2])
         </a>
     </div>
 </div>
