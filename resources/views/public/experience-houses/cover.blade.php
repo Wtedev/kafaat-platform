@@ -36,7 +36,10 @@
         .corner.b { bottom: -60px; right: -60px; width: 340px; height: 340px; border-width: 0 46px 46px 0; border-bottom-right-radius: 18px; border-color: rgba(143,224,220,.07); }
 
         .stage { flex: 1; width: 100%; max-width: 1240px; margin: 0 auto; padding: clamp(28px, 5vw, 56px) clamp(18px, 4vw, 40px);
-            display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(28px, 5vw, 72px); align-items: center; position: relative; z-index: 1; }
+            display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); grid-template-areas: 'copy preview' 'actions preview'; column-gap: clamp(28px, 5vw, 72px); row-gap: 0; align-items: center; align-content: center; position: relative; z-index: 1; }
+        .copy { grid-area: copy; align-self: end; }
+        .preview { grid-area: preview; }
+        .actions { grid-area: actions; align-self: start; }
 
         .logos { display: flex; align-items: center; gap: 20px; margin-bottom: clamp(26px, 4vw, 40px); }
         .logos .kf { height: 60px; width: auto; display: block; }
@@ -79,8 +82,8 @@
 
         @media (max-width: 900px) {
             h1 { white-space: normal; }
-            .stage { grid-template-columns: 1fr; align-content: start; }
-            .preview { margin: 18px 6px 10px; }
+            .stage { grid-template-columns: 1fr; grid-template-areas: 'copy' 'preview' 'actions'; align-content: start; row-gap: 0; }
+            .preview { margin: 34px 6px 4px; }
             .frame { transform: none; }
         }
         @media (max-width: 560px) {
@@ -111,7 +114,7 @@
     <span class="corner b" aria-hidden="true"></span>
 
     <main class="stage">
-        <section>
+        <section class="copy">
             <div class="logos">
                 <img class="kf" src="{{ asset('images/brand/kafaat-logo-white.svg') }}" alt="جمعية كفاءات الأهلية">
                 <span class="sep" aria-hidden="true"></span>
@@ -120,13 +123,6 @@
             <span class="eyebrow">مشروع بيوت الخبرة</span>
             <h1>طلب دعم <span class="hl">بيوت الخبرة</span></h1>
             <p class="desc">منصة الجمعيات المستفيدة لطلب دعم كفاءات ضمن مشروع وزارة الموارد البشرية.</p>
-            <div class="actions">
-                <a class="cta" href="{{ route('public.experience-houses.create') }}">
-                    تقديم طلب
-                    @include('experience-houses.manage._icon', ['name' => 'arrow-left', 'size' => 22, 'stroke' => 2.2])
-                </a>
-                <span class="note">@include('experience-houses.manage._icon', ['name' => 'clock', 'size' => 17]) حوالي دقيقة واحدة</span>
-            </div>
         </section>
 
         <figure class="preview" aria-label="معاينة نظام متابعة الطلبات">
@@ -137,6 +133,14 @@
             </div>
             <span class="tag t2"><span class="ic">@include('experience-houses.manage._icon', ['name' => 'check', 'size' => 16])</span> متابعة حتى الإنجاز</span>
         </figure>
+
+        <div class="actions">
+                <a class="cta" href="{{ route('public.experience-houses.create') }}">
+                    تقديم طلب
+                    @include('experience-houses.manage._icon', ['name' => 'arrow-left', 'size' => 22, 'stroke' => 2.2])
+                </a>
+                <span class="note">@include('experience-houses.manage._icon', ['name' => 'clock', 'size' => 17]) حوالي دقيقة واحدة</span>
+            </div>
     </main>
 
     <p class="foot">© {{ now()->year }} جمعية كفاءات الأهلية لبناء قدرات الشباب — جميع الحقوق محفوظة</p>
