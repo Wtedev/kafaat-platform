@@ -5,7 +5,7 @@
 @section('headline', 'طلب دعم بيوت الخبرة')
 
 @section('lead')
-    منصة لاستقبال طلبات الدعم من الجمعيات المستفيدة في المجالات الإدارية والفنية.
+    منصة لاستقبال طلبات الدعم من الجمعيات المستفيدة.
 @endsection
 
 @section('hero_extra')
@@ -86,7 +86,7 @@
 
     .areas { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
     .area { display: flex; align-items: center; gap: 10px; border: 1px solid #dcefef; border-radius: 14px; padding: 10px 12px; color: var(--teal-950); font-weight: 700; font-size: 15px; background: #fff; }
-    @media (max-width: 560px) { .areas { grid-template-columns: 1fr 1fr; gap: 8px; } .area { font-size: 13.5px; padding: 9px; gap: 8px; line-height: 1.4; } .area .ic { width: 30px; height: 30px; } }
+    @media (max-width: 560px) { .areas { grid-template-columns: 1fr 1fr; gap: 8px; } .area { font-size: 12.5px; padding: 8px; gap: 7px; line-height: 1.35; border-radius: 11px; } .area .ic { width: 26px; height: 26px; } .area .ic svg { width: 15px; height: 15px; } }
     .area .ic { width: 36px; height: 36px; border-radius: 11px 11px 11px 3px; display: grid; place-items: center; background: var(--teal-50); color: var(--teal-600); flex: none; }
 
     .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
@@ -99,6 +99,51 @@
     .final { margin-top: clamp(30px, 5vw, 44px); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; background: linear-gradient(135deg, var(--teal-600), var(--teal-700)); color: #fff; border-radius: 22px; padding: 22px clamp(20px, 4vw, 32px); }
     .final h3 { margin: 0; font-size: clamp(19px, 2.6vw, 24px); }
     .final .cta { box-shadow: none; padding: 13px 26px; }
+    /* الجوال: عناصر أصغر */
+    @media (max-width: 560px) {
+        .hero { padding: 16px 12px 64px; }
+        .hero-card { padding: 64px 20px 26px !important; border-radius: 22px; }
+        .hero-tab { width: 96px; height: 80px; }
+        .hero-logos { gap: 12px; margin-bottom: 16px; }
+        .hero-logos .kf { height: 36px; }
+        .hero-logos .mh { height: 32px; }
+        .hero-logos .sep { min-height: 32px; }
+        .headline { font-size: 28px !important; }
+        .hero-lead { font-size: 15.5px !important; line-height: 1.7; }
+        .cta-row { gap: 12px; margin-top: 18px; }
+        .cta { font-size: 16px; padding: 11px 20px; gap: 10px; border-radius: 14px 14px 14px 4px; }
+        .cta svg { width: 18px; height: 18px; }
+        .cta-note { font-size: 13px; }
+        .cta-note svg { width: 15px; height: 15px; }
+        .preview { margin-top: 22px; }
+        .preview-badge { font-size: 12px; padding: 5px 12px; top: -13px; right: 12px; }
+        .preview-frame { border-radius: 12px; }
+        .preview-bar { padding: 7px 10px; }
+        .preview-bar i { width: 7px; height: 7px; }
+        .main { padding: 0 10px 28px; }
+        .panel { padding: 18px 14px; border-radius: 18px; }
+        .intro { gap: 10px; }
+        .intro-card { padding: 13px; gap: 11px; border-radius: 16px; }
+        .intro-card .ic { width: 38px; height: 38px; }
+        .intro-card .ic svg { width: 19px; height: 19px; }
+        .intro-card h3 { font-size: 15.5px; margin-bottom: 2px; }
+        .intro-card p { font-size: 13.5px; line-height: 1.75; }
+        .sec + .sec { margin-top: 24px; }
+        .sec-h { font-size: 18px; margin-bottom: 12px; }
+        .sec-h::before { height: 20px; width: 5px; }
+        .steps { gap: 8px; }
+        .stp { padding: 10px 12px; gap: 10px; border-radius: 13px; }
+        .stp .n { width: 30px; height: 30px; font-size: 14px; }
+        .stp b { font-size: 14.5px; }
+        .stp span { font-size: 12.5px; }
+        .final { margin-top: 24px; padding: 16px; border-radius: 16px; gap: 12px; }
+        .final h3 { font-size: 16px; }
+        .footer { padding: 20px 14px 14px; gap: 12px; }
+        .footer img { height: 46px; }
+        .footer .names b { font-size: 14px; }
+        .footer .names span { font-size: 11px; }
+        .copyright { font-size: 11.5px; padding: 12px 14px 20px; }
+    }
 @endsection
 
 @section('content')
@@ -109,14 +154,14 @@
                 <span class="ic">@include('experience-houses.manage._icon', ['name' => 'building', 'size' => 24])</span>
                 <div>
                     <h3>عن المشروع</h3>
-                    <p>مشروع تابع لوزارة الموارد البشرية والتنمية الاجتماعية، يهدف إلى نقل الخبرات المؤسسية إلى الجمعيات الناشئة. وتشارك فيه جمعية كفاءات الأهلية بصفتها أحد مراكز التميز المعتمدة.</p>
+                    <p>مشروع لوزارة الموارد البشرية لنقل الخبرات المؤسسية إلى الجمعيات الناشئة، وكفاءات أحد مراكز التميز المعتمدة فيه.</p>
                 </div>
             </div>
             <div class="intro-card">
                 <span class="ic">@include('experience-houses.manage._icon', ['name' => 'inbox', 'size' => 24])</span>
                 <div>
                     <h3>عن المنصة</h3>
-                    <p>منصة مخصصة للجمعيات المستفيدة لتقديم طلبات الدعم، وتوجيهها إلى الإدارة المختصة في جمعية كفاءات الأهلية.</p>
+                    <p>لتقديم طلبات الدعم وتوجيهها إلى الإدارة المختصة.</p>
                 </div>
             </div>
         </div>
@@ -138,14 +183,14 @@
     <section class="sec">
         <h2 class="sec-h">مراحل الطلب</h2>
         <div class="steps">
-            <div class="stp"><span class="n">1</span><span><b>تقديم الطلب</b><span>تحديد المجال ووصف الاحتياج</span></span></div>
-            <div class="stp"><span class="n">2</span><span><b>دراسة الطلب</b><span>والتواصل مع ممثل الجمعية</span></span></div>
-            <div class="stp"><span class="n">3</span><span><b>تقديم الدعم</b><span>وفق الأسلوب المتفق عليه</span></span></div>
+            <div class="stp"><span class="n">1</span><span><b>تقديم الطلب</b><span>تحديد المجال والاحتياج</span></span></div>
+            <div class="stp"><span class="n">2</span><span><b>دراسة الطلب</b><span>والتواصل مع الجمعية</span></span></div>
+            <div class="stp"><span class="n">3</span><span><b>تقديم الدعم</b><span>حسب الاتفاق</span></span></div>
         </div>
     </section>
 
     <div class="final">
-        <h3>التقديم متاح للجمعيات المستفيدة من المشروع</h3>
+        <h3>التقديم متاح للجمعيات المستفيدة</h3>
         <a class="cta" href="{{ route('public.experience-houses.create') }}">
             تقديم طلب
             @include('experience-houses.manage._icon', ['name' => 'arrow-left', 'size' => 22, 'stroke' => 2.2])

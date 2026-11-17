@@ -88,13 +88,46 @@
     .actions small { color: var(--muted); }
     .hp { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     .hidden { display: none; }
+    @media (max-width: 560px) {
+        .bar-head { padding: 12px 12px 92px; }
+        .bar-logo img { height: 36px; }
+        .bar-links a { font-size: 12.5px; padding: 6px 9px; gap: 5px; }
+        .bar-kicker { margin-top: 18px; font-size: 13.5px; }
+        .bar-title { font-size: 25px; }
+        .main { padding: 0 10px 28px; margin-top: -78px; }
+        .panel { padding: 18px 14px; border-radius: 18px; }
+        .intro p { font-size: 14px; }
+        .intro .time { font-size: 12.5px; padding: 4px 12px; }
+        .section { margin-top: 22px; padding-top: 20px; }
+        .section-head { gap: 10px; margin-bottom: 14px; }
+        .step { width: 34px; height: 34px; font-size: 15px; }
+        .section-head h3 { font-size: 18px; }
+        .section-head small { font-size: 12.5px; }
+        .grid { gap: 14px; }
+        label.f { font-size: 14px; margin-bottom: 5px; }
+        .input, select.input, textarea.input { font-size: 15px; padding: 10px 12px; border-radius: 10px; }
+        textarea.input { min-height: 104px; }
+        .chips { gap: 7px; }
+        .chip span, .chips.big .chip span { font-size: 13.5px; padding: 7px 12px; gap: 6px; }
+        .chip span::before { width: 14px; height: 14px; }
+        .file { padding: 12px; gap: 10px; }
+        .file .ico { width: 34px; height: 34px; }
+        .file b { font-size: 13.5px; }
+        .consent { padding: 12px; font-size: 14px; }
+        .btn { width: 100%; font-size: 16px; padding: 13px 20px; }
+        .actions small { font-size: 12.5px; }
+        .footer img { height: 46px; }
+        .footer .names b { font-size: 14px; }
+        .footer .names span { font-size: 11px; }
+        .copyright { font-size: 11.5px; }
+    }
 @endsection
 
 @section('content')
 <div class="panel">
     <div class="intro">
         <div>
-            <p style="margin-top:0">نموذج مخصص للجمعيات المستفيدة من مشروع بيوت الخبرة لطلب الدعم في أحد المجالات. يتواصل فريق المشروع مع ممثل الجمعية بعد دراسة الطلب.</p>
+            <p style="margin-top:0">املؤوا بيانات الطلب، ويتواصل معكم فريق المشروع بعد دراسته.</p>
         </div>
         <span class="time">حوالي دقيقة واحدة</span>
     </div>
