@@ -1,26 +1,26 @@
 @extends('public.experience-houses._shell')
-@section('title', 'طلب دعم — مشروع بيوت الخبرة')
+@section('title', 'طلب دعم بيوت الخبرة')
 
-@section('kicker', 'مشروع بيوت الخبرة · جمعية كفاءات الأهلية')
-@section('headline', 'اطلبوا دعم بيوت الخبرة لجمعيتكم')
+@section('kicker', 'جمعية كفاءات الأهلية · مشروع بيوت الخبرة')
+@section('headline', 'طلب دعم بيوت الخبرة')
 
 @section('lead')
-    حدّدوا الإدارة التي تحتاجون فيها الدعم، ونتواصل معكم لنقل الخبرة إليكم.
+    منصة لاستقبال طلبات الدعم من الجمعيات المستفيدة في المجالات الإدارية والفنية.
 @endsection
 
 @section('hero_extra')
     <div class="cta-row">
         <a class="cta" href="{{ route('public.experience-houses.create') }}">
-            ابدأ طلب الدعم
+            تقديم طلب
             @include('experience-houses.manage._icon', ['name' => 'arrow-left', 'size' => 24, 'stroke' => 2.2])
         </a>
-        <span class="cta-note">@include('experience-houses.manage._icon', ['name' => 'clock', 'size' => 18]) 5 دقائق تقريباً</span>
+        <span class="cta-note">@include('experience-houses.manage._icon', ['name' => 'clock', 'size' => 18]) مدة التعبئة: 5 دقائق</span>
     </div>
 @endsection
 
 @section('hero_media')
     <figure class="preview" aria-label="معاينة نظام متابعة الطلبات">
-        <span class="preview-badge">@include('experience-houses.manage._icon', ['name' => 'inbox', 'size' => 17]) هكذا نتابع طلبكم</span>
+        <span class="preview-badge">@include('experience-houses.manage._icon', ['name' => 'inbox', 'size' => 17]) نظام متابعة الطلبات</span>
         <div class="preview-frame">
             <div class="preview-bar"><i></i><i></i><i></i></div>
             <img src="{{ asset('images/experience-houses/system-preview.jpg') }}" alt="لقطة من نظام متابعة طلبات بيوت الخبرة" loading="eager">
@@ -104,15 +104,15 @@
             <div class="intro-card">
                 <span class="ic">@include('experience-houses.manage._icon', ['name' => 'building', 'size' => 24])</span>
                 <div>
-                    <h3>ما هو مشروع بيوت الخبرة؟</h3>
-                    <p>مشروع تابع لوزارة الموارد البشرية والتنمية الاجتماعية لنقل الخبرات المؤسسية إلى الجمعيات الناشئة. وتشارك فيه جمعية كفاءات الأهلية كأحد مراكز التميز المعتمدة.</p>
+                    <h3>عن المشروع</h3>
+                    <p>مشروع تابع لوزارة الموارد البشرية والتنمية الاجتماعية، يهدف إلى نقل الخبرات المؤسسية إلى الجمعيات الناشئة. وتشارك فيه جمعية كفاءات الأهلية بصفتها أحد مراكز التميز المعتمدة.</p>
                 </div>
             </div>
             <div class="intro-card">
                 <span class="ic">@include('experience-houses.manage._icon', ['name' => 'inbox', 'size' => 24])</span>
                 <div>
-                    <h3>ما هذه المنصة؟</h3>
-                    <p>بوابة الجمعيات المستفيدة لرفع طلب الدعم إلى كفاءات، ليصلنا احتياجكم واضحاً ونوجّهه للمختص مباشرة.</p>
+                    <h3>عن المنصة</h3>
+                    <p>منصة مخصصة للجمعيات المستفيدة لتقديم طلبات الدعم، وتوجيهها إلى الإدارة المختصة في جمعية كفاءات الأهلية.</p>
                 </div>
             </div>
         </div>
@@ -132,18 +132,18 @@
     </section>
 
     <section class="sec">
-        <h2 class="sec-h">كيف تتم العملية؟</h2>
+        <h2 class="sec-h">مراحل الطلب</h2>
         <div class="steps">
-            <div class="stp"><span class="n">1</span><span><b>ارفعوا طلبكم</b><span>حدّدوا الإدارة واحتياجكم</span></span></div>
-            <div class="stp"><span class="n">2</span><span><b>ندرس الاحتياج</b><span>ونتواصل مع ممثل الجمعية</span></span></div>
-            <div class="stp"><span class="n">3</span><span><b>نقدّم الدعم</b><span>استشارة أو ورشة أو مرافقة</span></span></div>
+            <div class="stp"><span class="n">1</span><span><b>تقديم الطلب</b><span>تحديد المجال ووصف الاحتياج</span></span></div>
+            <div class="stp"><span class="n">2</span><span><b>دراسة الطلب</b><span>والتواصل مع ممثل الجمعية</span></span></div>
+            <div class="stp"><span class="n">3</span><span><b>تقديم الدعم</b><span>وفق الأسلوب المتفق عليه</span></span></div>
         </div>
     </section>
 
     <div class="final">
-        <h3>جاهزون لنقل الخبرة إلى جمعيتكم</h3>
+        <h3>التقديم متاح للجمعيات المستفيدة من المشروع</h3>
         <a class="cta" href="{{ route('public.experience-houses.create') }}">
-            ابدأ طلب الدعم
+            تقديم طلب
             @include('experience-houses.manage._icon', ['name' => 'arrow-left', 'size' => 22, 'stroke' => 2.2])
         </a>
     </div>

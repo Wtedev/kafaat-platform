@@ -94,9 +94,9 @@
 <div class="panel">
     <div class="intro">
         <div>
-            <p style="margin-top:0">يُستخدم هذا النموذج للجمعيات المستفيدة من مشروع بيوت الخبرة لطلب دعم متخصص في إحدى الإدارات. سيتواصل معكم فريق الجمعية لدراسة الطلب وتحديد آلية التنفيذ.</p>
+            <p style="margin-top:0">نموذج مخصص للجمعيات المستفيدة من مشروع بيوت الخبرة لطلب الدعم في أحد المجالات. يتواصل فريق المشروع مع ممثل الجمعية بعد دراسة الطلب.</p>
         </div>
-        <span class="time">⏱ حوالي 5 دقائق</span>
+        <span class="time">مدة التعبئة: 5 دقائق</span>
     </div>
 
     @if ($errors->any())
@@ -241,7 +241,7 @@
         <fieldset class="section">
             <div class="section-head">
                 <span class="step">4</span>
-                <h3>تفاصيل الاحتياج <small>كلما كان الوصف أوضح، كان الدعم أدق</small></h3>
+                <h3>تفاصيل الاحتياج <small>يساعد الوصف الدقيق على تقديم الدعم المناسب</small></h3>
             </div>
             <div class="grid">
                 <div class="full @error('challenge') has-error @enderror">
@@ -310,7 +310,7 @@
 
             <div class="actions">
                 <small>الحقول المعلّمة بـ <span style="color:var(--teal-500)">*</span> إلزامية</small>
-                <button type="submit" class="btn" id="eh-submit">رفع الطلب</button>
+                <button type="submit" class="btn" id="eh-submit">إرسال الطلب</button>
             </div>
         </div>
     </form>

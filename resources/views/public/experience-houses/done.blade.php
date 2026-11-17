@@ -1,7 +1,7 @@
 @extends('public.experience-houses._shell')
 
 @section('title', 'تم استلام طلبكم — مشروع بيوت الخبرة')
-@section('compact', 'شكراً لكم')
+@section('compact', 'تم استلام الطلب')
 
 @section('styles')
     .done { text-align: center; padding: clamp(10px, 3vw, 24px) 0; }
@@ -30,8 +30,8 @@
         <div class="badge" aria-hidden="true">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
         </div>
-        <h2>تم استلام طلبكم بنجاح</h2>
-        <p>شكراً لثقتكم بجمعية كفاءات الأهلية. احتفظوا برقم الطلب للرجوع إليه عند التواصل معنا.</p>
+        <h2>شكراً لتواصلكم</h2>
+        <p>يرجى الاحتفاظ برقم الطلب للرجوع إليه عند التواصل مع فريق المشروع.</p>
         <div class="ref">
             <small>رقم الطلب</small>
             <b>{{ $reference }}</b>
