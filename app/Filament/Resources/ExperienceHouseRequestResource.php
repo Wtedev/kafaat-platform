@@ -75,7 +75,7 @@ class ExperienceHouseRequestResource extends Resource
     {
         $user = auth()->user();
 
-        return $user !== null && $user->hasRole('super_admin');
+        return $user !== null && $user->hasRole(['super_admin', 'admin']);
     }
 
     public static function getNavigationBadge(): ?string

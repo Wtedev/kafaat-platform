@@ -100,7 +100,7 @@
             <h2>نموذج طلب الدعم</h2>
             <p>يُستخدم هذا النموذج للجمعيات المستفيدة من مشروع بيوت الخبرة لطلب دعم متخصص في إحدى الإدارات. سيتواصل معكم فريق الجمعية لدراسة الطلب وتحديد آلية التنفيذ.</p>
         </div>
-        <span class="time">⏱ حوالي ٥ دقائق</span>
+        <span class="time">⏱ حوالي 5 دقائق</span>
     </div>
 
     @if ($errors->any())
@@ -120,10 +120,10 @@
             <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
         </div>
 
-        {{-- ١. بيانات الجمعية --}}
+        {{-- 1. بيانات الجمعية --}}
         <fieldset class="section">
             <div class="section-head">
-                <span class="step">١</span>
+                <span class="step">1</span>
                 <h3>بيانات الجمعية <small>الجهة المستفيدة من الدعم</small></h3>
             </div>
             <div class="grid">
@@ -172,10 +172,10 @@
             </div>
         </fieldset>
 
-        {{-- ٢. ممثل الجمعية --}}
+        {{-- 2. ممثل الجمعية --}}
         <fieldset class="section">
             <div class="section-head">
-                <span class="step">٢</span>
+                <span class="step">2</span>
                 <h3>ممثل الجمعية <small>الشخص الذي سنتواصل معه بخصوص الطلب</small></h3>
             </div>
             <div class="grid">
@@ -202,10 +202,10 @@
             </div>
         </fieldset>
 
-        {{-- ٣. مجال الدعم --}}
+        {{-- 3. مجال الدعم --}}
         <fieldset class="section">
             <div class="section-head">
-                <span class="step">٣</span>
+                <span class="step">3</span>
                 <h3>مجال الدعم المطلوب <small>يمكنكم اختيار أكثر من إدارة</small></h3>
             </div>
             <div class="grid">
@@ -241,10 +241,10 @@
             </div>
         </fieldset>
 
-        {{-- ٤. تفاصيل الاحتياج --}}
+        {{-- 4. تفاصيل الاحتياج --}}
         <fieldset class="section">
             <div class="section-head">
-                <span class="step">٤</span>
+                <span class="step">4</span>
                 <h3>تفاصيل الاحتياج <small>كلما كان الوصف أوضح، كان الدعم أدق</small></h3>
             </div>
             <div class="grid">

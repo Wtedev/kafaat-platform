@@ -47,7 +47,8 @@ class EditExperienceHouseRequest extends BaseEditRecord
     protected function getRecordToolbarActions(): array
     {
         return [
-            DeleteAction::make(),
+            DeleteAction::make()
+                ->visible(fn (): bool => ExperienceHouseRequestResource::canDelete($this->getRecord())),
         ];
     }
 

@@ -86,7 +86,7 @@
             margin: 6px 0 0;
             color: var(--teal-900);
             font-weight: 700;
-            font-size: clamp(36px, 6vw, 68px);
+            font-size: clamp(32px, 5.1vw, 60px);
             line-height: 1.15;
             letter-spacing: -0.5px;
         }
