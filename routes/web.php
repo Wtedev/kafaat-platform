@@ -15,6 +15,7 @@ use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\SignupVerificationController;
 use App\Http\Controllers\CertificateDownloadController;
 use App\Http\Controllers\Certificates\CertificateDesignerController;
+use App\Http\Controllers\ExperienceHouses\ManageController as ExperienceHousesManageController;
 use App\Http\Controllers\Gate\GateAttendanceController;
 use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\Portal\PortalAccountDeletionController;
@@ -65,6 +66,7 @@ use App\Http\Controllers\StaffUi\StaffProfileController;
 use App\Http\Controllers\StaffUi\StaffProgramController;
 use App\Http\Controllers\StaffUi\StaffProgramWizardController;
 use App\Http\Controllers\StaffUi\StaffUiDemoController;
+use App\Http\Middleware\EnsureExperienceHouseManager;
 use App\Support\StaffUi\StaffUiModule;
 use Illuminate\Support\Facades\Route;
 
@@ -256,11 +258,35 @@ Route::post('/h/{token}/confirm', [PublicAttendanceController::class, 'confirm']
 
 // مشروع بيوت الخبرة — نموذج طلبات الجمعيات (غير مدرج في القوائم، يُوصل إليه برابط مباشر)
 Route::prefix('experience-houses')->name('public.experience-houses.')->group(function () {
-    Route::get('/', [ExperienceHouseRequestController::class, 'create'])->name('create');
+    Route::get('/', [ExperienceHouseRequestController::class, 'cover'])->name('cover');
+    Route::get('/request', [ExperienceHouseRequestController::class, 'create'])->name('create');
     Route::post('/', [ExperienceHouseRequestController::class, 'store'])
         ->middleware('throttle:6,10')
         ->name('store');
     Route::get('/done', [ExperienceHouseRequestController::class, 'done'])->name('done');
+});
+
+// الواجهة المبسطة لفريق بيوت الخبرة — دخول برابط يُرسل للبريد
+Route::prefix('experience-houses/manage')->name('experience-houses.manage.')->group(function () {
+    Route::get('/login', [ExperienceHousesManageController::class, 'loginForm'])->name('login');
+    Route::post('/login', [ExperienceHousesManageController::class, 'sendLoginLink'])->middleware('throttle:5,10')->name('login.send');
+    Route::get('/auth/{token}', [ExperienceHousesManageController::class, 'authenticate'])
+        ->where('token', '[A-Za-z0-9]{64}')
+        ->middleware('throttle:20,10')
+        ->name('auth');
+    Route::post('/logout', [ExperienceHousesManageController::class, 'logout'])->name('logout');
+
+    Route::middleware(EnsureExperienceHouseManager::class)->group(function () {
+        Route::get('/', [ExperienceHousesManageController::class, 'index'])->name('index');
+        Route::get('/requests/{experienceRequest}', [ExperienceHousesManageController::class, 'show'])->name('show');
+        Route::post('/requests/{experienceRequest}/status', [ExperienceHousesManageController::class, 'updateStatus'])->name('status');
+        Route::post('/requests/{experienceRequest}/note', [ExperienceHousesManageController::class, 'saveNote'])->name('note');
+        Route::get('/requests/{experienceRequest}/attachment', [ExperienceHousesManageController::class, 'attachment'])->name('attachment');
+        Route::get('/team', [ExperienceHousesManageController::class, 'team'])->name('team');
+        Route::post('/team', [ExperienceHousesManageController::class, 'invite'])->middleware('throttle:20,10')->name('team.invite');
+        Route::post('/team/{member}/resend', [ExperienceHousesManageController::class, 'resend'])->middleware('throttle:10,10')->name('team.resend');
+        Route::post('/team/{member}/remove', [ExperienceHousesManageController::class, 'remove'])->name('team.remove');
+    });
 });
 
 Route::get('/s/{publicToken}', [PublicSurveyController::class, 'show'])

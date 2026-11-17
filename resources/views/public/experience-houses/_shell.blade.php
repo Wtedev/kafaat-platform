@@ -157,6 +157,7 @@
                 @hasSection('lead')
                     <p class="hero-lead">@yield('lead')</p>
                 @endif
+                @yield('hero_extra')
             </div>
         </div>
     </header>

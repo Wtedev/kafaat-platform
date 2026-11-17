@@ -95,6 +95,7 @@
 
 @section('content')
 <div class="panel">
+    <a href="{{ route('public.experience-houses.cover') }}" style="display:inline-flex;align-items:center;gap:6px;color:var(--teal-600);font-weight:700;text-decoration:none;margin-bottom:14px">@include('experience-houses.manage._icon', ['name' => 'arrow-right', 'size' => 18]) عن المشروع</a>
     <div class="intro">
         <div>
             <h2>نموذج طلب الدعم</h2>

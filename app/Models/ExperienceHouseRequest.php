@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * طلب دعم من جمعية مستفيدة ضمن مشروع بيوت الخبرة.
@@ -87,6 +88,8 @@ class ExperienceHouseRequest extends Model
         'attachment_name',
         'status',
         'staff_notes',
+        'handled_by_id',
+        'status_changed_at',
         'submitted_ip',
     ];
 
@@ -96,6 +99,7 @@ class ExperienceHouseRequest extends Model
             'departments' => 'array',
             'support_types' => 'array',
             'founded_year' => 'integer',
+            'status_changed_at' => 'datetime',
         ];
     }
 
@@ -107,6 +111,49 @@ class ExperienceHouseRequest extends Model
                 $request->saveQuietly();
             }
         });
+    }
+
+    /** مراحل سير الطلب بالترتيب (الاعتذار خارجها). */
+    public const FLOW = ['new', 'in_review', 'scheduled', 'in_progress', 'completed'];
+
+    public const DEPARTMENT_ICONS = [
+        'strategic_planning' => 'target',
+        'governance' => 'shield',
+        'finance' => 'wallet',
+        'hr' => 'users',
+        'fundraising' => 'coins',
+        'programs' => 'clipboard',
+        'media' => 'megaphone',
+        'volunteering' => 'heart',
+        'digital' => 'monitor',
+        'impact' => 'chart',
+        'other' => 'dots',
+    ];
+
+    public const STATUS_ICONS = [
+        'new' => 'inbox',
+        'in_review' => 'search',
+        'scheduled' => 'calendar',
+        'in_progress' => 'play',
+        'completed' => 'check',
+        'rejected' => 'x',
+    ];
+
+    public function handledBy(): BelongsTo
+    {
+        return $this->belongsTo(ExperienceHouseManager::class, 'handled_by_id');
+    }
+
+    public function nextStatus(): ?string
+    {
+        $i = array_search($this->status, self::FLOW, true);
+
+        return $i === false ? null : (self::FLOW[$i + 1] ?? null);
+    }
+
+    public function whatsappUrl(): string
+    {
+        return 'https://wa.me/966'.substr((string) $this->contact_phone, 1);
     }
 
     /**

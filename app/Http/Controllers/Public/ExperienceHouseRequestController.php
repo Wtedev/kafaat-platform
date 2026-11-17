@@ -21,6 +21,14 @@ class ExperienceHouseRequestController extends Controller
 
     public function __construct(private readonly TurnstileVerifier $turnstile) {}
 
+    public function cover(): View
+    {
+        return view('public.experience-houses.cover', [
+            'departments' => ExperienceHouseRequest::DEPARTMENTS,
+            'icons' => ExperienceHouseRequest::DEPARTMENT_ICONS,
+        ]);
+    }
+
     public function create(): View
     {
         return view('public.experience-houses.form', [
@@ -107,7 +115,7 @@ class ExperienceHouseRequestController extends Controller
     {
         $reference = session(self::SESSION_DONE);
         if (! is_string($reference)) {
-            return redirect()->route('public.experience-houses.create');
+            return redirect()->route('public.experience-houses.cover');
         }
 
         return view('public.experience-houses.done', ['reference' => $reference]);
