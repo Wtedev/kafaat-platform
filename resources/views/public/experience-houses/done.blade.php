@@ -1,6 +1,7 @@
 @extends('public.experience-houses._shell')
 
 @section('title', 'تم استلام طلبكم — مشروع بيوت الخبرة')
+@section('compact', 'شكراً لكم')
 
 @section('styles')
     .done { text-align: center; padding: clamp(10px, 3vw, 24px) 0; }

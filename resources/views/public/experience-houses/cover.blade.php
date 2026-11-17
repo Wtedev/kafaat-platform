@@ -16,8 +16,46 @@
     </div>
 @endsection
 
+@section('hero_media')
+    <figure class="preview" aria-label="معاينة نظام متابعة الطلبات">
+        <span class="preview-badge">@include('experience-houses.manage._icon', ['name' => 'inbox', 'size' => 17]) هكذا يتابع فريقنا طلبكم</span>
+        <div class="preview-frame">
+            <div class="preview-bar"><i></i><i></i><i></i></div>
+            <img src="{{ asset('images/experience-houses/system-preview.jpg') }}" alt="لقطة من نظام متابعة طلبات بيوت الخبرة: مراحل الطلب، وما تحتاجه الجمعية، ووسائل التواصل" loading="eager">
+        </div>
+        <figcaption>
+            <span>@include('experience-houses.manage._icon', ['name' => 'check', 'size' => 16]) كل طلب يمر بمراحل واضحة من الاستلام حتى الإنجاز</span>
+        </figcaption>
+    </figure>
+@endsection
+
 @section('styles')
     .hero { padding-bottom: clamp(70px, 10vw, 110px); }
+    /* معاينة النظام العائمة */
+    .preview { margin: 26px 0 0; position: relative; }
+    .preview-frame { background: #fff; border-radius: 18px; padding: 0 0 6px; box-shadow: 0 40px 70px -30px rgba(4, 30, 45, .7), 0 0 0 1px rgba(255,255,255,.35); overflow: hidden; }
+    .preview-bar { display: flex; gap: 6px; padding: 10px 14px; background: #f1f6f7; direction: ltr; }
+    .preview-bar i { width: 10px; height: 10px; border-radius: 50%; background: #d3dfe1; }
+    .preview img { display: block; width: 100%; height: auto; }
+    .preview-badge {
+        position: absolute; top: -16px; right: 18px; z-index: 2;
+        display: inline-flex; align-items: center; gap: 7px; background: var(--teal-950); color: #fff;
+        border-radius: 999px; padding: 7px 16px; font-size: 14px; font-weight: 700; box-shadow: 0 10px 20px -10px rgba(0,0,0,.5);
+    }
+    .preview figcaption { margin-top: 14px; display: flex; justify-content: center; }
+    .preview figcaption span { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,.16); color: #fff; border-radius: 12px; padding: 7px 14px; font-size: 14px; backdrop-filter: blur(4px); }
+    @media (min-width: 1000px) {
+        .hero-wrap, .hero-card { max-width: 1200px; }
+        .hero-card { padding-left: 47%; padding-right: 56px; }
+        .headline { font-size: clamp(32px, 3.3vw, 48px); }
+        .kicker { font-size: clamp(18px, 2vw, 26px); }
+        .hero-lead { font-size: clamp(18px, 1.7vw, 24px); }
+        .preview { position: absolute; left: -24px; top: 50%; width: 46%; margin: 0; transform: translateY(-50%) perspective(1400px) rotateY(9deg) rotate(-1.5deg); }
+        .preview-frame { animation: floaty 6s ease-in-out infinite; }
+    }
+    @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    @media (prefers-reduced-motion: reduce) { .preview-frame { animation: none; } }
+
     .cta-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: clamp(26px, 4vw, 40px); }
     .cta {
         display: inline-flex; align-items: center; gap: 14px;

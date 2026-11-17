@@ -139,10 +139,46 @@
         .footer .names { line-height: 1.5; }
         .footer .names b { display: block; color: var(--navy); font-size: 17px; }
         .footer .names span { display: block; color: var(--navy); font-size: 13px; opacity: .85; direction: ltr; text-align: right; }
+        /* ترويسة مختصرة لصفحات النموذج */
+        .bar-head {
+            background:
+                radial-gradient(120% 120% at 0% 100%, var(--navy) 0%, rgba(12,53,85,0) 55%),
+                linear-gradient(165deg, var(--teal-700) 0%, var(--teal-600) 70%, #146a78 100%);
+            color: #fff; padding: 18px clamp(16px, 5vw, 48px) clamp(110px, 13vw, 140px);
+        }
+        .bar-in { max-width: 980px; margin: 0 auto; }
+        .bar-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .bar-logo img { height: 52px; width: auto; display: block; }
+        .bar-links { display: flex; gap: 8px; flex-wrap: wrap; }
+        .bar-links a { display: inline-flex; align-items: center; gap: 7px; color: #fff; text-decoration: none; font-size: 14.5px; font-weight: 700;
+            background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22); border-radius: 12px; padding: 8px 14px; transition: background .15s; }
+        .bar-links a:hover { background: rgba(255,255,255,.26); }
+        .bar-kicker { margin: clamp(26px, 5vw, 44px) 0 0; font-size: 16px; opacity: .85; }
+        .bar-title { margin: 2px 0 0; font-size: clamp(30px, 5vw, 46px); line-height: 1.3; font-weight: 700; }
+        @media (max-width: 520px) { .bar-links a { padding: 8px 10px; font-size: 13.5px; } .bar-logo img { height: 42px; } }
+        .copyright { margin: 0; padding: 16px 16px 28px; text-align: center; color: #7f9599; font-size: 13.5px; border-top: 1px solid #e1eeef; max-width: 980px; margin-inline: auto; }
+        .footer { padding-bottom: 22px; }
         @yield('styles')
     </style>
 </head>
 <body>
+    @hasSection('compact')
+    <header class="bar-head">
+        <div class="bar-in">
+            <div class="bar-top">
+                <a href="{{ route('public.experience-houses.cover') }}" class="bar-logo" aria-label="مشروع بيوت الخبرة">
+                    <img src="{{ asset('images/brand/kafaat-logo-white.svg') }}" alt="كفاءات">
+                </a>
+                <nav class="bar-links">
+                    <a href="{{ route('public.experience-houses.cover') }}">@include('experience-houses.manage._icon', ['name' => 'arrow-right', 'size' => 17]) عن المشروع</a>
+                    <a href="{{ config('site.website_url', 'https://kafaat.org.sa') }}" target="_blank" rel="noopener">@include('experience-houses.manage._icon', ['name' => 'link', 'size' => 17]) موقع كفاءات</a>
+                </nav>
+            </div>
+            <p class="bar-kicker">مشروع بيوت الخبرة</p>
+            <h1 class="bar-title">@yield('compact')</h1>
+        </div>
+    </header>
+    @else
     <header class="hero">
         <div class="hero-wrap">
             <div class="hero-tab" aria-hidden="true"></div>
@@ -159,8 +195,10 @@
                 @endif
                 @yield('hero_extra')
             </div>
+            @yield('hero_media')
         </div>
     </header>
+    @endif
 
     <main class="main">
         @yield('content')
@@ -173,6 +211,7 @@
             <span>Kafaat Civil Association To Build Youth Capacity</span>
         </div>
     </footer>
+    <p class="copyright">© {{ now()->year }} جمعية كفاءات الأهلية لبناء قدرات الشباب — جميع الحقوق محفوظة</p>
     @stack('scripts')
 </body>
 </html>

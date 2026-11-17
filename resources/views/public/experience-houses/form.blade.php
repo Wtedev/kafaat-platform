@@ -1,9 +1,6 @@
 @extends('public.experience-houses._shell')
 
-@section('lead')
-    تقدّم <strong>جمعية كفاءات الأهلية</strong> خبراتها المؤسسية للجمعيات المستفيدة —
-    حدّدوا الإدارة التي تحتاجون فيها الدعم وارفعوا طلبكم
-@endsection
+@section('compact', 'نموذج طلب الدعم')
 
 @section('styles')
     .intro { display: flex; gap: 18px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; margin-bottom: 8px; }
@@ -95,11 +92,9 @@
 
 @section('content')
 <div class="panel">
-    <a href="{{ route('public.experience-houses.cover') }}" style="display:inline-flex;align-items:center;gap:6px;color:var(--teal-600);font-weight:700;text-decoration:none;margin-bottom:14px">@include('experience-houses.manage._icon', ['name' => 'arrow-right', 'size' => 18]) عن المشروع</a>
     <div class="intro">
         <div>
-            <h2>نموذج طلب الدعم</h2>
-            <p>يُستخدم هذا النموذج للجمعيات المستفيدة من مشروع بيوت الخبرة لطلب دعم متخصص في إحدى الإدارات. سيتواصل معكم فريق الجمعية لدراسة الطلب وتحديد آلية التنفيذ.</p>
+            <p style="margin-top:0">يُستخدم هذا النموذج للجمعيات المستفيدة من مشروع بيوت الخبرة لطلب دعم متخصص في إحدى الإدارات. سيتواصل معكم فريق الجمعية لدراسة الطلب وتحديد آلية التنفيذ.</p>
         </div>
         <span class="time">⏱ حوالي 5 دقائق</span>
     </div>

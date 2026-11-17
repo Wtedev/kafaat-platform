@@ -13,8 +13,10 @@ class ExperienceHouseRequest extends Model
     public const DEPARTMENTS = [
         'strategic_planning' => 'التخطيط الاستراتيجي',
         'governance' => 'الحوكمة والامتثال',
+        'training' => 'التدريب وبناء القدرات',
         'finance' => 'الإدارة المالية',
         'hr' => 'الموارد البشرية',
+        'design' => 'الهوية البصرية والتصميم',
         'fundraising' => 'تنمية الموارد المالية',
         'programs' => 'إدارة البرامج والمشاريع',
         'media' => 'الإعلام والعلاقات العامة',
@@ -119,8 +121,10 @@ class ExperienceHouseRequest extends Model
     public const DEPARTMENT_ICONS = [
         'strategic_planning' => 'target',
         'governance' => 'shield',
+        'training' => 'graduation',
         'finance' => 'wallet',
         'hr' => 'users',
+        'design' => 'palette',
         'fundraising' => 'coins',
         'programs' => 'clipboard',
         'media' => 'megaphone',
