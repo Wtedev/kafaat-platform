@@ -57,6 +57,13 @@ class ExperienceHouseRequestsTest extends TestCase
         $this->get('/experience-houses')
             ->assertOk()
             ->assertSee('ضمن مشروع بيوت الخبرة')
+            ->assertSee('ابدأ طلب الدعم')
+            ->assertSee(route('public.experience-houses.create'), false)
+            ->assertSee('noindex', false);
+
+        $this->get('/experience-houses/request')
+            ->assertOk()
+            ->assertSee('نموذج طلب الدعم')
             ->assertSee('noindex', false);
     }
 
@@ -105,7 +112,7 @@ class ExperienceHouseRequestsTest extends TestCase
 
     public function test_done_page_without_submission_redirects_to_form(): void
     {
-        $this->get('/experience-houses/done')->assertRedirect(route('public.experience-houses.create'));
+        $this->get('/experience-houses/done')->assertRedirect(route('public.experience-houses.cover'));
     }
 
     public function test_admin_can_list_and_update_status(): void

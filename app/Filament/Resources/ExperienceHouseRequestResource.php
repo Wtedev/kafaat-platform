@@ -240,7 +240,7 @@ class ExperienceHouseRequestResource extends Resource
                     ->label('رابط النموذج للجمعيات')
                     ->icon('heroicon-o-link')
                     ->color('gray')
-                    ->url(route('public.experience-houses.create'))
+                    ->url(route('public.experience-houses.cover'))
                     ->openUrlInNewTab(),
             ]);
     }
