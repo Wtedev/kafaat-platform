@@ -44,6 +44,7 @@ use App\Http\Controllers\Portal\PortalSupportWidgetController;
 use App\Http\Controllers\Portal\PortalVolunteerController;
 use App\Http\Controllers\Public\AttendanceDeskController;
 use App\Http\Controllers\Public\CertificateVerificationController;
+use App\Http\Controllers\Public\ExperienceHouseRequestController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\PublicAttendanceController;
 use App\Http\Controllers\Public\PublicCompetencyTracksController;
@@ -252,6 +253,15 @@ Route::post('/h/{token}/confirm', [PublicAttendanceController::class, 'confirm']
     ->where('token', '[A-Za-z0-9]{32,80}')
     ->middleware('throttle:attendance-public-ip')
     ->name('public.attendance.confirm');
+
+// مشروع بيوت الخبرة — نموذج طلبات الجمعيات (غير مدرج في القوائم، يُوصل إليه برابط مباشر)
+Route::prefix('experience-houses')->name('public.experience-houses.')->group(function () {
+    Route::get('/', [ExperienceHouseRequestController::class, 'create'])->name('create');
+    Route::post('/', [ExperienceHouseRequestController::class, 'store'])
+        ->middleware('throttle:6,10')
+        ->name('store');
+    Route::get('/done', [ExperienceHouseRequestController::class, 'done'])->name('done');
+});
 
 Route::get('/s/{publicToken}', [PublicSurveyController::class, 'show'])
     ->where('publicToken', '[A-Za-z0-9]{32,80}')
