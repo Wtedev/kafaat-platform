@@ -5,7 +5,7 @@
 @section('headline', 'طلب دعم بيوت الخبرة')
 
 @section('lead')
-    منصة لاستقبال طلبات الدعم من الجمعيات المستفيدة.
+    منصة الجمعيات المستفيدة لطلب دعم كفاءات ضمن مشروع وزارة الموارد البشرية.
 @endsection
 
 @section('hero_extra')
@@ -148,38 +148,6 @@
 
 @section('content')
 <div class="panel">
-    <section class="sec">
-        <div class="intro">
-            <div class="intro-card">
-                <span class="ic">@include('experience-houses.manage._icon', ['name' => 'building', 'size' => 24])</span>
-                <div>
-                    <h3>عن المشروع</h3>
-                    <p>مشروع لوزارة الموارد البشرية لنقل الخبرات المؤسسية إلى الجمعيات الناشئة، وكفاءات أحد مراكز التميز المعتمدة فيه.</p>
-                </div>
-            </div>
-            <div class="intro-card">
-                <span class="ic">@include('experience-houses.manage._icon', ['name' => 'inbox', 'size' => 24])</span>
-                <div>
-                    <h3>عن المنصة</h3>
-                    <p>لتقديم طلبات الدعم وتوجيهها إلى الإدارة المختصة.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="sec">
-        <h2 class="sec-h">مجالات الدعم</h2>
-        <div class="areas">
-            @foreach ($departments as $key => $label)
-                @continue($key === 'other')
-                <div class="area">
-                    <span class="ic">@include('experience-houses.manage._icon', ['name' => $icons[$key] ?? 'dots', 'size' => 19])</span>
-                    {{ $label }}
-                </div>
-            @endforeach
-        </div>
-    </section>
-
     <section class="sec">
         <h2 class="sec-h">مراحل الطلب</h2>
         <div class="steps">

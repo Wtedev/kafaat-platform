@@ -127,7 +127,7 @@
 <div class="panel">
     <div class="intro">
         <div>
-            <p style="margin-top:0">املؤوا بيانات الطلب، ويتواصل معكم فريق المشروع بعد دراسته.</p>
+            <p style="margin-top:0">نتواصل معكم بعد دراسة الطلب.</p>
         </div>
         <span class="time">حوالي دقيقة واحدة</span>
     </div>
