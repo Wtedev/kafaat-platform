@@ -40,11 +40,11 @@ class ExperienceHouseManageTest extends TestCase
         ], $overrides));
     }
 
-    /** يطلب رابط دخول ويستخرج الرابط من البريد المرسل. */
-    private function loginLinkFor(string $email): string
+    /** يطلب رابط إنشاء/استعادة كلمة المرور ويستخرجه من البريد المرسل. */
+    private function passwordLinkFor(string $email): string
     {
         Mail::fake();
-        $this->post('/experience-houses/manage/login', ['email' => $email])->assertRedirect('/experience-houses/manage/login');
+        $this->post('/experience-houses/manage/password', ['email' => $email])->assertRedirect('/experience-houses/manage/password');
 
         $url = null;
         Mail::assertSent(ExperienceHouseAccessMail::class, function (ExperienceHouseAccessMail $mail) use (&$url, $email) {
@@ -59,44 +59,68 @@ class ExperienceHouseManageTest extends TestCase
     public function test_dashboard_requires_login(): void
     {
         $this->get('/experience-houses/manage')->assertRedirect('/experience-houses/manage/login');
-        $this->get('/experience-houses/manage/login')->assertOk()->assertSee('أرسل رابط الدخول');
+        $this->get('/experience-houses/manage/login')->assertOk()->assertSee('كلمة المرور')->assertSee('أول مرة تدخل أو نسيت كلمة المرور؟');
     }
 
-    public function test_seeded_manager_logs_in_with_one_time_email_link(): void
+    public function test_seeded_manager_creates_password_then_logs_in_with_it(): void
     {
         $this->makeRequest();
-        $url = $this->loginLinkFor('LamaAlmushyqih@gmail.com ');
+        $url = $this->passwordLinkFor('LamaAlmushyqih@gmail.com ');
 
-        $this->get($url)->assertRedirect('/experience-houses/manage');
+        // الرابط يعرض نموذج كلمة المرور ولا يُدخل مباشرة
+        $this->get($url)->assertOk()->assertSee('كلمة مرور جديدة');
+        $this->get('/experience-houses/manage')->assertRedirect('/experience-houses/manage/login');
+
+        $this->post($url, ['password' => 'secret123', 'password_confirmation' => 'nope'])->assertSessionHasErrors('password');
+        $this->post($url, ['password' => 'short', 'password_confirmation' => 'short'])->assertSessionHasErrors('password');
+        $this->post($url, ['password' => 'secret123', 'password_confirmation' => 'secret123'])->assertRedirect('/experience-houses/manage');
+
         $this->get('/experience-houses/manage')
             ->assertOk()
             ->assertSee('لمى')
             ->assertSee('جمعية الأمل الأهلية')
             ->assertSee('عاجل');
-
         $this->assertNotNull($this->lama()->fresh()->activated_at);
 
         // الرابط لمرة واحدة فقط
         $this->post('/experience-houses/manage/logout');
-        $this->get($url)->assertRedirect('/experience-houses/manage/login');
+        $this->get($url)->assertRedirect('/experience-houses/manage/password')->assertSessionHas('link_error');
+        $this->get('/experience-houses/manage')->assertRedirect('/experience-houses/manage/login');
+
+        // الدخول بكلمة المرور
+        $this->post('/experience-houses/manage/login', ['email' => 'lamaalmushyqih@gmail.com', 'password' => 'wrong-pass'])
+            ->assertSessionHasErrors('email');
+        $this->get('/experience-houses/manage')->assertRedirect('/experience-houses/manage/login');
+        $this->post('/experience-houses/manage/login', ['email' => ' LamaAlmushyqih@gmail.com', 'password' => 'secret123'])
+            ->assertRedirect('/experience-houses/manage');
+        $this->get('/experience-houses/manage')->assertOk();
+    }
+
+    public function test_manager_without_password_cannot_log_in(): void
+    {
+        $this->post('/experience-houses/manage/login', ['email' => 'lamaalmushyqih@gmail.com', 'password' => 'anything1'])
+            ->assertSessionHasErrors('email');
         $this->get('/experience-houses/manage')->assertRedirect('/experience-houses/manage/login');
     }
 
     public function test_unknown_email_gets_same_message_and_no_mail(): void
     {
         Mail::fake();
-        $this->post('/experience-houses/manage/login', ['email' => 'stranger@example.com'])
-            ->assertRedirect('/experience-houses/manage/login')
+        $this->post('/experience-houses/manage/password', ['email' => 'stranger@example.com'])
+            ->assertRedirect('/experience-houses/manage/password')
             ->assertSessionHas('sent_to', 'stranger@example.com');
         Mail::assertNothingSent();
     }
 
     public function test_expired_link_is_rejected(): void
     {
-        $url = $this->loginLinkFor('lamaalmushyqih@gmail.com');
+        $url = $this->passwordLinkFor('lamaalmushyqih@gmail.com');
         $this->travel(ManagerAccess::LOGIN_MINUTES + 1)->minutes();
 
-        $this->get($url)->assertRedirect('/experience-houses/manage/login')->assertSessionHas('link_error');
+        $this->get($url)->assertRedirect('/experience-houses/manage/password')->assertSessionHas('link_error');
+        $this->post($url, ['password' => 'secret123', 'password_confirmation' => 'secret123'])
+            ->assertRedirect('/experience-houses/manage/password');
+        $this->assertNull($this->lama()->fresh()->password);
     }
 
     public function test_manager_moves_request_through_steps_and_saves_note(): void
@@ -110,12 +134,22 @@ class ExperienceHouseManageTest extends TestCase
             ->assertSee('https://wa.me/966551234567', false);
 
         $this->post("/experience-houses/manage/requests/{$req->id}/status", ['status' => 'in_review'])->assertRedirect();
-        $this->post("/experience-houses/manage/requests/{$req->id}/note", ['staff_notes' => 'تواصلنا مع سارة'])->assertRedirect();
+        $this->post("/experience-houses/manage/requests/{$req->id}/note", ['body' => 'تواصلنا مع سارة'])->assertRedirect();
+        $this->post("/experience-houses/manage/requests/{$req->id}/note", ['body' => ''])->assertSessionHasErrors('body');
 
         $req->refresh();
         $this->assertSame('in_review', $req->status);
         $this->assertSame($this->lama()->id, $req->handled_by_id);
-        $this->assertSame('تواصلنا مع سارة', $req->staff_notes);
+        $this->assertSame(['created', 'status', 'comment'], $req->events()->oldest('id')->pluck('type')->all());
+        $statusEvent = $req->events()->where('type', 'status')->sole();
+        $this->assertSame(['new', 'in_review', $this->lama()->id], [$statusEvent->from_status, $statusEvent->to_status, $statusEvent->manager_id]);
+
+        $this->get("/experience-houses/manage/requests/{$req->id}")
+            ->assertOk()
+            ->assertSee('سجل الطلب')
+            ->assertSee('وصل الطلب')
+            ->assertSee('تواصلنا مع سارة')
+            ->assertSee('0551234567');
 
         $this->get('/experience-houses/manage?tab=active')->assertOk()->assertSee('جمعية الأمل الأهلية');
     }
@@ -140,7 +174,8 @@ class ExperienceHouseManageTest extends TestCase
         });
 
         $this->post('/experience-houses/manage/logout');
-        $this->get($url)->assertRedirect('/experience-houses/manage');
+        $this->get($url)->assertOk()->assertSee('أنشئ كلمة مرورك');
+        $this->post($url, ['password' => 'noura-pass1', 'password_confirmation' => 'noura-pass1'])->assertRedirect('/experience-houses/manage');
         $this->assertNotNull($member->fresh()->activated_at);
         $this->get('/experience-houses/manage/team')->assertOk()->assertSee('نورة')->assertSee('لمى المشيقح');
     }

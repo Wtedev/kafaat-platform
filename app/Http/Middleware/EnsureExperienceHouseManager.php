@@ -15,7 +15,7 @@ class EnsureExperienceHouseManager
     {
         $manager = $this->access->current($request);
         if ($manager === null) {
-            return redirect()->route('experience-houses.manage.login');
+            return redirect()->guest(route('experience-houses.manage.login'));
         }
 
         $request->attributes->set('eh_manager', $manager);

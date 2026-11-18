@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * موظفة/موظف يدير طلبات بيوت الخبرة من الواجهة المبسطة (دخول برابط عبر البريد، بدون كلمة مرور).
+ * موظفة/موظف يدير طلبات بيوت الخبرة من الواجهة المبسطة (بريد + كلمة مرور ينشئها بنفسه من رابط التفعيل).
  */
 class ExperienceHouseManager extends Model
 {
     protected $fillable = ['name', 'email', 'is_active', 'invited_by_id', 'activated_at', 'last_login_at'];
+
+    protected $hidden = ['password'];
 
     protected function casts(): array
     {
@@ -19,6 +21,7 @@ class ExperienceHouseManager extends Model
             'is_active' => 'boolean',
             'activated_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'password' => 'hashed',
         ];
     }
 

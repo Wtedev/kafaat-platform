@@ -5,6 +5,7 @@ namespace App\Http\Controllers\ExperienceHouses;
 use App\Http\Controllers\Controller;
 use App\Models\ExperienceHouseManager;
 use App\Models\ExperienceHouseRequest;
+use App\Models\ExperienceHouseRequestEvent;
 use App\Services\Documents\PrivateDocumentsStorage;
 use App\Services\ExperienceHouses\ManagerAccess;
 use Illuminate\Database\Eloquent\Builder;
@@ -40,6 +41,36 @@ class ManageController extends Controller
         return view('experience-houses.manage.login');
     }
 
+    public function login(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+            'password' => ['required', 'string', 'max:255'],
+        ], [
+            'email.required' => 'اكتب بريدك الإلكتروني.',
+            'email.email' => 'تأكد من كتابة البريد بشكل صحيح.',
+            'password.required' => 'اكتب كلمة المرور.',
+        ]);
+
+        $manager = $this->access->attempt($data['email'], $data['password']);
+        if (! $manager) {
+            return back()->withErrors(['email' => 'البريد أو كلمة المرور غير صحيحة.'])->onlyInput('email');
+        }
+
+        $this->access->login($request, $manager);
+
+        return redirect()->intended(route('experience-houses.manage.index'));
+    }
+
+    public function forgotForm(Request $request): View|RedirectResponse
+    {
+        if ($this->access->current($request)) {
+            return redirect()->route('experience-houses.manage.index');
+        }
+
+        return view('experience-houses.manage.forgot');
+    }
+
     public function sendLoginLink(Request $request): RedirectResponse
     {
         $data = $request->validate(['email' => ['required', 'email', 'max:255']], [
@@ -55,14 +86,38 @@ class ManageController extends Controller
         }
 
         // نفس الرسالة دائماً حتى لا نكشف من لديه حساب
-        return redirect()->route('experience-houses.manage.login')->with('sent_to', $email);
+        return redirect()->route('experience-houses.manage.forgot')->with('sent_to', $email);
     }
 
-    public function authenticate(Request $request, string $token): RedirectResponse
+    /** صفحة إنشاء كلمة المرور من رابط الدعوة أو الاستعادة. */
+    public function authenticate(string $token): View|RedirectResponse
     {
-        $manager = $this->access->consume($token);
+        $row = $this->access->peek($token);
+        if (! $row) {
+            return redirect()->route('experience-houses.manage.forgot')
+                ->with('link_error', 'انتهت صلاحية الرابط أو سبق استخدامه. اطلب رابطاً جديداً.');
+        }
+
+        return view('experience-houses.manage.set-password', [
+            'token' => $token,
+            'member' => $row->manager,
+            'invite' => $row->purpose === 'invite',
+        ]);
+    }
+
+    public function setPassword(Request $request, string $token): RedirectResponse
+    {
+        $request->validate([
+            'password' => ['required', 'string', 'min:8', 'max:255', 'confirmed'],
+        ], [
+            'password.required' => 'اكتب كلمة المرور.',
+            'password.min' => 'كلمة المرور 8 أحرف على الأقل.',
+            'password.confirmed' => 'كلمتا المرور غير متطابقتين.',
+        ]);
+
+        $manager = $this->access->setPasswordWithToken($token, (string) $request->input('password'));
         if (! $manager) {
-            return redirect()->route('experience-houses.manage.login')
+            return redirect()->route('experience-houses.manage.forgot')
                 ->with('link_error', 'انتهت صلاحية الرابط أو سبق استخدامه. اطلب رابطاً جديداً.');
         }
 
@@ -116,7 +171,7 @@ class ManageController extends Controller
 
     public function show(ExperienceHouseRequest $experienceRequest): View
     {
-        return view('experience-houses.manage.show', ['r' => $experienceRequest->load('handledBy')]);
+        return view('experience-houses.manage.show', ['r' => $experienceRequest->load(['handledBy', 'events' => fn ($q) => $q->with('manager')->latest()->latest('id')])]);
     }
 
     public function updateStatus(Request $request, ExperienceHouseRequest $experienceRequest): RedirectResponse
@@ -136,11 +191,17 @@ class ManageController extends Controller
 
     public function saveNote(Request $request, ExperienceHouseRequest $experienceRequest): RedirectResponse
     {
-        $data = $request->validate(['staff_notes' => ['nullable', 'string', 'max:5000']]);
+        $data = $request->validate(['body' => ['required', 'string', 'max:5000']], [
+            'body.required' => 'اكتب التعليق أولاً.',
+        ]);
 
-        $experienceRequest->forceFill(['staff_notes' => $data['staff_notes'] ?? null])->save();
+        $experienceRequest->events()->create([
+            'type' => ExperienceHouseRequestEvent::TYPE_COMMENT,
+            'manager_id' => $request->attributes->get('eh_manager')->id,
+            'body' => trim($data['body']),
+        ]);
 
-        return back()->with('toast', 'تم حفظ الملاحظة');
+        return back()->with('toast', 'أُضيف التعليق');
     }
 
     public function attachment(ExperienceHouseRequest $experienceRequest): StreamedResponse
