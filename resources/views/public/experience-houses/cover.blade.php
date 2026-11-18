@@ -47,8 +47,8 @@
         .logos .kf { height: clamp(40px, 6vh, 60px); width: auto; display: block; }
         .logos .mh { height: clamp(36px, 5.4vh, 54px); width: auto; display: block; }
         .logos .sep { width: 1px; align-self: stretch; background: rgba(255,255,255,.6); }
-        .kicker { margin: 0; color: var(--title); font-weight: 700; font-size: clamp(15px, 1.7vw, 22px); line-height: 1.4; }
-        h1 { margin: 2px 0 0; color: #fff; font-weight: 700; font-size: clamp(34px, 3.7vw, 54px); white-space: nowrap; line-height: 1.15; letter-spacing: -.5px; }
+        .kicker { margin: 0; color: rgba(255,255,255,.8); font-weight: 700; font-size: clamp(15px, 1.7vw, 22px); line-height: 1.4; }
+        h1 { margin: 2px 0 0; color: #fff; font-weight: 700; font-size: clamp(28px, 2.9vw, 42px); white-space: nowrap; line-height: 1.15; letter-spacing: -.5px; }
         .desc { margin: clamp(10px, 2vh, 18px) 0 0; font-size: clamp(16px, 1.7vw, 22px); line-height: 1.6; max-width: 520px; }
 
         .actions { grid-area: actions; align-self: start; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: clamp(18px, 3.4vh, 32px); }
@@ -84,7 +84,7 @@
             .logos { gap: 11px; margin-bottom: 14px; }
             .logos .kf { height: 34px; } .logos .mh { height: 30px; }
             .kicker { font-size: 13.5px; }
-            h1 { font-size: 28px; white-space: normal; }
+            h1 { font-size: 24px; white-space: normal; }
             .desc { font-size: 14.5px; margin-top: 8px; }
             .frame { border-radius: 11px; }
             .bar { padding: 6px 9px; } .bar i { width: 6px; height: 6px; }
