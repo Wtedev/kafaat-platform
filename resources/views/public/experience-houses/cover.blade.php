@@ -70,9 +70,15 @@
 
         /* شاشات طولية: نص ← معاينة ← زر */
         @media (max-width: 900px), (orientation: portrait) {
-            .card { grid-template-columns: 1fr; grid-template-areas: 'copy' 'preview' 'actions'; align-content: center; row-gap: 0;
+            /* الشعارات والنص التعريفي أعلى البطاقة، والفراغ موزع بالتساوي فوق العنوان وتحت الزر */
+            .card { grid-template-columns: 1fr; grid-template-areas: 'logos' 'kicker' '.' 'title' 'desc' 'preview' 'actions' '.';
+                grid-template-rows: auto auto minmax(28px, 1fr) auto auto auto auto minmax(20px, 1fr); align-content: stretch; row-gap: 0;
                 padding: clamp(78px, 11vh, 110px) clamp(18px, 5vw, 48px) clamp(20px, 3.5vh, 36px); }
-            .copy { text-align: center; }
+            .copy { display: contents; }
+            .logos { grid-area: logos; margin-bottom: 10px; }
+            .kicker { grid-area: kicker; text-align: center; }
+            h1 { grid-area: title; text-align: center; margin-top: 0; }
+            .desc { grid-area: desc; text-align: center; }
             .logos { justify-content: center; }
             .desc { margin-inline: auto; }
             .preview { margin-top: clamp(14px, 2.6vh, 26px); }
@@ -84,7 +90,7 @@
             .card { border-radius: 22px; clip-path: polygon(118px 0, 100% 0, 100% 100%, 0 100%, 0 96px); }
             .tab { width: 100px; height: 82px; border-radius: 22px 5px 5px 5px; }
             .tab::after { border-width: 8px; }
-            .logos { gap: 11px; margin-bottom: 14px; }
+            .logos { gap: 11px; margin-bottom: 10px; }
             .logos .kf { height: 34px; } .logos .mh { height: 30px; }
             .kicker { font-size: 13.5px; }
             h1 { font-size: clamp(24px, 8.2vw, 36px); white-space: normal; }
@@ -109,7 +115,7 @@
                 </div>
                 <p class="kicker">جمعية كفاءات الأهلية · مركز تميز معتمد</p>
                 <h1>طلب دعم بيوت الخبرة</h1>
-                <p class="desc">منصة الجمعيات المستفيدة لطلب دعم كفاءات ضمن مشروع وزارة الموارد البشرية.</p>
+                <p class="desc">منصة الجمعيات المستفيدة لطلب دعم كفاءات ضمن مشروع بيوت الخبرة.</p>
             </section>
 
             <figure class="preview">
