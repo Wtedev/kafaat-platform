@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\ExperienceHouseRequest;
+use App\Services\ExperienceHouses\RequestNotifier;
 use App\Services\Surveys\TurnstileVerifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,7 +38,7 @@ class ExperienceHouseRequestController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, RequestNotifier $notifier): RedirectResponse
     {
         // مصيدة بوتات: حقل مخفي يجب أن يبقى فارغاً
         if (filled($request->input('website'))) {
@@ -91,6 +92,8 @@ class ExperienceHouseRequestController extends Controller
         $data['submitted_ip'] = $request->ip();
 
         $record = ExperienceHouseRequest::create($data);
+
+        $notifier->notifyTeam($record->fresh());
 
         return redirect()
             ->route('public.experience-houses.done')

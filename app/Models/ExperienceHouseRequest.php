@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ExperienceHouses\RequestNotifier;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -125,6 +126,8 @@ class ExperienceHouseRequest extends Model
                     'from_status' => $request->getOriginal('status'),
                     'to_status' => $request->status,
                 ]);
+
+                app(RequestNotifier::class)->notifyApplicant($request);
             }
         });
     }

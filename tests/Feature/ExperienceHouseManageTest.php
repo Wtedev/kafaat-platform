@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Mail\ExperienceHouseAccessMail;
+use App\Mail\ExperienceHouseStatusMail;
 use App\Models\ExperienceHouseManager;
 use App\Models\ExperienceHouseRequest;
 use App\Services\ExperienceHouses\ManagerAccess;
@@ -133,7 +134,10 @@ class ExperienceHouseManageTest extends TestCase
             ->assertSee('بدء دراسة الطلب')
             ->assertSee('https://wa.me/966551234567', false);
 
+        Mail::fake();
         $this->post("/experience-houses/manage/requests/{$req->id}/status", ['status' => 'in_review'])->assertRedirect();
+        Mail::assertSent(ExperienceHouseStatusMail::class, fn ($m) => $m->hasTo($req->contact_email) && $m->experienceRequest->status === 'in_review');
+        (new ExperienceHouseStatusMail($req->fresh()))->assertSeeInHtml('بدأنا دراسة طلبكم')->assertSeeInHtml('قيد الدراسة');
         $this->post("/experience-houses/manage/requests/{$req->id}/note", ['body' => 'تواصلنا مع سارة'])->assertRedirect();
         $this->post("/experience-houses/manage/requests/{$req->id}/note", ['body' => ''])->assertSessionHasErrors('body');
 
