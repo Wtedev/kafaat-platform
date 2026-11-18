@@ -212,4 +212,21 @@ class ExperienceHouseManageTest extends TestCase
             ->get('/experience-houses/manage')
             ->assertRedirect('/experience-houses/manage/login');
     }
+
+    public function test_only_owner_can_remove_members(): void
+    {
+        $this->assertTrue($this->lama()->is_owner);
+        $noura = ExperienceHouseManager::query()->create(['name' => 'نورة', 'email' => 'noura@example.com', 'activated_at' => now()]);
+        $sara = ExperienceHouseManager::query()->create(['name' => 'سارة', 'email' => 'sara@example.com', 'activated_at' => now()]);
+
+        $this->withSession([ManagerAccess::SESSION_KEY => $noura->id]);
+        $this->get('/experience-houses/manage/team')->assertOk()->assertDontSee('إزالة من الفريق');
+        $this->post("/experience-houses/manage/team/{$sara->id}/remove")->assertForbidden();
+        $this->post("/experience-houses/manage/team/{$this->lama()->id}/remove")->assertForbidden();
+        $this->assertTrue($sara->fresh()->is_active);
+        $this->assertTrue($this->lama()->is_active);
+
+        $this->withSession([ManagerAccess::SESSION_KEY => $this->lama()->id]);
+        $this->get('/experience-houses/manage/team')->assertOk()->assertSee('إزالة من الفريق');
+    }
 }

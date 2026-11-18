@@ -52,7 +52,9 @@
                             @unless ($m->activated_at)
                                 <form method="POST" action="{{ route('experience-houses.manage.team.resend', $m) }}">@csrf<button title="إعادة إرسال إيميل التفعيل">@include('experience-houses.manage._icon', ['name' => 'send', 'size' => 17])</button></form>
                             @endunless
-                            <form method="POST" action="{{ route('experience-houses.manage.team.remove', $m) }}" onsubmit="return confirm('إزالة {{ $m->name }} من الفريق؟')">@csrf<button class="del" title="إزالة من الفريق">@include('experience-houses.manage._icon', ['name' => 'trash', 'size' => 17])</button></form>
+                            @if ($manager->is_owner)
+                                <form method="POST" action="{{ route('experience-houses.manage.team.remove', $m) }}" onsubmit="return confirm('إزالة {{ $m->name }} من الفريق؟')">@csrf<button class="del" title="إزالة من الفريق">@include('experience-houses.manage._icon', ['name' => 'trash', 'size' => 17])</button></form>
+                            @endif
                         </div>
                     @endif
                 </div>

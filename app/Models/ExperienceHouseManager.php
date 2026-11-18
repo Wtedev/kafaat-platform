@@ -19,6 +19,7 @@ class ExperienceHouseManager extends Model
     {
         return [
             'is_active' => 'boolean',
+            'is_owner' => 'boolean',
             'activated_at' => 'datetime',
             'last_login_at' => 'datetime',
             'password' => 'hashed',

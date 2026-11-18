@@ -259,6 +259,8 @@ class ManageController extends Controller
 
     public function remove(Request $request, ExperienceHouseManager $member): RedirectResponse
     {
+        abort_unless($request->attributes->get('eh_manager')->is_owner, 403, 'حذف أعضاء الفريق متاح لصاحبة النظام فقط.');
+
         if ($member->id === $request->attributes->get('eh_manager')->id) {
             return back()->with('toast_error', 'لا يمكنك إزالة نفسك.');
         }
