@@ -62,7 +62,7 @@
         <form class="card invite" method="POST" action="{{ route('experience-houses.manage.team.invite') }}">
             @csrf
             <h2>@include('experience-houses.manage._icon', ['name' => 'plus', 'size' => 20]) إضافة شخص</h2>
-            <p>سيصله إيميل فيه زر «تفعيل الحساب»، يضغطه ويدخل مباشرة.</p>
+            <p>سيصله إيميل فيه زر «إنشاء كلمة المرور»، ينشئ كلمته ثم يدخل بها مع بريده.</p>
             <label for="name">الاسم</label>
             <input class="input" id="name" name="name" value="{{ old('name') }}" required maxlength="120">
             @error('name')<div class="err">{{ $message }}</div>@enderror

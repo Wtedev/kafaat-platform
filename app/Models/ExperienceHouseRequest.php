@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * طلب دعم من جمعية مستفيدة ضمن مشروع بيوت الخبرة.
@@ -112,7 +113,25 @@ class ExperienceHouseRequest extends Model
                 $request->reference_no = sprintf('BK-%s-%04d', $request->created_at?->format('Y') ?? now()->format('Y'), $request->id);
                 $request->saveQuietly();
             }
+
+            $request->events()->create(['type' => ExperienceHouseRequestEvent::TYPE_CREATED, 'to_status' => $request->status]);
         });
+
+        static::updated(function (self $request): void {
+            if ($request->wasChanged('status')) {
+                $request->events()->create([
+                    'type' => ExperienceHouseRequestEvent::TYPE_STATUS,
+                    'manager_id' => $request->handled_by_id,
+                    'from_status' => $request->getOriginal('status'),
+                    'to_status' => $request->status,
+                ]);
+            }
+        });
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(ExperienceHouseRequestEvent::class, 'request_id');
     }
 
     /** مراحل سير الطلب بالترتيب (الاعتذار خارجها). */

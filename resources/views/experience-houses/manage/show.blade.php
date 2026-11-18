@@ -55,6 +55,17 @@
     .person b{display:block;color:var(--teal-950)}
     .person small{color:var(--muted)}
     textarea.input{min-height:110px;resize:vertical}
+    /* سجل الطلب */
+    .log{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:0}
+    .log li{display:flex;gap:12px;position:relative;padding-bottom:16px}
+    .log li:not(:last-child)::before{content:'';position:absolute;top:34px;bottom:0;right:15px;width:2px;background:var(--line)}
+    .log .ev-ic{width:32px;height:32px;border-radius:10px 10px 10px 3px;display:grid;place-items:center;flex:none;background:var(--teal-50);color:var(--teal-600)}
+    .log .ev-created .ev-ic{background:#e6f0fb;color:#2f5f98}
+    .log .ev-comment .ev-ic{background:#fdf3e2;color:var(--amber)}
+    .log .ev-body{flex:1;min-width:0;font-size:14px;color:var(--teal-950);line-height:1.55}
+    .log .ev-body .pill{font-size:12px;padding:2px 8px}
+    .log .ev-text{margin:6px 0 0;padding:10px 12px;background:var(--pale);border:1px solid var(--line);border-radius:12px 12px 12px 4px;white-space:pre-line;word-wrap:break-word}
+    .log time{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
     .who{font-size:13px;color:var(--muted);margin-top:8px;display:flex;gap:6px;align-items:center}
 @endsection
 
@@ -160,6 +171,10 @@
                     <span class="avatar">{{ mb_substr($r->contact_name, 0, 1) }}</span>
                     <div><b>{{ $r->contact_name }}</b><small>{{ $r->contact_role }}</small></div>
                 </div>
+                <div class="facts" style="grid-template-columns:1fr;margin-bottom:12px">
+                    <div class="fact"><small>الجوال</small><b dir="ltr">{{ $r->contact_phone }}</b></div>
+                    <div class="fact"><small>الإيميل</small><b dir="ltr" style="word-break:break-all">{{ $r->contact_email }}</b></div>
+                </div>
                 <div class="contact">
                     <a class="wa" href="{{ $r->whatsappUrl() }}" target="_blank" rel="noopener">@include('experience-houses.manage._icon', ['name' => 'whatsapp', 'size' => 24]) واتساب</a>
                     <a href="tel:{{ $r->contact_phone }}">@include('experience-houses.manage._icon', ['name' => 'phone', 'size' => 24]) اتصال</a>
@@ -167,12 +182,34 @@
                 </div>
             </div>
 
-            <form class="card sec" method="POST" action="{{ route('experience-houses.manage.note', $r) }}">
-                @csrf
-                <h2>@include('experience-houses.manage._icon', ['name' => 'note', 'size' => 18]) ملاحظات الفريق</h2>
-                <textarea class="input" name="staff_notes" placeholder="اكتب ما تم مع الجمعية… (لا تظهر لها)">{{ old('staff_notes', $r->staff_notes) }}</textarea>
-                <button class="btn light" style="margin-top:10px;width:100%">حفظ الملاحظة</button>
-            </form>
+            <div class="card sec">
+                <h2>@include('experience-houses.manage._icon', ['name' => 'clock', 'size' => 18]) سجل الطلب</h2>
+                <form method="POST" action="{{ route('experience-houses.manage.note', $r) }}">
+                    @csrf
+                    <textarea class="input" name="body" required placeholder="اكتب تعليقاً لفريقك… (لا يظهر للجمعية)">{{ old('body') }}</textarea>
+                    @error('body')<div class="who" style="color:var(--danger)">{{ $message }}</div>@enderror
+                    <button class="btn light" style="margin-top:10px;width:100%">@include('experience-houses.manage._icon', ['name' => 'send', 'size' => 17]) إضافة تعليق</button>
+                </form>
+                <ul class="log">
+                    @foreach ($r->events as $e)
+                        @php $who = $e->manager?->name ?? 'الإدارة'; @endphp
+                        <li class="ev-{{ $e->type }}">
+                            <span class="ev-ic">@include('experience-houses.manage._icon', ['name' => match ($e->type) { 'created' => 'inbox', 'comment' => 'note', default => R::STATUS_ICONS[$e->to_status] ?? 'play' }, 'size' => 16])</span>
+                            <div class="ev-body">
+                                @if ($e->type === 'created')
+                                    <b>وصل الطلب</b> من {{ $r->contact_name }}
+                                @elseif ($e->type === 'status')
+                                    <b>{{ $who }}</b> غيّر الحالة إلى <span class="pill st-{{ $e->to_status }}">{{ R::STATUSES[$e->to_status] ?? $e->to_status }}</span>
+                                @else
+                                    <b>{{ $who }}</b> علّق
+                                    <p class="ev-text">{{ $e->body }}</p>
+                                @endif
+                                <time datetime="{{ $e->created_at->toIso8601String() }}" title="{{ $e->created_at->timezone('Asia/Riyadh')->locale('ar')->translatedFormat('j F Y — g:i a') }}">{{ $e->created_at->locale('ar')->diffForHumans() }}</time>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
         </div>
     </div>
 </main>

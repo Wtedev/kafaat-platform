@@ -24,7 +24,7 @@ class ExperienceHouseAccessMail extends Mailable
     {
         return new Envelope(subject: $this->purpose === 'invite'
             ? 'فعّل حسابك في طلبات بيوت الخبرة — جمعية كفاءات'
-            : 'رابط الدخول إلى طلبات بيوت الخبرة');
+            : 'إنشاء كلمة مرور — طلبات بيوت الخبرة');
     }
 
     public function content(): Content

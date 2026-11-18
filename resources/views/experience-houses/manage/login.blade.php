@@ -19,6 +19,7 @@
     .sent b{direction:ltr;display:inline-block;color:var(--teal-900)}
     .tip{margin-top:18px;background:var(--pale);border-radius:14px;padding:12px 14px;font-size:14px;color:var(--muted);display:flex;gap:10px;align-items:flex-start}
     .alert{background:#fdf0ef;color:var(--danger);border-radius:14px;padding:12px 14px;margin-bottom:16px;font-size:14.5px;display:flex;gap:10px;align-items:center}
+    .link{display:block;text-align:center;margin-top:16px;color:var(--teal-700);font-weight:700;font-size:14.5px}
     .foot{color:rgba(255,255,255,.75);text-align:center;font-size:13px;padding:0 0 22px}
 @endsection
 
@@ -26,31 +27,22 @@
 <main class="login">
     <div class="box">
         <img class="logo" src="{{ asset('images/brand/kafaat-logo.svg') }}" alt="كفاءات">
+        <h1>طلبات بيوت الخبرة</h1>
+        <p class="sub">سجّل دخولك بالبريد وكلمة المرور.</p>
 
-        @if (session('sent_to'))
-            <div class="sent">
-                <div class="ic">@include('experience-houses.manage._icon', ['name' => 'mail', 'size' => 36])</div>
-                <h1>تفقّد بريدك</h1>
-                <p class="sub">إذا كان <b>{{ session('sent_to') }}</b> مسجلاً في الفريق، فقد أرسلنا له رابط الدخول الآن. اضغط الرابط وستدخل مباشرة.</p>
-                <a class="btn ghost" href="{{ route('experience-houses.manage.login') }}">@include('experience-houses.manage._icon', ['name' => 'arrow-right', 'size' => 18]) استخدم بريداً آخر</a>
-                <div class="tip">@include('experience-houses.manage._icon', ['name' => 'clock', 'size' => 18]) <span>الرابط صالح 30 دقيقة. لم يصلك؟ تأكد من مجلد الرسائل غير المرغوب فيها.</span></div>
-            </div>
-        @else
-            <h1>طلبات بيوت الخبرة</h1>
-            <p class="sub">اكتب بريدك وسنرسل لك رابط دخول. ما تحتاج كلمة مرور.</p>
+        <form method="POST" action="{{ route('experience-houses.manage.login.attempt') }}">
+            @csrf
+            <label for="email">البريد الإلكتروني</label>
+            <input class="input" type="email" id="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" inputmode="email" dir="ltr" placeholder="name@example.com" style="text-align:right">
+            @error('email')<div class="err">{{ $message }}</div>@enderror
 
-            @if (session('link_error'))
-                <div class="alert">@include('experience-houses.manage._icon', ['name' => 'clock', 'size' => 20]) {{ session('link_error') }}</div>
-            @endif
+            <label for="password" style="margin-top:14px">كلمة المرور</label>
+            <input class="input" type="password" id="password" name="password" required autocomplete="current-password" dir="ltr" style="text-align:right">
+            @error('password')<div class="err">{{ $message }}</div>@enderror
 
-            <form method="POST" action="{{ route('experience-houses.manage.login.send') }}">
-                @csrf
-                <label for="email">البريد الإلكتروني</label>
-                <input class="input" type="email" id="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="email" inputmode="email" dir="ltr" placeholder="name@example.com" style="text-align:right">
-                @error('email')<div class="err">{{ $message }}</div>@enderror
-                <button class="btn" type="submit">@include('experience-houses.manage._icon', ['name' => 'send', 'size' => 19]) أرسل رابط الدخول</button>
-            </form>
-        @endif
+            <button class="btn" type="submit">@include('experience-houses.manage._icon', ['name' => 'arrow-left', 'size' => 19]) دخول</button>
+        </form>
+        <a class="link" href="{{ route('experience-houses.manage.forgot') }}">أول مرة تدخل أو نسيت كلمة المرور؟</a>
     </div>
 </main>
 <p class="foot">جمعية كفاءات الأهلية لبناء قدرات الشباب</p>

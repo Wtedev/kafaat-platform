@@ -6,11 +6,12 @@ use App\Mail\ExperienceHouseAccessMail;
 use App\Models\ExperienceHouseLoginToken;
 use App\Models\ExperienceHouseManager;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 /**
- * دخول بدون كلمة مرور: رابط لمرة واحدة يُرسل للبريد (تفعيل حساب أو تسجيل دخول).
+ * الدخول بالبريد وكلمة المرور. رابط لمرة واحدة يُرسل للبريد لإنشاء كلمة المرور (دعوة) أو إعادة تعيينها.
  */
 final class ManagerAccess
 {
@@ -59,7 +60,10 @@ final class ManagerAccess
         return true;
     }
 
-    public function consume(string $plain): ?ExperienceHouseManager
+    /**
+     * الرابط صالح؟ (بدون استهلاكه) — لعرض نموذج إنشاء كلمة المرور.
+     */
+    public function peek(string $plain): ?ExperienceHouseLoginToken
     {
         $token = ExperienceHouseLoginToken::query()
             ->where('token_hash', hash('sha256', $plain))
@@ -70,16 +74,44 @@ final class ManagerAccess
         }
 
         $manager = $token->manager;
-        if (! $manager || ! $manager->is_active) {
+
+        return $manager && $manager->is_active ? $token : null;
+    }
+
+    /**
+     * يستهلك الرابط ويحفظ كلمة المرور الجديدة ويفعّل الحساب.
+     */
+    public function setPasswordWithToken(string $plain, string $password): ?ExperienceHouseManager
+    {
+        $token = $this->peek($plain);
+        if (! $token) {
             return null;
         }
 
         $token->forceFill(['used_at' => now()])->save();
 
+        $manager = $token->manager;
         $manager->forceFill([
+            'password' => $password,
             'activated_at' => $manager->activated_at ?? now(),
             'last_login_at' => now(),
         ])->save();
+
+        return $manager;
+    }
+
+    public function attempt(string $email, string $password): ?ExperienceHouseManager
+    {
+        $manager = ExperienceHouseManager::query()
+            ->where('email', mb_strtolower(trim($email)))
+            ->where('is_active', true)
+            ->first();
+
+        if (! $manager || ! $manager->password || ! Hash::check($password, $manager->password)) {
+            return null;
+        }
+
+        $manager->forceFill(['last_login_at' => now()])->save();
 
         return $manager;
     }

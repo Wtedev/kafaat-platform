@@ -9,8 +9,6 @@ use App\Models\User;
 use App\Services\Rbac\RbacCatalog;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
@@ -69,11 +67,7 @@ class ExperienceHouseRequestsTest extends TestCase
 
     public function test_association_can_submit_a_request(): void
     {
-        Storage::fake('private_documents');
-
-        $response = $this->post('/experience-houses', $this->validPayload([
-            'attachment' => UploadedFile::fake()->create('plan.pdf', 200, 'application/pdf'),
-        ]));
+        $response = $this->post('/experience-houses', $this->validPayload());
 
         $response->assertRedirect(route('public.experience-houses.done'));
 
@@ -83,7 +77,8 @@ class ExperienceHouseRequestsTest extends TestCase
         $this->assertSame(['strategic_planning', 'governance'], $record->departments);
         $this->assertSame('new', $record->status);
         $this->assertSame(sprintf('BK-%s-%04d', $record->created_at->format('Y'), $record->id), $record->reference_no);
-        Storage::disk('private_documents')->assertExists($record->attachment_path);
+        $this->assertNull($record->attachment_path);
+        $this->assertSame(['created'], $record->events()->pluck('type')->all());
 
         $this->followRedirects($response)->assertSee($record->reference_no);
     }

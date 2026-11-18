@@ -13,14 +13,14 @@
 <p style="margin:0 0 6px;font-size:13px;color:#1f8a91;font-weight:bold;">مشروع بيوت الخبرة</p>
 @if ($invite)
 <h1 style="margin:0 0 12px;font-size:22px;color:#0d4c50;">أهلاً {{ $name }}، حسابك جاهز</h1>
-<p style="margin:0 0 20px;">تمت إضافتك{{ $inviterName ? ' بواسطة '.$inviterName : '' }} لفريق متابعة طلبات الجمعيات في بيوت الخبرة. اضغط الزر لتفعيل حسابك والدخول مباشرة.</p>
+<p style="margin:0 0 20px;">تمت إضافتك{{ $inviterName ? ' بواسطة '.$inviterName : '' }} لفريق متابعة طلبات الجمعيات في بيوت الخبرة. اضغط الزر لإنشاء كلمة المرور وتفعيل حسابك.</p>
 @else
 <h1 style="margin:0 0 12px;font-size:22px;color:#0d4c50;">أهلاً {{ $name }} 👋</h1>
-<p style="margin:0 0 20px;">اضغط الزر للدخول إلى طلبات بيوت الخبرة. ما تحتاج كلمة مرور.</p>
+<p style="margin:0 0 20px;">اضغط الزر لإنشاء كلمة مرور جديدة لطلبات بيوت الخبرة.</p>
 @endif
 <table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:0 auto 20px;">
 <tr><td align="center" bgcolor="#1f8a91" style="border-radius:12px;background:#1f8a91;">
-<a href="{{ $url }}" target="_blank" rel="noopener" style="display:inline-block;padding:14px 34px;color:#ffffff;text-decoration:none;font-weight:bold;font-size:17px;">{{ $invite ? 'تفعيل الحساب والدخول' : 'الدخول الآن' }}</a>
+<a href="{{ $url }}" target="_blank" rel="noopener" style="display:inline-block;padding:14px 34px;color:#ffffff;text-decoration:none;font-weight:bold;font-size:17px;">{{ $invite ? 'إنشاء كلمة المرور' : 'كلمة مرور جديدة' }}</a>
 </td></tr></table>
 <p style="margin:0;font-size:13px;color:#6b7c82;">{{ $invite ? 'الرابط صالح لمدة 7 أيام ولمرة واحدة.' : 'الرابط صالح لمدة 30 دقيقة ولمرة واحدة.' }} إذا لم تطلب هذا البريد تجاهله.</p>
 </td></tr>

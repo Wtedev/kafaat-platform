@@ -143,7 +143,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('public.experience-houses.store') }}" enctype="multipart/form-data" id="eh-form" novalidate>
+    <form method="POST" action="{{ route('public.experience-houses.store') }}" id="eh-form" novalidate>
         @csrf
         <div class="hp" aria-hidden="true">
             <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
@@ -311,20 +311,6 @@
                     </div>
                     @error('delivery_mode')<div class="err">{{ $message }}</div>@enderror
                 </div>
-                <div class="full @error('attachment') has-error @enderror">
-                    <label class="f" for="attachment">مرفقات داعمة <span class="opt">(اختياري)</span></label>
-                    <label class="file">
-                        <span class="ico" aria-hidden="true">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.1l-9.2 9.2a6 6 0 01-8.5-8.5l9.2-9.2a4 4 0 015.7 5.7l-9.2 9.2a2 2 0 01-2.8-2.8l8.5-8.5"/></svg>
-                        </span>
-                        <span>
-                            <b id="file-label">أرفقوا ملفاً (خطة حالية، لائحة، تقرير…)</b>
-                            <small>PDF أو Word أو Excel أو صورة — حتى 10 ميجابايت</small>
-                        </span>
-                        <input type="file" id="attachment" name="attachment" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg">
-                    </label>
-                    @error('attachment')<div class="err">{{ $message }}</div>@enderror
-                </div>
             </div>
         </fieldset>
 
@@ -359,13 +345,6 @@
         other.addEventListener('change', function () {
             wrap.classList.toggle('hidden', !other.checked);
             if (other.checked) document.getElementById('other_department').focus();
-        });
-    }
-    var file = document.getElementById('attachment');
-    var fileLabel = document.getElementById('file-label');
-    if (file && fileLabel) {
-        file.addEventListener('change', function () {
-            if (file.files && file.files[0]) fileLabel.textContent = file.files[0].name;
         });
     }
     var form = document.getElementById('eh-form');

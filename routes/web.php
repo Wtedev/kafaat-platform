@@ -269,11 +269,17 @@ Route::prefix('experience-houses')->name('public.experience-houses.')->group(fun
 // الواجهة المبسطة لفريق بيوت الخبرة — دخول برابط يُرسل للبريد
 Route::prefix('experience-houses/manage')->name('experience-houses.manage.')->group(function () {
     Route::get('/login', [ExperienceHousesManageController::class, 'loginForm'])->name('login');
-    Route::post('/login', [ExperienceHousesManageController::class, 'sendLoginLink'])->middleware('throttle:5,10')->name('login.send');
+    Route::post('/login', [ExperienceHousesManageController::class, 'login'])->middleware('throttle:10,10')->name('login.attempt');
+    Route::get('/password', [ExperienceHousesManageController::class, 'forgotForm'])->name('forgot');
+    Route::post('/password', [ExperienceHousesManageController::class, 'sendLoginLink'])->middleware('throttle:5,10')->name('login.send');
     Route::get('/auth/{token}', [ExperienceHousesManageController::class, 'authenticate'])
         ->where('token', '[A-Za-z0-9]{64}')
         ->middleware('throttle:20,10')
         ->name('auth');
+    Route::post('/auth/{token}', [ExperienceHousesManageController::class, 'setPassword'])
+        ->where('token', '[A-Za-z0-9]{64}')
+        ->middleware('throttle:20,10')
+        ->name('auth.password');
     Route::post('/logout', [ExperienceHousesManageController::class, 'logout'])->name('logout');
 
     Route::middleware(EnsureExperienceHouseManager::class)->group(function () {

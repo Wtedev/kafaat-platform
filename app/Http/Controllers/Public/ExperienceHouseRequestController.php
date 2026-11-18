@@ -4,11 +4,9 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\ExperienceHouseRequest;
-use App\Services\Documents\PrivateDocumentsStorage;
 use App\Services\Surveys\TurnstileVerifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -80,22 +78,13 @@ class ExperienceHouseRequestController extends Controller
             'expected_outcome' => ['required', 'string', 'max:2000'],
             'priority' => ['required', Rule::in(array_keys(ExperienceHouseRequest::PRIORITIES))],
             'delivery_mode' => ['required', Rule::in(array_keys(ExperienceHouseRequest::DELIVERY_MODES))],
-            'attachment' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,png,jpg,jpeg'],
             'consent' => ['accepted'],
         ], [], $this->attributeNames());
 
-        unset($data['attachment'], $data['consent']);
+        unset($data['consent']);
 
         if (! in_array('other', $data['departments'], true)) {
             $data['other_department'] = null;
-        }
-
-        if ($request->hasFile('attachment')) {
-            $file = $request->file('attachment');
-            $path = 'experience-houses/'.now()->format('Y/m').'/'.Str::uuid().'.'.$file->getClientOriginalExtension();
-            PrivateDocumentsStorage::disk()->put($path, file_get_contents($file->getRealPath()));
-            $data['attachment_path'] = $path;
-            $data['attachment_name'] = Str::limit($file->getClientOriginalName(), 200, '');
         }
 
         $data['status'] = 'new';
@@ -158,7 +147,6 @@ class ExperienceHouseRequestController extends Controller
             'expected_outcome' => 'النتائج المتوقعة',
             'priority' => 'الأولوية',
             'delivery_mode' => 'أسلوب التنفيذ',
-            'attachment' => 'المرفق',
             'consent' => 'الإقرار',
         ];
     }
