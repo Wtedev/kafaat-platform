@@ -69,7 +69,7 @@ class ExperienceHouseManageTest extends TestCase
         $url = $this->passwordLinkFor('LamaAlmushyqih@gmail.com ');
 
         // الرابط يعرض نموذج كلمة المرور ولا يُدخل مباشرة
-        $this->get($url)->assertOk()->assertSee('كلمة مرور جديدة');
+        $this->get($url)->assertOk()->assertSee('فعّل حسابك');
         $this->get('/experience-houses/manage')->assertRedirect('/experience-houses/manage/login');
 
         $this->post($url, ['password' => 'secret123', 'password_confirmation' => 'nope'])->assertSessionHasErrors('password');
@@ -95,6 +95,20 @@ class ExperienceHouseManageTest extends TestCase
         $this->post('/experience-houses/manage/login', ['email' => ' LamaAlmushyqih@gmail.com', 'password' => 'secret123'])
             ->assertRedirect('/experience-houses/manage');
         $this->get('/experience-houses/manage')->assertOk();
+    }
+
+    public function test_access_mail_is_activation_until_password_exists(): void
+    {
+        $lama = $this->lama();
+        (new ExperienceHouseAccessMail($lama, 'https://x.test/a', 'login'))
+            ->assertHasSubject('تفعيل حسابك في منصة طلبات الدعم - بيوت الخبرة')
+            ->assertSeeInHtml('تفعيل الحساب');
+
+        $lama->forceFill(['password' => 'secret123'])->save();
+        (new ExperienceHouseAccessMail($lama->fresh(), 'https://x.test/a', 'login'))
+            ->assertHasSubject('إعادة تعيين كلمة المرور - منصة طلبات الدعم - بيوت الخبرة');
+        (new ExperienceHouseAccessMail($lama->fresh(), 'https://x.test/a', 'invite'))
+            ->assertHasSubject('تفعيل حسابك في منصة طلبات الدعم - بيوت الخبرة');
     }
 
     public function test_manager_without_password_cannot_log_in(): void
@@ -178,7 +192,7 @@ class ExperienceHouseManageTest extends TestCase
         });
 
         $this->post('/experience-houses/manage/logout');
-        $this->get($url)->assertOk()->assertSee('أنشئ كلمة مرورك');
+        $this->get($url)->assertOk()->assertSee('فعّل حسابك');
         $this->post($url, ['password' => 'noura-pass1', 'password_confirmation' => 'noura-pass1'])->assertRedirect('/experience-houses/manage');
         $this->assertNotNull($member->fresh()->activated_at);
         $this->get('/experience-houses/manage/team')->assertOk()->assertSee('نورة')->assertSee('لمى المشيقح');
