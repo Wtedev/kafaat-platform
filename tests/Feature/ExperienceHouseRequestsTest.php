@@ -84,7 +84,7 @@ class ExperienceHouseRequestsTest extends TestCase
         Mail::assertNotSent(ExperienceHouseNewRequestMail::class, fn ($m) => $m->hasTo('old@example.com'));
 
         $mail = new ExperienceHouseNewRequestMail($record, ExperienceHouseManager::query()->where('email', 'noura@example.com')->sole());
-        $mail->assertHasSubject('🔥 عاجل — طلب جديد من '.$record->organization_name.' — بيوت الخبرة');
+        $mail->assertHasSubject('منصة بيوت الخبرة: وصل طلب دعم جديد يحتاج مراجعتك');
         $mail->assertSeeInHtml(route('experience-houses.manage.show', $record), false);
         $mail->assertSeeInHtml('عرض تفاصيل الطلب');
         $mail->assertSeeInHtml($record->reference_no);

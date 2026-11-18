@@ -170,7 +170,6 @@
                     <img src="{{ asset('images/brand/kafaat-logo-white.svg') }}" alt="كفاءات">
                 </a>
                 <nav class="bar-links">
-                    <a href="{{ route('public.experience-houses.cover') }}">@include('experience-houses.manage._icon', ['name' => 'arrow-right', 'size' => 17]) عن المشروع</a>
                     <a href="{{ config('site.website_url', 'https://kafaat.org.sa') }}" target="_blank" rel="noopener">@include('experience-houses.manage._icon', ['name' => 'link', 'size' => 17]) موقع كفاءات</a>
                 </nav>
             </div>
