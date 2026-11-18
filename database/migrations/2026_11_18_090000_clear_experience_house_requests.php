@@ -18,7 +18,7 @@ return new class extends Migration
         foreach ($paths as $path) {
             try {
                 PrivateDocumentsStorage::disk()->delete($path);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // المرفق غير موجود أو التخزين غير متاح — لا يوقف النشر
             }
         }

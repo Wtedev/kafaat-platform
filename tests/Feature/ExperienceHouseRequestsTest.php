@@ -4,11 +4,14 @@ namespace Tests\Feature;
 
 use App\Filament\Resources\ExperienceHouseRequestResource\Pages\EditExperienceHouseRequest;
 use App\Filament\Resources\ExperienceHouseRequestResource\Pages\ListExperienceHouseRequests;
+use App\Mail\ExperienceHouseNewRequestMail;
+use App\Models\ExperienceHouseManager;
 use App\Models\ExperienceHouseRequest;
 use App\Models\User;
 use App\Services\Rbac\RbacCatalog;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
@@ -63,6 +66,28 @@ class ExperienceHouseRequestsTest extends TestCase
             ->assertOk()
             ->assertSee('نموذج طلب الدعم')
             ->assertSee('noindex', false);
+    }
+
+    public function test_new_request_emails_every_active_team_member_with_link(): void
+    {
+        Mail::fake();
+        ExperienceHouseManager::query()->create(['name' => 'نورة', 'email' => 'noura@example.com']);
+        ExperienceHouseManager::query()->create(['name' => 'سابقة', 'email' => 'old@example.com', 'is_active' => false]);
+
+        $this->post('/experience-houses', $this->validPayload(['priority' => 'urgent']))->assertRedirect();
+        $record = ExperienceHouseRequest::query()->sole();
+
+        Mail::assertSent(ExperienceHouseNewRequestMail::class, 2);
+        foreach (['lamaalmushyqih@gmail.com', 'noura@example.com'] as $email) {
+            Mail::assertSent(ExperienceHouseNewRequestMail::class, fn ($m) => $m->hasTo($email));
+        }
+        Mail::assertNotSent(ExperienceHouseNewRequestMail::class, fn ($m) => $m->hasTo('old@example.com'));
+
+        $mail = new ExperienceHouseNewRequestMail($record, ExperienceHouseManager::query()->where('email', 'noura@example.com')->sole());
+        $mail->assertHasSubject('🔥 عاجل — طلب جديد من '.$record->organization_name.' — بيوت الخبرة');
+        $mail->assertSeeInHtml(route('experience-houses.manage.show', $record), false);
+        $mail->assertSeeInHtml('عرض تفاصيل الطلب');
+        $mail->assertSeeInHtml($record->reference_no);
     }
 
     public function test_association_can_submit_a_request(): void
