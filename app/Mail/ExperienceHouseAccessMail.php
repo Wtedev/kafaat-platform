@@ -22,9 +22,15 @@ class ExperienceHouseAccessMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: $this->purpose === 'invite'
-            ? 'فعّل حسابك في طلبات بيوت الخبرة — جمعية كفاءات'
-            : 'إنشاء كلمة مرور — طلبات بيوت الخبرة');
+        return new Envelope(subject: $this->isActivation()
+            ? 'تفعيل حسابك في منصة طلبات الدعم - بيوت الخبرة'
+            : 'إعادة تعيين كلمة المرور - منصة طلبات الدعم - بيوت الخبرة');
+    }
+
+    /** دعوة جديدة، أو حساب لم يُنشئ كلمة مرور بعد (مثل أول مسؤولة). */
+    public function isActivation(): bool
+    {
+        return $this->purpose === 'invite' || $this->manager->password === null;
     }
 
     public function content(): Content
@@ -34,7 +40,8 @@ class ExperienceHouseAccessMail extends Mailable
         return new Content(
             view: 'mail.experience-house-access',
             with: [
-                'invite' => $this->purpose === 'invite',
+                'invite' => $this->isActivation(),
+                'longLink' => $this->purpose === 'invite',
                 'name' => $this->manager->firstName(),
                 'url' => $this->url,
                 'inviterName' => $this->inviter?->name,

@@ -101,7 +101,7 @@ class ManageController extends Controller
         return view('experience-houses.manage.set-password', [
             'token' => $token,
             'member' => $row->manager,
-            'invite' => $row->purpose === 'invite',
+            'invite' => $row->purpose === 'invite' || $row->manager->password === null,
         ]);
     }
 

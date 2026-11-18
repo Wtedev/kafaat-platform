@@ -27,8 +27,8 @@
 <main class="login">
     <div class="box">
         <img class="logo" src="{{ asset('images/brand/kafaat-logo.svg') }}" alt="كفاءات">
-        <h1>{{ $invite ? 'أهلاً '.$member->firstName().'، أنشئ كلمة مرورك' : 'كلمة مرور جديدة' }}</h1>
-        <p class="sub">ستدخل بها مع بريدك <b dir="ltr">{{ $member->email }}</b></p>
+        <h1>{{ $invite ? 'أهلاً '.$member->firstName().'، فعّل حسابك' : 'كلمة مرور جديدة' }}</h1>
+        <p class="sub">{{ $invite ? 'أنشئ كلمة مرور لتفعيل حسابك في منصة طلبات الدعم - بيوت الخبرة.' : '' }} ستدخل بها مع بريدك <b dir="ltr">{{ $member->email }}</b></p>
 
         <form method="POST" action="{{ route('experience-houses.manage.auth.password', ['token' => $token]) }}">
             @csrf
@@ -40,7 +40,7 @@
             <input class="input" type="password" id="password_confirmation" name="password_confirmation" required minlength="8" autocomplete="new-password" dir="ltr" style="text-align:right">
 
             <div class="tip">@include('experience-houses.manage._icon', ['name' => 'shield', 'size' => 18]) <span>8 أحرف على الأقل.</span></div>
-            <button class="btn" type="submit">@include('experience-houses.manage._icon', ['name' => 'check', 'size' => 19]) حفظ والدخول</button>
+            <button class="btn" type="submit">@include('experience-houses.manage._icon', ['name' => 'check', 'size' => 19]) {{ $invite ? 'تفعيل الحساب والدخول' : 'حفظ والدخول' }}</button>
         </form>
     </div>
 </main>
