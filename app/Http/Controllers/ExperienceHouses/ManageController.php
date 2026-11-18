@@ -20,6 +20,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class ManageController extends Controller
 {
     public const TABS = [
+        'all' => ['label' => 'جميع الحالات', 'icon' => 'clipboard', 'statuses' => ['new', 'in_review', 'scheduled', 'in_progress', 'completed', 'rejected']],
         'new' => ['label' => 'جديدة', 'icon' => 'inbox', 'statuses' => ['new']],
         'active' => ['label' => 'قيد المتابعة', 'icon' => 'play', 'statuses' => ['in_review', 'scheduled', 'in_progress']],
         'done' => ['label' => 'مكتملة', 'icon' => 'check', 'statuses' => ['completed']],
@@ -81,7 +82,7 @@ class ManageController extends Controller
 
     public function index(Request $request): View
     {
-        $tab = array_key_exists((string) $request->query('tab'), self::TABS) ? (string) $request->query('tab') : 'new';
+        $tab = array_key_exists((string) $request->query('tab'), self::TABS) ? (string) $request->query('tab') : 'all';
         $q = trim((string) $request->query('q', ''));
 
         $counts = [];
