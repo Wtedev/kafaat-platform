@@ -72,6 +72,9 @@
         @media (max-width: 900px), (orientation: portrait) {
             .card { grid-template-columns: 1fr; grid-template-areas: 'copy' 'preview' 'actions'; align-content: center; row-gap: 0;
                 padding: clamp(78px, 11vh, 110px) clamp(18px, 5vw, 48px) clamp(20px, 3.5vh, 36px); }
+            .copy { text-align: center; }
+            .logos { justify-content: center; }
+            .desc { margin-inline: auto; }
             .preview { margin-top: clamp(14px, 2.6vh, 26px); }
             .frame img { max-height: 30vh; max-height: 30svh; }
             .actions { margin-top: clamp(14px, 2.6vh, 24px); }
@@ -84,7 +87,7 @@
             .logos { gap: 11px; margin-bottom: 14px; }
             .logos .kf { height: 34px; } .logos .mh { height: 30px; }
             .kicker { font-size: 13.5px; }
-            h1 { font-size: 24px; white-space: normal; }
+            h1 { font-size: clamp(24px, 8.2vw, 36px); white-space: normal; }
             .desc { font-size: 14.5px; margin-top: 8px; }
             .frame { border-radius: 11px; }
             .bar { padding: 6px 9px; } .bar i { width: 6px; height: 6px; }
