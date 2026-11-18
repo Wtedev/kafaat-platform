@@ -22,9 +22,7 @@ class ExperienceHouseNewRequestMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $r = $this->experienceRequest;
-
-        return new Envelope(subject: ($r->priority === 'urgent' ? '🔥 عاجل — ' : '').'طلب جديد من '.$r->organization_name.' — بيوت الخبرة');
+        return new Envelope(subject: 'منصة بيوت الخبرة: وصل طلب دعم جديد يحتاج مراجعتك');
     }
 
     public function content(): Content
