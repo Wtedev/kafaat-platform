@@ -5,7 +5,7 @@
     .hello{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:6px 0 20px}
     .hello h1{margin:0;font-size:clamp(24px,4vw,32px);color:var(--teal-900);line-height:1.3}
     .hello p{margin:2px 0 0;color:var(--muted)}
-    .tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+    .tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:18px}
     .tab{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:14px 16px;transition:all .15s}
     .tab:hover{border-color:var(--teal-300)}
     .tab .ic{width:44px;height:44px;border-radius:13px 13px 13px 4px;display:grid;place-items:center;background:var(--teal-50);color:var(--teal-600);flex:none}
@@ -14,7 +14,8 @@
     .tab.on{background:linear-gradient(135deg,var(--teal-600),var(--teal-700));border-color:transparent;box-shadow:0 12px 24px -14px rgba(23,113,121,.9)}
     .tab.on b,.tab.on span{color:#fff}
     .tab.on .ic{background:rgba(255,255,255,.18);color:#fff}
-    @media(max-width:760px){.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:1000px){.tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(max-width:760px){.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.tabs .tab:first-child{grid-column:1/-1}}
     .searchbar{position:relative;margin-bottom:16px}
     .searchbar .input{padding-inline-start:46px;background:#fff}
     .searchbar svg{position:absolute;top:50%;inset-inline-start:15px;transform:translateY(-50%);color:var(--muted)}
@@ -79,7 +80,7 @@
                         <div class="item-top">
                             <h3>{{ $r->organization_name }}</h3>
                             @if ($r->priority === 'urgent')<span class="pill urgent">@include('experience-houses.manage._icon', ['name' => 'flame', 'size' => 14]) عاجل</span>@endif
-                            @if ($tab === 'active')<span class="pill st-{{ $r->status }}">{{ R::STATUSES[$r->status] }}</span>@endif
+                            @if (in_array($tab, ['active', 'all'], true))<span class="pill st-{{ $r->status }}">{{ R::STATUSES[$r->status] }}</span>@endif
                         </div>
                         <div class="meta">
                             <span>@include('experience-houses.manage._icon', ['name' => 'pin', 'size' => 15]) {{ $r->city }}</span>
