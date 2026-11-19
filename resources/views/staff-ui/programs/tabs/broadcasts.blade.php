@@ -24,7 +24,7 @@
         <div class="sui-card__head sui-card__head--row">
             <div>
                 <h2>{{ $editingBroadcast ? 'تعديل المسودة' : 'رسالة جديدة' }}</h2>
-                <p>إيميل باسم كل متدرب، يوصله لحاله. يُرسل في الخلفية على دفعات.</p>
+                <p>تصل الرسالة إلى بريد كل متدرب منفرداً وباسمه، وتُرسل في الخلفية على دفعات.</p>
             </div>
             @unless ($composeOpen)
                 <x-staff-ui.button type="button" size="sm" icon="plus" data-bc-open>رسالة جديدة</x-staff-ui.button>
@@ -56,11 +56,11 @@
                 <div class="sui-field">
                     <label class="sui-field__label" for="bc-content">نص الرسالة</label>
                     <textarea id="bc-content" name="content" rows="10" class="sui-control" required data-bc-content>{{ old('content', $editingBroadcast ? \App\Support\RichContentSupport::toEditableText($editingBroadcast->content) : '') }}</textarea>
-                    <p class="sui-field__hint">تبدأ الرسالة تلقائياً بـ«مرحباً» واسم المتدرب، واسم البرنامج يظهر فيها.</p>
+                    <p class="sui-field__hint">تبدأ الرسالة تلقائياً بـ«مرحباً» واسم المتدرب، ويظهر فيها اسم البرنامج.</p>
                 </div>
                 <div class="sui-bc-preview">
                     <span class="sui-field__label">المعاينة</span>
-                    <iframe title="معاينة الإيميل" sandbox data-bc-preview></iframe>
+                    <iframe title="معاينة الرسالة" sandbox data-bc-preview></iframe>
                 </div>
             </div>
 
@@ -84,7 +84,7 @@
     </div>
 
     @if ($messageLog->isEmpty())
-        <p class="sui-program-muted">ما أُرسلت رسائل لهذا البرنامج بعد.</p>
+        <p class="sui-program-muted">لم تُرسل رسائل لهذا البرنامج بعد.</p>
     @else
         <div class="sui-table-wrap">
             <table class="sui-table sui-bc-table">
@@ -166,7 +166,7 @@
                                                 <form method="POST" action="{{ route('staff-ui.programs.broadcasts.action', [$program, $broadcast]) }}" class="sui-inline-form">
                                                     @csrf
                                                     <input type="hidden" name="action" value="retry">
-                                                    <button type="submit" class="sui-btn sui-btn--secondary sui-btn--sm">إعادة الإرسال للي ما وصلتهم</button>
+                                                    <button type="submit" class="sui-btn sui-btn--secondary sui-btn--sm">إعادة الإرسال لمن لم تصلهم</button>
                                                 </form>
                                             @endif
                                             <form method="POST" action="{{ route('staff-ui.programs.broadcasts.action', [$program, $broadcast]) }}" class="sui-inline-form">
@@ -241,10 +241,10 @@
                 const count = Number(option?.dataset.count || 0);
                 if (count === 0) {
                     e.preventDefault();
-                    alert('ما فيه أحد في هذه الفئة.');
+                    alert('لا يوجد أحد في هذه الفئة.');
                     return;
                 }
-                if (!confirm(`إرسال الرسالة إلى ${count} شخص الآن؟ ما تقدرين تتراجعين بعد الإرسال.`)) e.preventDefault();
+                if (!confirm(`إرسال الرسالة إلى ${count} شخص الآن؟ لا يمكن التراجع بعد الإرسال.`)) e.preventDefault();
             });
         })();
     </script>

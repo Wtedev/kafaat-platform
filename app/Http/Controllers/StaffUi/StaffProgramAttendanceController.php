@@ -41,7 +41,7 @@ class StaffProgramAttendanceController extends Controller
 
         return $this->back($program)->with('status', 'أُضيف «'.$link->name.'»'.($request->boolean('open_now')
             ? ' وفُتح التحضير '.en_num($link->openMinutes()).' دقيقة.'
-            : '. افتحيه وقت التحضير.'));
+            : '. افتحه وقت التحضير.'));
     }
 
     public function update(Request $request, TrainingProgram $program, ProgramAttendanceLink $link): RedirectResponse

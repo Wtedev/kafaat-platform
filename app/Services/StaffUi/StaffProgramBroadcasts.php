@@ -36,7 +36,7 @@ final class StaffProgramBroadcasts
 
         foreach ($program->surveys()->get() as $survey) {
             $segments['survey:'.$survey->type->value] = [
-                'المقبولون اللي ما عبّوا الاستبيان '.$survey->type->label(),
+                'المقبولون الذين لم يعبّئوا الاستبيان '.$survey->type->label(),
                 'الاستبيانات',
                 ['statuses', self::ACCEPTED, ['survey_missing' => $survey->type->value]],
             ];

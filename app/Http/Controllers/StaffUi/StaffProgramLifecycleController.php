@@ -30,7 +30,7 @@ class StaffProgramLifecycleController extends Controller
 
         return redirect()
             ->route('staff-ui.programs.tab', [$copy, 'settings'])
-            ->with('status', 'نُسخ البرنامج كمسودة. حدّثي العنوان والمواعيد ثم انشريه.');
+            ->with('status', 'نُسخ البرنامج كمسودة. يُرجى تحديث العنوان والمواعيد قبل النشر.');
     }
 
     public function destroy(Request $request, TrainingProgram $program): RedirectResponse
@@ -43,7 +43,7 @@ class StaffProgramLifecycleController extends Controller
 
         return redirect()
             ->route('staff-ui.programs.index', ['view' => 'trash'])
-            ->with('status', 'نُقل «'.$program->title.'» إلى المحذوفات. تقدرين تستعيدينه في أي وقت.');
+            ->with('status', 'نُقل «'.$program->title.'» إلى المحذوفات، ويمكن استعادته في أي وقت.');
     }
 
     public function restore(Request $request, int $program): RedirectResponse
@@ -57,7 +57,7 @@ class StaffProgramLifecycleController extends Controller
 
         return redirect()
             ->route('staff-ui.programs.show', $model)
-            ->with('status', 'رجع البرنامج من المحذوفات بكل بياناته.');
+            ->with('status', 'استُعيد البرنامج من المحذوفات بجميع بياناته.');
     }
 
     private function actorFor(Request $request): User

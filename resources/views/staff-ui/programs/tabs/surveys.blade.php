@@ -50,13 +50,13 @@
             <div class="sui-card__head">
                 <h2>الأسئلة</h2>
                 @if ($isPost)
-                    <p>أسئلة البعدي نسخة من القبلي، وتتغيّر تلقائياً لما تعدّلين القبلي.</p>
+                    <p>أسئلة الاستبيان البعدي نسخة من القبلي، وتتغيّر تلقائياً عند تعديل القبلي.</p>
                 @elseif ($stats['locked'])
                     <p>وصلت ردود على القبلي أو البعدي، فالأسئلة مقفلة حتى تبقى المقارنة بينهما صحيحة.</p>
                 @elseif ($editingSurvey->type === SurveyType::Pre)
-                    <p>رتّبي الأسئلة بالأسهم. أي تعديل هنا ينتقل للبعدي تلقائياً.</p>
+                    <p>يمكن ترتيب الأسئلة بالأسهم، وينتقل أي تعديل هنا إلى الاستبيان البعدي تلقائياً.</p>
                 @else
-                    <p>رتّبي الأسئلة بالأسهم.</p>
+                    <p>يمكن ترتيب الأسئلة بالأسهم.</p>
                 @endif
             </div>
 
@@ -141,7 +141,7 @@
     <section class="sui-card">
         <div class="sui-card__head">
             <h2>الاستبيانات</h2>
-            <p>لكل برنامج ثلاثة استبيانات: قبلي، وبعدي بنفس أسئلة القبلي، ورضا مجهول. تُنشأ مرة وحدة وتعدّلينها بعدها.</p>
+            <p>لكل برنامج ثلاثة استبيانات: قبلي، وبعدي بنفس أسئلة القبلي، ورضا مجهول. تُنشأ مرة واحدة، ويمكن تعديلها بعد ذلك.</p>
         </div>
         @if ($canUpdate)
             <form method="POST" action="{{ route('staff-ui.programs.surveys.provision', $program) }}" class="sui-survey-create" data-survey-create>
@@ -149,16 +149,16 @@
                 <div class="sui-survey-source">
                     <label class="sui-survey-source__opt">
                         <input type="radio" name="source" value="template" @checked(old('source', 'template') === 'template') data-survey-source>
-                        <span><strong>من قالب</strong><small>أسئلة جاهزة تقدرين تعدّلينها بعدين.</small></span>
+                        <span><strong>من قالب</strong><small>أسئلة جاهزة قابلة للتعديل لاحقاً.</small></span>
                     </label>
                     <label class="sui-survey-source__opt">
                         <input type="radio" name="source" value="blank" @checked(old('source') === 'blank') data-survey-source>
-                        <span><strong>من الصفر</strong><small>استبيانات فاضية تضيفين أسئلتها.</small></span>
+                        <span><strong>من الصفر</strong><small>استبيانات فارغة تُضاف إليها الأسئلة.</small></span>
                     </label>
                 </div>
                 <div class="sui-form-grid" data-survey-templates>
-                    <x-staff-ui.select name="pre_template_id" label="قالب القبلي والبعدي" :selected="old('pre_template_id', '')" :options="['' => 'اختاري…'] + $surveyTemplates" />
-                    <x-staff-ui.select name="satisfaction_template_id" label="قالب الرضا" :selected="old('satisfaction_template_id', '')" :options="['' => 'اختاري…'] + $surveyTemplates" />
+                    <x-staff-ui.select name="pre_template_id" label="قالب القبلي والبعدي" :selected="old('pre_template_id', '')" :options="['' => 'اختر…'] + $surveyTemplates" />
+                    <x-staff-ui.select name="satisfaction_template_id" label="قالب الرضا" :selected="old('satisfaction_template_id', '')" :options="['' => 'اختر…'] + $surveyTemplates" />
                 </div>
                 <div>
                     <x-staff-ui.button type="submit" size="sm" icon="plus">إنشاء الاستبيانات</x-staff-ui.button>
@@ -262,7 +262,7 @@
                 await navigator.clipboard.writeText(button.dataset.copy);
                 label.textContent = 'نُسخ ✓';
             } catch (e) {
-                window.prompt('انسخي الرابط:', button.dataset.copy);
+                window.prompt('انسخ الرابط:', button.dataset.copy);
             }
             setTimeout(() => { label.textContent = original; }, 1500);
         }));

@@ -71,7 +71,7 @@ class StaffProgramBroadcastController extends Controller
         try {
             return match ((string) $request->input('action')) {
                 'send' => $this->send($actor, $program, $broadcast),
-                'retry' => tap($this->back($program)->with('status', 'أُعيدت محاولة الإرسال للي ما وصلتهم.'), fn () => $this->broadcasts->retryFailed($broadcast, $actor)),
+                'retry' => tap($this->back($program)->with('status', 'أُعيدت محاولة الإرسال إلى من لم تصلهم الرسالة.'), fn () => $this->broadcasts->retryFailed($broadcast, $actor)),
                 'copy' => redirect()->to($this->tabUrl($program).'?edit='.$this->broadcasts->copyToNewDraft($broadcast, $actor)->id)->with('status', 'نُسخت الرسالة كمسودة جديدة.'),
                 'delete' => tap($this->back($program)->with('status', 'حُذفت المسودة.'), fn () => $this->broadcasts->deleteDraft($broadcast, $actor)),
                 default => abort(422),
@@ -103,7 +103,7 @@ class StaffProgramBroadcastController extends Controller
     {
         $queued = $this->broadcasts->sendNow($broadcast, $actor);
 
-        return $this->back($program)->with('status', 'بدأ إرسال الرسالة إلى '.en_num((int) $queued->recipients_count).' شخص. تقدرين تتابعين الوصول من القائمة.');
+        return $this->back($program)->with('status', 'بدأ إرسال الرسالة إلى '.en_num((int) $queued->recipients_count).' شخص. ويمكن متابعة حالة الوصول من سجل الرسائل.');
     }
 
     /**
@@ -117,9 +117,9 @@ class StaffProgramBroadcastController extends Controller
             'subject' => ['required', 'string', 'max:255'],
             'content' => ['required', 'string', 'max:20000'],
         ], [
-            'subject.required' => 'اكتبي عنوان الرسالة.',
-            'content.required' => 'اكتبي نص الرسالة.',
-            'segment.in' => 'اختاري لمن تُرسل الرسالة.',
+            'subject.required' => 'عنوان الرسالة مطلوب.',
+            'content.required' => 'نص الرسالة مطلوب.',
+            'segment.in' => 'يُرجى اختيار المستلمين.',
         ]);
 
         return [

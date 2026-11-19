@@ -118,7 +118,7 @@ class ProgramBroadcast extends Model
         if (isset($filter['survey_missing'])) {
             $type = SurveyType::tryFrom((string) $filter['survey_missing']);
 
-            return 'المقبولون اللي ما عبّوا الاستبيان '.($type?->label() ?? '');
+            return 'المقبولون الذين لم يعبّئوا الاستبيان '.($type?->label() ?? '');
         }
         if (isset($filter['absent_link'])) {
             $name = ProgramAttendanceLink::query()->whereKey((int) $filter['absent_link'])->value('name');

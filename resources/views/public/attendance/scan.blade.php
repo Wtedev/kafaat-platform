@@ -79,7 +79,7 @@
                 show(Boolean(data.ok), data.name, data.message || 'تعذّر التحضير.');
                 if (typeof data.count === 'number') count.textContent = data.count;
             } catch (e) {
-                show(false, '', 'تعذّر الاتصال. حاول مرة ثانية.');
+                show(false, '', 'تعذّر الاتصال. حاول مرة أخرى.');
             } finally {
                 busy = false;
             }
