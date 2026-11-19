@@ -12,6 +12,7 @@ use App\Models\SupportTicket;
 use App\Models\User;
 use App\Services\Support\SupportUnreadService;
 use App\Support\StaffUi\StaffUiModule;
+use App\Support\SupportDeskAccess;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -52,11 +53,7 @@ class SupportTicketResource extends Resource
     {
         $user = auth()->user();
 
-        return $user instanceof User && (
-            $user->isAdmin()
-            || $user->can('support_tickets.view')
-            || $user->can('support_tickets.reply')
-        );
+        return SupportDeskAccess::isAgent($user instanceof User ? $user : null);
     }
 
     public static function shouldRegisterNavigation(): bool
@@ -90,7 +87,7 @@ class SupportTicketResource extends Resource
     {
         $user = auth()->user();
 
-        return $user instanceof User && $user->isAdmin();
+        return SupportDeskAccess::isAgent($user instanceof User ? $user : null);
     }
 
     public static function form(Schema $schema): Schema

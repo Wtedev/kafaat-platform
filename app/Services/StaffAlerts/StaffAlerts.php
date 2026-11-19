@@ -23,6 +23,7 @@ use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
 use App\Services\Surveys\ProgramSurveyService;
 use App\Support\StaffUi\StaffUiAccess;
+use App\Support\SupportDeskAccess;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -227,7 +228,7 @@ final class StaffAlerts
         } elseif ($user->isAdmin() || $user->checkPermissionTo('volunteering.view')) {
             $groups[] = 'registrations';
         }
-        if ($user->isAdmin() || $user->can('support_tickets.view') || $user->can('support_tickets.reply')) {
+        if (SupportDeskAccess::isAgent($user)) {
             $groups[] = 'support';
         }
 

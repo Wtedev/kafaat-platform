@@ -61,6 +61,8 @@ class SupportInboxUxTest extends TestCase
             'is_active' => true,
         ]);
         $user->assignRole('admin');
+        // Only listed accounts work the support desk.
+        config(['support_desk.agents' => [...(array) config('support_desk.agents'), strtolower($user->email)]]);
 
         return $user;
     }
