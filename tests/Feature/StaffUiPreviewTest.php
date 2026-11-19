@@ -36,7 +36,7 @@ class StaffUiPreviewTest extends TestCase
             ->assertOk()
             ->assertSee('PlatformStatsWidget', false)
             ->assertSee('fi-sidebar', false)
-            ->assertDontSee('لوحة التحكم الجديدة قيد البناء')
+            ->assertDontSee('id="dash-todo-title"', false)
             ->assertDontSee(route('staff-ui.profile'), false);
 
         Livewire::actingAs($staff)
@@ -59,7 +59,7 @@ class StaffUiPreviewTest extends TestCase
         $this->actingAsOtpVerified($this->admin())
             ->get('/admin')
             ->assertOk()
-            ->assertSee('لوحة التحكم الجديدة قيد البناء')
+            ->assertSee('id="dash-todo-title"', false)
             ->assertDontSee('إجمالي المستخدمين');
     }
 
@@ -73,7 +73,7 @@ class StaffUiPreviewTest extends TestCase
             ->assertServiceUnavailable()
             ->assertSee('واجهة الموظفين قيد العمل حالياً')
             ->assertDontSee('إجمالي المستخدمين')
-            ->assertDontSee('لوحة التحكم الجديدة قيد البناء');
+            ->assertDontSee('id="dash-todo-title"', false);
 
         $this->actingAsOtpVerified($staff)
             ->get(route('staff-ui.users.index'))
@@ -82,7 +82,7 @@ class StaffUiPreviewTest extends TestCase
         $this->actingAsOtpVerified($this->admin())
             ->get('/admin')
             ->assertOk()
-            ->assertSee('لوحة التحكم الجديدة قيد البناء');
+            ->assertSee('id="dash-todo-title"', false);
     }
 
     public function test_a_ready_module_lets_staff_open_that_new_page_only(): void
@@ -100,7 +100,7 @@ class StaffUiPreviewTest extends TestCase
         $this->actingAsOtpVerified($staff)
             ->get('/admin')
             ->assertOk()
-            ->assertDontSee('لوحة التحكم الجديدة قيد البناء');
+            ->assertDontSee('id="dash-todo-title"', false);
     }
 
     /**
