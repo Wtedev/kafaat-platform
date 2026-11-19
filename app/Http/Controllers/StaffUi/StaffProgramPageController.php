@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\StaffUi;
 
 use App\Enums\ProgramActivityAction;
+use App\Enums\ProgramPrepDayType;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Filament\Resources\TrainingProgramResource;
@@ -13,6 +14,7 @@ use App\Models\SurveyCompletion;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Exports\ProgramRegistrationExportAuthorization;
+use App\Services\StaffUi\StaffProgramAttendance;
 use App\Services\StaffUi\StaffProgramCalendar;
 use App\Services\StaffUi\StaffProgramRegistrations;
 use App\Services\StaffUi\StaffProgramSettings;
@@ -42,7 +44,7 @@ class StaffProgramPageController extends Controller
     ];
 
     /** Tabs that are built in the new UI; the rest still live in the current admin panel. */
-    private const BUILT_TABS = ['about', 'registrations', 'activity', 'settings'];
+    private const BUILT_TABS = ['about', 'registrations', 'attendance', 'activity', 'settings'];
 
     public function __construct(
         private readonly StaffProgramWizard $wizard,
@@ -60,7 +62,7 @@ class StaffProgramPageController extends Controller
             abort_unless($actor->can('update', $program), 403);
         }
 
-        if ($tab === 'registrations') {
+        if ($tab === 'registrations' || $tab === 'attendance') {
             abort_unless($actor->can('viewOperational', $program), 403);
         }
 
@@ -93,6 +95,7 @@ class StaffProgramPageController extends Controller
             'about' => $this->aboutData($program),
             'activity' => $this->activityData($request, $program),
             'registrations' => $this->registrationsData($request, $actor, $program),
+            'attendance' => $this->attendanceData($request, $program),
             'settings' => $this->settingsData($actor, $program),
             default => [],
         });
@@ -222,6 +225,48 @@ class StaffProgramPageController extends Controller
             'exportGroupTitles' => ProgramRegistrationExportColumns::groupTitles(),
             'exportDefaults' => ProgramRegistrationExportAuthorization::defaultColumnKeysFor($actor, $program),
             'previewTarget' => $service->query($program, $filters)->where('status', RegistrationStatus::Pending->value)->value('id'),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function attendanceData(Request $request, TrainingProgram $program): array
+    {
+        $service = app(StaffProgramAttendance::class);
+        $days = $service->days($program);
+        $approved = (int) $program->approved_registrations_count;
+
+        $selected = $days->first(fn (array $row): bool => $row['day']->dateString() === (string) $request->query('day'))
+            ?? $days->first(fn (array $row): bool => $row['day']->dateString() === now()->toDateString());
+        $search = mb_substr(trim((string) $request->query('q', '')), 0, 60);
+
+        $roster = null;
+        $presentMap = collect();
+        if ($selected !== null) {
+            $roster = $service->roster($program, $search)
+                ->with('user:id,name')
+                ->join('users', 'users.id', '=', 'program_registrations.user_id')
+                ->orderBy('users.name')
+                ->select('program_registrations.*')
+                ->paginate(50)
+                ->withQueryString();
+            $presentMap = $service->attendanceOn(
+                $selected['day']->dateString(),
+                $roster->getCollection()->pluck('id')->map(fn ($id) => (int) $id)->all(),
+            );
+        }
+
+        return [
+            'attendanceDays' => $days,
+            'approvedTotal' => $approved,
+            'selectedDay' => $selected['day'] ?? null,
+            'roster' => $roster,
+            'presentMap' => $presentMap,
+            'rosterSearch' => $search,
+            'attendanceLinks' => $program->attendanceLinks()->withCount('marks')->latest('id')->get(),
+            'attendanceCheckers' => $program->attendanceCheckers()->orderBy('name')->get(),
+            'dayTypes' => ProgramPrepDayType::options(),
         ];
     }
 

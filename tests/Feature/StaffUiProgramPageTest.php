@@ -93,7 +93,7 @@ class StaffUiProgramPageTest extends TestCase
         $program = $this->program();
 
         $this->actingAsOtpVerified($this->admin())
-            ->get(route('staff-ui.programs.tab', [$program, 'attendance']))
+            ->get(route('staff-ui.programs.tab', [$program, 'surveys']))
             ->assertOk()
             ->assertSee('قيد البناء')
             ->assertSee('فتح في لوحة الإدارة');

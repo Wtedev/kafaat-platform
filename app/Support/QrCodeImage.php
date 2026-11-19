@@ -7,6 +7,7 @@ use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\Writer\PngWriter;
+use Endroid\QrCode\Writer\Result\ResultInterface;
 
 final class QrCodeImage
 {
@@ -15,7 +16,20 @@ final class QrCodeImage
      */
     public static function dataUri(string $payload, int $size = 280): string
     {
-        $result = (new Builder(
+        return self::build($payload, $size)->getDataUri();
+    }
+
+    /**
+     * Raw PNG bytes, e.g. to embed in an email.
+     */
+    public static function png(string $payload, int $size = 280): string
+    {
+        return self::build($payload, $size)->getString();
+    }
+
+    private static function build(string $payload, int $size): ResultInterface
+    {
+        return (new Builder(
             writer: new PngWriter,
             writerOptions: [],
             validateResult: false,
@@ -26,7 +40,5 @@ final class QrCodeImage
             margin: 12,
             roundBlockSizeMode: RoundBlockSizeMode::Margin,
         ))->build();
-
-        return $result->getDataUri();
     }
 }

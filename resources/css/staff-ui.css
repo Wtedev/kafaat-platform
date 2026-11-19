@@ -3052,3 +3052,129 @@ a.sui-menu-item {
 .sui-modal[data-sui-modal="reg-export"] .sui-modal__panel {
     width: min(560px, 100%);
 }
+
+/* Program attendance tab */
+
+.sui-att-forms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sui-space-4);
+    padding: var(--sui-space-3) var(--sui-space-4);
+}
+
+.sui-att-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--sui-space-2);
+    margin: 0;
+}
+
+.sui-att-inline .sui-field {
+    margin: 0;
+    min-width: 140px;
+}
+
+.sui-att-inline .sui-checkline {
+    padding-bottom: 8px;
+}
+
+.sui-control--sm {
+    padding: 6px 10px;
+    font-size: 13px;
+    min-height: 32px;
+}
+
+.sui-inline-form {
+    display: inline;
+    margin: 0;
+}
+
+.sui-table tr.is-selected td {
+    background: var(--sui-primary-tint);
+}
+
+.sui-att-count,
+.sui-att-time {
+    font-variant-numeric: tabular-nums;
+}
+
+.sui-att-time {
+    margin-inline-start: 6px;
+    color: var(--sui-text-muted);
+    font-size: 12px;
+}
+
+.sui-att-bulk {
+    padding: 0 var(--sui-space-4) var(--sui-space-3);
+}
+
+.sui-att-list {
+    list-style: none;
+    margin: 0;
+    padding: 0 var(--sui-space-4) var(--sui-space-3);
+}
+
+.sui-att-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sui-space-2) var(--sui-space-4);
+    padding: var(--sui-space-3) 0;
+    border-bottom: 1px solid var(--sui-border);
+}
+
+.sui-att-item:last-child {
+    border-bottom: 0;
+}
+
+.sui-att-item__main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sui-space-2);
+    flex: 1 1 260px;
+}
+
+.sui-att-item__meta {
+    color: var(--sui-text-muted);
+    font-size: 12px;
+}
+
+.sui-att-item__actions {
+    display: flex;
+    gap: var(--sui-space-2);
+}
+
+.sui-att-item__actions form {
+    margin: 0;
+}
+
+.sui-att-copy {
+    display: flex;
+    gap: var(--sui-space-2);
+    flex: 1 1 280px;
+}
+
+.sui-att-copy .sui-control {
+    flex: 1;
+    direction: ltr;
+    text-align: left;
+}
+
+.sui-att-flash {
+    margin: var(--sui-space-3) var(--sui-space-4) 0;
+    padding: var(--sui-space-3);
+    border-radius: var(--sui-radius-sm);
+    background: var(--sui-success-bg);
+    font-size: 13px;
+}
+
+.sui-att-flash p {
+    margin: 0 0 var(--sui-space-2);
+}
+
+.sui-table a.sui-btn--primary,
+.sui-table a.sui-btn--primary:hover {
+    color: #fff;
+}

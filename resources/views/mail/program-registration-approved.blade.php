@@ -46,6 +46,17 @@
 @elseif (! empty($showPendingLine))
 <p style="margin:0 0 16px;text-align:center;">{{ \App\Support\ProgramApprovalMail::PENDING_LINE }}</p>
 @endif
+@if (! empty($qrPng))
+<div style="margin:24px 0 0;padding:20px 0 0;border-top:1px solid #e4e4e7;text-align:center;">
+<p style="margin:0 0 8px;font-weight:bold;color:#335483;">رمز الحضور</p>
+<p style="margin:0 0 12px;font-size:14px;">احتفظ بهذا الرمز وأظهره لمسؤول التحضير عند الدخول في كل يوم حضوري.</p>
+<img src="{{ isset($message) ? $message->embedData($qrPng, 'attendance-qr.png', 'image/png') : 'data:image/png;base64,'.base64_encode($qrPng) }}" alt="رمز الحضور" width="200" height="200" style="display:block;margin:0 auto;width:200px;height:200px;">
+@if (! empty($passCode))
+<p style="margin:8px 0 0;font-size:12px;color:#a1a1aa;direction:ltr;">{{ $passCode }}</p>
+@endif
+<p style="margin:12px 0 0;font-size:13px;">تجده أيضاً في حسابك بالمنصة ضمن «برامجي».</p>
+</div>
+@endif
 </td>
 </tr>
 </table>

@@ -30,6 +30,9 @@
                 if (! empty($props['status'])) {
                     $details[] = AttendanceStatus::tryFrom((string) $props['status'])?->label();
                 }
+                if (! empty($props['link'])) {
+                    $details[] = 'رابط «'.$props['link'].'»';
+                }
                 if (! empty($props['date'])) {
                     $details[] = 'يوم '.en_digits(ar_date((string) $props['date'], 'd MMM y'));
                 }

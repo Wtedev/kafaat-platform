@@ -26,6 +26,30 @@ final class ProgramRegistrationSuccessPresenter
      *     notifications_settings_url: string
      * }
      */
+    /**
+     * Code the prep officer scans at the door (KAFAAT-P{program}-R{registration}).
+     */
+    public static function passCode(TrainingProgram $program, ProgramRegistration $registration): string
+    {
+        return sprintf('KAFAAT-P%d-R%d', (int) $program->id, (int) $registration->id);
+    }
+
+    public static function passUrl(TrainingProgram $program, ProgramRegistration $registration): string
+    {
+        return route('public.programs.registered', [
+            'trainingProgram' => $program->slug,
+            'registration' => $registration->getKey(),
+        ], absolute: true);
+    }
+
+    /**
+     * What the attendance QR encodes: the pass page URL with the pass code as fragment.
+     */
+    public static function qrPayload(TrainingProgram $program, ProgramRegistration $registration): string
+    {
+        return self::passUrl($program, $registration).'#'.self::passCode($program, $registration);
+    }
+
     public static function present(TrainingProgram $program, ProgramRegistration $registration, User $user): array
     {
         $user->loadMissing('profile');
@@ -36,11 +60,7 @@ final class ProgramRegistrationSuccessPresenter
             ? TrainingProgramExtrasSupport::whatsappGroupUrlFor($program, $user)
             : null;
 
-        $passCode = sprintf('KAFAAT-P%d-R%d', (int) $program->id, (int) $registration->id);
-        $passUrl = route('public.programs.registered', [
-            'trainingProgram' => $program->slug,
-            'registration' => $registration->getKey(),
-        ], absolute: true);
+        $passCode = self::passCode($program, $registration);
 
         $showQr = $approved && $inPerson;
 
@@ -55,7 +75,7 @@ final class ProgramRegistrationSuccessPresenter
                 : null,
             'whatsapp_url' => $whatsapp,
             'show_qr' => $showQr,
-            'qr_data_uri' => $showQr ? QrCodeImage::dataUri($passUrl.'#'.$passCode, 300) : null,
+            'qr_data_uri' => $showQr ? QrCodeImage::dataUri(self::qrPayload($program, $registration), 300) : null,
             'pass_code' => $passCode,
             'notifications_settings_url' => route('portal.notifications.settings'),
         ];

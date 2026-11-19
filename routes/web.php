@@ -60,6 +60,7 @@ use App\Http\Controllers\StaffUi\StaffBeneficiaryController;
 use App\Http\Controllers\StaffUi\StaffDirectoryController;
 use App\Http\Controllers\StaffUi\StaffInboxController;
 use App\Http\Controllers\StaffUi\StaffProfileController;
+use App\Http\Controllers\StaffUi\StaffProgramAttendanceController;
 use App\Http\Controllers\StaffUi\StaffProgramController;
 use App\Http\Controllers\StaffUi\StaffProgramPageController;
 use App\Http\Controllers\StaffUi\StaffProgramRegistrationController;
@@ -182,6 +183,16 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.St
             ->whereIn('section', array_keys(StaffProgramSettings::SECTIONS))
             ->name('programs.settings.update');
         Route::post('/programs/{program}/status', [StaffProgramPageController::class, 'updateStatus'])->name('programs.status');
+        Route::post('/programs/{program}/attendance/days', [StaffProgramAttendanceController::class, 'storeDay'])->name('programs.attendance.days.store');
+        Route::post('/programs/{program}/attendance/days/generate', [StaffProgramAttendanceController::class, 'generateDays'])->name('programs.attendance.days.generate');
+        Route::post('/programs/{program}/attendance/days/{day}', [StaffProgramAttendanceController::class, 'updateDay'])->name('programs.attendance.days.update');
+        Route::post('/programs/{program}/attendance/days/{day}/delete', [StaffProgramAttendanceController::class, 'destroyDay'])->name('programs.attendance.days.destroy');
+        Route::post('/programs/{program}/attendance/roster/{registration}', [StaffProgramAttendanceController::class, 'toggle'])->name('programs.attendance.toggle');
+        Route::post('/programs/{program}/attendance/roster', [StaffProgramAttendanceController::class, 'bulkPresent'])->name('programs.attendance.bulk');
+        Route::post('/programs/{program}/attendance/links', [StaffProgramAttendanceController::class, 'storeLink'])->name('programs.attendance.links.store');
+        Route::post('/programs/{program}/attendance/links/{link}', [StaffProgramAttendanceController::class, 'linkAction'])->name('programs.attendance.links.action');
+        Route::post('/programs/{program}/attendance/checkers', [StaffProgramAttendanceController::class, 'storeChecker'])->name('programs.attendance.checkers.store');
+        Route::post('/programs/{program}/attendance/checkers/{checker}', [StaffProgramAttendanceController::class, 'checkerAction'])->name('programs.attendance.checkers.action');
         Route::post('/programs/{program}/registrations/bulk', [StaffProgramRegistrationController::class, 'bulk'])->name('programs.registrations.bulk');
         Route::get('/programs/{program}/registrations/export', [StaffProgramRegistrationController::class, 'exportAll'])->name('programs.registrations.export');
         Route::get('/programs/{program}/registrations/email-preview', [StaffProgramRegistrationController::class, 'preview'])->name('programs.registrations.preview');
