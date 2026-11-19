@@ -2,22 +2,18 @@
 
 namespace App\Http\Controllers\Public;
 
-use App\Exceptions\DuplicateRegistrationException;
-use App\Exceptions\OpportunityCapacityExceededException;
-use App\Exceptions\OpportunityNotPublishedException;
-use App\Exceptions\RegistrationRejectedException;
+use App\Enums\OpportunityStatus;
 use App\Http\Controllers\Controller;
 use App\Models\VolunteerOpportunity;
-use App\Services\VolunteerRegistrationService;
-use Illuminate\Http\Request;
+use Illuminate\View\View;
 
+/**
+ * Volunteer opportunities are listed here; registration happens on the national
+ * volunteering platform through each opportunity's link.
+ */
 class PublicVolunteerOpportunityController extends Controller
 {
-    public function __construct(
-        private readonly VolunteerRegistrationService $registrationService,
-    ) {}
-
-    public function index()
+    public function index(): View
     {
         $opportunities = VolunteerOpportunity::published()
             ->latest('published_at')
@@ -26,43 +22,10 @@ class PublicVolunteerOpportunityController extends Controller
         return view('public.volunteering.index', compact('opportunities'));
     }
 
-    public function show(VolunteerOpportunity $volunteerOpportunity)
+    public function show(VolunteerOpportunity $volunteerOpportunity): View
     {
-        abort_if($volunteerOpportunity->status->value !== 'published', 404);
+        abort_unless($volunteerOpportunity->status === OpportunityStatus::Published, 404);
 
-        $userRegistration = null;
-        if (auth()->check()) {
-            $userRegistration = $volunteerOpportunity->registrations()
-                ->where('user_id', auth()->id())
-                ->latest()
-                ->first();
-        }
-
-        return view('public.volunteering.show', compact('volunteerOpportunity', 'userRegistration'));
-    }
-
-    public function register(Request $request, VolunteerOpportunity $volunteerOpportunity)
-    {
-        if (! $request->user()) {
-            return redirect()->route('login');
-        }
-
-        if (! $request->user()->canRegisterForPublicOfferings()) {
-            abort(403);
-        }
-
-        try {
-            $this->registrationService->register($request->user(), $volunteerOpportunity);
-
-            return back()->with('success', 'تم تسجيلك بنجاح! سيتم مراجعة طلبك قريباً.');
-        } catch (RegistrationRejectedException) {
-            return back()->with('error', 'لا يمكن إعادة التقديم على هذه الفرصة التطوعية لأن تسجيلك السابق فيها رُفض أو أُغلق من قبل الإدارة.');
-        } catch (DuplicateRegistrationException) {
-            return back()->with('error', 'لديك تسجيل نشط بالفعل في هذه الفرصة التطوعية.');
-        } catch (OpportunityNotPublishedException) {
-            return back()->with('error', 'هذه الفرصة التطوعية غير متاحة للتسجيل حالياً.');
-        } catch (OpportunityCapacityExceededException) {
-            return back()->with('error', 'الفرصة التطوعية وصلت إلى الحد الأقصى للمتطوعين.');
-        }
+        return view('public.volunteering.show', compact('volunteerOpportunity'));
     }
 }

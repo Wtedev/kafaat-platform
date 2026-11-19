@@ -7,7 +7,6 @@ use App\Models\ProgramAttendance;
 use App\Models\ProgramRegistration;
 use App\Models\User;
 use App\Models\UserActivityLog;
-use App\Models\VolunteerRegistration;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
@@ -134,27 +133,6 @@ final class UserTechnicalLogService
                 $entries->push([
                     'occurred_at' => $registration->created_at ?? now(),
                     'category' => UserActivityAction::ProgramRegistration->category(),
-                    'title' => $title,
-                    'detail' => $detail,
-                ]);
-            });
-
-        VolunteerRegistration::query()
-            ->where('user_id', $user->id)
-            ->with('opportunity')
-            ->orderBy('created_at')
-            ->get()
-            ->each(function (VolunteerRegistration $registration) use ($entries): void {
-                $title = UserActivityAction::VolunteerRegistration->title();
-                $detail = '«'.($registration->opportunity?->title ?? 'فرصة تطوعية').'»';
-
-                if (self::hasDetailEntry($entries, $title, $detail)) {
-                    return;
-                }
-
-                $entries->push([
-                    'occurred_at' => $registration->created_at ?? now(),
-                    'category' => UserActivityAction::VolunteerRegistration->category(),
                     'title' => $title,
                     'detail' => $detail,
                 ]);

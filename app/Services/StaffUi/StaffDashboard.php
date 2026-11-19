@@ -156,7 +156,6 @@ final class StaffDashboard
     {
         $kinds = [
             'registrations.program' => fn (int $total, int $n) => [en_num($total).' '.$this->requests($total).' بانتظار القبول', $this->across($n, 'برنامج واحد', 'برنامجين', 'برامج')],
-            'registrations.volunteer' => fn (int $total, int $n) => [en_num($total).' '.$this->requests($total, 'طلب تطوع', 'طلبات تطوع', 'طلب تطوع').' بانتظار القبول', $this->across($n, 'فرصة واحدة', 'فرصتين', 'فرص')],
             'delivery.broadcast' => fn (int $total, int $n) => ['رسائل جماعية لم تصل إلى '.en_num($total).' '.($total === 1 ? 'شخص' : 'أشخاص'), $this->across($n, 'رسالة واحدة', 'رسالتين', 'رسائل')],
             'delivery.email' => fn (int $total, int $n) => [en_num($total).' '.($total === 1 ? 'رسالة بريد' : 'رسائل بريد').' إلى المسجلين لم تصل', $this->across($n, 'برنامج واحد', 'برنامجين', 'برامج')],
             'program.attendance' => fn (int $total, int $n) => ['التحضير مفتوح الآن', $this->across($n, 'يوم تحضير واحد', 'يوما تحضير', 'أيام تحضير', in: false)],

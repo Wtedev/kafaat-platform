@@ -53,13 +53,6 @@
             </span>
             @endif
         </div>
-        @unless ($opp->hasExternalUrl())
-        <div class="mt-4 text-xs font-semibold flex items-center gap-1.5 justify-end" style="color:#335483">
-            قدّم طلبك
-            <svg class="w-3.5 h-3.5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-        </div>
-        @endunless
         </div>
     </a>
     @if ($opp->hasExternalUrl())

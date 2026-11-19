@@ -12,7 +12,6 @@ use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
-use App\Models\VolunteerRegistration;
 use App\Services\Portal\PortalDashboardComposer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
@@ -68,17 +67,11 @@ class PortalDashboardLayoutTest extends TestCase
             'published_at' => now(),
         ]);
 
-        $registeredOpp = VolunteerOpportunity::query()->create([
+        VolunteerOpportunity::query()->create([
             'title' => 'فرصة مسجّلة',
             'slug' => 'registered-vol-'.uniqid(),
             'status' => OpportunityStatus::Published,
             'published_at' => now(),
-        ]);
-
-        VolunteerRegistration::query()->create([
-            'user_id' => $user->id,
-            'opportunity_id' => $registeredOpp->id,
-            'status' => RegistrationStatus::Pending,
         ]);
 
         $composed = PortalDashboardComposer::compose($user);
@@ -88,8 +81,7 @@ class PortalDashboardLayoutTest extends TestCase
 
         $this->assertTrue($composed['activities']->pluck('title')->contains('برنامج مسجّل'));
         $this->assertFalse($composed['activities']->pluck('title')->contains('برنامج غير مسجّل'));
-        $this->assertTrue($composed['volunteerRows']->pluck('title')->contains('فرصة مسجّلة'));
-        $this->assertFalse($composed['volunteerRows']->pluck('title')->contains('فرصة غير مسجّلة'));
+        $this->assertArrayNotHasKey('volunteerRows', $composed);
     }
 
     public function test_dashboard_uses_sidebar_notifications_and_current_activity(): void

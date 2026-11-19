@@ -118,11 +118,6 @@ class UserActivityLogger
         self::log($user, UserActivityAction::ProgramRegistration, '«'.$programTitle.'»');
     }
 
-    public static function logVolunteerRegistration(User $user, string $opportunityTitle): void
-    {
-        self::log($user, UserActivityAction::VolunteerRegistration, '«'.$opportunityTitle.'»');
-    }
-
     public static function logAttendanceCheckIn(User $user, string $contextLabel): void
     {
         self::log($user, UserActivityAction::AttendanceCheckIn, $contextLabel);

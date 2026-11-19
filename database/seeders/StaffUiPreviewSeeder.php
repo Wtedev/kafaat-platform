@@ -25,7 +25,6 @@ use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\UserDocument;
 use App\Models\VolunteerOpportunity;
-use App\Models\VolunteerRegistration;
 use App\Services\Documents\PrivateDocumentsStorage;
 use App\Services\Identity\IdentityNumberService;
 use App\Services\Rbac\RbacCatalog;
@@ -392,45 +391,6 @@ class StaffUiPreviewSeeder extends Seeder
                 if ($status === RegistrationStatus::Completed && $index % 10 === 9) {
                     $this->certificate($beneficiary, $program);
                 }
-            }
-        });
-
-        VolunteerRegistration::withoutEvents(function () use ($beneficiaries, $opportunities, $reviewer): void {
-            foreach ($beneficiaries as $index => $beneficiary) {
-                $hasVolunteer = $index % 4 === 1;
-                if (! $hasVolunteer) {
-                    VolunteerRegistration::query()
-                        ->where('user_id', $beneficiary->id)
-                        ->whereIn('opportunity_id', array_map(fn (VolunteerOpportunity $opportunity): int => $opportunity->id, $opportunities))
-                        ->delete();
-
-                    continue;
-                }
-
-                $opportunity = $opportunities[$index % count($opportunities)];
-                $status = [
-                    RegistrationStatus::Pending,
-                    RegistrationStatus::Approved,
-                    RegistrationStatus::Completed,
-                    RegistrationStatus::Rejected,
-                ][intdiv($index, 4) % 4];
-
-                VolunteerRegistration::query()->updateOrCreate(
-                    [
-                        'opportunity_id' => $opportunity->id,
-                        'user_id' => $beneficiary->id,
-                    ],
-                    [
-                        'status' => $status,
-                        'approved_by' => in_array($status, [RegistrationStatus::Approved, RegistrationStatus::Completed, RegistrationStatus::Rejected], true)
-                            ? $reviewer->id
-                            : null,
-                        'approved_at' => in_array($status, [RegistrationStatus::Approved, RegistrationStatus::Completed], true)
-                            ? '2026-08-22 11:00:00'
-                            : null,
-                        'rejected_reason' => $status === RegistrationStatus::Rejected ? 'اكتمل العدد لهذه الفرصة.' : null,
-                    ],
-                );
             }
         });
     }

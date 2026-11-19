@@ -7,14 +7,9 @@ use App\Models\Certificate;
 use App\Models\InboxNotification;
 use App\Models\ProgramAttendance;
 use App\Models\ProgramRegistration;
-use App\Models\TeamMember;
-use App\Models\TeamNotification;
 use App\Models\TrainingProgram;
 use App\Models\User;
-use App\Models\VolunteerHour;
 use App\Models\VolunteerOpportunity;
-use App\Models\VolunteerRegistration;
-use App\Models\VolunteerTeam;
 use Database\Seeders\Support\DemoEnvironmentUserPurge;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -89,9 +84,9 @@ class CleanDemoDataSeeder extends Seeder
      */
     private function purgeVolunteerTeams(): void
     {
-        TeamNotification::query()->delete();
-        TeamMember::query()->delete();
-        VolunteerTeam::query()->delete();
+        DB::table('team_notifications')->delete();
+        DB::table('team_members')->delete();
+        DB::table('volunteer_teams')->delete();
     }
 
     /**
@@ -99,8 +94,8 @@ class CleanDemoDataSeeder extends Seeder
      */
     private function purgeVolunteerDomain(): void
     {
-        VolunteerHour::query()->delete();
-        VolunteerRegistration::query()->delete();
+        DB::table('volunteer_hours')->delete();
+        DB::table('volunteer_registrations')->delete();
         VolunteerOpportunity::query()->delete();
     }
 

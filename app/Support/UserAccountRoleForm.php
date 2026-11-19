@@ -4,7 +4,6 @@ namespace App\Support;
 
 use App\Enums\AuditLogResult;
 use App\Models\User;
-use App\Models\VolunteerTeam;
 use App\Services\Audit\AuditLogger;
 use App\Services\Rbac\RbacCatalog;
 use App\Services\Rbac\StaffPermissionService;
@@ -295,10 +294,6 @@ final class UserAccountRoleForm
             app(StaffPermissionService::class)->grantAllAssignable($record);
         } else {
             $record->syncPermissions([]);
-        }
-
-        if ($spatieRole === self::TYPE_VOLUNTEER) {
-            VolunteerTeam::ensureMember($record);
         }
     }
 

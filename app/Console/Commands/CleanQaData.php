@@ -2,11 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Enums\RegistrationStatus;
 use App\Models\Certificate;
 use App\Models\ProgramRegistration;
-use App\Models\VolunteerHour;
-use App\Models\VolunteerRegistration;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
@@ -30,15 +27,6 @@ class CleanQaData extends Command
             )
             ->get();
 
-        // 2. All volunteer hours (created only during QA in this project)
-        $qaHours = VolunteerHour::all();
-
-        // 3. Volunteer registrations that were created during QA (completed ones driven by QA hours)
-        $qaVolRegs = VolunteerRegistration::whereIn(
-            'status',
-            [RegistrationStatus::Completed]
-        )->get();
-
         // 4. Program registrations created during QA (completed or non-seeded ones)
         //    Conservative: only those with IDs > 6 (seeded data is typically IDs 1-6)
         $qaProgRegs = ProgramRegistration::where('id', '>', 6)->get();
@@ -55,16 +43,6 @@ class CleanQaData extends Command
                     $c->id,
                     "{$c->certificate_number} (user_id={$c->user_id})",
                 ]))
-                ->merge($qaHours->map(fn ($h) => [
-                    'VolunteerHour',
-                    $h->id,
-                    "user_id={$h->user_id}, hours={$h->hours}, status={$h->status->value}",
-                ]))
-                ->merge($qaVolRegs->map(fn ($r) => [
-                    'VolunteerRegistration',
-                    $r->id,
-                    "user_id={$r->user_id}, status={$r->status->value}",
-                ]))
                 ->merge($qaProgRegs->map(fn ($r) => [
                     'ProgramRegistration',
                     $r->id,
@@ -73,7 +51,7 @@ class CleanQaData extends Command
                 ->toArray()
         );
 
-        $total = $testCerts->count() + $qaHours->count() + $qaVolRegs->count() + $qaProgRegs->count();
+        $total = $testCerts->count() + $qaProgRegs->count();
 
         if ($total === 0) {
             $this->info('No QA data found. Nothing to delete.');
@@ -100,13 +78,9 @@ class CleanQaData extends Command
 
         // --- Delete records ---
         Certificate::whereIn('id', $testCerts->pluck('id'))->delete();
-        VolunteerHour::whereIn('id', $qaHours->pluck('id'))->delete();
-        VolunteerRegistration::whereIn('id', $qaVolRegs->pluck('id'))->delete();
         ProgramRegistration::whereIn('id', $qaProgRegs->pluck('id'))->delete();
 
         $this->info("Deleted {$testCerts->count()} certificate(s).");
-        $this->info("Deleted {$qaHours->count()} volunteer hour(s).");
-        $this->info("Deleted {$qaVolRegs->count()} volunteer registration(s).");
         $this->info("Deleted {$qaProgRegs->count()} program registration(s).");
         $this->newLine();
         $this->info('QA data cleanup complete.');

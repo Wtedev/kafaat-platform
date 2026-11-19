@@ -8,7 +8,6 @@ use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
-use App\Models\VolunteerRegistration;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -69,7 +68,6 @@ class RegistrationsSeeder extends Seeder
         }
 
         $this->seedProgramRegistrations($usersByEmail, $approver);
-        $this->seedVolunteerRegistrations($usersByEmail, $approver);
     }
 
     /**
@@ -184,9 +182,6 @@ class RegistrationsSeeder extends Seeder
         }
     }
 
-    /**
-     * @param  array<string, User>  $usersByEmail
-     */
     private function seedVolunteerRegistrations(array $usersByEmail, User $approver): void
     {
         $opps = VolunteerOpportunity::query()->orderBy('id')->get();

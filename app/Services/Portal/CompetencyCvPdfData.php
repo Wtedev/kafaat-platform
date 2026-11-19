@@ -5,7 +5,6 @@ namespace App\Services\Portal;
 use App\Models\Certificate;
 use App\Models\TrainingProgram;
 use App\Models\User;
-use App\Models\VolunteerRegistration;
 use Illuminate\Support\Collection;
 
 /**
@@ -14,35 +13,13 @@ use Illuminate\Support\Collection;
 final class CompetencyCvPdfData
 {
     /**
-     * User experience rows + completed volunteering as synthetic experience.
+     * The user's own experience rows, marked as theirs.
      *
-     * @param  Collection<int, VolunteerRegistration>  $completedVolunteering
      * @return list<array<string, mixed>>
      */
-    public static function mergedExperience(User $user, array $userExperience, Collection $completedVolunteering, string $locale): array
+    public static function mergedExperience(User $user, array $userExperience, string $locale): array
     {
-        $out = [];
-        foreach ($userExperience as $row) {
-            $out[] = array_merge($row, ['source' => 'user']);
-        }
-        $plat = CvUiTranslator::t($locale, 'kafaat');
-        $volLabel = CvUiTranslator::t($locale, 'volunteering');
-        foreach ($completedVolunteering as $reg) {
-            $title = $reg->opportunity?->title ?? $volLabel;
-            $out[] = [
-                'title' => $title,
-                'organization' => $plat,
-                'type' => 'on_site',
-                'employment_type' => 'volunteer',
-                'start_date' => null,
-                'end_date' => $reg->updated_at?->format('Y-m-d'),
-                'is_current' => false,
-                'description' => $volLabel,
-                'source' => 'platform_volunteer',
-            ];
-        }
-
-        return $out;
+        return array_map(fn (array $row): array => array_merge($row, ['source' => 'user']), array_values($userExperience));
     }
 
     /**

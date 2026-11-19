@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Filament\Support;
 
 use App\Enums\RegistrationStatus;
-use App\Exceptions\OpportunityCapacityExceededException;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Models\InboxNotification;
 use App\Models\News;
@@ -13,9 +12,7 @@ use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
-use App\Models\VolunteerRegistration;
 use App\Services\ProgramRegistrationService;
-use App\Services\VolunteerRegistrationService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
@@ -81,53 +78,6 @@ final class InboxNotificationRecordActions
                     }
                     Gate::authorize('reject', $reg);
                     app(ProgramRegistrationService::class)->reject($reg, $data['rejected_reason'] ?? null);
-                    $record->markAsRead();
-                    Notification::make()->title('تم رفض التسجيل')->warning()->send();
-                }),
-
-            Action::make('inbox_approve_volunteer_registration')
-                ->label('قبول')
-                ->icon('heroicon-o-check-circle')
-                ->color('success')
-                ->requiresConfirmation()
-                ->modalHeading('تأكيد قبول التسجيل التطوعي')
-                ->visible(fn (InboxNotification $record): bool => self::canApproveVolunteerRegistration($record))
-                ->action(function (InboxNotification $record): void {
-                    $reg = self::volunteerRegistration($record);
-                    if ($reg === null) {
-                        return;
-                    }
-                    Gate::authorize('approve', $reg);
-                    try {
-                        app(VolunteerRegistrationService::class)->approve($reg, auth()->user());
-                        $record->markAsRead();
-                        Notification::make()->title('تم قبول التسجيل')->success()->send();
-                    } catch (OpportunityCapacityExceededException) {
-                        Notification::make()->title('الفرصة بلغت طاقتها القصوى')->danger()->send();
-                    }
-                }),
-
-            Action::make('inbox_reject_volunteer_registration')
-                ->label('رفض')
-                ->icon('heroicon-o-x-circle')
-                ->color('danger')
-                ->visible(fn (InboxNotification $record): bool => self::canRejectVolunteerRegistration($record))
-                ->form([
-                    Textarea::make('rejected_reason')
-                        ->label('سبب الرفض (اختياري)')
-                        ->rows(3),
-                ])
-                ->action(function (InboxNotification $record, array $data): void {
-                    $reg = self::volunteerRegistration($record);
-                    if ($reg === null) {
-                        return;
-                    }
-                    Gate::authorize('reject', $reg);
-                    app(VolunteerRegistrationService::class)->reject(
-                        $reg,
-                        auth()->user(),
-                        $data['rejected_reason'] ?? null,
-                    );
                     $record->markAsRead();
                     Notification::make()->title('تم رفض التسجيل')->warning()->send();
                 }),
@@ -227,17 +177,10 @@ final class InboxNotificationRecordActions
                 && $r->trainingProgram !== null
                 ? route('portal.programs', ['open_attendance' => $r->trainingProgram->id])
                 : null,
-            'volunteer_opportunity' => ($opp = VolunteerOpportunity::find($id)) !== null
-                && VolunteerRegistration::query()
-                    ->where('user_id', $user->id)
-                    ->where('opportunity_id', $opp->id)
-                    ->exists()
-                ? route('portal.volunteering')
+            'volunteer_opportunity' => ($opp = VolunteerOpportunity::find($id)) !== null && $opp->hasExternalUrl()
+                ? $opp->external_url
                 : null,
-            'volunteer_registration' => ($r = VolunteerRegistration::find($id)) !== null
-                && (int) $r->user_id === (int) $user->id
-                ? route('portal.volunteering')
-                : null,
+            'volunteer_registration' => null,
             'certificate' => route('portal.certificates'),
             default => null,
         };
@@ -286,15 +229,6 @@ final class InboxNotificationRecordActions
             : null;
     }
 
-    public static function volunteerRegistration(InboxNotification $record): ?VolunteerRegistration
-    {
-        $c = self::ctx($record);
-
-        return ($c !== null && $c['resource'] === 'volunteer_registration')
-            ? VolunteerRegistration::find((int) $c['id'])
-            : null;
-    }
-
     public static function canApproveProgramRegistration(InboxNotification $record): bool
     {
         $reg = self::programRegistration($record);
@@ -307,24 +241,6 @@ final class InboxNotificationRecordActions
     public static function canRejectProgramRegistration(InboxNotification $record): bool
     {
         $reg = self::programRegistration($record);
-
-        return $reg !== null
-            && $reg->status === RegistrationStatus::Pending
-            && Gate::allows('reject', $reg);
-    }
-
-    public static function canApproveVolunteerRegistration(InboxNotification $record): bool
-    {
-        $reg = self::volunteerRegistration($record);
-
-        return $reg !== null
-            && $reg->status === RegistrationStatus::Pending
-            && Gate::allows('approve', $reg);
-    }
-
-    public static function canRejectVolunteerRegistration(InboxNotification $record): bool
-    {
-        $reg = self::volunteerRegistration($record);
 
         return $reg !== null
             && $reg->status === RegistrationStatus::Pending

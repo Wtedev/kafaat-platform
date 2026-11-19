@@ -2,6 +2,7 @@
 
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Models\VolunteerOpportunity;
 
 return [
 
@@ -63,6 +64,14 @@ return [
             'key' => 'programs',
             'ability' => 'viewAny',
             'model' => TrainingProgram::class,
+        ],
+        [
+            'label' => 'الفرص التطوعية',
+            'icon' => 'hand-heart',
+            'route' => 'staff-ui.volunteering.index',
+            'key' => 'volunteering',
+            'ability' => 'viewAny',
+            'model' => VolunteerOpportunity::class,
         ],
     ],
 

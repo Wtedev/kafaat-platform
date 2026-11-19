@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Portal;
 
-use App\Exceptions\OpportunityCapacityExceededException;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Filament\Support\InboxNotificationRecordActions;
 use App\Http\Controllers\Controller;
@@ -12,7 +11,6 @@ use App\Services\Inbox\InboxNotificationService;
 use App\Services\Inbox\UserNotificationPreferences;
 use App\Services\ProgramRegistrationService;
 use App\Services\UserActivityLogger;
-use App\Services\VolunteerRegistrationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -92,13 +90,12 @@ class PortalInboxController extends Controller
         Request $request,
         InboxNotification $notification,
         ProgramRegistrationService $programRegistrationService,
-        VolunteerRegistrationService $volunteerRegistrationService,
     ): RedirectResponse {
         Gate::authorize('update', $notification);
         abort_unless((int) $notification->user_id === (int) $request->user()->id, 403);
 
         $validated = $request->validate([
-            'intent' => ['required', 'string', 'in:approve_program,reject_program,approve_volunteer,reject_volunteer'],
+            'intent' => ['required', 'string', 'in:approve_program,reject_program'],
             'rejected_reason' => ['nullable', 'string', 'max:2000'],
         ]);
 
@@ -110,13 +107,9 @@ class PortalInboxController extends Controller
             return match ($validated['intent']) {
                 'approve_program' => $this->portalApproveProgramRegistration($notification, $actor, $programRegistrationService),
                 'reject_program' => $this->portalRejectProgramRegistration($notification, $programRegistrationService, $reason),
-                'approve_volunteer' => $this->portalApproveVolunteerRegistration($notification, $actor, $volunteerRegistrationService),
-                'reject_volunteer' => $this->portalRejectVolunteerRegistration($notification, $actor, $volunteerRegistrationService, $reason),
             };
         } catch (ProgramCapacityExceededException) {
             return back()->with('error', 'البرنامج بلغ طاقته القصوى.');
-        } catch (OpportunityCapacityExceededException) {
-            return back()->with('error', 'الفرصة التطوعية بلغت طاقتها القصوى.');
         }
     }
 
@@ -152,40 +145,5 @@ class PortalInboxController extends Controller
         $notification->markAsRead();
 
         return back()->with('success', 'تم رفض التسجيل في البرنامج.');
-    }
-
-    private function portalApproveVolunteerRegistration(
-        InboxNotification $notification,
-        User $actor,
-        VolunteerRegistrationService $volunteerRegistrationService,
-    ): RedirectResponse {
-        abort_unless(InboxNotificationRecordActions::canApproveVolunteerRegistration($notification), 403);
-        $reg = InboxNotificationRecordActions::volunteerRegistration($notification);
-        if ($reg === null) {
-            abort(404);
-        }
-        Gate::authorize('approve', $reg);
-        $volunteerRegistrationService->approve($reg, $actor);
-        $notification->markAsRead();
-
-        return back()->with('success', 'تم قبول التسجيل التطوعي.');
-    }
-
-    private function portalRejectVolunteerRegistration(
-        InboxNotification $notification,
-        User $actor,
-        VolunteerRegistrationService $volunteerRegistrationService,
-        ?string $reason,
-    ): RedirectResponse {
-        abort_unless(InboxNotificationRecordActions::canRejectVolunteerRegistration($notification), 403);
-        $reg = InboxNotificationRecordActions::volunteerRegistration($notification);
-        if ($reg === null) {
-            abort(404);
-        }
-        Gate::authorize('reject', $reg);
-        $volunteerRegistrationService->reject($reg, $actor, $reason);
-        $notification->markAsRead();
-
-        return back()->with('success', 'تم رفض التسجيل التطوعي.');
     }
 }

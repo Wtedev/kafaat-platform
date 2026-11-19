@@ -6,7 +6,6 @@ use App\Enums\AccountStatus;
 use App\Enums\IdentityCategory;
 use App\Enums\IdentityType;
 use App\Enums\ProfileGender;
-use App\Enums\VolunteerHoursStatus;
 use App\Models\Builders\UserQueryBuilder;
 use App\Models\Concerns\HasEntityNotes;
 use App\Services\Auth\EmailVerificationCodeService;
@@ -27,7 +26,6 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -330,39 +328,6 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function assignedVolunteerOpportunities(): HasMany
     {
         return $this->hasMany(VolunteerOpportunity::class, 'assigned_to');
-    }
-
-    public function volunteerRegistrations(): HasMany
-    {
-        return $this->hasMany(VolunteerRegistration::class);
-    }
-
-    public function teamMemberships(): HasMany
-    {
-        return $this->hasMany(TeamMember::class);
-    }
-
-    public function volunteerTeams(): BelongsToMany
-    {
-        return $this->belongsToMany(VolunteerTeam::class, 'team_members')
-            ->withTimestamps();
-    }
-
-    public function inboxNotifications(): HasMany
-    {
-        return $this->hasMany(InboxNotification::class, 'user_id');
-    }
-
-    public function volunteerHours(): HasMany
-    {
-        return $this->hasMany(VolunteerHour::class);
-    }
-
-    public function totalApprovedVolunteerHours(): float
-    {
-        return (float) $this->volunteerHours()
-            ->where('status', VolunteerHoursStatus::Approved->value)
-            ->sum('hours');
     }
 
     public function certificates(): HasMany

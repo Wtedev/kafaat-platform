@@ -2,10 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\TeamMember;
 use App\Models\TrainingProgram;
 use App\Models\User;
-use App\Models\VolunteerTeam;
 use App\Services\Rbac\RbacCatalog;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\StaffFilamentRoles;
@@ -14,20 +12,11 @@ use Illuminate\Database\Eloquent\Builder;
 class SendInAppNotificationPolicy
 {
     /**
-     * صفحة «إرسال تنبيه»: صلاحية إرسال عامة، أو قائد فريق تطوعي (معيّن على فريق).
+     * صفحة «إرسال تنبيه»: لمن يملك صلاحية الإرسال.
      */
     public function accessPage(User $user): bool
     {
-        if (! $user->is_active) {
-            return false;
-        }
-
-        return $user->can('send_notifications') || $this->isVolunteerTeamLeader($user);
-    }
-
-    public function isVolunteerTeamLeader(User $user): bool
-    {
-        return VolunteerTeam::query()->where('assigned_to', $user->id)->exists();
+        return $user->is_active && $user->can('send_notifications');
     }
 
     public function isAdmin(User $user): bool
@@ -56,13 +45,6 @@ class SendInAppNotificationPolicy
             return [];
         }
 
-        if (! $sender->can('send_notifications') && $this->isVolunteerTeamLeader($sender)) {
-            return [
-                'user' => 'مستخدم محدد',
-                'team' => 'فريق تطوعي',
-            ];
-        }
-
         if (! $sender->can('send_notifications')) {
             return [];
         }
@@ -77,18 +59,6 @@ class SendInAppNotificationPolicy
 
         if ($this->isAdmin($sender) || $this->isTrainingManager($sender)) {
             $kinds['program'] = 'مستفيدو برنامج تدريبي';
-        }
-
-        $teamForManagers = ($this->isAdmin($sender) || $this->isVolunteeringManager($sender))
-            && ! ($this->isTrainingManager($sender) && ! $this->isAdmin($sender));
-
-        $teamForLeaderOnly = $this->isVolunteerTeamLeader($sender)
-            && ! $this->isAdmin($sender)
-            && ! $sender->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR)
-            && ! StaffFilamentRoles::isProgramsActivitiesManager($sender);
-
-        if ($teamForManagers || $teamForLeaderOnly) {
-            $kinds['team'] = 'فريق تطوعي';
         }
 
         return $kinds;
@@ -149,13 +119,6 @@ class SendInAppNotificationPolicy
             });
         }
 
-        if ($this->isVolunteerTeamLeader($sender) && ! $sender->can('send_notifications')) {
-            $teamIds = VolunteerTeam::query()->where('assigned_to', $sender->id)->pluck('id');
-            $memberIds = TeamMember::query()->whereIn('volunteer_team_id', $teamIds)->pluck('user_id')->unique();
-
-            return $q->whereIn('id', $memberIds);
-        }
-
         if (StaffFilamentRoles::isProgramsActivitiesManager($sender) && ! $this->isAdmin($sender)) {
             return $q->where(function (Builder $sub): void {
                 $sub->whereIn('role_type', ['trainee', 'beneficiary', 'volunteer'])
@@ -194,23 +157,6 @@ class SendInAppNotificationPolicy
         return array_key_exists($roleKey, $this->availableRoleOptions($sender));
     }
 
-    public function canTargetTeam(User $sender, VolunteerTeam $team): bool
-    {
-        if (FilamentAssignmentVisibility::bypasses($sender)) {
-            return true;
-        }
-
-        if ((int) $team->assigned_to === (int) $sender->id) {
-            return true;
-        }
-
-        if ($sender->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR) || StaffFilamentRoles::isProgramsActivitiesManager($sender)) {
-            return FilamentAssignmentVisibility::userManagesVolunteerTeam($sender, $team);
-        }
-
-        return false;
-    }
-
     public function canTargetProgram(User $sender, TrainingProgram $program): bool
     {
         return FilamentAssignmentVisibility::userManagesTrainingProgram($sender, $program);
@@ -229,28 +175,6 @@ class SendInAppNotificationPolicy
 
         if ($sender->hasAnyRole(StaffFilamentRoles::TRAINING_COORDINATOR) || StaffFilamentRoles::isProgramsActivitiesManager($sender)) {
             return $q->forFilamentAssignmentAccess($sender);
-        }
-
-        return $q->whereRaw('1 = 0');
-    }
-
-    /**
-     * @return Builder<VolunteerTeam>
-     */
-    public function eligibleTeamsQuery(User $sender): Builder
-    {
-        $q = VolunteerTeam::query()->orderBy('name');
-
-        if (FilamentAssignmentVisibility::bypasses($sender)) {
-            return $q;
-        }
-
-        if ($sender->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR) || StaffFilamentRoles::isProgramsActivitiesManager($sender)) {
-            return $q->forFilamentAssignmentAccess($sender);
-        }
-
-        if ($this->isVolunteerTeamLeader($sender)) {
-            return $q->where('assigned_to', $sender->id);
         }
 
         return $q->whereRaw('1 = 0');

@@ -7,7 +7,6 @@ use App\Enums\RegistrationStatus;
 use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Models\TrainingProgram;
 use App\Models\User;
-use App\Models\VolunteerTeam;
 use App\Policies\SendInAppNotificationPolicy;
 use App\Services\Inbox\InboxNotificationService;
 use App\Support\StaffUi\StaffUiModule;
@@ -137,14 +136,6 @@ class SendInAppNotification extends Page
                         ->visible(fn (Get $get): bool => $get('target_kind') === 'role')
                         ->required(fn (Get $get): bool => $get('target_kind') === 'role'),
 
-                    Select::make('target_team_id')
-                        ->label('الفريق التطوعي')
-                        ->options(fn (): array => $policy->eligibleTeamsQuery(auth()->user())->pluck('name', 'id')->all())
-                        ->searchable()
-                        ->preload()
-                        ->visible(fn (Get $get): bool => $get('target_kind') === 'team')
-                        ->required(fn (Get $get): bool => $get('target_kind') === 'team'),
-
                     Select::make('target_program_id')
                         ->label('البرنامج التدريبي')
                         ->options(fn (): array => $policy->eligibleTrainingProgramsQuery(auth()->user())->pluck('title', 'id')->all())
@@ -215,21 +206,6 @@ class SendInAppNotification extends Page
                     };
                     $inbox->generalMessage($sender, $audience, $title, $body);
                 })(),
-                'team' => (function () use ($data, $sender, $policy, $inbox, $title, $body): void {
-                    $team = VolunteerTeam::query()->findOrFail((int) $data['target_team_id']);
-                    if (! $policy->canTargetTeam($sender, $team)) {
-                        throw ValidationException::withMessages([
-                            'data.target_team_id' => 'لا يمكنك إرسال تنبيه إلى هذا الفريق.',
-                        ]);
-                    }
-                    $ids = $team->members()->pluck('user_id')->unique()->values()->all();
-                    if ($ids === []) {
-                        throw ValidationException::withMessages([
-                            'data.target_team_id' => 'الفريق لا يضم أعضاء بعد.',
-                        ]);
-                    }
-                    $inbox->manualGeneral($sender, $title, $body, $ids, NotificationTargetType::VolunteerTeamMembers);
-                })(),
                 'program' => (function () use ($data, $sender, $policy, $inbox, $title, $body): void {
                     $program = TrainingProgram::query()->findOrFail((int) $data['target_program_id']);
                     if (! $policy->canTargetProgram($sender, $program)) {
@@ -277,7 +253,6 @@ class SendInAppNotification extends Page
             'body' => null,
             'target_user_id' => null,
             'target_role' => null,
-            'target_team_id' => null,
             'target_program_id' => null,
         ]);
     }

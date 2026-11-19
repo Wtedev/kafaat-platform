@@ -32,7 +32,6 @@ class ViewVolunteerOpportunity extends BaseViewRecord
     {
         parent::mount($record);
 
-        $this->getRecord()->loadCount('registrations');
         $this->getRecord()->loadMissing(['assignee', 'creator']);
         $this->initializeTrainingEntitySettingsTab();
     }
@@ -139,7 +138,6 @@ class ViewVolunteerOpportunity extends BaseViewRecord
             'published_at' => 'موعد النشر',
             'publish_immediately' => 'نشر فوراً',
             'notify_on_publish' => 'إشعارات المستفيدين',
-            'notify_registrants_on_update' => 'تنبيه المسجّلين',
             'assigned_to' => 'منسق الفرصة',
         ];
     }
@@ -147,7 +145,6 @@ class ViewVolunteerOpportunity extends BaseViewRecord
     protected function afterTrainingEntitySettingsSaved(): void
     {
         $this->getRecord()->loadMissing(['assignee', 'creator']);
-        $this->getRecord()->loadCount('registrations');
     }
 
     public function infolist(Schema $schema): Schema

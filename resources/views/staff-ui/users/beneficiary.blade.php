@@ -201,19 +201,6 @@
                     </ul>
                 @endif
 
-                <h3 class="sui-subhead">التطوع</h3>
-                @if ($beneficiary->volunteerRegistrations->isEmpty())
-                    <p>لا توجد تسجيلات تطوعية.</p>
-                @else
-                    <ul class="sui-plain-list">
-                        @foreach ($beneficiary->volunteerRegistrations as $registration)
-                            <li>
-                                <span>{{ $registration->opportunity?->title ?? 'فرصة تطوع' }}</span>
-                                <x-staff-ui.status tone="info">{{ $registration->status?->label() }}</x-staff-ui.status>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
             </div>
         </section>
 

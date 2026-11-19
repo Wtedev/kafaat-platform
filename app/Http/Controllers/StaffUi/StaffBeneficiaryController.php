@@ -108,7 +108,6 @@ class StaffBeneficiaryController extends Controller
         $user->load([
             'profile.currentCvDocument',
             'programRegistrations.trainingProgram',
-            'volunteerRegistrations.opportunity',
             'entityNotes.creator',
         ]);
 

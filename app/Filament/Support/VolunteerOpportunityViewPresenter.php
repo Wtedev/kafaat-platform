@@ -35,14 +35,9 @@ final class VolunteerOpportunityViewPresenter
 
         return [
             [
-                'label' => 'المسجّلون',
-                'value' => (string) ($opportunity->registrations_count ?? $opportunity->registrations()->count()),
+                'label' => 'العدد المطلوب',
+                'value' => $opportunity->capacity !== null ? (string) $opportunity->capacity : 'غير محدد',
                 'icon' => 'heroicon-o-users',
-            ],
-            [
-                'label' => 'المقبولون',
-                'value' => (string) $opportunity->approvedRegistrationsCount(),
-                'icon' => 'heroicon-o-check-circle',
             ],
             [
                 'label' => 'الساعات المتوقعة',
@@ -118,18 +113,18 @@ final class VolunteerOpportunityViewPresenter
     private static function enrollmentSection(VolunteerOpportunity $opportunity): array
     {
         return [
-            'title' => 'التسجيل والسعة',
+            'title' => 'التسجيل',
             'icon' => 'heroicon-o-user-group',
             'rows' => [
                 EntityViewPresenterSupport::row(
-                    'السعة الاستيعابية',
-                    EntityViewPresenterSupport::formatCapacity($opportunity->capacity, $opportunity->approvedRegistrationsCount()),
+                    'العدد المطلوب',
+                    $opportunity->capacity !== null ? (string) $opportunity->capacity : 'غير محدد',
                     'heroicon-o-users',
                 ),
                 EntityViewPresenterSupport::row(
-                    'الساعات المعتمدة',
-                    self::formatApprovedHours($opportunity),
-                    'heroicon-o-bolt',
+                    'رابط التسجيل',
+                    $opportunity->hasExternalUrl() ? (string) $opportunity->external_url : 'لم يُضف بعد',
+                    'heroicon-o-link',
                 ),
             ],
         ];
@@ -181,10 +176,6 @@ final class VolunteerOpportunityViewPresenter
             return 'لم يبدأ';
         }
 
-        if (! $opportunity->hasCapacity()) {
-            return 'ممتلئ';
-        }
-
         return 'مفتوح';
     }
 
@@ -197,13 +188,6 @@ final class VolunteerOpportunityViewPresenter
         $days = max(1, (int) $opportunity->start_date->diffInDays($opportunity->end_date) + 1);
 
         return sprintf('%d يوماً', $days);
-    }
-
-    private static function formatApprovedHours(VolunteerOpportunity $opportunity): string
-    {
-        $hours = $opportunity->totalApprovedHours();
-
-        return $hours > 0 ? number_format($hours, 1).' ساعة' : 'لا توجد ساعات بعد';
     }
 
     private static function resolveResponsibleName(VolunteerOpportunity $opportunity): string
