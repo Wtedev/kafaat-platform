@@ -262,7 +262,6 @@ trait HasInlineEntityViewEditing
                 'end_date',
                 'registration_start',
                 'registration_end',
-                'weekdays',
                 'published_at',
                 'publish_immediately',
             ],

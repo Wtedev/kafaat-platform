@@ -245,7 +245,6 @@ class ViewTrainingProgram extends BaseViewRecord
             'end_date' => 'تاريخ الانتهاء',
             'registration_start' => 'بداية التسجيل',
             'registration_end' => 'نهاية التسجيل',
-            'weekdays' => 'أيام البرنامج',
             'status' => 'حالة النشر',
             'published_at' => 'موعد النشر',
             'publish_immediately' => 'نشر فوراً',

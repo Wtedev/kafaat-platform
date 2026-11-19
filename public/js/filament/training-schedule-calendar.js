@@ -78,7 +78,6 @@
                 this.$watch('registrationEnd', (value) => sync(paths.registrationEnd, value));
                 this.$watch('programStart', (value) => sync(paths.programStart, value));
                 this.$watch('programEnd', (value) => sync(paths.programEnd, value));
-                this.$watch('weekdays', (value) => sync(paths.weekdays, value));
                 this.$watch('publishImmediately', (value) => sync(paths.publishImmediately, value));
                 this.$watch('publishedAt', (value) => sync(paths.publishedAt, value));
 
@@ -104,8 +103,6 @@
                 this.programStart = this.normalizeDate(this.wireGet(paths.programStart));
                 this.programEnd = this.normalizeDate(this.wireGet(paths.programEnd));
 
-                const weekdays = this.wireGet(paths.weekdays);
-                this.weekdays = Array.isArray(weekdays) ? weekdays : [];
 
                 const publishImmediately = this.wireGet(paths.publishImmediately);
                 this.publishImmediately = publishImmediately === undefined ? true : Boolean(publishImmediately);

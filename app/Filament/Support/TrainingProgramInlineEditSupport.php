@@ -104,7 +104,6 @@ final class TrainingProgramInlineEditSupport
             ...TrainingEntityFormSupport::scheduleDateHiddenFields(),
             TrainingEntityFormSupport::trainingScheduleCalendar(
                 programHasEndDate: fn (Get $get): bool => ($get('program_kind') ?? '') !== TrainingProgramKind::Session->value,
-                showWeekdayPicker: fn (Get $get): bool => ($get('program_kind') ?? '') !== TrainingProgramKind::Session->value,
                 showPublishSchedule: fn (?TrainingProgram $record): bool => TrainingEntityFormSupport::publishControlsVisibleForRecord(
                     $record,
                     ProgramStatus::Published,

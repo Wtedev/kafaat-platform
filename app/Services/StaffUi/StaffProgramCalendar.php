@@ -43,9 +43,6 @@ final class StaffProgramCalendar
         $registrationEnd = $program->registration_end?->copy()->startOfDay();
         $programStart = $program->start_date?->copy()->startOfDay();
         $programEnd = ($program->end_date ?? $program->start_date)?->copy()->startOfDay();
-        $weekdays = is_array($program->weekdays) && $program->weekdays !== []
-            ? array_map('intval', $program->weekdays)
-            : null;
 
         $points = array_filter([
             $registrationStart,
@@ -78,8 +75,7 @@ final class StaffProgramCalendar
             while ($cursor->isSameMonth($month)) {
                 $key = $cursor->toDateString();
                 $inProgram = $programStart !== null
-                    && $cursor->betweenIncluded($programStart, $programEnd)
-                    && ($weekdays === null || in_array($cursor->dayOfWeek, $weekdays, true));
+                    && $cursor->betweenIncluded($programStart, $programEnd);
 
                 $week[] = [
                     'day' => $cursor->day,

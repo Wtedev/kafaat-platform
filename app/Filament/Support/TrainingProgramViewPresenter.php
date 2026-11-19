@@ -135,15 +135,6 @@ final class TrainingProgramViewPresenter
             'heroicon-o-clock',
         );
 
-        $weekdaysLabel = self::formatProgramWeekdays($program);
-        if ($weekdaysLabel !== null) {
-            $rows[] = EntityViewPresenterSupport::row(
-                'أيام البرنامج',
-                $weekdaysLabel,
-                'heroicon-o-calendar',
-            );
-        }
-
         $rows[] = EntityViewPresenterSupport::row(
             'مدة البرنامج',
             $program->programDurationDescription(),
@@ -287,28 +278,5 @@ final class TrainingProgramViewPresenter
         }
 
         return $label;
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private static function weekdayLabels(): array
-    {
-        return ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-    }
-
-    private static function formatProgramWeekdays(TrainingProgram $program): ?string
-    {
-        $weekdays = is_array($program->weekdays) ? $program->weekdays : [];
-
-        if ($weekdays === []) {
-            return null;
-        }
-
-        $labels = self::weekdayLabels();
-
-        return collect($weekdays)
-            ->map(fn ($day): string => $labels[(int) $day] ?? (string) $day)
-            ->implode('، ');
     }
 }
