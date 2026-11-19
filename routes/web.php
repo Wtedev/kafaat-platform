@@ -62,6 +62,7 @@ use App\Http\Controllers\StaffUi\StaffDirectoryController;
 use App\Http\Controllers\StaffUi\StaffInboxController;
 use App\Http\Controllers\StaffUi\StaffProfileController;
 use App\Http\Controllers\StaffUi\StaffProgramAttendanceController;
+use App\Http\Controllers\StaffUi\StaffProgramBroadcastController;
 use App\Http\Controllers\StaffUi\StaffProgramCertificateController;
 use App\Http\Controllers\StaffUi\StaffProgramController;
 use App\Http\Controllers\StaffUi\StaffProgramPageController;
@@ -186,6 +187,10 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.St
             ->whereIn('section', array_keys(StaffProgramSettings::SECTIONS))
             ->name('programs.settings.update');
         Route::post('/programs/{program}/status', [StaffProgramPageController::class, 'updateStatus'])->name('programs.status');
+        Route::post('/programs/{program}/broadcasts', [StaffProgramBroadcastController::class, 'store'])->name('programs.broadcasts.store');
+        Route::post('/programs/{program}/broadcasts/preview', [StaffProgramBroadcastController::class, 'preview'])->name('programs.broadcasts.preview');
+        Route::post('/programs/{program}/broadcasts/{broadcast}', [StaffProgramBroadcastController::class, 'update'])->whereNumber('broadcast')->name('programs.broadcasts.update');
+        Route::post('/programs/{program}/broadcasts/{broadcast}/action', [StaffProgramBroadcastController::class, 'action'])->whereNumber('broadcast')->name('programs.broadcasts.action');
         Route::post('/programs/{program}/surveys', [StaffProgramSurveyController::class, 'provision'])->name('programs.surveys.provision');
         Route::post('/programs/{program}/surveys/{survey}', [StaffProgramSurveyController::class, 'update'])->name('programs.surveys.update');
         Route::post('/programs/{program}/surveys/{survey}/window', [StaffProgramSurveyController::class, 'window'])->name('programs.surveys.window');

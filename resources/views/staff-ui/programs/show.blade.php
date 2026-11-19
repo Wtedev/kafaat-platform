@@ -44,6 +44,9 @@
             @case ('attendance')
                 @include('staff-ui.programs.tabs.attendance')
                 @break
+            @case ('broadcasts')
+                @include('staff-ui.programs.tabs.broadcasts')
+                @break
             @case ('surveys')
                 @include('staff-ui.programs.tabs.surveys')
                 @break
