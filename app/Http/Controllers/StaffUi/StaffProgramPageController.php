@@ -6,11 +6,15 @@ use App\Enums\AttendanceLinkMode;
 use App\Enums\ProgramActivityAction;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
+use App\Enums\SurveyQuestionType;
+use App\Enums\SurveyType;
 use App\Filament\Resources\TrainingProgramResource;
 use App\Http\Controllers\Controller;
 use App\Models\Certificate;
 use App\Models\ProgramActivity;
+use App\Models\ProgramSurvey;
 use App\Models\SurveyCompletion;
+use App\Models\SurveyTemplate;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Exports\ProgramRegistrationExportAuthorization;
@@ -20,6 +24,7 @@ use App\Services\StaffUi\StaffProgramRegistrations;
 use App\Services\StaffUi\StaffProgramSettings;
 use App\Services\StaffUi\StaffProgramStatus;
 use App\Services\StaffUi\StaffProgramWizard;
+use App\Services\Surveys\ProgramSurveyService;
 use App\Support\CertificateAuthorization;
 use App\Support\Exports\ProgramRegistrationExportColumns;
 use Illuminate\Http\JsonResponse;
@@ -45,7 +50,7 @@ class StaffProgramPageController extends Controller
     ];
 
     /** Tabs that are built in the new UI; the rest still live in the current admin panel. */
-    private const BUILT_TABS = ['about', 'registrations', 'attendance', 'certificates', 'activity', 'settings'];
+    private const BUILT_TABS = ['about', 'registrations', 'attendance', 'surveys', 'certificates', 'activity', 'settings'];
 
     public function __construct(
         private readonly StaffProgramWizard $wizard,
@@ -63,7 +68,7 @@ class StaffProgramPageController extends Controller
             abort_unless($actor->can('update', $program), 403);
         }
 
-        if (in_array($tab, ['registrations', 'attendance', 'certificates'], true)) {
+        if (in_array($tab, ['registrations', 'attendance', 'surveys', 'certificates'], true)) {
             abort_unless($actor->can('viewOperational', $program), 403);
         }
 
@@ -98,6 +103,7 @@ class StaffProgramPageController extends Controller
             'registrations' => $this->registrationsData($request, $actor, $program),
             'attendance' => $this->attendanceData($request, $program),
             'certificates' => $this->certificatesData($request, $actor, $program),
+            'surveys' => $this->surveysData($request, $actor, $program),
             'settings' => $this->settingsData($actor, $program),
             default => [],
         });
@@ -268,6 +274,33 @@ class StaffProgramPageController extends Controller
             'certCanIssue' => CertificateAuthorization::canIssue($actor),
             'certBackgroundReady' => $service->backgroundReady($program),
             'certDesignerUrl' => route('certificate-designer.edit', $program),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function surveysData(Request $request, User $actor, TrainingProgram $program): array
+    {
+        $service = app(ProgramSurveyService::class);
+        $surveys = $program->surveys()->with(['questions' => fn ($q) => $q->orderBy('position')])->get()
+            ->sortBy(fn (ProgramSurvey $s): int => array_search($s->type, SurveyType::cases(), true))
+            ->values();
+        $editing = $actor->can('update', $program)
+            ? $surveys->firstWhere('id', (int) $request->query('edit'))
+            : null;
+
+        return [
+            'surveys' => $surveys,
+            'surveyStats' => $surveys->mapWithKeys(fn (ProgramSurvey $s): array => [$s->id => [
+                'responses' => $service->responseCount($s),
+                'eligible' => $service->eligibleCount($s),
+                'locked' => $service->questionsLocked($s),
+            ]])->all(),
+            'surveyReports' => $surveys->mapWithKeys(fn (ProgramSurvey $s): array => [$s->id => $service->report($s)])->all(),
+            'surveyTemplates' => SurveyTemplate::query()->orderBy('title')->pluck('title', 'id')->all(),
+            'editingSurvey' => $editing,
+            'questionTypes' => SurveyQuestionType::cases(),
         ];
     }
 
