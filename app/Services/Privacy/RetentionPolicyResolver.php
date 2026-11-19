@@ -71,7 +71,6 @@ final class RetentionPolicyResolver
                 'certificates',
                 'attendance',
                 'program_registrations',
-                'path_registrations',
                 'volunteer_registrations',
             ], true);
         }

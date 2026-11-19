@@ -7,7 +7,6 @@ use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Jobs\SendTrainingProgramLaunchedNotifications;
 use App\Models\InboxNotification;
-use App\Models\LearningPath;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
@@ -142,45 +141,6 @@ class ProgramLaunchedNotificationTest extends TestCase
         $this->assertFalse(
             InboxNotification::query()
                 ->where('user_id', $publisher->id)
-                ->where('type', InboxNotificationType::ProgramLaunched->value)
-                ->exists()
-        );
-    }
-
-    public function test_path_linked_program_launch_does_not_blast_beneficiaries(): void
-    {
-        $trainee = User::factory()->create([
-            'role_type' => 'beneficiary',
-            'email' => 'path-trainee@example.com',
-            'is_active' => true,
-            'notification_settings' => [
-                'categories' => [
-                    'programs_new' => ['in_app' => true, 'email' => false],
-                ],
-            ],
-        ]);
-
-        $path = LearningPath::query()->create([
-            'title' => 'مسار اختبار',
-            'slug' => 'path-for-program',
-            'status' => 'published',
-        ]);
-
-        $program = TrainingProgram::query()->create([
-            'title' => 'برنامج ضمن مسار',
-            'slug' => 'path-linked-program',
-            'status' => ProgramStatus::Published,
-            'published_at' => now(),
-            'notify_on_publish' => true,
-            'learning_path_id' => $path->id,
-        ]);
-
-        (new SendTrainingProgramLaunchedNotifications($program->id))
-            ->handle(app(InboxNotificationService::class));
-
-        $this->assertFalse(
-            InboxNotification::query()
-                ->where('user_id', $trainee->id)
                 ->where('type', InboxNotificationType::ProgramLaunched->value)
                 ->exists()
         );

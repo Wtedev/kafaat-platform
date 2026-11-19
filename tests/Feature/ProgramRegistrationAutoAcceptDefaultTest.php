@@ -35,7 +35,6 @@ class ProgramRegistrationAutoAcceptDefaultTest extends TestCase
             'slug' => 'auto-accept-default-'.uniqid(),
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
         ]);
 
         $this->assertFalse($program->auto_accept_registrations);
@@ -231,7 +230,6 @@ class ProgramRegistrationAutoAcceptDefaultTest extends TestCase
             'slug' => 'auto-accept-reg-'.uniqid(),
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
             'registration_start' => now()->subDay()->toDateString(),
             'registration_end' => now()->addMonth()->toDateString(),
         ], $overrides));

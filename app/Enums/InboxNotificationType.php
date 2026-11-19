@@ -15,10 +15,8 @@ enum InboxNotificationType: string
     case UserAlert = 'user_alert';
 
     case NewsStaffCopy = 'news_staff_copy';
-    case LearningPathLaunched = 'learning_path_launched';
     case VolunteerOpportunityPublished = 'volunteer_opportunity_published';
     case StaffNewProgramRegistration = 'staff_new_program_registration';
-    case StaffNewPathRegistration = 'staff_new_path_registration';
     case StaffNewVolunteerRegistration = 'staff_new_volunteer_registration';
     case StaffTrainingEntityCreated = 'staff_training_entity_created';
     case StaffVolunteerOpportunityCreated = 'staff_volunteer_opportunity_created';
@@ -43,12 +41,10 @@ enum InboxNotificationType: string
             self::GeneralMessage => 'رسالة عامة',
             self::UserAlert => 'تنبيه من جهة',
             self::NewsStaffCopy => 'نشر خبر (نسخة موظفين)',
-            self::LearningPathLaunched => 'نشر مسار تعليمي',
             self::VolunteerOpportunityPublished => 'نشر فرصة تطوعية',
             self::StaffNewProgramRegistration => 'تسجيل جديد في برنامج',
-            self::StaffNewPathRegistration => 'تسجيل جديد في مسار',
             self::StaffNewVolunteerRegistration => 'تسجيل جديد في تطوع',
-            self::StaffTrainingEntityCreated => 'إنشاء برنامج أو مسار',
+            self::StaffTrainingEntityCreated => 'إنشاء برنامج',
             self::StaffVolunteerOpportunityCreated => 'إنشاء فرصة تطوعية',
             self::RegistrationWindowOpened => 'بدء فترة التسجيل',
             self::RegistrationWindowClosed => 'انتهاء فترة التسجيل',

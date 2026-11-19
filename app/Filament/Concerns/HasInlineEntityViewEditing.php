@@ -167,7 +167,6 @@ trait HasInlineEntityViewEditing
         }
 
         return TrainingEntityFormSupport::mergeNonDehydratedFormFlags($data, $raw, [
-            'is_linked_to_path',
             'capacity_unlimited',
             'notify_audience',
             'publish_immediately',
@@ -247,14 +246,6 @@ trait HasInlineEntityViewEditing
         unset($submitted['schedule_calendar'], $submitted['publication_status_display']);
 
         $this->pendingInlineEditOverrides = $submitted;
-
-        if (isset($this->pendingInlineEditOverrides['is_linked_to_path'])) {
-            $this->pendingInlineEditOverrides['is_linked_to_path'] = (bool) $this->pendingInlineEditOverrides['is_linked_to_path'];
-
-            if (! $this->pendingInlineEditOverrides['is_linked_to_path']) {
-                $this->pendingInlineEditOverrides['learning_path_id'] = null;
-            }
-        }
     }
 
     protected function absorbLiveFormStateIntoPendingOverrides(string $field): void
@@ -278,8 +269,6 @@ trait HasInlineEntityViewEditing
             'overview' => [
                 'title',
                 'program_kind',
-                'is_linked_to_path',
-                'learning_path_id',
                 'published_at',
                 'publish_immediately',
             ],
@@ -328,14 +317,6 @@ trait HasInlineEntityViewEditing
             }
 
             $this->pendingInlineEditOverrides[$key] = $raw[$key];
-        }
-
-        if (isset($this->pendingInlineEditOverrides['is_linked_to_path'])) {
-            $this->pendingInlineEditOverrides['is_linked_to_path'] = (bool) $this->pendingInlineEditOverrides['is_linked_to_path'];
-
-            if (! $this->pendingInlineEditOverrides['is_linked_to_path']) {
-                $this->pendingInlineEditOverrides['learning_path_id'] = null;
-            }
         }
     }
 

@@ -23,7 +23,7 @@ $hasCurrent = $hasActivities || $hasVolunteering;
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
             </span>
             <div class="min-w-0 flex-1 sm:order-last">
-                <p class="text-sm font-medium leading-snug text-gray-600">مسارات وبرامج مسجّلة</p>
+                <p class="text-sm font-medium leading-snug text-gray-600">برامج مسجّلة</p>
             </div>
             <p class="shrink-0 text-2xl font-bold tabular-nums tracking-tight sm:mt-1" style="color:#335483">{{ $programsRegistered }}</p>
         </li>
@@ -63,7 +63,7 @@ $hasCurrent = $hasActivities || $hasVolunteering;
             <div class="mb-3 flex flex-wrap items-end justify-between gap-3">
                 <div class="text-right">
                     <h2 id="current-heading" class="text-base font-bold text-[#335483] sm:text-lg">نشاطي الحالي</h2>
-                    <p class="mt-0.5 text-xs text-gray-500 sm:text-sm">برامج ومسارات وفرص تطوعية مسجّل فيها</p>
+                    <p class="mt-0.5 text-xs text-gray-500 sm:text-sm">برامج وفرص تطوعية مسجّل فيها</p>
                 </div>
                 <div class="flex shrink-0 gap-2">
                     <a href="{{ route('portal.programs') }}" class="rounded-lg px-2.5 py-1 text-xs font-semibold text-[#335483] ring-1 ring-[#c5d4e4] transition hover:bg-[#e9eff6]">البرامج</a>

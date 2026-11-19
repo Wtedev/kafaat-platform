@@ -159,7 +159,6 @@ class DataForumRegistrationApprovedTest extends TestCase
             'slug' => 'tatawaa-waei-button-'.uniqid(),
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
             'capacity' => 100,
             'auto_accept_registrations' => false,
             'whatsapp_groups_enabled' => true,
@@ -205,7 +204,6 @@ class DataForumRegistrationApprovedTest extends TestCase
             'slug' => $slug,
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
             'capacity' => 5000,
             'auto_accept_registrations' => false,
         ];

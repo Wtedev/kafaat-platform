@@ -69,7 +69,6 @@ final class RbacCatalog
         return [
             'users.view', 'users.create', 'users.update', 'users.delete', 'users.activate',
             'roles.view', 'roles.create', 'roles.update', 'roles.delete',
-            'paths.view', 'paths.create', 'paths.update', 'paths.delete', 'paths.publish', 'paths.archive',
             'courses.view', 'courses.create', 'courses.update', 'courses.delete', 'courses.publish', 'courses.hide',
             'programs.view', 'programs.create', 'programs.update', 'programs.delete', 'programs.publish', 'programs.archive',
             'volunteering.view', 'volunteering.create', 'volunteering.update', 'volunteering.delete', 'volunteering.publish', 'volunteering.archive',
@@ -186,8 +185,6 @@ final class RbacCatalog
             'users.view' => 'عرض المستخدمين', 'users.create' => 'إنشاء مستخدمين', 'users.update' => 'تعديل المستخدمين',
             'users.delete' => 'حذف المستخدمين', 'users.activate' => 'تفعيل المستخدمين',
             'roles.view' => 'عرض الأدوار', 'roles.create' => 'إنشاء أدوار', 'roles.update' => 'تعديل الأدوار', 'roles.delete' => 'حذف الأدوار',
-            'paths.view' => 'عرض المسارات', 'paths.create' => 'إنشاء مسارات', 'paths.update' => 'تعديل المسارات',
-            'paths.delete' => 'حذف المسارات', 'paths.publish' => 'نشر المسارات', 'paths.archive' => 'أرشفة المسارات',
             'courses.view' => 'عرض الدورات', 'courses.create' => 'إنشاء دورات', 'courses.update' => 'تعديل الدورات',
             'courses.delete' => 'حذف الدورات', 'courses.publish' => 'نشر الدورات', 'courses.hide' => 'إخفاء الدورات',
             'programs.view' => 'عرض البرامج', 'programs.create' => 'إنشاء برامج', 'programs.update' => 'تعديل البرامج',
@@ -242,7 +239,7 @@ final class RbacCatalog
     public static function rolePermissionMatrix(): array
     {
         $portalRead = [
-            'paths.view', 'courses.view', 'programs.view', 'volunteering.view',
+            'courses.view', 'programs.view', 'volunteering.view',
             'registrations.view', 'progress.view',
             'volunteer_hours.view', 'volunteer_hours.create',
             'certificates.view', 'certificates.download',

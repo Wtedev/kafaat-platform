@@ -39,7 +39,6 @@ class StaffProgramController extends Controller
             StaffRegistrationAvailability::Closed->value,
             StaffRegistrationAvailability::NotStarted->value,
             StaffRegistrationAvailability::Full->value,
-            StaffRegistrationAvailability::Path->value,
         ];
         if (! in_array($registration, $allowedRegistration, true)) {
             $registration = '';
@@ -77,7 +76,6 @@ class StaffProgramController extends Controller
                 StaffRegistrationAvailability::Closed->value => StaffRegistrationAvailability::Closed->label(),
                 StaffRegistrationAvailability::Full->value => StaffRegistrationAvailability::Full->label(),
                 StaffRegistrationAvailability::Open->value => StaffRegistrationAvailability::Open->label(),
-                StaffRegistrationAvailability::Path->value => StaffRegistrationAvailability::Path->label(),
             ],
             'programStatus' => $status,
             'canCreate' => $actor->can('create', TrainingProgram::class),

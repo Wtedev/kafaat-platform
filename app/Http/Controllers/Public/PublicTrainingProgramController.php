@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Public;
 
 use App\Enums\CompetencyTrack;
-use App\Exceptions\ProgramBelongsToLearningPathException;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Exceptions\RegistrationNotEligibleException;
 use App\Exceptions\RegistrationWindowClosedException;
@@ -27,7 +26,6 @@ class PublicTrainingProgramController extends Controller
     public function index()
     {
         $programs = TrainingProgram::published()
-            ->standaloneCatalog()
             ->latest('published_at')
             ->paginate(12);
 
@@ -41,7 +39,6 @@ class PublicTrainingProgramController extends Controller
         $meta = config('competency_tracks.tracks.'.$track->value, []);
 
         $programs = TrainingProgram::published()
-            ->standaloneCatalog()
             ->forCompetencyTrack($track)
             ->latest('published_at')
             ->paginate(12);
@@ -67,16 +64,11 @@ class PublicTrainingProgramController extends Controller
                 ->first();
 
             if ($userRegistration === null
-                && $trainingProgram->learning_path_id === null
                 && ProgramAcceptanceConditions::hasAny(
                     ProgramAcceptanceConditions::applicable($trainingProgram)
                 )) {
                 $acceptanceEvaluation = $this->acceptanceEvaluator->evaluate($trainingProgram, $user);
             }
-        }
-
-        if ($trainingProgram->learning_path_id !== null) {
-            $trainingProgram->loadMissing('learningPath');
         }
 
         return view('public.programs.show', compact('trainingProgram', 'userRegistration', 'acceptanceEvaluation'));
@@ -131,8 +123,6 @@ class PublicTrainingProgramController extends Controller
                 'trainingProgram' => $trainingProgram->slug,
                 'registration' => $registration->getKey(),
             ]);
-        } catch (ProgramBelongsToLearningPathException) {
-            return back()->with('error', 'هذا البرنامج ضمن مسار تعليمي؛ التسجيل يكون من صفحة المسار فقط.');
         } catch (RegistrationWindowClosedException) {
             return back()->with('error', $trainingProgram->publicRegistrationUnavailableHeading());
         } catch (ProgramCapacityExceededException) {

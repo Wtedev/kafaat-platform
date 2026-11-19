@@ -59,7 +59,6 @@ final class StaffProgramWizard
             'notify_milestones' => true,
             'notify_registrants_on_update' => true,
             'auto_accept_registrations' => false,
-            'learning_path_id' => null,
             'created_by' => $actor->id,
         ]);
         $this->storeCover($program, $cover);

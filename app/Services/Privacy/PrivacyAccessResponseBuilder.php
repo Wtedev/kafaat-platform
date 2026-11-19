@@ -114,8 +114,8 @@ final class PrivacyAccessResponseBuilder
 
         return [
             'category' => 'التسجيلات',
-            'summary' => "تسجيلات البرامج والمسارات ({$count}).",
-            'sources' => ['البرامج التدريبية', 'المسارات'],
+            'summary' => "تسجيلات البرامج ({$count}).",
+            'sources' => ['البرامج التدريبية'],
         ];
     }
 

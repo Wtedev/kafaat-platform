@@ -8,7 +8,6 @@ use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
 use App\Filament\Forms\Components\TrainingScheduleCalendar;
-use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\FilamentUserSelectQuery;
@@ -141,44 +140,11 @@ final class TrainingEntityFormSupport
         ];
     }
 
-    /**
-     * @return array<int, Component>
-     */
-    public static function capacityFields(bool $hideWhenLinkedToPath = false): array
+    public static function advancedProgramSettingsSection(bool $forEdit = false): Section
     {
-        return [self::advancedSettingsSection($hideWhenLinkedToPath)];
-    }
-
-    public static function advancedSettingsSection(
-        bool $hideWhenLinkedToPath = false,
-        bool $includeProgramAudienceNotifications = false,
-    ): Section {
-        $capacityVisible = $hideWhenLinkedToPath
-          ? fn (Get $get): bool => ! (bool) $get('is_linked_to_path')
-          : null;
-
-        $schema = self::registrationAdvancedSettingsFields(
-            $capacityVisible,
-            $includeProgramAudienceNotifications,
-        );
-
-        return Section::make('إعدادات متقدمة')
-            ->columns(1)
-            ->extraAttributes(['class' => 'fi-advanced-settings-section'])
-            ->schema($schema);
-    }
-
-    public static function advancedProgramSettingsSection(bool $forEdit = false, bool $hidePathLinkFields = false): Section
-    {
-        $capacityVisible = fn (Get $get): bool => ! (bool) $get('is_linked_to_path');
-        $staffVisible = $capacityVisible;
-
-        $pathLinkFields = $hidePathLinkFields ? [] : self::programPathLinkFields();
-
         return self::collapsibleAdvancedSettingsSection([
-            ...$pathLinkFields,
             ...self::registrationAdvancedSettingsFields(
-                $capacityVisible,
+                null,
                 includeProgramAudienceNotifications: true,
                 includeAutoAcceptRegistrations: false,
                 includePerGenderCapacity: true,
@@ -197,7 +163,6 @@ final class TrainingEntityFormSupport
                 'مسؤولي البرنامج',
                 self::programStaffSectionDescription(),
                 $forEdit ? self::programStaffFieldsForEdit() : self::programStaffFieldsForCreate(),
-                $staffVisible,
             ),
         ]);
     }
@@ -337,17 +302,6 @@ final class TrainingEntityFormSupport
     }
 
     /**
-     * @return array{is_linked_to_path: bool, learning_path_id: int|null}
-     */
-    public static function programPathLinkFormState(TrainingProgram $program): array
-    {
-        return [
-            'is_linked_to_path' => $program->learning_path_id !== null,
-            'learning_path_id' => $program->learning_path_id,
-        ];
-    }
-
-    /**
      * حالة نموذج الجدول الزمني للتعديل المضمّن (تواريخ بصيغة Y-m-d للتقويم).
      *
      * @return array<string, mixed>
@@ -359,7 +313,6 @@ final class TrainingEntityFormSupport
           : (filled($value) ? (string) $value : null);
 
         $state = [
-            'is_linked_to_path' => $program->learning_path_id !== null,
             'program_kind' => $program->program_kind?->value,
             'start_date' => $formatDate($program->start_date),
             'end_date' => $formatDate($program->end_date),
@@ -373,104 +326,6 @@ final class TrainingEntityFormSupport
             $program,
             ProgramStatus::Published,
         );
-    }
-
-    /**
-     * @return array<int, Component>
-     */
-    public static function programPathLinkFields(bool $persistToggleState = false): array
-    {
-        return [
-            self::advancedSettingsToggle('is_linked_to_path', 'تابع لمسار تدريبي')
-                ->default(false)
-                ->live()
-                ->dehydrated($persistToggleState)
-                ->afterStateHydrated(function (Toggle $component, $state): void {
-                    if ($state) {
-                        return;
-                    }
-
-                    $record = $component->getRecord();
-
-                    if ($record instanceof TrainingProgram && $record->learning_path_id !== null) {
-                        $component->state(true);
-                    }
-                })
-                ->helperText('عند التفعيل يُختار المسار؛ التسجيل يُدار من المسار.'),
-
-            Select::make('learning_path_id')
-                ->label('المسار التدريبي')
-                ->relationship(
-                    name: 'learningPath',
-                    titleAttribute: 'title',
-                    modifyQueryUsing: fn (Builder $query) => $query->orderBy('title'),
-                )
-                ->searchable()
-                ->preload()
-                ->nullable()
-                ->required(fn (Get $get): bool => (bool) $get('is_linked_to_path'))
-                ->visible(fn (Get $get): bool => (bool) $get('is_linked_to_path'))
-                ->live()
-                ->columnSpanFull(),
-        ];
-    }
-
-    /**
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
-    public static function applyProgramPathLinkSettings(array $data): array
-    {
-        $linked = (bool) ($data['is_linked_to_path'] ?? false);
-        unset($data['is_linked_to_path']);
-
-        if (! $linked) {
-            $data['learning_path_id'] = null;
-            $data['path_sort_order'] = null;
-
-            return $data;
-        }
-
-        $data['capacity'] = null;
-        $data['registration_start'] = null;
-        $data['registration_end'] = null;
-        $data['weekdays'] = null;
-
-        if (filled($data['learning_path_id'] ?? null) && blank($data['competency_track'] ?? null)) {
-            $inheritedTrack = LearningPath::query()
-                ->whereKey((int) $data['learning_path_id'])
-                ->value('competency_track');
-
-            if ($inheritedTrack instanceof CompetencyTrack) {
-                $data['competency_track'] = $inheritedTrack->value;
-            } elseif (filled($inheritedTrack)) {
-                $data['competency_track'] = (string) $inheritedTrack;
-            }
-        }
-
-        if (filled($data['learning_path_id'] ?? null) && blank($data['path_sort_order'] ?? null)) {
-            $pathId = (int) $data['learning_path_id'];
-            $max = (int) TrainingProgram::query()
-                ->where('learning_path_id', $pathId)
-                ->max('path_sort_order');
-            $data['path_sort_order'] = $max > 0 ? $max + 1 : 1;
-        }
-
-        return $data;
-    }
-
-    public static function advancedLearningPathSettingsSection(bool $forEdit = false): Section
-    {
-        return self::collapsibleAdvancedSettingsSection([
-            ...self::registrationAdvancedSettingsFields(null, includeProgramAudienceNotifications: false),
-            self::advancedSettingsToggle('notify_on_publish', 'إشعارات المستفيدين')
-                ->default(false),
-            ...self::entityAdvancedStaffBlock(
-                'المسؤولية',
-                self::pathStaffSectionDescription(),
-                $forEdit ? self::pathStaffFieldsForEdit() : self::pathStaffFieldsForCreate(),
-            ),
-        ]);
     }
 
     public static function advancedNewsSettingsSection(): Section
@@ -705,95 +560,6 @@ final class TrainingEntityFormSupport
         return [$group];
     }
 
-    public static function pathStaffSectionDescription(): string
-    {
-        return 'يُعيَّن مالك المسار والموظف المنشئ لأغراض التتبع والصلاحيات.';
-    }
-
-    /**
-     * @return array<int, Component>
-     */
-    public static function pathStaffFieldsForCreate(): array
-    {
-        $adminBypass = fn (): bool => TrainingEntityAuthorization::adminBypass(auth()->user());
-
-        return [
-            Placeholder::make('creator_display')
-                ->label('الموظف المنشئ')
-                ->content(fn (): string => auth()->user()?->name ?? '—')
-                ->columnSpanFull(),
-            Placeholder::make('owner_display_create')
-                ->label('مالك المسار')
-                ->content(fn (): string => auth()->user()?->name ?? '—')
-                ->visible(fn (): bool => ! $adminBypass())
-                ->columnSpanFull(),
-            Select::make('owner_id')
-                ->label('مالك المسار')
-                ->relationship('owner', 'name', fn (Builder $query) => FilamentUserSelectQuery::activeOrderedByName($query))
-                ->searchable()
-                ->preload()
-                ->nullable()
-                ->default(fn (): ?int => auth()->id())
-                ->visible($adminBypass)
-                ->dehydrated($adminBypass)
-                ->helperText('يُعيَّن تلقائياً لمن ينشئ السجل ما لم يُحدَّد غيره.')
-                ->columnSpanFull(),
-        ];
-    }
-
-    /**
-     * @return array<int, Component>
-     */
-    public static function pathStaffFieldsForEdit(): array
-    {
-        $adminBypass = fn (): bool => TrainingEntityAuthorization::adminBypass(auth()->user());
-
-        return [
-            Placeholder::make('creator_display_edit')
-                ->label('الموظف المنشئ')
-                ->content(function (?Model $record): string {
-                    if ($record === null) {
-                        return '—';
-                    }
-
-                    return $record->relationLoaded('creator')
-                      ? ($record->creator?->name ?? '—')
-                      : (string) ($record->creator()->value('name') ?? '—');
-                })
-                ->columnSpanFull(),
-            Placeholder::make('owner_display_edit')
-                ->label('مالك المسار')
-                ->content(function (?Model $record): string {
-                    if ($record === null) {
-                        return '—';
-                    }
-
-                    if ($record->relationLoaded('owner') && $record->owner !== null) {
-                        return $record->owner->name;
-                    }
-
-                    if ($record->owner_id !== null) {
-                        return (string) ($record->owner()->value('name') ?? '—');
-                    }
-
-                    return $record->relationLoaded('creator')
-                      ? ($record->creator?->name ?? '—')
-                      : (string) ($record->creator()->value('name') ?? '—');
-                })
-                ->visible(fn (): bool => ! $adminBypass())
-                ->columnSpanFull(),
-            Select::make('owner_id')
-                ->label('مالك المسار')
-                ->relationship('owner', 'name', fn (Builder $query) => FilamentUserSelectQuery::activeOrderedByName($query))
-                ->searchable()
-                ->preload()
-                ->nullable()
-                ->visible($adminBypass)
-                ->dehydrated($adminBypass)
-                ->columnSpanFull(),
-        ];
-    }
-
     /**
      * @return array<int, Component>
      */
@@ -932,7 +698,6 @@ final class TrainingEntityFormSupport
                 ->searchable()
                 ->preload()
                 ->helperText('اختر الموظفين المشاركين في إدارة البرنامج. مالك البرنامج يُضاف تلقائياً.')
-                ->dehydrated(fn (Get $get): bool => ! (bool) $get('is_linked_to_path'))
                 ->columnSpanFull(),
         ];
     }
@@ -942,23 +707,14 @@ final class TrainingEntityFormSupport
      *
      * @return array<int, Component>
      */
-    public static function scheduleDateHiddenFields(bool $hideRegistrationWhenLinked = false): array
+    public static function scheduleDateHiddenFields(): array
     {
-        $registrationVisible = $hideRegistrationWhenLinked
-          ? fn (Get $get): bool => ! (bool) $get('is_linked_to_path')
-          : null;
-
         $programEndVisible = fn (Get $get): bool => ($get('program_kind') ?? '') !== TrainingProgramKind::Session->value;
 
         $registrationStart = Hidden::make('registration_start')->live();
         $registrationEnd = Hidden::make('registration_end')->live();
         $programStart = Hidden::make('start_date')->live();
         $programEnd = Hidden::make('end_date')->live();
-
-        if ($registrationVisible !== null) {
-            $registrationStart->visible($registrationVisible)->dehydrated($registrationVisible);
-            $registrationEnd->visible($registrationVisible)->dehydrated($registrationVisible);
-        }
 
         $programEnd->visible($programEndVisible)->dehydrated($programEndVisible);
 
@@ -1187,24 +943,7 @@ final class TrainingEntityFormSupport
         return Section::make('مسؤولي البرنامج')
             ->description(self::programStaffSectionDescription())
             ->icon('heroicon-o-user-group')
-            ->visible(fn (Get $get): bool => ! (bool) $get('is_linked_to_path'))
             ->schema(self::programStaffFieldsForEdit());
-    }
-
-    public static function staffSectionForCreate(): Section
-    {
-        return Section::make('المسؤولية')
-            ->description(self::pathStaffSectionDescription())
-            ->columns(1)
-            ->schema(self::pathStaffFieldsForCreate());
-    }
-
-    public static function staffSectionForEdit(): Section
-    {
-        return Section::make('المسؤولية')
-            ->description(self::pathStaffSectionDescription())
-            ->columns(1)
-            ->schema(self::pathStaffFieldsForEdit());
     }
 
     /**
@@ -1216,7 +955,6 @@ final class TrainingEntityFormSupport
     public static function mergeNonDehydratedFormFlags(array $data, array $raw, ?array $keys = null): array
     {
         $keys ??= [
-            'is_linked_to_path',
             'capacity_unlimited',
             'capacity_mode',
             'acceptance_manual_review',

@@ -130,24 +130,6 @@ final class FilamentAssignmentVisibility
         });
     }
 
-    /**
-     * Path registrations with learner PII: own row, or operational stakeholder on the parent path.
-     */
-    public static function constrainPathRegistrations(Builder $query, ?User $viewer): void
-    {
-        if ($viewer === null || self::bypasses($viewer)) {
-            return;
-        }
-
-        $regTable = $query->getModel()->getTable();
-        $query->where(function (Builder $q) use ($viewer, $regTable): void {
-            $q->where($regTable.'.user_id', $viewer->id)
-                ->orWhereHas('learningPath', function (Builder $pathQuery) use ($viewer): void {
-                    TrainingEntityAuthorization::constrainQueryToOperationalPathsForViewer($pathQuery, $viewer);
-                });
-        });
-    }
-
     public static function constrainVolunteerRegistrations(Builder $query, ?User $viewer): void
     {
         if ($viewer === null || self::bypasses($viewer)) {

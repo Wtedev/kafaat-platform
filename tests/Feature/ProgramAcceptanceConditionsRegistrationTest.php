@@ -369,7 +369,6 @@ class ProgramAcceptanceConditionsRegistrationTest extends TestCase
             'slug' => 'acceptance-reg-'.uniqid(),
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
             'registration_start' => now()->subDay(),
             'registration_end' => now()->addMonth(),
             'auto_accept_registrations' => true,

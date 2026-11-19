@@ -32,8 +32,6 @@ use App\Http\Controllers\Portal\PortalDashboardController;
 use App\Http\Controllers\Portal\PortalEmailChangeController;
 use App\Http\Controllers\Portal\PortalInboxController;
 use App\Http\Controllers\Portal\PortalPasswordController;
-use App\Http\Controllers\Portal\PortalPathController;
-use App\Http\Controllers\Portal\PortalPathDetailController;
 use App\Http\Controllers\Portal\PortalPrivacyPolicyAcknowledgeController;
 use App\Http\Controllers\Portal\PortalProfileCompleteController;
 use App\Http\Controllers\Portal\PortalProfileController;
@@ -50,7 +48,6 @@ use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\PublicAttendanceController;
 use App\Http\Controllers\Public\PublicCompetencyTracksController;
 use App\Http\Controllers\Public\PublicGovernanceController;
-use App\Http\Controllers\Public\PublicLearningPathController;
 use App\Http\Controllers\Public\PublicMediaController;
 use App\Http\Controllers\Public\PublicNewsController;
 use App\Http\Controllers\Public\PublicRegulationController;
@@ -308,11 +305,9 @@ Route::post('/s/{publicToken}', [PublicSurveyController::class, 'submit'])
     ->where('publicToken', '[A-Za-z0-9]{32,80}')
     ->name('public.surveys.submit');
 
-Route::prefix('paths')->name('public.paths.')->group(function () {
-    Route::get('/', [PublicLearningPathController::class, 'index'])->name('index');
-    Route::get('/{learningPath:slug}', [PublicLearningPathController::class, 'show'])->name('show');
-    Route::post('/{learningPath:slug}/register', [PublicLearningPathController::class, 'register'])->middleware('auth')->name('register');
-});
+// Learning paths were removed; old links land on the programs catalog.
+Route::redirect('/paths', '/programs', 301);
+Route::get('/paths/{any}', fn () => redirect('/programs', 301))->where('any', '.*');
 
 Route::get('/tracks', PublicCompetencyTracksController::class)->name('public.tracks.index');
 
@@ -366,12 +361,7 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'beneficiary', 'privac
             ->name('notifications.read');
         Route::post('/notifications/{notification}/registration-action', [PortalInboxController::class, 'registrationAction'])
             ->name('notifications.registration-action');
-        Route::get('/paths', PortalPathController::class)->name('paths');
-        Route::get('/paths/{learningPath}', PortalPathDetailController::class)->name('paths.show');
-        Route::post('/paths/{learningPath}/attendance/check-in', [PortalAttendanceCheckInController::class, 'checkInPath'])
-            ->name('paths.attendance.check-in');
-        Route::get('/paths/{learningPath}/attendance/session', [PortalAttendanceSessionController::class, 'path'])
-            ->name('paths.attendance.session');
+        Route::get('/paths/{any?}', fn () => redirect()->route('portal.programs'))->where('any', '.*');
         Route::get('/programs', PortalProgramController::class)->name('programs');
         Route::get('/programs/{trainingProgram}', PortalProgramDetailController::class)->name('programs.show');
         Route::post('/programs/{trainingProgram}/attendance/check-in', [PortalAttendanceCheckInController::class, 'checkInProgram'])

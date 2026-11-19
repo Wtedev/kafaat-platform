@@ -4,7 +4,6 @@ namespace Tests\Unit\Services;
 
 use App\Enums\AttendanceStatus;
 use App\Enums\CompetencyTrack;
-use App\Enums\PathStatus;
 use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramPrepDayType;
 use App\Enums\ProgramStatus;
@@ -12,15 +11,12 @@ use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
 use App\Filament\Support\RegistrationFilamentTableSupport;
 use App\Models\AuditLog;
-use App\Models\LearningPath;
-use App\Models\PathRegistration;
 use App\Models\ProgramAttendance;
 use App\Models\ProgramPrepDay;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\AttendanceLiveSessionService;
-use App\Services\PathAttendanceService;
 use App\Services\ProgramAttendanceService;
 use App\Support\VolunteerLeadersProgramPeriod;
 use Database\Seeders\VolunteerLeadersProgramPrepDaysSeeder;
@@ -114,10 +110,6 @@ class ProgramDailyAttendanceServiceTest extends TestCase
 
         // 1 present / 4 total (including future) = 25%
         $this->assertSame(25.0, $service->calculatePercentage($registration->fresh()));
-        $this->assertSame(
-            ['2026-08-03', '2026-08-10', '2026-08-17', '2026-08-20'],
-            app(PathAttendanceService::class)->expectedDatesForProgram($program->fresh()),
-        );
     }
 
     public function test_percentage_zero_with_days_and_dash_without(): void
@@ -138,38 +130,6 @@ class ProgramDailyAttendanceServiceTest extends TestCase
         $this->assertSame(0.0, $service->calculatePercentage($registration));
         $this->assertSame('0.0%', RegistrationFilamentTableSupport::formatPercentage(0.0));
         $this->assertSame('0 من 2', RegistrationFilamentTableSupport::programAttendanceSummary($registration->fresh(['trainingProgram'])));
-    }
-
-    public function test_path_attendance_statuses_unchanged(): void
-    {
-        $path = LearningPath::query()->create([
-            'title' => 'مسار',
-            'slug' => 'path-'.uniqid(),
-            'description' => 'وصف',
-            'status' => PathStatus::Published,
-            'published_at' => now(),
-        ]);
-        $user = User::factory()->create();
-        $pathReg = PathRegistration::query()->create([
-            'learning_path_id' => $path->id,
-            'user_id' => $user->id,
-            'status' => RegistrationStatus::Approved,
-            'approved_at' => now(),
-        ]);
-
-        app(PathAttendanceService::class)->markManualDay(
-            $pathReg,
-            '2026-08-03',
-            AttendanceStatus::Late,
-            'path late ok',
-        );
-
-        $this->assertDatabaseHas('path_attendance', [
-            'path_registration_id' => $pathReg->id,
-            'status' => AttendanceStatus::Late->value,
-        ]);
-        $this->assertContains(AttendanceStatus::Late, AttendanceStatus::cases());
-        $this->assertContains(AttendanceStatus::Absent, AttendanceStatus::cases());
     }
 
     public function test_qr_accepts_whitelisted_prep_date_and_rejects_non_prep(): void
@@ -292,25 +252,6 @@ class ProgramDailyAttendanceServiceTest extends TestCase
             ]);
         }
 
-        DB::table('path_attendance')->insert([
-            'path_registration_id' => PathRegistration::query()->create([
-                'learning_path_id' => LearningPath::query()->create([
-                    'title' => 'مسار حماية',
-                    'slug' => 'path-protect-'.uniqid(),
-                    'description' => 'وصف',
-                    'status' => PathStatus::Published,
-                    'published_at' => now(),
-                ])->id,
-                'user_id' => User::factory()->create()->id,
-                'status' => RegistrationStatus::Approved->value,
-                'approved_at' => now(),
-            ])->id,
-            'attendance_date' => '2026-08-03',
-            'status' => 'late',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
         $migration = require database_path('migrations/2026_08_03_160000_simplify_program_attendance_binary.php');
         $migration->up();
 
@@ -322,7 +263,6 @@ class ProgramDailyAttendanceServiceTest extends TestCase
         $this->assertCount(2, $rows);
         $this->assertSame(['2026-08-03', '2026-08-04'], $rows->map(fn ($r) => $r->training_date->toDateString())->all());
         $this->assertTrue($rows->every(fn ($r) => $r->status === AttendanceStatus::Present));
-        $this->assertDatabaseHas('path_attendance', ['status' => 'late']);
         $this->assertTrue(ProgramPrepDay::query()->where('requires_attendance', false)->doesntExist());
     }
 

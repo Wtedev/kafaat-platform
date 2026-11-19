@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 
 class UserTrainingRegistrationsRelationManager extends RelationManager
 {
-    protected static string $relationship = 'learningPathRegistrations';
+    protected static string $relationship = 'programRegistrations';
 
     protected static ?string $title = 'تسجيلات المستفيد';
 
@@ -43,7 +43,7 @@ class UserTrainingRegistrationsRelationManager extends RelationManager
                 TextColumn::make('type')
                     ->label('النوع')
                     ->badge()
-                    ->color(fn (array $record): string => str_contains((string) ($record['type'] ?? ''), 'مسار') ? 'info' : 'primary'),
+                    ->color('primary'),
 
                 TextColumn::make('title')
                     ->label('الاسم')

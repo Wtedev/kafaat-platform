@@ -28,16 +28,6 @@ final class PermissionMatrixCatalog
                 ],
             ],
             [
-                'key' => 'paths',
-                'label' => 'المسارات التعليمية',
-                'actions' => [
-                    'view' => ['paths.view'],
-                    'create' => ['paths.create'],
-                    'update' => ['paths.update', 'paths.publish', 'paths.archive'],
-                    'delete' => ['paths.delete'],
-                ],
-            ],
-            [
                 'key' => 'programs',
                 'label' => 'البرامج التدريبية',
                 'actions' => [
@@ -267,8 +257,8 @@ final class PermissionMatrixCatalog
             [
                 'key' => 'training',
                 'label' => 'التدريب والبرامج',
-                'description' => 'المسارات والبرامج والدورات والتسجيلات والشهادات',
-                'group_keys' => ['paths', 'programs', 'courses', 'registrations', 'certificates'],
+                'description' => 'البرامج والدورات والتسجيلات والشهادات',
+                'group_keys' => ['programs', 'courses', 'registrations', 'certificates'],
             ],
             [
                 'key' => 'volunteer',

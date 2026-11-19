@@ -26,7 +26,6 @@ final class StaffProgramIndex
         int $perPage = 12,
     ): LengthAwarePaginator {
         return $this->query($search, $kind, $programStatus, $registration)
-            ->with(['learningPath:id,title'])
             ->withCount([
                 'registrations as pending_registrations_count' => fn (Builder $q) => $q
                     ->where('status', RegistrationStatus::Pending->value),
@@ -92,13 +91,10 @@ final class StaffProgramIndex
             .' and program_registrations.status = ?)';
 
         match ($availability) {
-            StaffRegistrationAvailability::Path => $query->whereNotNull('learning_path_id'),
             StaffRegistrationAvailability::NotStarted => $query
-                ->whereNull('learning_path_id')
                 ->whereNotNull('registration_start')
                 ->whereDate('registration_start', '>', $today),
             StaffRegistrationAvailability::Closed => $query
-                ->whereNull('learning_path_id')
                 ->where(function (Builder $q) use ($today): void {
                     $q->whereNull('registration_start')
                         ->orWhereDate('registration_start', '<=', $today);
@@ -106,7 +102,6 @@ final class StaffProgramIndex
                 ->whereNotNull('registration_end')
                 ->whereDate('registration_end', '<', $today),
             StaffRegistrationAvailability::Full => $query
-                ->whereNull('learning_path_id')
                 ->where(function (Builder $q) use ($today): void {
                     $q->whereNull('registration_start')
                         ->orWhereDate('registration_start', '<=', $today);
@@ -118,7 +113,6 @@ final class StaffProgramIndex
                 ->whereNotNull('capacity')
                 ->whereRaw($approvedSub.' >= training_programs.capacity', [RegistrationStatus::Approved->value]),
             StaffRegistrationAvailability::Open => $query
-                ->whereNull('learning_path_id')
                 ->where(function (Builder $q) use ($today): void {
                     $q->whereNull('registration_start')
                         ->orWhereDate('registration_start', '<=', $today);

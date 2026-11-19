@@ -3,8 +3,6 @@
 namespace App\Filament\Support;
 
 use App\Enums\UserActivityAction;
-use App\Models\PathAttendance;
-use App\Models\PathRegistration;
 use App\Models\ProgramAttendance;
 use App\Models\ProgramRegistration;
 use App\Models\User;
@@ -141,27 +139,6 @@ final class UserTechnicalLogService
                 ]);
             });
 
-        PathRegistration::query()
-            ->where('user_id', $user->id)
-            ->with('learningPath')
-            ->orderBy('created_at')
-            ->get()
-            ->each(function (PathRegistration $registration) use ($entries): void {
-                $title = UserActivityAction::PathRegistration->title();
-                $detail = '«'.($registration->learningPath?->title ?? 'مسار تدريبي').'»';
-
-                if (self::hasDetailEntry($entries, $title, $detail)) {
-                    return;
-                }
-
-                $entries->push([
-                    'occurred_at' => $registration->created_at ?? now(),
-                    'category' => UserActivityAction::PathRegistration->category(),
-                    'title' => $title,
-                    'detail' => $detail,
-                ]);
-            });
-
         VolunteerRegistration::query()
             ->where('user_id', $user->id)
             ->with('opportunity')
@@ -198,28 +175,6 @@ final class UserTechnicalLogService
                 $program = $attendance->registration?->trainingProgram;
                 $label = $program?->title ?? 'برنامج تدريبي';
                 $detail = 'برنامج: «'.$label.'» — '.($attendance->training_date?->format('Y/m/d') ?? '');
-
-                if (self::hasDetailEntry($entries, UserActivityAction::AttendanceCheckIn->title(), $detail)) {
-                    return;
-                }
-
-                $entries->push([
-                    'occurred_at' => $attendance->updated_at ?? $attendance->created_at ?? now(),
-                    'category' => UserActivityAction::AttendanceCheckIn->category(),
-                    'title' => UserActivityAction::AttendanceCheckIn->title(),
-                    'detail' => $detail,
-                ]);
-            });
-
-        PathAttendance::query()
-            ->whereHas('registration', fn ($q) => $q->where('user_id', $user->id))
-            ->where('notes', 'تسجيل حضور ذاتي')
-            ->with('registration.learningPath')
-            ->get()
-            ->each(function (PathAttendance $attendance) use ($entries): void {
-                $path = $attendance->registration?->learningPath;
-                $label = $path?->title ?? 'مسار تدريبي';
-                $detail = 'مسار: «'.$label.'» — '.($attendance->attendance_date?->format('Y/m/d') ?? '');
 
                 if (self::hasDetailEntry($entries, UserActivityAction::AttendanceCheckIn->title(), $detail)) {
                     return;

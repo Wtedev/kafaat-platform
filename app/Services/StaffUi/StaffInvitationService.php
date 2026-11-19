@@ -37,7 +37,6 @@ final class StaffInvitationService
     private const LINKED_RECORDS = [
         'profiles' => 'user_id',
         'program_registrations' => 'user_id',
-        'path_registrations' => 'user_id',
         'volunteer_registrations' => 'user_id',
         'volunteer_hours' => 'user_id',
         'certificates' => 'user_id',
@@ -46,7 +45,6 @@ final class StaffInvitationService
         'profile_recommendations' => 'user_id',
         'team_members' => 'user_id',
         'training_program_editors' => 'user_id',
-        'learning_path_editors' => 'user_id',
         'in_app_notifications' => 'user_id',
         'user_activity_logs' => 'user_id',
         'privacy_policy_acknowledgements' => 'user_id',

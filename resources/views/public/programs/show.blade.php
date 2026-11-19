@@ -11,14 +11,12 @@ RegistrationStatus::Completed->value => 'مكتمل',
 ];
 $statusColors = RegistrationStatus::badgeClasses();
 
-$viaPathOnly = $trainingProgram->learning_path_id !== null;
 $inPerson = $trainingProgram->delivery_mode?->hasPhysicalComponent() ?? false;
 $venueHint = filled($trainingProgram->venue) ? $trainingProgram->venue : 'مدينة وموقع الانعقاد';
 
 $canRegister = auth()->check()
 && auth()->user()->canRegisterForPublicOfferings()
 && $userRegistration === null
-&& ! $viaPathOnly
 && $trainingProgram->isRegistrationOpen();
 
 $ineligible = is_array($acceptanceEvaluation ?? null)
@@ -114,30 +112,12 @@ $staffPreview = (bool) ($staffPreview ?? false);
                 </span>
                 <span class="text-sm text-gray-500">لقد سجّلت في هذا البرنامج بالفعل.</span>
             </div>
-            @elseif ($viaPathOnly)
-            <div class="space-y-3 sm:max-w-xl">
-                <p class="text-sm leading-relaxed text-gray-600">
-                    هذا البرنامج جزء من مسار تعليمي. التسجيل يتم عبر المسار فقط، وبعد قبولك في المسار تُسجَّل تلقائياً في جميع برامجه.
-                </p>
-                @auth
-                @if (auth()->user()->canRegisterForPublicOfferings())
-                <x-public.register-cta-button :href="route('portal.paths')">
-                    الانتقال إلى مساراتي
-                </x-public.register-cta-button>
-                @endif
-                @else
-                <x-public.register-cta-button :href="route('login', ['return' => request()->getRequestUri()])">
-                    سجّل الدخول للانضمام للمسار
-                </x-public.register-cta-button>
-                @endauth
-            </div>
             @elseif (! $trainingProgram->isRegistrationOpen())
             @php $registrationUx = $trainingProgram->publicRegistrationUxState(); @endphp
             <div @class([
                 'space-y-1 rounded-2xl border p-4 sm:max-w-xl',
                 'border-amber-200/80 bg-amber-50/80' => $registrationUx === 'upcoming',
                 'border-gray-200 bg-gray-50' => $registrationUx === 'ended',
-                'border-[#c5d4e4] bg-[#F7FAFC]' => $registrationUx === 'path',
             ])>
                 <p @class([
                     'text-sm font-semibold',

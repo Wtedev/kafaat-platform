@@ -10,8 +10,6 @@ $inboxOpenUrl = \App\Filament\Support\InboxNotificationRecordActions::inboxOpenU
 $inboxOpenLabel = \App\Filament\Support\InboxNotificationRecordActions::inboxOpenLabel(auth()->user(), $n);
 $canApproveProgram = \App\Filament\Support\InboxNotificationRecordActions::canApproveProgramRegistration($n);
 $canRejectProgram = \App\Filament\Support\InboxNotificationRecordActions::canRejectProgramRegistration($n);
-$canApprovePath = \App\Filament\Support\InboxNotificationRecordActions::canApprovePathRegistration($n);
-$canRejectPath = \App\Filament\Support\InboxNotificationRecordActions::canRejectPathRegistration($n);
 $canApproveVolunteer = \App\Filament\Support\InboxNotificationRecordActions::canApproveVolunteerRegistration($n);
 $canRejectVolunteer = \App\Filament\Support\InboxNotificationRecordActions::canRejectVolunteerRegistration($n);
 $isUnread = $n->read_at === null;
@@ -73,7 +71,6 @@ $compact = $compact ?? false;
             @php
                 $hasIconActions = $whatsappUrl || $inboxOpenUrl || $isUnread;
                 $hasStaffActions = $canApproveProgram || $canRejectProgram
-                    || $canApprovePath || $canRejectPath
                     || $canApproveVolunteer || $canRejectVolunteer;
             @endphp
 
@@ -154,21 +151,6 @@ $compact = $compact ?? false;
                     </form>
                 @endif
 
-                @if ($canApprovePath)
-                    <form method="POST" action="{{ route('portal.notifications.registration-action', $n) }}" onsubmit="return confirm('تأكيد قبول التسجيل في المسار؟');">
-                        @csrf
-                        <input type="hidden" name="intent" value="approve_path">
-                        <button type="submit" class="rounded-lg bg-brand-secondary px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm transition hover:opacity-95">قبول (مسار)</button>
-                    </form>
-                @endif
-                @if ($canRejectPath)
-                    <form method="POST" action="{{ route('portal.notifications.registration-action', $n) }}" class="w-full space-y-1.5 sm:w-auto">
-                        @csrf
-                        <input type="hidden" name="intent" value="reject_path">
-                        <textarea name="rejected_reason" rows="2" placeholder="سبب الرفض (اختياري)" class="w-full rounded-xl border border-gray-200 px-2.5 py-1.5 text-xs text-gray-800 placeholder:text-gray-400"></textarea>
-                        <button type="submit" class="rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-brand-danger ring-1 ring-[#f5c4c0] transition hover:bg-[#fdeeed]">رفض (مسار)</button>
-                    </form>
-                @endif
 
                 @if ($canApproveVolunteer)
                     <form method="POST" action="{{ route('portal.notifications.registration-action', $n) }}" onsubmit="return confirm('تأكيد قبول التسجيل التطوعي؟');">

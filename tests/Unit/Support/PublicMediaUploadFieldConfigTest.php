@@ -27,9 +27,7 @@ class PublicMediaUploadFieldConfigTest extends TestCase
     {
         $program = TrainingEntityFormSupport::coverImageUpload('programs/covers');
         $volunteer = VolunteerOpportunityResource::volunteerOpportunityImageUploadField();
-        $learningPath = TrainingEntityFormSupport::coverImageUpload('learning-paths/images');
-
-        foreach ([$program, $volunteer, $learningPath] as $field) {
+        foreach ([$program, $volunteer] as $field) {
             $this->assertInstanceOf(FileUpload::class, $field);
             $this->assertFalse($field->hasImageEditor());
             $this->assertNull($field->getAutomaticallyCropImagesAspectRatio());

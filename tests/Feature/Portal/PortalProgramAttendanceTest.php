@@ -143,7 +143,6 @@ class PortalProgramAttendanceTest extends TestCase
             'slug' => 'second-program-'.uniqid(),
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
             'delivery_mode' => ProgramDeliveryMode::Remote,
         ]);
         ProgramRegistration::query()->create([
@@ -218,7 +217,6 @@ class PortalProgramAttendanceTest extends TestCase
             'slug' => 'test-program-'.uniqid(),
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
             'delivery_mode' => $deliveryMode,
             'venue' => $deliveryMode->hasPhysicalComponent() ? 'القاعة' : null,
         ]);

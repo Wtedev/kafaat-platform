@@ -11,21 +11,20 @@ use Illuminate\Support\Carbon;
  * Single source of truth for staff-UI program / registration status labels.
  *
  * Registration availability rules (first match wins):
- * 1. learning_path_id set → Path («التسجيل عبر المسار»).
- * 2. Manually closed (reserved for function 5) → ManualClosed.
+ * 1. Manually closed (reserved for function 5) → ManualClosed.
  *    Hook: {@see self::isManuallyClosed()} — always false until a real column exists.
- * 3. registration_start is a future date → NotStarted («لم يبدأ»).
+ * 2. registration_start is a future date → NotStarted («لم يبدأ»).
  *    Null registration_start means the window has already started (open from publish /
  *    whenever the program is otherwise eligible) — same as TrainingProgram::isRegistrationOpen().
- * 4. registration_end is a past date → Closed («مغلق»).
+ * 3. registration_end is a past date → Closed («مغلق»).
  *    Null registration_end means the window has no end date from this field — same as
  *    isRegistrationOpen(). Note: public registration does NOT close on end_date alone;
  *    end_date is not used here (program end is separate from the registration window).
- * 5. capacity is set AND approved_registrations_count >= capacity → Full («مكتمل العدد»).
+ * 4. capacity is set AND approved_registrations_count >= capacity → Full («مكتمل العدد»).
  *    Count uses approved only (not pending). Public ProgramRegistrationService still accepts
  *    new pending applications when full; capacity is enforced on approval. Staff list shows
  *    Full as an operational signal — do not change public behavior from this service.
- * 6. Otherwise → Open («مفتوح»).
+ * 5. Otherwise → Open («مفتوح»).
  *
  * Program status badge = ProgramStatus (draft / published / archived), independent of the
  * registration window.
@@ -42,10 +41,6 @@ final class StaffProgramStatus
     public function registrationAvailability(TrainingProgram $program, ?Carbon $today = null): StaffRegistrationAvailability
     {
         $today = ($today ?? Carbon::today())->startOfDay();
-
-        if ($program->learning_path_id !== null) {
-            return StaffRegistrationAvailability::Path;
-        }
 
         if ($this->isManuallyClosed($program)) {
             return StaffRegistrationAvailability::ManualClosed;

@@ -686,7 +686,6 @@ class ProgramRegistrantsExcelExportTest extends TestCase
             'slug' => 'export-program-'.uniqid(),
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
             'registration_start' => now()->subDay()->toDateString(),
             'registration_end' => now()->addMonth()->toDateString(),
         ], $overrides));

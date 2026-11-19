@@ -64,8 +64,6 @@ final class TrainingProgramInlineEditSupport
      */
     private static function overviewFields(TrainingProgram $program): array
     {
-        $capacityVisible = fn (Get $get): bool => ! (bool) $get('is_linked_to_path');
-
         $overview = [
             TextInput::make('title')
                 ->label('اسم البرنامج')
@@ -93,10 +91,7 @@ final class TrainingProgramInlineEditSupport
                 ->columnSpanFull();
         }
 
-        return array_merge(
-            $overview,
-            TrainingEntityFormSupport::programPathLinkFields(persistToggleState: true),
-        );
+        return $overview;
     }
 
     /**
@@ -105,11 +100,9 @@ final class TrainingProgramInlineEditSupport
     private static function scheduleFields(TrainingProgram $program): array
     {
         return [
-            Hidden::make('is_linked_to_path')->dehydrated(false),
             Hidden::make('program_kind')->dehydrated(false),
-            ...TrainingEntityFormSupport::scheduleDateHiddenFields(hideRegistrationWhenLinked: true),
+            ...TrainingEntityFormSupport::scheduleDateHiddenFields(),
             TrainingEntityFormSupport::trainingScheduleCalendar(
-                showRegistrationRange: fn (Get $get): bool => ! (bool) $get('is_linked_to_path'),
                 programHasEndDate: fn (Get $get): bool => ($get('program_kind') ?? '') !== TrainingProgramKind::Session->value,
                 showWeekdayPicker: fn (Get $get): bool => ($get('program_kind') ?? '') !== TrainingProgramKind::Session->value,
                 showPublishSchedule: fn (?TrainingProgram $record): bool => TrainingEntityFormSupport::publishControlsVisibleForRecord(
@@ -125,12 +118,10 @@ final class TrainingProgramInlineEditSupport
      */
     private static function enrollmentFields(): array
     {
-        $capacityVisible = fn (Get $get): bool => ! (bool) $get('is_linked_to_path');
-
         return [
             ...TrainingEntityFormSupport::programAcceptanceConditionsFields(),
             ...TrainingEntityFormSupport::registrationAdvancedSettingsFields(
-                $capacityVisible,
+                null,
                 includeProgramAudienceNotifications: true,
                 includeAutoAcceptRegistrations: false,
             ),

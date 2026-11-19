@@ -28,7 +28,7 @@ final class StaffFilamentRoles
     public static function hasTrainingCoordinatorRole(User $user): bool
     {
         return $user->isAdminOrStaff() && (
-            $user->can('programs.view') || $user->can('paths.view') || $user->can('manage_programs')
+            $user->can('programs.view') || $user->can('manage_programs')
         );
     }
 

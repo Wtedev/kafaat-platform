@@ -2,13 +2,10 @@
 
 namespace App\Filament\Support;
 
-use App\Enums\AttendanceStatus;
 use App\Enums\IdentityCategory;
 use App\Enums\RegistrationStatus;
-use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
 use App\Services\Identity\IdentityNumberService;
-use App\Services\PathAttendanceService;
 use App\Services\ProgramAttendanceService;
 use App\Support\ArabicText;
 use App\Support\RegistrationEligibilitySupport;
@@ -107,7 +104,7 @@ class RegistrationFilamentTableSupport
         return TextColumn::make('certificate_eligibility')
             ->label('أهلية الشهادة')
             ->badge()
-            ->getStateUsing(function (ProgramRegistration|PathRegistration $record): string {
+            ->getStateUsing(function (ProgramRegistration $record): string {
                 if (in_array($record->status, [
                     RegistrationStatus::Pending,
                     RegistrationStatus::Rejected,
@@ -121,7 +118,7 @@ class RegistrationFilamentTableSupport
                     $record->score !== null ? (float) $record->score : null,
                 );
             })
-            ->color(function (ProgramRegistration|PathRegistration $record): string {
+            ->color(function (ProgramRegistration $record): string {
                 if (in_array($record->status, [
                     RegistrationStatus::Pending,
                     RegistrationStatus::Rejected,
@@ -141,7 +138,7 @@ class RegistrationFilamentTableSupport
     {
         return TextColumn::make('attendance_percentage')
             ->label('نسبة الحضور')
-            ->getStateUsing(fn (ProgramRegistration|PathRegistration $record): string => self::formatPercentage(
+            ->getStateUsing(fn (ProgramRegistration $record): string => self::formatPercentage(
                 $record->effectiveAttendancePercentage(),
             ))
             ->sortable();
@@ -176,20 +173,5 @@ class RegistrationFilamentTableSupport
         }
 
         return "{$attended} من {$expected}";
-    }
-
-    public static function pathAttendanceSummary(PathRegistration $record): string
-    {
-        $record->loadMissing('learningPath.programs');
-        $expected = app(PathAttendanceService::class)->countExpectedTrainingDays($record->learningPath);
-        $attended = $record->attendanceRecords()
-            ->whereIn('status', AttendanceStatus::attendedValues())
-            ->count();
-
-        if ($expected === 0) {
-            return 'لم تُحدَّد أيام التحضير بعد';
-        }
-
-        return "حضور {$attended} من {$expected} يوم";
     }
 }

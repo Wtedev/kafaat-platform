@@ -97,9 +97,6 @@ class TrainingProgramPolicy
         return $this->canPerformWithProgramPermission($user, $program, 'programs.archive');
     }
 
-    /**
-     * Embedded rule: editing program content uses this policy only — not LearningPath container rights.
-     */
     private function canPerformWithProgramPermission(User $user, TrainingProgram $program, string $permission): bool
     {
         if (TrainingEntityAuthorization::adminBypass($user)) {

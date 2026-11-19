@@ -3,16 +3,13 @@
 namespace Tests\Feature\PrivacyBaseline;
 
 use App\Enums\OpportunityStatus;
-use App\Enums\PathStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
-use App\Models\LearningPath;
 use App\Models\Profile;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
-use App\Services\PathRegistrationService;
 use App\Services\ProgramRegistrationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
@@ -110,24 +107,6 @@ class ProgramRegistrationBaselineTest extends TestCase
         ]);
     }
 
-    public function test_portal_user_can_register_for_learning_path(): void
-    {
-        $user = $this->makePortalUser();
-        $path = LearningPath::query()->create([
-            'title' => 'مسار تجريبي',
-            'slug' => 'baseline-path',
-            'status' => PathStatus::Published,
-            'published_at' => now(),
-        ]);
-
-        app(PathRegistrationService::class)->register($user, $path);
-
-        $this->assertDatabaseHas('path_registrations', [
-            'learning_path_id' => $path->id,
-            'user_id' => $user->id,
-        ]);
-    }
-
     public function test_portal_user_can_register_for_volunteer_opportunity(): void
     {
         $user = $this->makePortalUser();
@@ -168,7 +147,6 @@ class ProgramRegistrationBaselineTest extends TestCase
             'slug' => 'baseline-program-'.uniqid(),
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
         ]);
     }
 }

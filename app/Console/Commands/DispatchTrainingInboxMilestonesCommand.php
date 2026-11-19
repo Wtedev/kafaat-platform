@@ -35,7 +35,7 @@ class DispatchTrainingInboxMilestonesCommand extends Command
 
     private function maybeRegistrationOpen(TrainingProgram $program, Carbon $today, InboxNotificationService $inbox): void
     {
-        if ($program->learning_path_id !== null || ! $program->notify_milestones) {
+        if (! $program->notify_milestones) {
             return;
         }
 
@@ -55,7 +55,7 @@ class DispatchTrainingInboxMilestonesCommand extends Command
 
     private function maybeRegistrationClose(TrainingProgram $program, Carbon $today, InboxNotificationService $inbox): void
     {
-        if ($program->learning_path_id !== null || ! $program->notify_milestones) {
+        if (! $program->notify_milestones) {
             return;
         }
 

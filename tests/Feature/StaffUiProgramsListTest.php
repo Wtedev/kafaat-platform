@@ -2,12 +2,10 @@
 
 namespace Tests\Feature;
 
-use App\Enums\PathStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\StaffUi\StaffRegistrationAvailability;
 use App\Enums\TrainingProgramKind;
-use App\Models\LearningPath;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
@@ -167,20 +165,6 @@ class StaffUiProgramsListTest extends TestCase
         ]);
         $this->registerApproved($full);
 
-        $path = LearningPath::query()->create([
-            'title' => 'PATH_TITLE_SKILLS',
-            'slug' => 'path-skills-'.uniqid(),
-            'status' => PathStatus::Published,
-            'published_at' => now(),
-        ]);
-        $viaPath = $this->makeProgram([
-            'title' => 'REG_STATE_PATH',
-            'learning_path_id' => $path->id,
-            'capacity' => null,
-            'registration_start' => null,
-            'registration_end' => null,
-        ]);
-
         $this->assertSame(StaffRegistrationAvailability::Open, $status->registrationAvailability($open->fresh()));
         $this->assertSame(StaffRegistrationAvailability::NotStarted, $status->registrationAvailability($notStarted->fresh()));
         $this->assertSame(StaffRegistrationAvailability::Closed, $status->registrationAvailability($closed->fresh()));
@@ -192,7 +176,6 @@ class StaffUiProgramsListTest extends TestCase
             StaffRegistrationAvailability::Full,
             $status->registrationAvailability($fullLoaded),
         );
-        $this->assertSame(StaffRegistrationAvailability::Path, $status->registrationAvailability($viaPath->fresh()));
 
         $this->actingAsOtpVerified($viewer)
             ->get(route('staff-ui.programs.index', ['registration' => 'open']))
@@ -200,8 +183,7 @@ class StaffUiProgramsListTest extends TestCase
             ->assertSee('REG_STATE_OPEN')
             ->assertDontSee('REG_STATE_NOT_STARTED')
             ->assertDontSee('REG_STATE_CLOSED')
-            ->assertDontSee('REG_STATE_FULL')
-            ->assertDontSee('REG_STATE_PATH');
+            ->assertDontSee('REG_STATE_FULL');
 
         $this->actingAsOtpVerified($viewer)
             ->get(route('staff-ui.programs.index', ['registration' => 'not_started']))
@@ -219,13 +201,6 @@ class StaffUiProgramsListTest extends TestCase
             ->get(route('staff-ui.programs.index', ['registration' => 'full']))
             ->assertOk()
             ->assertSee('REG_STATE_FULL')
-            ->assertDontSee('REG_STATE_OPEN');
-
-        $this->actingAsOtpVerified($viewer)
-            ->get(route('staff-ui.programs.index', ['registration' => 'path']))
-            ->assertOk()
-            ->assertSee('REG_STATE_PATH')
-            ->assertSee('PATH_TITLE_SKILLS')
             ->assertDontSee('REG_STATE_OPEN');
     }
 
@@ -407,7 +382,6 @@ class StaffUiProgramsListTest extends TestCase
             'program_kind' => TrainingProgramKind::Course,
             'status' => ProgramStatus::Published,
             'published_at' => now()->subDay(),
-            'learning_path_id' => null,
             'registration_start' => now()->subDay()->toDateString(),
             'registration_end' => now()->addMonth()->toDateString(),
             'capacity' => 30,

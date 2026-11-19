@@ -34,7 +34,6 @@ class MobilePrimaryCtaVisibilityTest extends TestCase
             'slug' => 'mobile-program-'.uniqid(),
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
         ]);
 
         $this->actingAsOtpVerified($user)

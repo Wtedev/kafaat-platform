@@ -3,7 +3,6 @@
 namespace App\Policies;
 
 use App\Models\Certificate;
-use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
@@ -73,10 +72,6 @@ class CertificatePolicy
 
         if ($entity instanceof TrainingProgram) {
             return FilamentAssignmentVisibility::userManagesTrainingProgram($user, $entity);
-        }
-
-        if ($entity instanceof LearningPath) {
-            return TrainingEntityAuthorization::canViewOperationalPath($user, $entity);
         }
 
         if ($entity instanceof VolunteerOpportunity) {

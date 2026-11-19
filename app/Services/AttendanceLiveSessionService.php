@@ -6,8 +6,6 @@ use App\Enums\AttendanceStatus;
 use App\Enums\ProgramPrepDayType;
 use App\Enums\RegistrationStatus;
 use App\Models\AttendanceLiveSession;
-use App\Models\PathAttendance;
-use App\Models\PathRegistration;
 use App\Models\ProgramAttendance;
 use App\Models\ProgramAttendanceChecker;
 use App\Models\ProgramRegistration;
@@ -175,23 +173,6 @@ class AttendanceLiveSessionService
         );
     }
 
-    public function checkInPath(AttendanceLiveSession $session, PathRegistration $registration): void
-    {
-        $this->assertSessionActiveFor($session, $registration->learningPath);
-        $this->assertPathRegistrationApproved($registration);
-
-        PathAttendance::updateOrCreate(
-            [
-                'path_registration_id' => $registration->id,
-                'attendance_date' => today()->toDateString(),
-            ],
-            [
-                'status' => AttendanceStatus::Present,
-                'notes' => 'تسجيل حضور ذاتي',
-            ],
-        );
-    }
-
     /**
      * Live status payload for the prep-officer gate UI.
      *
@@ -318,15 +299,6 @@ class AttendanceLiveSessionService
     }
 
     private function assertRegistrationApproved(ProgramRegistration $registration): void
-    {
-        if (! $registration->isApproved() && ! $registration->isCompleted()) {
-            throw ValidationException::withMessages([
-                'registration' => 'التسجيل غير مقبول.',
-            ]);
-        }
-    }
-
-    private function assertPathRegistrationApproved(PathRegistration $registration): void
     {
         if (! $registration->isApproved() && ! $registration->isCompleted()) {
             throw ValidationException::withMessages([

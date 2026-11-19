@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Concerns;
 
-use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use Filament\Actions\AttachAction;
@@ -15,9 +14,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * Shared behavior for TrainingProgram / LearningPath editor pivot relation managers.
+ * Shared behavior for TrainingProgram editor pivot relation managers.
  *
- * @property-read TrainingProgram|LearningPath $ownerRecord
+ * @property-read TrainingProgram $ownerRecord
  */
 trait ManagesFilamentTrainingEditors
 {

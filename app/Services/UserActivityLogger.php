@@ -118,11 +118,6 @@ class UserActivityLogger
         self::log($user, UserActivityAction::ProgramRegistration, '«'.$programTitle.'»');
     }
 
-    public static function logPathRegistration(User $user, string $pathTitle): void
-    {
-        self::log($user, UserActivityAction::PathRegistration, '«'.$pathTitle.'»');
-    }
-
     public static function logVolunteerRegistration(User $user, string $opportunityTitle): void
     {
         self::log($user, UserActivityAction::VolunteerRegistration, '«'.$opportunityTitle.'»');
