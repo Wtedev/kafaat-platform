@@ -48,9 +48,10 @@ class StaffProgramCalendarTest extends TestCase
         $this->assertFalse($days['2026-12-07']['program']);  // Monday is not a program day
         $this->assertTrue($days['2026-12-08']['program']);   // Tuesday
         $this->assertFalse($days['2026-12-20']['program']);  // after the end date
-        $this->assertTrue($days['2026-12-06']['qr']);
-        $this->assertSame(['تحضير عن بُعد'], $days['2026-12-08']['links']);
-        $this->assertSame(['المحاضرة الثالثة'], $days['2026-12-13']['links']);
+        $this->assertTrue($days['2026-12-06']['attendance']);  // QR prep day
+        $this->assertTrue($days['2026-12-08']['attendance']);  // remote prep day
+        $this->assertTrue($days['2026-12-13']['attendance']);  // attendance link
+        $this->assertFalse($days['2026-12-15']['attendance']);
         $this->assertTrue($days['2026-12-10']['today']);
 
         // Weeks start on Sunday: 1 Nov 2026 is a Sunday, 1 Dec 2026 a Tuesday.

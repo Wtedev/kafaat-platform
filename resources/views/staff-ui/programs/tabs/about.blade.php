@@ -6,10 +6,6 @@
         $program->capacity_male ? 'رجال '.en_num($program->capacity_male) : null,
         $program->capacity_female ? 'نساء '.en_num($program->capacity_female) : null,
     ]);
-    $weekdays = collect(is_array($program->weekdays) ? $program->weekdays : [])
-        ->map(fn ($day) => $weekdayOptions[(int) $day] ?? null)
-        ->filter()
-        ->implode('، ');
     $presenters = collect(is_array($program->program_presenters) ? $program->program_presenters : [])
         ->map(function (mixed $row): string {
             if (! is_array($row)) {
@@ -28,7 +24,6 @@
             ->filter()
             ->values()
         : collect();
-    $date = fn ($value): string => $value ? en_digits(ar_date($value, 'd MMM y')) : '—';
     $descriptionHtml = filled($program->description) ? RichContentSupport::toDisplayHtml((string) $program->description) : '';
 @endphp
 
@@ -124,8 +119,7 @@
                                                 $notes = array_filter([
                                                     $cell['registration'] ? 'فترة التسجيل' : null,
                                                     $cell['program'] ? 'يوم البرنامج' : null,
-                                                    $cell['qr'] ? 'تحضير QR' : null,
-                                                    ...$cell['links'],
+                                                    $cell['attendance'] ? 'يوم تحضير' : null,
                                                 ]);
                                             @endphp
                                             <span
@@ -139,15 +133,8 @@
                                                 @if ($notes !== []) title="{{ implode(' · ', $notes) }}" @endif
                                             >
                                                 <span class="sui-cal__day">{{ en_num($cell['day']) }}</span>
-                                                @if ($cell['qr'] || $cell['links'] !== [])
-                                                    <span class="sui-cal__marks">
-                                                        @if ($cell['qr'])
-                                                            <i data-lucide="qr-code" class="sui-cal__mark is-qr" aria-label="تحضير QR"></i>
-                                                        @endif
-                                                        @if ($cell['links'] !== [])
-                                                            <i data-lucide="link" class="sui-cal__mark is-link" aria-label="رابط تحضير"></i>
-                                                        @endif
-                                                    </span>
+                                                @if ($cell['attendance'])
+                                                    <i data-lucide="calendar-check" class="sui-cal__mark" aria-label="يوم تحضير"></i>
                                                 @endif
                                             </span>
                                         @endif
@@ -159,48 +146,12 @@
                     <ul class="sui-cal__legend">
                         <li><span class="sui-cal__swatch is-registration"></span>التسجيل</li>
                         <li><span class="sui-cal__swatch is-program"></span>أيام البرنامج</li>
-                        <li><i data-lucide="qr-code" class="sui-cal__mark is-qr"></i>تحضير QR</li>
-                        <li><i data-lucide="link" class="sui-cal__mark is-link"></i>رابط تحضير</li>
+                        <li><i data-lucide="calendar-check" class="sui-cal__mark"></i>يوم تحضير</li>
                     </ul>
                 </div>
+            @else
+                <p class="sui-program-muted">لا توجد مواعيد بعد.</p>
             @endif
-            <div class="sui-program-dates__grid">
-                <div class="sui-program-date">
-                    <span class="sui-program-date__label">التسجيل</span>
-                    <strong>{{ $date($program->registration_start) }}</strong>
-                    <span>إلى {{ $date($program->registration_end) }}</span>
-                </div>
-                <div class="sui-program-date">
-                    <span class="sui-program-date__label">البرنامج</span>
-                    <strong>{{ $date($program->start_date) }}</strong>
-                    @if ($program->end_date && ! $program->end_date->isSameDay($program->start_date))
-                        <span>إلى {{ $date($program->end_date) }}</span>
-                    @endif
-                    @if ($weekdays !== '')
-                        <span class="sui-program-date__days">{{ $weekdays }}</span>
-                    @endif
-                </div>
-            </div>
-            <div class="sui-program-dates__attendance">
-                <h3>أيام التحضير</h3>
-                @forelse ($attendanceDays as $day)
-                    <div class="sui-attendance-day">
-                        <span @class(['sui-attendance-day__kind', 'is-qr' => $day['kind'] === 'qr'])>
-                            <i data-lucide="{{ $day['kind'] === 'qr' ? 'qr-code' : 'link' }}" class="sui-icon sui-icon--sm" aria-hidden="true"></i>
-                            {{ $day['kind'] === 'qr' ? 'QR' : 'رابط' }}
-                        </span>
-                        <span class="sui-attendance-day__date">{{ $day['date'] ? $date($day['date']) : '—' }}</span>
-                        <span class="sui-attendance-day__title">{{ $day['title'] }}</span>
-                        @if ($day['state'] !== null || $day['count'] !== null)
-                            <span class="sui-attendance-day__meta">
-                                {{ $day['state'] }}@if ($day['count'] !== null) · {{ en_num($day['count']) }} حاضر@endif
-                            </span>
-                        @endif
-                    </div>
-                @empty
-                    <p class="sui-program-muted">لا توجد أيام تحضير ولا روابط بعد.</p>
-                @endforelse
-            </div>
         </section>
         <script>
             document.querySelectorAll('[data-sui-cal]').forEach((cal) => {

@@ -66,15 +66,11 @@ class StaffUiProgramPageTest extends TestCase
         $this->actingAsOtpVerified($this->staff(['programs.view']))
             ->get(route('staff-ui.programs.show', $program))
             ->assertOk()
-            ->assertSeeInOrder(['المواعيد', 'التسجيل', 'البرنامج', 'أيام التحضير', 'النبذة'])
-            ->assertSee('QR')
-            ->assertSee('يوم حضوري')
-            ->assertSee('يوم عن بُعد')
-            ->assertSee('رابط المحاضرة الأولى')
-            ->assertSee('لم يُفتح بعد')
+            ->assertSeeInOrder(['المواعيد', 'التسجيل', 'أيام البرنامج', 'يوم تحضير', 'النبذة'])
             ->assertSee('data-sui-cal', false)
-            ->assertSee('title="يوم البرنامج · تحضير QR"', false)
-            ->assertSee('أيام البرنامج');
+            ->assertSee('title="يوم البرنامج · يوم تحضير"', false)
+            ->assertDontSee('رابط المحاضرة الأولى')
+            ->assertDontSee('sui-program-date__', false);
     }
 
     public function test_settings_tab_needs_update_permission(): void

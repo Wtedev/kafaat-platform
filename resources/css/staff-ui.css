@@ -2719,105 +2719,25 @@ a.sui-menu-item {
     min-width: 0;
 }
 
-.sui-program-dates__grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--sui-space-3);
-    padding: var(--sui-space-4);
-}
 
-.sui-program-date {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: var(--sui-space-3);
-    border-radius: var(--sui-radius-sm);
-    background: var(--sui-bg);
-    font-size: 13px;
-}
 
-.sui-program-date__label {
-    color: var(--sui-text-secondary);
-    font-size: 12px;
-}
 
-.sui-program-date strong {
-    color: var(--sui-heading);
-    font-size: 15px;
-}
 
-.sui-program-date__days {
-    margin-top: 4px;
-    color: var(--sui-primary-dark);
-    font-size: 12px;
-}
 
-.sui-program-dates__attendance {
-    padding: 0 var(--sui-space-4) var(--sui-space-4);
-}
 
-.sui-program-dates__attendance h3 {
-    margin: 0 0 var(--sui-space-2);
-    color: var(--sui-heading);
-    font-size: 13px;
-    font-weight: 700;
-}
 
-.sui-program-dates__attendance .sui-program-muted {
-    padding: 0;
-}
 
-.sui-attendance-day {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px 10px;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--sui-border);
-    font-size: 13px;
-}
 
-.sui-attendance-day:last-child {
-    border-bottom: 0;
-}
 
-.sui-attendance-day__kind {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: var(--sui-info-bg);
-    color: var(--sui-info);
-    font-size: 11px;
-    font-weight: 700;
-}
 
-.sui-attendance-day__kind.is-qr {
-    background: var(--sui-primary-tint);
-    color: var(--sui-primary-dark);
-}
 
-.sui-attendance-day__date {
-    color: var(--sui-heading);
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-}
 
-.sui-attendance-day__title {
-    color: var(--sui-text);
-}
 
-.sui-attendance-day__meta {
-    margin-inline-start: auto;
-    color: var(--sui-text-muted);
-    font-size: 12px;
-}
 
 /* Program dates calendar */
 
 .sui-cal {
-    padding: var(--sui-space-3) var(--sui-space-4) 0;
+    padding: var(--sui-space-3) var(--sui-space-4) var(--sui-space-4);
 }
 
 .sui-cal__nav {
@@ -2888,28 +2808,19 @@ a.sui-menu-item {
     box-shadow: inset 0 0 0 2px var(--sui-heading);
 }
 
-.sui-cal__marks {
-    display: inline-flex;
-    gap: 2px;
-}
 
 .sui-cal__mark {
-    width: 11px;
-    height: 11px;
+    width: 12px;
+    height: 12px;
     stroke-width: 2.25;
+    color: var(--sui-primary-dark);
 }
 
 .sui-cal__cell.is-program .sui-cal__mark {
     color: #fff;
 }
 
-.sui-cal__mark.is-qr {
-    color: var(--sui-primary-dark);
-}
 
-.sui-cal__mark.is-link {
-    color: var(--sui-info);
-}
 
 .sui-cal__legend {
     display: flex;

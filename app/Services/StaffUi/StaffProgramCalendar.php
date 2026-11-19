@@ -2,14 +2,12 @@
 
 namespace App\Services\StaffUi;
 
-use App\Enums\ProgramPrepDayType;
 use App\Models\TrainingProgram;
 use Illuminate\Support\Carbon;
 
 /**
  * Month grids for the program «about» tab: registration window, program days,
- * and the days that have a QR check-in (in-person prep day) or a check-in link
- * (remote prep day or an attendance link).
+ * and the attendance days (prep days and attendance links, QR or link alike).
  */
 final class StaffProgramCalendar
 {
@@ -28,24 +26,16 @@ final class StaffProgramCalendar
         $today = ($today ?? Carbon::today())->copy()->startOfDay();
         $tz = config('app.timezone');
 
-        $qrDays = [];
-        $linkDays = [];
-        foreach ($program->prepDays()->get(['id', 'prep_date', 'delivery_type']) as $day) {
-            $key = $day->prep_date?->toDateString();
-            if ($key === null) {
-                continue;
-            }
-            if ($day->delivery_type === ProgramPrepDayType::Remote) {
-                $linkDays[$key][] = 'تحضير عن بُعد';
-            } else {
-                $qrDays[$key] = true;
+        $attendanceDays = [];
+        foreach ($program->prepDays()->pluck('prep_date') as $date) {
+            if ($date !== null) {
+                $attendanceDays[$date->toDateString()] = true;
             }
         }
 
-        foreach ($program->attendanceLinks()->whereNull('cancelled_at')->get(['id', 'name', 'opens_at']) as $link) {
-            $key = $link->opens_at?->copy()->timezone($tz)->toDateString();
-            if ($key !== null) {
-                $linkDays[$key][] = filled($link->name) ? (string) $link->name : 'رابط تحضير';
+        foreach ($program->attendanceLinks()->whereNull('cancelled_at')->pluck('opens_at') as $opensAt) {
+            if ($opensAt !== null) {
+                $attendanceDays[$opensAt->copy()->timezone($tz)->toDateString()] = true;
             }
         }
 
@@ -62,7 +52,7 @@ final class StaffProgramCalendar
             $registrationEnd,
             $programStart,
             $programEnd,
-            ...array_map(static fn (string $d): Carbon => Carbon::parse($d), array_keys($qrDays + $linkDays)),
+            ...array_map(static fn (string $d): Carbon => Carbon::parse($d), array_keys($attendanceDays)),
         ]);
 
         if ($points === []) {
@@ -99,8 +89,7 @@ final class StaffProgramCalendar
                         && $cursor->gte($registrationStart)
                         && ($registrationEnd === null || $cursor->lte($registrationEnd)),
                     'program' => $inProgram,
-                    'qr' => isset($qrDays[$key]),
-                    'links' => $linkDays[$key] ?? [],
+                    'attendance' => isset($attendanceDays[$key]),
                 ];
 
                 if (count($week) === 7) {
