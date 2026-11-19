@@ -2,15 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AttendanceLinkMode;
+use App\Enums\AttendanceMarkSource;
 use App\Enums\CompetencyTrack;
 use App\Enums\ProgramActivityAction;
 use App\Enums\ProgramDeliveryMode;
-use App\Enums\ProgramPrepDayType;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
-use App\Models\ProgramAttendance;
-use App\Models\ProgramAttendanceChecker;
+use App\Jobs\IssueProgramCertificateJob;
+use App\Models\Certificate;
+use App\Models\CertificateTemplate;
+use App\Models\ProgramAttendanceMark;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
@@ -18,6 +21,10 @@ use App\Notifications\ProgramRegistrationApproved;
 use App\Services\Attendance\ProgramAttendanceLinkService;
 use App\Services\Rbac\RbacCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
 use Tests\Concerns\SeedsRbacRoles;
 use Tests\TestCase;
@@ -38,171 +45,186 @@ class StaffUiProgramAttendanceTest extends TestCase
         ]);
     }
 
-    public function test_days_can_be_added_generated_retyped_and_removed(): void
+    public function test_days_are_added_by_type_edited_opened_and_removed(): void
     {
         $admin = $this->admin();
-        $program = $this->program(['start_date' => '2026-12-06', 'end_date' => '2026-12-17', 'weekdays' => [0, 2]]);
+        $program = $this->program();
 
         $this->actingAsOtpVerified($admin)
-            ->post(route('staff-ui.programs.attendance.days.generate', $program), ['delivery_type' => 'in_person'])
-            ->assertSessionHas('status', 'أُضيف 4 يوماً من جدول البرنامج.');
-        $this->assertSame(
-            ['2026-12-06', '2026-12-08', '2026-12-13', '2026-12-15'],
-            $program->prepDays()->get()->map->dateString()->all(),
-        );
-
-        $this->actingAsOtpVerified($admin)
-            ->post(route('staff-ui.programs.attendance.days.store', $program), ['prep_date' => '2026-12-20', 'delivery_type' => 'remote'])
+            ->post(route('staff-ui.programs.attendance.store', $program), ['mode' => 'qr', 'name' => 'اليوم الأول', 'open_minutes' => 10, 'open_now' => 1])
             ->assertSessionHas('status');
         $this->actingAsOtpVerified($admin)
-            ->post(route('staff-ui.programs.attendance.days.store', $program), ['prep_date' => '2026-12-20', 'delivery_type' => 'remote'])
-            ->assertSessionHasErrors('prep_date');
+            ->post(route('staff-ui.programs.attendance.store', $program), ['mode' => 'remote', 'name' => 'المحاضرة عن بعد', 'open_minutes' => 30]);
 
-        $day = $program->prepDays()->whereDate('prep_date', '2026-12-06')->firstOrFail();
-        $this->actingAsOtpVerified($admin)
-            ->post(route('staff-ui.programs.attendance.days.update', [$program, $day]), ['delivery_type' => 'remote']);
-        $this->assertSame(ProgramPrepDayType::Remote, $day->fresh()->delivery_type);
-
-        $this->actingAsOtpVerified($admin)
-            ->post(route('staff-ui.programs.attendance.days.destroy', [$program, $day]));
-        $this->assertNull($day->fresh());
-    }
-
-    public function test_day_with_attendance_cannot_be_removed(): void
-    {
-        $program = $this->program();
-        $day = $program->prepDays()->create(['prep_date' => '2026-12-06', 'delivery_type' => ProgramPrepDayType::InPerson, 'requires_attendance' => true]);
-        $registration = $this->registration($program, 'حاضر');
-        ProgramAttendance::query()->create(['program_registration_id' => $registration->id, 'training_date' => '2026-12-06', 'status' => 'present']);
-
-        $this->actingAsOtpVerified($this->admin())
-            ->post(route('staff-ui.programs.attendance.days.destroy', [$program, $day]))
-            ->assertSessionHasErrors('prep_date');
-
-        $this->assertNotNull($day->fresh());
-    }
-
-    public function test_roster_marks_and_clears_attendance_and_finds_by_name(): void
-    {
-        $admin = $this->admin();
-        $program = $this->program();
-        $program->prepDays()->create(['prep_date' => '2026-12-06', 'delivery_type' => ProgramPrepDayType::InPerson, 'requires_attendance' => true]);
-        $noura = $this->registration($program, 'نورة السعيد');
-        $fahad = $this->registration($program, 'فهد العمر');
-        $this->registration($program, 'زياد المعلّق', RegistrationStatus::Pending);
-
-        // Roster rows are labelled «تحديد {name}» (names also appear in the staff inbox panel).
-        $this->actingAsOtpVerified($admin)
-            ->get(route('staff-ui.programs.tab', [$program, 'attendance']).'?day=2026-12-06')
-            ->assertOk()
-            ->assertSee('تحديد نورة السعيد')
-            ->assertSee('تحديد فهد العمر')
-            ->assertDontSee('تحديد زياد المعلّق');
-
-        $this->actingAsOtpVerified($admin)
-            ->get(route('staff-ui.programs.tab', [$program, 'attendance']).'?day=2026-12-06&q=نوره')
-            ->assertSee('تحديد نورة السعيد')
-            ->assertDontSee('تحديد فهد العمر');
-
-        $this->actingAsOtpVerified($admin)
-            ->post(route('staff-ui.programs.attendance.toggle', [$program, $noura]), ['date' => '2026-12-06', 'present' => 1]);
-        $this->assertTrue(ProgramAttendance::query()->where('program_registration_id', $noura->id)->exists());
-
-        $this->actingAsOtpVerified($admin)
-            ->post(route('staff-ui.programs.attendance.toggle', [$program, $noura]), ['date' => '2026-12-06', 'present' => 0]);
-        $this->assertFalse(ProgramAttendance::query()->where('program_registration_id', $noura->id)->exists());
-
-        $this->actingAsOtpVerified($admin)
-            ->post(route('staff-ui.programs.attendance.bulk', $program), ['date' => '2026-12-06', 'ids' => [$noura->id, $fahad->id]])
-            ->assertSessionHas('status', 'حُضّر 2.');
-
-        $this->assertSame(
-            [ProgramActivityAction::AttendanceMarked, ProgramActivityAction::AttendanceCleared],
-            $program->activities()->reorder('id')
-                ->whereIn('action', ProgramActivityAction::valuesInGroup('attendance'))
-                ->limit(2)->pluck('action')->all(),
-        );
-    }
-
-    public function test_marking_a_day_that_is_not_a_program_day_is_refused(): void
-    {
-        $program = $this->program();
-        $registration = $this->registration($program, 'أحد');
-
-        $this->actingAsOtpVerified($this->admin())
-            ->post(route('staff-ui.programs.attendance.toggle', [$program, $registration]), ['date' => '2026-12-09', 'present' => 1])
-            ->assertSessionHasErrors('training_date');
-    }
-
-    public function test_links_are_created_opened_closed_and_cancelled(): void
-    {
-        $admin = $this->admin();
-        $program = $this->program();
-
-        $this->actingAsOtpVerified($admin)
-            ->post(route('staff-ui.programs.attendance.links.store', $program), ['name' => 'المحاضرة الأولى', 'open_minutes' => 10, 'open_now' => 1])
-            ->assertSessionHas('status');
-        $link = $program->attendanceLinks()->sole();
-        $this->assertTrue($link->isOpen());
-        $this->assertSame(10, $link->openMinutes());
+        [$qr, $remote] = $program->attendanceLinks()->orderBy('id')->get()->all();
+        $this->assertSame(AttendanceLinkMode::Qr, $qr->mode);
+        $this->assertTrue($qr->isOpen());
+        $this->assertSame(AttendanceLinkMode::Remote, $remote->mode);
+        $this->assertNull($remote->opens_at);
 
         $this->actingAsOtpVerified($admin)
             ->get(route('staff-ui.programs.tab', [$program, 'attendance']))
-            ->assertSee('المحاضرة الأولى')
-            ->assertSee($link->publicUrl());
+            ->assertOk()
+            ->assertSee('اليوم الأول')
+            ->assertSee('نسخ رابط مسح التحضير')
+            ->assertSee($qr->scanUrl())
+            ->assertSee('نسخ رابط المشاركين')
+            ->assertSee($remote->publicUrl());
 
-        $this->actingAsOtpVerified($admin)->post(route('staff-ui.programs.attendance.links.action', [$program, $link]), ['action' => 'close']);
-        $this->assertFalse($link->fresh()->isOpen());
+        // Changing the duration of an open link moves its closing time.
+        $this->actingAsOtpVerified($admin)
+            ->post(route('staff-ui.programs.attendance.update', [$program, $qr]), ['name' => 'اليوم الأول (صباحي)', 'open_minutes' => 45]);
+        $qr->refresh();
+        $this->assertSame('اليوم الأول (صباحي)', $qr->name);
+        $this->assertSame(45, $qr->openMinutes());
+        $this->assertTrue($qr->closes_at->equalTo($qr->opens_at->copy()->addMinutes(45)));
 
-        $this->actingAsOtpVerified($admin)->post(route('staff-ui.programs.attendance.links.action', [$program, $link]), ['action' => 'cancel']);
-        $this->assertTrue($link->fresh()->isCancelled());
+        $this->actingAsOtpVerified($admin)->post(route('staff-ui.programs.attendance.action', [$program, $qr]), ['action' => 'close']);
+        $this->assertFalse($qr->fresh()->isOpen());
+
+        $this->actingAsOtpVerified($admin)->post(route('staff-ui.programs.attendance.action', [$program, $remote]), ['action' => 'cancel']);
+        $this->assertTrue($remote->fresh()->isCancelled());
     }
 
-    public function test_link_check_in_is_logged(): void
+    public function test_checker_scans_trainee_qr_on_the_scan_link(): void
     {
-        $program = $this->program();
-        $registration = $this->registration($program, 'من الرابط');
+        $program = $this->program(['delivery_mode' => ProgramDeliveryMode::InPerson, 'venue' => 'المقر']);
+        $registration = $this->registration($program, 'سارة الحربي');
+        $pending = $this->registration($program, 'معلّق', RegistrationStatus::Pending);
         $service = app(ProgramAttendanceLinkService::class);
-        $link = $service->create($program, 'رابط', 10);
+        $link = $service->create($program, 'اليوم الأول', 15, AttendanceLinkMode::Qr);
 
-        $service->markManual($link, $registration);
+        $this->get($link->scanUrl())->assertOk()->assertSee('التحضير غير مفتوح الآن');
+        $pass = 'https://example.test/pass#KAFAAT-P'.$program->id.'-R'.$registration->id;
+        $this->postJson(route('gate.link-scan.store', $link->token), ['pass' => $pass])->assertStatus(422);
 
-        $activity = $program->activities()->where('action', ProgramActivityAction::AttendanceMarked)->sole();
-        $this->assertSame('رابط', $activity->properties['link']);
-        $this->assertSame('من الرابط', $activity->description);
+        $service->open($link->fresh());
+        $this->get($link->scanUrl())->assertOk()->assertDontSee('التحضير غير مفتوح الآن');
+
+        $this->postJson(route('gate.link-scan.store', $link->token), ['pass' => $pass])
+            ->assertOk()
+            ->assertJson(['ok' => true, 'name' => 'سارة الحربي', 'count' => 1]);
+        $this->postJson(route('gate.link-scan.store', $link->token), ['pass' => 'KAFAAT-P'.$program->id.'-R'.$registration->id])
+            ->assertOk()
+            ->assertJson(['ok' => true, 'count' => 1]);
+
+        $this->postJson(route('gate.link-scan.store', $link->token), ['pass' => 'KAFAAT-P'.$program->id.'-R'.$pending->id])->assertStatus(422);
+        $this->postJson(route('gate.link-scan.store', $link->token), ['pass' => 'KAFAAT-P999999-R'.$registration->id])->assertStatus(422);
+
+        $mark = ProgramAttendanceMark::query()->sole();
+        $this->assertSame(AttendanceMarkSource::Qr, $mark->source);
+        $this->assertNotNull($mark->attended_at);
+
+        // A QR link is never offered to trainees as an identity link.
+        $this->get($link->publicUrl())->assertNotFound();
     }
 
-    public function test_checkers_get_a_one_time_link_and_can_be_stopped(): void
+    public function test_certificates_tab_shows_check_ins_surveys_and_manual_check_in(): void
     {
         $admin = $this->admin();
         $program = $this->program();
-        $program->prepDays()->create(['prep_date' => '2026-12-06', 'delivery_type' => ProgramPrepDayType::InPerson, 'requires_attendance' => true]);
+        $done = $this->registration($program, 'نورة السعيد');
+        $missing = $this->registration($program, 'خالد العمر');
+        $this->registration($program, 'زياد الغامدي', RegistrationStatus::Rejected);
+        $service = app(ProgramAttendanceLinkService::class);
+        $day = $service->create($program, 'اليوم الأول', 15);
+        $service->markManual($day, $done);
+
+        $named = DB::table('program_surveys')->insertGetId(['training_program_id' => $program->id, 'type' => 'pre', 'public_token' => Str::random(40), 'is_anonymous' => false, 'created_at' => now(), 'updated_at' => now()]);
+        $anon = DB::table('program_surveys')->insertGetId(['training_program_id' => $program->id, 'type' => 'satisfaction', 'public_token' => Str::random(40), 'is_anonymous' => true, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('survey_responses')->insert(['id' => (string) Str::uuid(), 'program_survey_id' => $named, 'registration_id' => $done->id, 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('survey_completions')->insert(['program_survey_id' => $anon, 'registration_id' => $done->id]);
 
         $this->actingAsOtpVerified($admin)
-            ->post(route('staff-ui.programs.attendance.checkers.store', $program), ['name' => 'عبدالله'])
-            ->assertSessionHas('checker_link');
-        $checker = ProgramAttendanceChecker::query()->sole();
+            ->get(route('staff-ui.programs.tab', [$program, 'certificates']))
+            ->assertOk()
+            ->assertSee('نورة السعيد')
+            ->assertSee('خالد العمر')
+            ->assertDontSee('تحضير زياد الغامدي — اليوم الأول')
+            ->assertSee('اليوم الأول')
+            ->assertSee('استبيان قبلي')
+            ->assertSee('استبيان بعدي')
+            ->assertSee('استبيان الرضا')
+            ->assertSee('تمّ')
+            ->assertSee('تحضير خالد العمر — اليوم الأول')
+            ->assertDontSee('تحضير نورة السعيد — اليوم الأول')
+            ->assertSee('تصميم الشهادة');
 
         $this->actingAsOtpVerified($admin)
-            ->post(route('staff-ui.programs.attendance.checkers.action', [$program, $checker]), ['action' => 'deactivate']);
-        $this->assertFalse((bool) $checker->fresh()->is_active);
+            ->post(route('staff-ui.programs.attendance.manual', [$program, $day, $missing]), ['q' => 'خالد'])
+            ->assertRedirect(route('staff-ui.programs.tab', [$program, 'certificates']).'?q='.urlencode('خالد'));
+        $this->assertTrue(ProgramAttendanceMark::query()->where('program_registration_id', $missing->id)->where('source', AttendanceMarkSource::Manual)->exists());
+        $this->assertSame(2, $program->activities()->where('action', ProgramActivityAction::AttendanceMarked)->count());
+
+        $this->actingAsOtpVerified($admin)
+            ->get(route('staff-ui.programs.tab', [$program, 'certificates']).'?q=نوره')
+            ->assertSee(route('staff-ui.users.show', $done->user_id))
+            ->assertDontSee(route('staff-ui.users.show', $missing->user_id));
     }
 
-    public function test_editing_days_needs_update_but_marking_needs_only_program_access(): void
+    public function test_certificates_are_issued_for_the_selection_only_with_a_background(): void
+    {
+        Storage::fake('public');
+        Queue::fake();
+        $admin = $this->admin();
+        $program = $this->program();
+        $a = $this->registration($program, 'أ');
+        $b = $this->registration($program, 'ب');
+        $c = $this->registration($program, 'ج');
+
+        $this->actingAsOtpVerified($admin)
+            ->post(route('staff-ui.programs.certificates.issue', $program), ['ids' => [$a->id]])
+            ->assertSessionHasErrors('certificates');
+        Queue::assertNothingPushed();
+
+        Storage::disk('public')->put('certificates/bg.png', 'png');
+        CertificateTemplate::query()->create(['training_program_id' => $program->id, 'background_path' => 'certificates/bg.png', 'elements' => []]);
+        Certificate::query()->create([
+            'user_id' => $c->user_id,
+            'certificateable_type' => $program->getMorphClass(),
+            'certificateable_id' => $program->id,
+            'certificate_number' => 'KF-0001',
+            'verification_code' => Str::random(16),
+            'issued_at' => now(),
+        ]);
+
+        $this->actingAsOtpVerified($admin)
+            ->get(route('staff-ui.programs.tab', [$program, 'certificates']))
+            ->assertSee('KF-0001')
+            ->assertSee('إصدار للمحدد');
+
+        $this->actingAsOtpVerified($admin)
+            ->post(route('staff-ui.programs.certificates.issue', $program), ['ids' => [$a->id, $b->id, $c->id]])
+            ->assertSessionHas('status');
+
+        Queue::assertPushed(IssueProgramCertificateJob::class, 2);
+
+        $viewer = $this->staff(['programs.view']);
+        $this->actingAsOtpVerified($viewer)
+            ->post(route('staff-ui.programs.certificates.issue', $program), ['ids' => [$a->id]])
+            ->assertForbidden();
+        $this->actingAsOtpVerified($viewer)
+            ->get(route('staff-ui.programs.tab', [$program, 'certificates']))
+            ->assertOk()
+            ->assertDontSee('إصدار للمحدد');
+    }
+
+    public function test_viewers_can_check_in_but_not_create_days(): void
     {
         $program = $this->program();
-        $program->prepDays()->create(['prep_date' => '2026-12-06', 'delivery_type' => ProgramPrepDayType::InPerson, 'requires_attendance' => true]);
         $registration = $this->registration($program, 'متدرب');
+        $link = app(ProgramAttendanceLinkService::class)->create($program, 'يوم', 10);
         $viewer = $this->staff(['programs.view']);
 
         $this->actingAsOtpVerified($viewer)
-            ->post(route('staff-ui.programs.attendance.days.store', $program), ['prep_date' => '2026-12-07', 'delivery_type' => 'in_person'])
-            ->assertForbidden();
-
-        $this->actingAsOtpVerified($viewer)
-            ->post(route('staff-ui.programs.attendance.toggle', [$program, $registration]), ['date' => '2026-12-06', 'present' => 1])
+            ->post(route('staff-ui.programs.attendance.manual', [$program, $link, $registration]))
             ->assertRedirect();
-        $this->assertTrue(ProgramAttendance::query()->where('program_registration_id', $registration->id)->exists());
+        $this->assertTrue(ProgramAttendanceMark::query()->where('program_registration_id', $registration->id)->exists());
+
+        $other = $this->program(['slug' => 'other-'.uniqid()]);
+        $this->actingAsOtpVerified($viewer)
+            ->post(route('staff-ui.programs.attendance.manual', [$other, $link, $registration]))
+            ->assertNotFound();
     }
 
     public function test_in_person_acceptance_email_carries_the_attendance_qr(): void
@@ -233,16 +255,18 @@ class StaffUiProgramAttendanceTest extends TestCase
             'delivery_mode' => ProgramDeliveryMode::Remote,
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'start_date' => '2026-12-06',
-            'end_date' => '2026-12-10',
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addWeek()->toDateString(),
         ], $overrides));
     }
 
     private function registration(TrainingProgram $program, string $name, RegistrationStatus $status = RegistrationStatus::Approved): ProgramRegistration
     {
+        $user = User::factory()->create(['name' => $name, 'role_type' => 'beneficiary', 'is_active' => true]);
+
         return ProgramRegistration::query()->create([
             'training_program_id' => $program->id,
-            'user_id' => User::factory()->create(['name' => $name, 'role_type' => 'beneficiary', 'is_active' => true])->id,
+            'user_id' => $user->id,
             'status' => $status,
         ]);
     }

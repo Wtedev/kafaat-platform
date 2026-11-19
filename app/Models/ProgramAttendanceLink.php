@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AttendanceLinkMode;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,6 +19,7 @@ class ProgramAttendanceLink extends Model
         'cancelled_at',
         'opens_at',
         'closes_at',
+        'mode',
     ];
 
     protected function casts(): array
@@ -27,6 +29,7 @@ class ProgramAttendanceLink extends Model
             'cancelled_at' => 'datetime',
             'opens_at' => 'datetime',
             'closes_at' => 'datetime',
+            'mode' => AttendanceLinkMode::class,
         ];
     }
 
@@ -40,6 +43,8 @@ class ProgramAttendanceLink extends Model
             if (! filled($link->open_minutes)) {
                 $link->open_minutes = 15;
             }
+
+            $link->mode ??= AttendanceLinkMode::Remote;
         });
     }
 
@@ -102,5 +107,26 @@ class ProgramAttendanceLink extends Model
     public function trainerUrl(): string
     {
         return route('public.attendance.desk', $this->token);
+    }
+
+    /**
+     * Page a prep officer opens to scan trainees' attendance QR (QR mode).
+     */
+    public function scanUrl(): string
+    {
+        return route('gate.link-scan.show', $this->token);
+    }
+
+    public function isQr(): bool
+    {
+        return $this->mode === AttendanceLinkMode::Qr;
+    }
+
+    /**
+     * The link to share for this day: the scan page for QR days, the identity page for remote days.
+     */
+    public function shareUrl(): string
+    {
+        return $this->isQr() ? $this->scanUrl() : $this->publicUrl();
     }
 }

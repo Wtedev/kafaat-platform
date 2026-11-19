@@ -2,128 +2,64 @@
 
 namespace App\Http\Controllers\StaffUi;
 
-use App\Enums\ProgramPrepDayType;
+use App\Enums\AttendanceLinkMode;
 use App\Http\Controllers\Controller;
-use App\Models\ProgramAttendanceChecker;
 use App\Models\ProgramAttendanceLink;
-use App\Models\ProgramPrepDay;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Attendance\ProgramAttendanceLinkService;
-use App\Services\ProgramAttendanceCheckerAccessService;
-use App\Services\ProgramAttendanceService;
-use App\Services\StaffUi\StaffProgramAttendance;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
- * Actions of the attendance tab. The tab itself is rendered by {@see StaffProgramPageController}.
+ * Attendance days of a program. Each day is a link: a QR scan link for the prep
+ * officer (in person) or an identity link for trainees (remote), open for a set
+ * number of minutes.
  */
 class StaffProgramAttendanceController extends Controller
 {
     public function __construct(
-        private readonly StaffProgramAttendance $attendance,
-        private readonly ProgramAttendanceService $records,
         private readonly ProgramAttendanceLinkService $links,
-        private readonly ProgramAttendanceCheckerAccessService $checkers,
     ) {}
 
-    public function storeDay(Request $request, TrainingProgram $program): RedirectResponse
-    {
-        $this->authorizeManage($request, $program);
-        $data = $request->validate([
-            'prep_date' => ['required', 'date'],
-            'delivery_type' => ['required', Rule::enum(ProgramPrepDayType::class)],
-        ]);
-
-        $day = $this->attendance->addDay($program, $data['prep_date'], ProgramPrepDayType::from($data['delivery_type']));
-
-        return $this->back($program)->with('status', 'أُضيف يوم '.$day->displayLabel().'.');
-    }
-
-    public function generateDays(Request $request, TrainingProgram $program): RedirectResponse
-    {
-        $this->authorizeManage($request, $program);
-        $data = $request->validate(['delivery_type' => ['required', Rule::enum(ProgramPrepDayType::class)]]);
-
-        $created = $this->attendance->generateFromSchedule($program, ProgramPrepDayType::from($data['delivery_type']));
-
-        return $this->back($program)->with('status', $created > 0
-            ? 'أُضيف '.en_num($created).' يوماً من جدول البرنامج.'
-            : 'كل أيام الجدول مضافة من قبل.');
-    }
-
-    public function updateDay(Request $request, TrainingProgram $program, ProgramPrepDay $day): RedirectResponse
-    {
-        $this->authorizeManage($request, $program);
-        $this->assertBelongs($program, $day->training_program_id);
-        $data = $request->validate(['delivery_type' => ['required', Rule::enum(ProgramPrepDayType::class)]]);
-
-        $this->attendance->changeType($day, ProgramPrepDayType::from($data['delivery_type']));
-
-        return $this->back($program)->with('status', 'تم تغيير نوع يوم '.$day->displayLabel().'.');
-    }
-
-    public function destroyDay(Request $request, TrainingProgram $program, ProgramPrepDay $day): RedirectResponse
-    {
-        $this->authorizeManage($request, $program);
-        $this->assertBelongs($program, $day->training_program_id);
-        $label = $day->displayLabel();
-
-        $this->attendance->removeDay($program, $day);
-
-        return $this->back($program)->with('status', 'حُذف يوم '.$label.'.');
-    }
-
-    public function toggle(Request $request, TrainingProgram $program, ProgramRegistration $registration): RedirectResponse
-    {
-        $actor = $this->authorizeOperate($request, $program);
-        $this->assertBelongs($program, $registration->training_program_id);
-        $data = $request->validate([
-            'date' => ['required', 'date'],
-            'present' => ['required', 'boolean'],
-        ]);
-
-        $this->records->setPresentState($registration, $data['date'], (bool) $data['present'], $actor);
-
-        return $this->roster($program, $data['date'], $request)->with('status', ((bool) $data['present'] ? 'حُضّر ' : 'أُلغي تحضير ').$registration->user?->name.'.');
-    }
-
-    public function bulkPresent(Request $request, TrainingProgram $program): RedirectResponse
-    {
-        $actor = $this->authorizeOperate($request, $program);
-        $data = $request->validate([
-            'date' => ['required', 'date'],
-            'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['integer'],
-        ]);
-
-        $count = $this->records->bulkMarkPresent($program, $data['ids'], $data['date'], $actor);
-
-        return $this->roster($program, $data['date'], $request)->with('status', 'حُضّر '.en_num($count).'.');
-    }
-
-    public function storeLink(Request $request, TrainingProgram $program): RedirectResponse
+    public function store(Request $request, TrainingProgram $program): RedirectResponse
     {
         $this->authorizeOperate($request, $program);
         $data = $request->validate([
+            'mode' => ['required', Rule::enum(AttendanceLinkMode::class)],
             'name' => ['required', 'string', 'max:120'],
-            'open_minutes' => ['required', 'integer', 'min:1', 'max:180'],
+            'open_minutes' => ['required', 'integer', 'min:1', 'max:720'],
         ]);
 
-        $link = $this->links->create($program, $data['name'], (int) $data['open_minutes']);
+        $link = $this->links->create($program, $data['name'], (int) $data['open_minutes'], AttendanceLinkMode::from($data['mode']));
         if ($request->boolean('open_now')) {
             $this->links->open($link);
         }
 
-        return $this->back($program, '#links')->with('status', $request->boolean('open_now')
-            ? 'أُنشئ الرابط وفُتح التحضير '.en_num($link->openMinutes()).' دقيقة.'
-            : 'أُنشئ الرابط. افتحه وقت المحاضرة.');
+        return $this->back($program)->with('status', 'أُضيف «'.$link->name.'»'.($request->boolean('open_now')
+            ? ' وفُتح التحضير '.en_num($link->openMinutes()).' دقيقة.'
+            : '. افتحيه وقت التحضير.'));
     }
 
-    public function linkAction(Request $request, TrainingProgram $program, ProgramAttendanceLink $link): RedirectResponse
+    public function update(Request $request, TrainingProgram $program, ProgramAttendanceLink $link): RedirectResponse
+    {
+        $this->authorizeOperate($request, $program);
+        $this->assertBelongs($program, $link->training_program_id);
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'open_minutes' => ['required', 'integer', 'min:1', 'max:720'],
+        ]);
+
+        $link->update(['name' => trim($data['name'])]);
+        $this->links->updateMinutes($link, (int) $data['open_minutes']);
+
+        return $this->back($program)->with('status', 'حُفظ «'.$link->name.'».');
+    }
+
+    public function action(Request $request, TrainingProgram $program, ProgramAttendanceLink $link): RedirectResponse
     {
         $this->authorizeOperate($request, $program);
         $this->assertBelongs($program, $link->training_program_id);
@@ -131,55 +67,36 @@ class StaffProgramAttendanceController extends Controller
         $message = match ((string) $request->input('action')) {
             'open' => tap('فُتح التحضير '.en_num($link->openMinutes()).' دقيقة.', fn () => $this->links->open($link)),
             'close' => tap('أُغلق التحضير.', fn () => $this->links->close($link)),
-            'cancel' => tap('أُلغي الرابط.', fn () => $this->links->cancel($link)),
+            'cancel' => tap('حُذف «'.$link->name.'». يبقى الحضور المسجّل فيه محفوظاً.', fn () => $this->links->cancel($link)),
             default => abort(422),
         };
 
-        return $this->back($program, '#links')->with('status', $message);
+        return $this->back($program)->with('status', $message);
     }
 
-    public function storeChecker(Request $request, TrainingProgram $program): RedirectResponse
+    /**
+     * Manual check-in for one trainee on one day (from the certificates table).
+     */
+    public function manual(Request $request, TrainingProgram $program, ProgramAttendanceLink $link, ProgramRegistration $registration): RedirectResponse
     {
-        $actor = $this->authorizeManage($request, $program);
-        $data = $request->validate(['name' => ['required', 'string', 'max:120']]);
+        $this->authorizeOperate($request, $program);
+        $this->assertBelongs($program, $link->training_program_id);
+        $this->assertBelongs($program, $registration->training_program_id);
 
-        $issued = $this->checkers->create($program, $data['name'], $actor);
+        try {
+            $this->links->markManual($link, $registration);
+        } catch (ValidationException $exception) {
+            return redirect()->to($this->certificatesUrl($program, $request))->withErrors($exception->errors());
+        }
 
-        return $this->back($program, '#checkers')
-            ->with('status', 'أُضيف '.$issued['checker']->name.'. انسخي رابط الدخول وأرسليه له.')
-            ->with('checker_link', ['name' => $issued['checker']->name, 'url' => $issued['url']]);
-    }
-
-    public function checkerAction(Request $request, TrainingProgram $program, ProgramAttendanceChecker $checker): RedirectResponse
-    {
-        $actor = $this->authorizeManage($request, $program);
-        $this->assertBelongs($program, $checker->training_program_id);
-
-        return match ((string) $request->input('action')) {
-            'regenerate' => (function () use ($program, $checker, $actor): RedirectResponse {
-                $issued = $this->checkers->regenerateLink($checker, $actor);
-
-                return $this->back($program, '#checkers')
-                    ->with('status', 'أُنشئ رابط جديد لـ'.$checker->name.'، والرابط القديم لم يعد يعمل.')
-                    ->with('checker_link', ['name' => $checker->name, 'url' => $issued['url']]);
-            })(),
-            'deactivate' => tap($this->back($program, '#checkers')->with('status', 'أُوقف '.$checker->name.'.'), fn () => $this->checkers->setActive($checker, false, $actor)),
-            'activate' => tap($this->back($program, '#checkers')->with('status', 'فُعّل '.$checker->name.'.'), fn () => $this->checkers->setActive($checker, true, $actor)),
-            default => abort(422),
-        };
-    }
-
-    private function authorizeManage(Request $request, TrainingProgram $program): User
-    {
-        $actor = $this->actor($request);
-        abort_unless($actor->can('update', $program), 403);
-
-        return $actor;
+        return redirect()->to($this->certificatesUrl($program, $request))
+            ->with('status', 'حُضّر '.$registration->user?->name.' في «'.$link->name.'».');
     }
 
     private function authorizeOperate(Request $request, TrainingProgram $program): User
     {
-        $actor = $this->actor($request);
+        $actor = $request->user();
+        abort_unless($actor instanceof User && $actor->canAccessFilamentAdmin(), 403);
         abort_unless($actor->can('viewOperational', $program), 403);
 
         return $actor;
@@ -190,23 +107,15 @@ class StaffProgramAttendanceController extends Controller
         abort_unless((int) $programId === (int) $program->getKey(), 404);
     }
 
-    private function back(TrainingProgram $program, string $anchor = ''): RedirectResponse
+    private function back(TrainingProgram $program): RedirectResponse
     {
-        return redirect()->to(route('staff-ui.programs.tab', [$program, 'attendance']).$anchor);
+        return redirect()->to(route('staff-ui.programs.tab', [$program, 'attendance']));
     }
 
-    private function roster(TrainingProgram $program, string $date, Request $request): RedirectResponse
+    private function certificatesUrl(TrainingProgram $program, Request $request): string
     {
-        $query = array_filter(['day' => $date, 'q' => trim((string) $request->input('q', ''))], fn ($v) => $v !== '');
+        $query = array_filter(['q' => trim((string) $request->input('q', '')), 'page' => $request->input('page')], fn ($v) => filled($v));
 
-        return redirect()->to(route('staff-ui.programs.tab', [$program, 'attendance']).'?'.http_build_query($query).'#roster');
-    }
-
-    private function actor(Request $request): User
-    {
-        $actor = $request->user();
-        abort_unless($actor instanceof User && $actor->canAccessFilamentAdmin(), 403);
-
-        return $actor;
+        return route('staff-ui.programs.tab', [$program, 'certificates']).($query === [] ? '' : '?'.http_build_query($query));
     }
 }

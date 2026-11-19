@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\StaffUi;
 
+use App\Enums\AttendanceLinkMode;
 use App\Enums\ProgramActivityAction;
-use App\Enums\ProgramPrepDayType;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Filament\Resources\TrainingProgramResource;
@@ -14,12 +14,13 @@ use App\Models\SurveyCompletion;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Exports\ProgramRegistrationExportAuthorization;
-use App\Services\StaffUi\StaffProgramAttendance;
 use App\Services\StaffUi\StaffProgramCalendar;
+use App\Services\StaffUi\StaffProgramCertificates;
 use App\Services\StaffUi\StaffProgramRegistrations;
 use App\Services\StaffUi\StaffProgramSettings;
 use App\Services\StaffUi\StaffProgramStatus;
 use App\Services\StaffUi\StaffProgramWizard;
+use App\Support\CertificateAuthorization;
 use App\Support\Exports\ProgramRegistrationExportColumns;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -44,7 +45,7 @@ class StaffProgramPageController extends Controller
     ];
 
     /** Tabs that are built in the new UI; the rest still live in the current admin panel. */
-    private const BUILT_TABS = ['about', 'registrations', 'attendance', 'activity', 'settings'];
+    private const BUILT_TABS = ['about', 'registrations', 'attendance', 'certificates', 'activity', 'settings'];
 
     public function __construct(
         private readonly StaffProgramWizard $wizard,
@@ -62,7 +63,7 @@ class StaffProgramPageController extends Controller
             abort_unless($actor->can('update', $program), 403);
         }
 
-        if ($tab === 'registrations' || $tab === 'attendance') {
+        if (in_array($tab, ['registrations', 'attendance', 'certificates'], true)) {
             abort_unless($actor->can('viewOperational', $program), 403);
         }
 
@@ -96,6 +97,7 @@ class StaffProgramPageController extends Controller
             'activity' => $this->activityData($request, $program),
             'registrations' => $this->registrationsData($request, $actor, $program),
             'attendance' => $this->attendanceData($request, $program),
+            'certificates' => $this->certificatesData($request, $actor, $program),
             'settings' => $this->settingsData($actor, $program),
             default => [],
         });
@@ -233,40 +235,39 @@ class StaffProgramPageController extends Controller
      */
     private function attendanceData(Request $request, TrainingProgram $program): array
     {
-        $service = app(StaffProgramAttendance::class);
-        $days = $service->days($program);
-        $approved = (int) $program->approved_registrations_count;
+        return [
+            'attendanceLinks' => $program->attendanceLinks()
+                ->whereNull('cancelled_at')
+                ->withCount('marks')
+                ->orderBy('id')
+                ->get(),
+            'linkModes' => AttendanceLinkMode::cases(),
+        ];
+    }
 
-        $selected = $days->first(fn (array $row): bool => $row['day']->dateString() === (string) $request->query('day'))
-            ?? $days->first(fn (array $row): bool => $row['day']->dateString() === now()->toDateString());
+    /**
+     * @return array<string, mixed>
+     */
+    private function certificatesData(Request $request, User $actor, TrainingProgram $program): array
+    {
+        $service = app(StaffProgramCertificates::class);
         $search = mb_substr(trim((string) $request->query('q', '')), 0, 60);
-
-        $roster = null;
-        $presentMap = collect();
-        if ($selected !== null) {
-            $roster = $service->roster($program, $search)
-                ->with('user:id,name')
-                ->join('users', 'users.id', '=', 'program_registrations.user_id')
-                ->orderBy('users.name')
-                ->select('program_registrations.*')
-                ->paginate(50)
-                ->withQueryString();
-            $presentMap = $service->attendanceOn(
-                $selected['day']->dateString(),
-                $roster->getCollection()->pluck('id')->map(fn ($id) => (int) $id)->all(),
-            );
-        }
+        $rows = $service->rows($program, $search)->paginate(50)->withQueryString();
+        $ids = $rows->getCollection()->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $days = $service->days($program);
+        $surveys = $service->surveys($program);
 
         return [
-            'attendanceDays' => $days,
-            'approvedTotal' => $approved,
-            'selectedDay' => $selected['day'] ?? null,
-            'roster' => $roster,
-            'presentMap' => $presentMap,
-            'rosterSearch' => $search,
-            'attendanceLinks' => $program->attendanceLinks()->withCount('marks')->latest('id')->get(),
-            'attendanceCheckers' => $program->attendanceCheckers()->orderBy('name')->get(),
-            'dayTypes' => ProgramPrepDayType::options(),
+            'certRows' => $rows,
+            'certSearch' => $search,
+            'certDays' => $days,
+            'certCheckIns' => $service->checkIns($days, $ids),
+            'certSurveys' => $surveys,
+            'certSurveyAnswers' => $service->surveyAnswers($surveys, $ids),
+            'certIssued' => $service->certificates($program),
+            'certCanIssue' => CertificateAuthorization::canIssue($actor),
+            'certBackgroundReady' => $service->backgroundReady($program),
+            'certDesignerUrl' => route('certificate-designer.edit', $program),
         ];
     }
 
