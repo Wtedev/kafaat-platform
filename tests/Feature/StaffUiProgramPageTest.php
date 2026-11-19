@@ -110,14 +110,12 @@ class StaffUiProgramPageTest extends TestCase
                 'end_date' => '2026-12-10',
                 'registration_start' => '2026-11-20',
                 'registration_end' => '2026-11-30',
-                'weekdays' => [0, 2],
             ])
             ->assertRedirect(route('staff-ui.programs.tab', [$program, 'settings']).'#schedule')
             ->assertSessionHas('status', 'تم حفظ «الجدول».');
 
         $program->refresh();
         $this->assertSame('2026-12-10', $program->end_date->toDateString());
-        $this->assertSame([0, 2], $program->weekdays);
 
         $activity = ProgramActivity::query()->where('action', ProgramActivityAction::SettingsUpdated)->sole();
         $this->assertSame($admin->id, $activity->actor_id);

@@ -164,7 +164,6 @@ class TrainingProgramResource extends Resource
                     ...TrainingEntityFormSupport::scheduleDateHiddenFields(),
                     TrainingEntityFormSupport::trainingScheduleCalendar(
                         programHasEndDate: fn (Get $get): bool => ! static::isSessionKindValue((string) ($get('program_kind') ?? '')),
-                        showWeekdayPicker: fn (Get $get): bool => ! static::isSessionKindValue((string) ($get('program_kind') ?? '')),
                     ),
                 ]),
 
@@ -211,7 +210,6 @@ class TrainingProgramResource extends Resource
                     ...TrainingEntityFormSupport::scheduleDateHiddenFields(),
                     TrainingEntityFormSupport::trainingScheduleCalendar(
                         programHasEndDate: fn (Get $get): bool => ! static::isSessionKindValue((string) ($get('program_kind') ?? '')),
-                        showWeekdayPicker: fn (Get $get): bool => ! static::isSessionKindValue((string) ($get('program_kind') ?? '')),
                         showPublishSchedule: fn (?TrainingProgram $record): bool => TrainingEntityFormSupport::publishControlsVisibleForRecord(
                             $record,
                             ProgramStatus::Published,

@@ -13,8 +13,6 @@ class TrainingScheduleCalendar extends Field
 
     protected bool|Closure $programHasEndDate = true;
 
-    protected bool|Closure $showWeekdayPicker = true;
-
     protected bool|Closure $showPublishSchedule = true;
 
     protected function setUp(): void
@@ -26,18 +24,6 @@ class TrainingScheduleCalendar extends Field
         $this->dehydrated(false);
         $this->columnSpanFull();
         $this->extraFieldWrapperAttributes(['class' => 'fi-training-schedule-field']);
-    }
-
-    public function showWeekdayPicker(bool|Closure $condition = true): static
-    {
-        $this->showWeekdayPicker = $condition;
-
-        return $this;
-    }
-
-    public function getShowWeekdayPicker(): bool
-    {
-        return (bool) $this->evaluate($this->showWeekdayPicker);
     }
 
     public function showRegistrationRange(bool|Closure $condition = true): static
@@ -82,11 +68,6 @@ class TrainingScheduleCalendar extends Field
     public function getProgramEndPath(): string
     {
         return $this->resolveRelativeStatePath('end_date');
-    }
-
-    public function getWeekdaysPath(): string
-    {
-        return $this->resolveRelativeStatePath('weekdays');
     }
 
     public function showPublishSchedule(bool|Closure $condition = true): static

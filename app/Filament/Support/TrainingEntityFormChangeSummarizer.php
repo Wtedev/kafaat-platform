@@ -199,7 +199,6 @@ class TrainingEntityFormChangeSummarizer
             'end_date' => 'تاريخ الانتهاء',
             'registration_start' => 'بداية التسجيل',
             'registration_end' => 'نهاية التسجيل',
-            'weekdays' => 'أيام البرنامج',
             'status' => 'حالة النشر',
             'published_at' => 'موعد النشر',
             'publish_immediately' => 'نشر فوراً',
@@ -226,7 +225,6 @@ class TrainingEntityFormChangeSummarizer
             'publish_immediately', 'capacity_unlimited', 'auto_accept_registrations', 'acceptance_manual_review', 'acceptance_require_saudi_national', 'acceptance_require_complete_profile', 'notify_audience', 'notify_on_publish', 'notify_milestones', 'notify_registrants_on_update' => static::boolLabel($value),
             'owner_id', 'assigned_to' => User::query()->whereKey($value)->value('name') ?? (string) $value,
             'editors' => static::formatUserIds($value),
-            'weekdays' => static::formatWeekdays($value),
             'image' => is_array($value) ? 'صورة جديدة' : (filled($value) ? 'صورة مرفوعة' : '—'),
             'published_at', 'start_date', 'end_date', 'registration_start', 'registration_end' => static::formatDate($value),
             default => is_array($value) ? implode('، ', array_map(strval(...), $value)) : (string) $value,
@@ -265,27 +263,6 @@ class TrainingEntityFormChangeSummarizer
         $names = User::query()->whereIn('id', $value)->orderBy('name')->pluck('name');
 
         return $names->isEmpty() ? '—' : $names->implode('، ');
-    }
-
-    private static function formatWeekdays(mixed $value): string
-    {
-        if (! is_array($value)) {
-            return (string) $value;
-        }
-
-        $labels = [
-            0 => 'الأحد',
-            1 => 'الإثنين',
-            2 => 'الثلاثاء',
-            3 => 'الأربعاء',
-            4 => 'الخميس',
-            5 => 'الجمعة',
-            6 => 'السبت',
-        ];
-
-        return collect($value)
-            ->map(fn ($day): string => $labels[(int) $day] ?? (string) $day)
-            ->implode('، ');
     }
 
     private static function formatDate(mixed $value): string

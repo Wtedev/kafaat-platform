@@ -3,13 +3,11 @@
     $id = $getId();
     $showRegistration = $getShowRegistrationRange();
     $programHasEnd = $getProgramHasEndDate();
-    $showWeekdayPicker = $getShowWeekdayPicker();
     $showPublishSchedule = $getShowPublishSchedule();
     $registrationStartPath = $getRegistrationStartPath();
     $registrationEndPath = $getRegistrationEndPath();
     $programStartPath = $getProgramStartPath();
     $programEndPath = $getProgramEndPath();
-    $weekdaysPath = $getWeekdaysPath();
     $publishImmediatelyPath = $getPublishImmediatelyPath();
     $publishedAtPath = $getPublishedAtPath();
     $months = [
@@ -21,11 +19,11 @@
 
 <x-dynamic-component :component="$fieldWrapperView" :field="$field">
     <div
-        wire:key="training-schedule-{{ $id }}-{{ $showRegistration ? '1' : '0' }}-{{ $programHasEnd ? '1' : '0' }}-{{ $showWeekdayPicker ? '1' : '0' }}-{{ $showPublishSchedule ? '1' : '0' }}"
+        wire:key="training-schedule-{{ $id }}-{{ $showRegistration ? '1' : '0' }}-{{ $programHasEnd ? '1' : '0' }}-{{ $showPublishSchedule ? '1' : '0' }}"
         x-data="trainingScheduleCalendar({
             showRegistration: @js($showRegistration),
             programHasEnd: @js($programHasEnd),
-            showWeekdayPicker: @js($showWeekdayPicker),
+            showWeekdayPicker: false,
             showPublishSchedule: @js($showPublishSchedule),
             months: @js($months),
             dayLabels: @js($dayLabels),
@@ -34,7 +32,6 @@
                 registrationEnd: @js($registrationEndPath),
                 programStart: @js($programStartPath),
                 programEnd: @js($programEndPath),
-                weekdays: @js($weekdaysPath),
                 publishImmediately: @js($publishImmediatelyPath),
                 publishedAt: @js($publishedAtPath),
             },
@@ -146,21 +143,6 @@
                     </div>
                 </div>
 
-                <div class="fi-training-schedule__weekday-picker" x-show="showWeekdayPicker" x-cloak>
-                    <span class="fi-training-schedule__weekday-picker-label">أيام البرنامج</span>
-                    <div class="fi-training-schedule__weekday-pills">
-                        <template x-for="(label, index) in dayLabels" x-bind:key="'pill-' + index">
-                            <button
-                                type="button"
-                                class="fi-training-schedule__weekday-pill"
-                                x-text="label"
-                                x-on:click="toggleWeekday(index)"
-                                x-bind:class="{ 'is-selected': weekdaySelected(index) }"
-                                x-bind:aria-pressed="weekdaySelected(index)"
-                            ></button>
-                        </template>
-                    </div>
-                </div>
             </div>
 
             <aside class="fi-training-schedule__aside" aria-label="ملخص الفترات">

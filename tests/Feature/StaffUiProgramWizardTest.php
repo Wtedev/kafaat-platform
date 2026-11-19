@@ -151,7 +151,6 @@ class StaffUiProgramWizardTest extends TestCase
                 'end_date' => '2026-11-20',
                 'registration_start' => '2026-10-01',
                 'registration_end' => '2026-10-20',
-                'weekdays' => [0, 2],
             ])
             ->assertRedirect(route('staff-ui.programs.wizard', [$program, 3]));
 
@@ -503,7 +502,7 @@ class StaffUiProgramWizardTest extends TestCase
         $this->assertTrue(collect($errors)->contains(fn (string $error): bool => str_contains($error, 'نهاية التسجيل')));
     }
 
-    public function test_session_kind_drops_end_date_and_weekdays(): void
+    public function test_session_kind_drops_end_date(): void
     {
         $staff = $this->creator();
         $this->actingAsOtpVerified($staff)
@@ -516,13 +515,11 @@ class StaffUiProgramWizardTest extends TestCase
             ->post(route('staff-ui.programs.wizard.store', [$program, 2]), [
                 'start_date' => '2026-11-01',
                 'end_date' => '2026-12-01',
-                'weekdays' => [1],
             ])
             ->assertRedirect();
 
         $program->refresh();
         $this->assertNull($program->end_date);
-        $this->assertNull($program->weekdays);
     }
 
     /**

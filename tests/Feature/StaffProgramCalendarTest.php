@@ -25,7 +25,6 @@ class StaffProgramCalendarTest extends TestCase
             'registration_end' => '2026-11-30',
             'start_date' => '2026-12-06',
             'end_date' => '2026-12-17',
-            'weekdays' => [0, 2],
         ]);
         $program->prepDays()->create(['prep_date' => '2026-12-06', 'delivery_type' => ProgramPrepDayType::InPerson, 'requires_attendance' => true]);
         $program->prepDays()->create(['prep_date' => '2026-12-08', 'delivery_type' => ProgramPrepDayType::Remote, 'requires_attendance' => true]);
@@ -44,9 +43,10 @@ class StaffProgramCalendarTest extends TestCase
 
         $this->assertTrue($days['2026-11-25']['registration']);
         $this->assertFalse($days['2026-12-01']['registration']);
-        $this->assertTrue($days['2026-12-06']['program']);   // Sunday
-        $this->assertFalse($days['2026-12-07']['program']);  // Monday is not a program day
-        $this->assertTrue($days['2026-12-08']['program']);   // Tuesday
+        $this->assertFalse($days['2026-12-05']['program']);  // before the start date
+        $this->assertTrue($days['2026-12-06']['program']);
+        $this->assertTrue($days['2026-12-07']['program']);   // every day between start and end
+        $this->assertTrue($days['2026-12-17']['program']);
         $this->assertFalse($days['2026-12-20']['program']);  // after the end date
         $this->assertTrue($days['2026-12-06']['attendance']);  // QR prep day
         $this->assertTrue($days['2026-12-08']['attendance']);  // remote prep day

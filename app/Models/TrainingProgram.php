@@ -70,7 +70,6 @@ class TrainingProgram extends Model
         'acceptance_conditions',
         'start_date',
         'end_date',
-        'weekdays',
         'registration_start',
         'registration_end',
         'status',
@@ -107,7 +106,6 @@ class TrainingProgram extends Model
             'capacity_female' => 'integer',
             'auto_accept_registrations' => 'boolean',
             'acceptance_conditions' => 'array',
-            'weekdays' => 'array',
             'session_topics_enabled' => 'boolean',
             'session_topics' => 'array',
             'program_presenters' => 'array',
@@ -493,27 +491,6 @@ class TrainingProgram extends Model
         }
 
         return en_num($days).' يوماً';
-    }
-
-    public function weekdaysLabel(): ?string
-    {
-        if (! is_array($this->weekdays) || $this->weekdays === []) {
-            return null;
-        }
-
-        $labels = [
-            0 => 'الأحد',
-            1 => 'الإثنين',
-            2 => 'الثلاثاء',
-            3 => 'الأربعاء',
-            4 => 'الخميس',
-            5 => 'الجمعة',
-            6 => 'السبت',
-        ];
-
-        return collect($this->weekdays)
-            ->map(fn ($day): string => $labels[(int) $day] ?? (string) $day)
-            ->implode('، ');
     }
 
     public function deliveryModeDescription(): ?string

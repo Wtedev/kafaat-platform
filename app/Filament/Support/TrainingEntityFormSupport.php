@@ -318,7 +318,6 @@ final class TrainingEntityFormSupport
             'end_date' => $formatDate($program->end_date),
             'registration_start' => $formatDate($program->registration_start),
             'registration_end' => $formatDate($program->registration_end),
-            'weekdays' => is_array($program->weekdays) ? $program->weekdays : [],
         ];
 
         return EntityPublicationFormData::mergePublicationUiState(
@@ -718,8 +717,6 @@ final class TrainingEntityFormSupport
 
         $programEnd->visible($programEndVisible)->dehydrated($programEndVisible);
 
-        $weekdays = Hidden::make('weekdays')->live()->default([]);
-
         $publishImmediately = Hidden::make('publish_immediately')->default(true)->live();
         $publishedAt = Hidden::make('published_at')->live();
 
@@ -728,7 +725,6 @@ final class TrainingEntityFormSupport
             $registrationEnd,
             $programStart,
             $programEnd,
-            $weekdays,
             $publishImmediately,
             $publishedAt,
         ];
@@ -737,13 +733,11 @@ final class TrainingEntityFormSupport
     public static function trainingScheduleCalendar(
         bool|Closure $showRegistrationRange = true,
         bool|Closure $programHasEndDate = true,
-        bool|Closure $showWeekdayPicker = true,
         bool|Closure $showPublishSchedule = true,
     ): TrainingScheduleCalendar {
         return TrainingScheduleCalendar::make('schedule_calendar')
             ->showRegistrationRange($showRegistrationRange)
             ->programHasEndDate($programHasEndDate)
-            ->showWeekdayPicker($showWeekdayPicker)
             ->showPublishSchedule($showPublishSchedule);
     }
 

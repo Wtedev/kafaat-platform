@@ -36,7 +36,7 @@ final class StaffProgramWizard
     /**
      * Option lists shared by the creation wizard and the settings tab.
      *
-     * @return array{kindOptions: array<string, string>, trackOptions: array<string, string>, deliveryOptions: array<string, string>, genderOptions: array<string, string>, weekdayOptions: array<int, string>}
+     * @return array{kindOptions: array<string, string>, trackOptions: array<string, string>, deliveryOptions: array<string, string>, genderOptions: array<string, string>}
      */
     public static function formOptions(): array
     {
@@ -45,15 +45,6 @@ final class StaffProgramWizard
             'trackOptions' => CompetencyTrack::shortOptions(),
             'deliveryOptions' => ProgramDeliveryMode::options(),
             'genderOptions' => ProfileGender::options(),
-            'weekdayOptions' => [
-                0 => 'الأحد',
-                1 => 'الإثنين',
-                2 => 'الثلاثاء',
-                3 => 'الأربعاء',
-                4 => 'الخميس',
-                5 => 'الجمعة',
-                6 => 'السبت',
-            ],
         ];
     }
 
@@ -353,7 +344,6 @@ final class StaffProgramWizard
 
         if (($data['program_kind'] ?? null) === TrainingProgramKind::Session->value && $program !== null) {
             $program->end_date = null;
-            $program->weekdays = null;
         }
 
         unset($data['image']);
@@ -372,7 +362,6 @@ final class StaffProgramWizard
         }
         if (($data['program_kind'] ?? null) === TrainingProgramKind::Session->value) {
             $data['end_date'] = null;
-            $data['weekdays'] = null;
         }
         $program->fill($data);
         $this->storeCover($program, $cover);
@@ -391,13 +380,10 @@ final class StaffProgramWizard
             'end_date' => ['nullable', 'date'],
             'registration_start' => ['nullable', 'date'],
             'registration_end' => ['nullable', 'date'],
-            'weekdays' => ['nullable', 'array'],
-            'weekdays.*' => ['integer', Rule::in([0, 1, 2, 3, 4, 5, 6])],
         ]);
         $data = $validator->validate();
         if ($isSession) {
             $data['end_date'] = null;
-            $data['weekdays'] = null;
         }
         $errors = TrainingEntityFormSupport::validateProgramScheduleDates($data);
         if ($errors !== []) {
@@ -415,13 +401,11 @@ final class StaffProgramWizard
     private function saveSchedule(TrainingProgram $program, array $input): void
     {
         $data = $this->validatedSchedule($program, $input);
-        $isSession = $program->program_kind === TrainingProgramKind::Session;
         $program->fill([
             'start_date' => $data['start_date'] ?? null,
             'end_date' => $data['end_date'] ?? null,
             'registration_start' => $data['registration_start'] ?? null,
             'registration_end' => $data['registration_end'] ?? null,
-            'weekdays' => $isSession ? null : array_values(array_unique(array_map('intval', $data['weekdays'] ?? []))),
         ]);
         $program->save();
     }
@@ -572,7 +556,6 @@ final class StaffProgramWizard
                 'end_date' => $program->end_date?->toDateString(),
                 'registration_start' => $program->registration_start?->toDateString(),
                 'registration_end' => $program->registration_end?->toDateString(),
-                'weekdays' => $program->weekdays ?? [],
             ]),
             3, 4, 5 => null,
             default => null,
