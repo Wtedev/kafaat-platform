@@ -14,7 +14,6 @@ use App\Services\StaffAlerts\StaffAlerts;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 /**
  * The staff home page: the platform's figures for this month, the programs
@@ -79,9 +78,6 @@ final class StaffDashboard
         [$attendance, $attendancePrev] = $count(fn ($from, $to) => $between(
             ProgramAttendanceMark::query(), 'attended_at', $from, $to)->count());
 
-        [$surveys, $surveysPrev] = $count(fn ($from, $to) => $between(DB::table('survey_responses')->whereNotNull('registration_id'), 'created_at', $from, $to)->count()
-            + $between(DB::table('survey_completions'), 'completed_at', $from, $to)->count());
-
         [$certificates, $certificatesPrev] = $count(fn ($from, $to) => $between(
             Certificate::query()->where('certificateable_type', $morph), 'issued_at', $from, $to)->count());
 
@@ -90,7 +86,6 @@ final class StaffDashboard
             ['icon' => 'clipboard-pen', 'label' => 'تسجيلات في البرامج', 'value' => $registrations, 'previous' => $registrationsPrev],
             ['icon' => 'user-check', 'label' => 'طلبات مقبولة', 'value' => $accepted, 'previous' => $acceptedPrev],
             ['icon' => 'scan-line', 'label' => 'حضور مسجّل', 'value' => $attendance, 'previous' => $attendancePrev],
-            ['icon' => 'clipboard-list', 'label' => 'استبيانات مُعبّأة', 'value' => $surveys, 'previous' => $surveysPrev],
             ['icon' => 'award', 'label' => 'شهادات صادرة', 'value' => $certificates, 'previous' => $certificatesPrev],
         ];
     }
