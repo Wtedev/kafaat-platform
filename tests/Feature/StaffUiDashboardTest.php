@@ -50,13 +50,15 @@ class StaffUiDashboardTest extends TestCase
             ->assertSee('إحصاءات المنصة')
             ->assertSee('تسجيلات في البرامج')
             ->assertSee('الشهر الماضي')
-            ->assertSee('البرامج الجارية')
+            ->assertSee('البرامج الجارية والقادمة')
             ->assertSee('برنامج جارٍ')
             ->assertSee('مفتوح · 0 حاضر')
-            ->assertDontSee(route('staff-ui.programs.show', TrainingProgram::query()->where('title', 'برنامج قادم')->value('id')))
+            ->assertSee('برنامج قادم')
+            ->assertSee('يبدأ بعد 5 أيام')
             ->assertSee('ملخص التنبيهات')
             ->assertSee('1 طلب بانتظار القبول')
-            ->assertSee('التحضير مفتوح الآن: اليوم الثاني')
+            ->assertSee('في برنامج واحد')
+            ->assertSee('التحضير مفتوح الآن')
             ->assertDontSee('قيد البناء');
     }
 
@@ -69,7 +71,7 @@ class StaffUiDashboardTest extends TestCase
             ->get('/admin')
             ->assertOk()
             ->assertSee('لا يوجد ما يتطلب إجراءً منك الآن.')
-            ->assertSee('لا توجد برامج منعقدة اليوم.');
+            ->assertSee('لا توجد برامج جارية أو قادمة.');
     }
 
     /**
