@@ -3672,3 +3672,23 @@ a.sui-menu-item {
         grid-template-columns: 1fr;
     }
 }
+
+.sui-bc-kind {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--sui-primary-dark);
+    font-weight: 600;
+}
+
+.sui-bc-names summary {
+    cursor: pointer;
+    color: var(--sui-primary-dark);
+}
+
+.sui-bc-names p {
+    margin: 4px 0 0;
+    color: var(--sui-text-secondary);
+    font-size: 12px;
+    line-height: 1.7;
+}

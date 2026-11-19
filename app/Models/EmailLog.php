@@ -14,6 +14,8 @@ class EmailLog extends Model
         'status',
         'sent_by',
         'sent_at',
+        'training_program_id',
+        'program_registration_id',
     ];
 
     protected function casts(): array
@@ -21,6 +23,11 @@ class EmailLog extends Model
         return [
             'sent_at' => 'datetime',
         ];
+    }
+
+    public function registration(): BelongsTo
+    {
+        return $this->belongsTo(ProgramRegistration::class, 'program_registration_id');
     }
 
     public function sender(): BelongsTo
