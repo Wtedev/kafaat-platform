@@ -7,6 +7,7 @@ enum AttendanceMarkSource: string
     case Self = 'self';
     case Manual = 'manual';
     case PublicLink = 'public_link';
+    case Qr = 'qr';
 
     public function label(): string
     {
@@ -14,6 +15,7 @@ enum AttendanceMarkSource: string
             self::Self => 'ذاتي',
             self::Manual => 'يدوي',
             self::PublicLink => 'رابط عام',
+            self::Qr => 'مسح QR',
         };
     }
 }

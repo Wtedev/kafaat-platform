@@ -2,6 +2,7 @@
 
 namespace App\Services\Attendance;
 
+use App\Enums\AttendanceLinkMode;
 use App\Enums\AttendanceMarkSource;
 use App\Enums\RegistrationStatus;
 use App\Models\ProgramAttendanceLink;
@@ -10,6 +11,7 @@ use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Identity\IdentityNumberService;
+use App\Services\ProgramAttendanceService;
 use App\Services\Surveys\ProgramSurveyService;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -35,12 +37,81 @@ final class ProgramAttendanceLinkService
 
     public const OPEN_MINUTES = 15;
 
-    public function create(TrainingProgram $program, string $name, int $openMinutes = self::OPEN_MINUTES): ProgramAttendanceLink
-    {
+    public function create(
+        TrainingProgram $program,
+        string $name,
+        int $openMinutes = self::OPEN_MINUTES,
+        AttendanceLinkMode $mode = AttendanceLinkMode::Remote,
+    ): ProgramAttendanceLink {
         return $program->attendanceLinks()->create([
             'name' => trim($name),
             'open_minutes' => max(1, $openMinutes),
+            'mode' => $mode,
         ]);
+    }
+
+    /**
+     * Change how long the link stays open. An open link keeps its start time and gets the new end.
+     */
+    public function updateMinutes(ProgramAttendanceLink $link, int $openMinutes): ProgramAttendanceLink
+    {
+        $openMinutes = max(1, $openMinutes);
+        $attributes = ['open_minutes' => $openMinutes];
+
+        if ($link->isOpen() && $link->opens_at !== null) {
+            $closes = $link->opens_at->copy()->addMinutes($openMinutes);
+            $attributes['closes_at'] = $closes->isFuture() ? $closes : now();
+        }
+
+        $link->update($attributes);
+
+        return $link->refresh();
+    }
+
+    /**
+     * QR mode: record attendance from a scanned or typed attendance pass (KAFAAT-P{program}-R{registration}).
+     *
+     * @return array{ok: bool, message: string, name: ?string, time: ?string}
+     */
+    public function markFromPass(ProgramAttendanceLink $link, string $rawPass, ?string $ip): array
+    {
+        if (! $link->isOpen()) {
+            return ['ok' => false, 'message' => self::UNAVAILABLE_MESSAGE, 'name' => null, 'time' => null];
+        }
+
+        $parsed = app(ProgramAttendanceService::class)->parsePassPayload($rawPass);
+        if ($parsed === null) {
+            return ['ok' => false, 'message' => 'رمز الحضور غير صالح.', 'name' => null, 'time' => null];
+        }
+
+        if ($parsed['program_id'] !== (int) $link->training_program_id) {
+            return ['ok' => false, 'message' => 'هذا الرمز لبرنامج آخر.', 'name' => null, 'time' => null];
+        }
+
+        $registration = ProgramRegistration::query()
+            ->whereKey($parsed['registration_id'])
+            ->where('training_program_id', $link->training_program_id)
+            ->with('user')
+            ->first();
+
+        if ($registration === null || $registration->user === null || ! in_array($registration->status, [RegistrationStatus::Approved, RegistrationStatus::Completed], true)) {
+            return ['ok' => false, 'message' => self::NOT_APPROVED_MESSAGE, 'name' => null, 'time' => null];
+        }
+
+        // The checker at the door needs the full name to match the person in front of them.
+        $name = (string) $registration->user->name;
+        $existing = $link->marks()->where('program_registration_id', $registration->id)->first();
+        if ($existing !== null) {
+            return ['ok' => true, 'message' => 'محضَّر من قبل.', 'name' => $name, 'time' => $existing->riyadhLabel()];
+        }
+
+        try {
+            $mark = $this->store($link, $registration->user, AttendanceMarkSource::Qr, requireOpen: true, registration: $registration, ip: $ip);
+        } catch (ValidationException $exception) {
+            return ['ok' => false, 'message' => (string) collect($exception->errors())->flatten()->first(), 'name' => $name, 'time' => null];
+        }
+
+        return ['ok' => true, 'message' => self::RECORDED_MESSAGE, 'name' => $name, 'time' => $mark->riyadhLabel()];
     }
 
     public function cancel(ProgramAttendanceLink $link): void

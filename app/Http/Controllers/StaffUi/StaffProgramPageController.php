@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\StaffUi;
 
+use App\Enums\AttendanceLinkMode;
 use App\Enums\ProgramActivityAction;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
@@ -14,10 +15,12 @@ use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Exports\ProgramRegistrationExportAuthorization;
 use App\Services\StaffUi\StaffProgramCalendar;
+use App\Services\StaffUi\StaffProgramCertificates;
 use App\Services\StaffUi\StaffProgramRegistrations;
 use App\Services\StaffUi\StaffProgramSettings;
 use App\Services\StaffUi\StaffProgramStatus;
 use App\Services\StaffUi\StaffProgramWizard;
+use App\Support\CertificateAuthorization;
 use App\Support\Exports\ProgramRegistrationExportColumns;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -42,7 +45,7 @@ class StaffProgramPageController extends Controller
     ];
 
     /** Tabs that are built in the new UI; the rest still live in the current admin panel. */
-    private const BUILT_TABS = ['about', 'registrations', 'activity', 'settings'];
+    private const BUILT_TABS = ['about', 'registrations', 'attendance', 'certificates', 'activity', 'settings'];
 
     public function __construct(
         private readonly StaffProgramWizard $wizard,
@@ -60,7 +63,7 @@ class StaffProgramPageController extends Controller
             abort_unless($actor->can('update', $program), 403);
         }
 
-        if ($tab === 'registrations') {
+        if (in_array($tab, ['registrations', 'attendance', 'certificates'], true)) {
             abort_unless($actor->can('viewOperational', $program), 403);
         }
 
@@ -93,6 +96,8 @@ class StaffProgramPageController extends Controller
             'about' => $this->aboutData($program),
             'activity' => $this->activityData($request, $program),
             'registrations' => $this->registrationsData($request, $actor, $program),
+            'attendance' => $this->attendanceData($request, $program),
+            'certificates' => $this->certificatesData($request, $actor, $program),
             'settings' => $this->settingsData($actor, $program),
             default => [],
         });
@@ -222,6 +227,47 @@ class StaffProgramPageController extends Controller
             'exportGroupTitles' => ProgramRegistrationExportColumns::groupTitles(),
             'exportDefaults' => ProgramRegistrationExportAuthorization::defaultColumnKeysFor($actor, $program),
             'previewTarget' => $service->query($program, $filters)->where('status', RegistrationStatus::Pending->value)->value('id'),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function attendanceData(Request $request, TrainingProgram $program): array
+    {
+        return [
+            'attendanceLinks' => $program->attendanceLinks()
+                ->whereNull('cancelled_at')
+                ->withCount('marks')
+                ->orderBy('id')
+                ->get(),
+            'linkModes' => AttendanceLinkMode::cases(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function certificatesData(Request $request, User $actor, TrainingProgram $program): array
+    {
+        $service = app(StaffProgramCertificates::class);
+        $search = mb_substr(trim((string) $request->query('q', '')), 0, 60);
+        $rows = $service->rows($program, $search)->paginate(50)->withQueryString();
+        $ids = $rows->getCollection()->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $days = $service->days($program);
+        $surveys = $service->surveys($program);
+
+        return [
+            'certRows' => $rows,
+            'certSearch' => $search,
+            'certDays' => $days,
+            'certCheckIns' => $service->checkIns($days, $ids),
+            'certSurveys' => $surveys,
+            'certSurveyAnswers' => $service->surveyAnswers($surveys, $ids),
+            'certIssued' => $service->certificates($program),
+            'certCanIssue' => CertificateAuthorization::canIssue($actor),
+            'certBackgroundReady' => $service->backgroundReady($program),
+            'certDesignerUrl' => route('certificate-designer.edit', $program),
         ];
     }
 

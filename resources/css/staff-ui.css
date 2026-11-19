@@ -3052,3 +3052,287 @@ a.sui-menu-item {
 .sui-modal[data-sui-modal="reg-export"] .sui-modal__panel {
     width: min(560px, 100%);
 }
+
+/* Program attendance tab */
+
+.sui-control--sm {
+    padding: 6px 10px;
+    font-size: 13px;
+    min-height: 32px;
+}
+
+.sui-inline-form {
+    display: inline;
+    margin: 0;
+}
+
+.sui-table tr.is-selected td {
+    background: var(--sui-primary-tint);
+}
+
+.sui-att-count {
+    font-variant-numeric: tabular-nums;
+}
+
+.sui-att-mode {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sui-space-3);
+    width: 100%;
+    min-width: 260px;
+    padding: var(--sui-space-3);
+    text-align: start;
+}
+
+.sui-att-mode span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sui-att-mode strong {
+    color: var(--sui-heading);
+    font-size: 13px;
+}
+
+.sui-att-mode small {
+    color: var(--sui-text-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.sui-att-mode-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--sui-info-bg);
+    color: var(--sui-info);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.sui-att-mode-badge.is-qr {
+    background: var(--sui-primary-tint);
+    color: var(--sui-primary-dark);
+}
+
+.sui-att-table td {
+    vertical-align: middle;
+}
+
+.sui-att-table .sui-reg-table__actions {
+    white-space: nowrap;
+}
+
+.sui-att-form {
+    display: grid;
+    gap: var(--sui-space-3);
+    margin: 0;
+    text-align: start;
+}
+
+.sui-att-form .sui-field {
+    margin: 0;
+}
+
+.sui-att-form__type {
+    margin: 0;
+    color: var(--sui-primary-dark);
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* Program certificates tab */
+
+.sui-alert--warning {
+    background: var(--sui-warning-bg);
+    color: var(--sui-warning);
+    margin: 0 var(--sui-space-4) var(--sui-space-3);
+}
+
+.sui-cert-search {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--sui-space-2);
+    padding: 0 var(--sui-space-4) var(--sui-space-3);
+}
+
+.sui-cert-search .sui-field {
+    margin: 0;
+    min-width: 240px;
+}
+
+.sui-cert-table th,
+.sui-cert-table td {
+    white-space: nowrap;
+}
+
+.sui-cert-table th.is-off {
+    color: var(--sui-text-muted);
+}
+
+.sui-cert-cell {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.sui-cert-done {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--sui-success);
+}
+
+.sui-cert-done .sui-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.sui-cert-none {
+    color: var(--sui-text-muted);
+}
+
+.sui-cert-issued {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.sui-cert-issued small {
+    color: var(--sui-text-muted);
+    direction: ltr;
+}
+
+.sui-cert-manual {
+    padding-inline: 10px;
+}
+
+/* Attendance QR scan page (checkers' phones) */
+
+.sui-scan-page {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--sui-bg);
+    font-family: var(--sui-font);
+    color: var(--sui-text);
+}
+
+.sui-scan {
+    display: grid;
+    gap: var(--sui-space-3);
+    width: min(480px, 100%);
+    margin: 0 auto;
+    padding: var(--sui-space-4);
+    box-sizing: border-box;
+}
+
+.sui-scan__head {
+    text-align: center;
+}
+
+.sui-scan__head h1 {
+    margin: 2px 0;
+    color: var(--sui-heading);
+    font-size: 22px;
+}
+
+.sui-scan__program,
+.sui-scan__until {
+    margin: 0;
+    color: var(--sui-text-muted);
+    font-size: 13px;
+    text-align: center;
+}
+
+.sui-scan__count {
+    margin: var(--sui-space-2) 0 0;
+    font-size: 14px;
+}
+
+.sui-scan__count strong {
+    color: var(--sui-primary-dark);
+    font-size: 18px;
+}
+
+.sui-scan__closed {
+    padding: var(--sui-space-5, 24px);
+    text-align: center;
+}
+
+.sui-scan__closed h2 {
+    margin: 0 0 var(--sui-space-2);
+    color: var(--sui-heading);
+    font-size: 17px;
+}
+
+.sui-scan__camera {
+    overflow: hidden;
+    padding: 0;
+}
+
+.sui-scan__reader {
+    width: 100%;
+    min-height: 280px;
+    background: #111;
+}
+
+.sui-scan__reader video {
+    display: block;
+    width: 100% !important;
+}
+
+.sui-scan__hint {
+    margin: 0;
+    padding: var(--sui-space-3);
+    color: var(--sui-warning);
+    font-size: 13px;
+    text-align: center;
+}
+
+.sui-scan__result {
+    display: grid;
+    gap: 2px;
+    padding: var(--sui-space-4);
+    border-radius: var(--sui-radius);
+    text-align: center;
+    font-size: 14px;
+}
+
+.sui-scan__result strong {
+    font-size: 18px;
+}
+
+.sui-scan__result.is-ok {
+    background: var(--sui-success-bg);
+    color: var(--sui-success);
+}
+
+.sui-scan__result.is-error {
+    background: var(--sui-danger-bg);
+    color: var(--sui-danger);
+}
+
+.sui-scan__manual {
+    display: grid;
+    gap: var(--sui-space-2);
+    padding: var(--sui-space-4);
+}
+
+.sui-scan__manual-row {
+    display: flex;
+    gap: var(--sui-space-2);
+}
+
+.sui-scan__manual-row .sui-control {
+    flex: 1;
+    min-width: 0;
+}
+
+.sui-table a.sui-btn--primary,
+.sui-table a.sui-btn--primary:hover {
+    color: #fff;
+}

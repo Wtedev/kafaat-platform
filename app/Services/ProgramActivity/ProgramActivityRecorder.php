@@ -7,6 +7,7 @@ use App\Enums\ProgramActivityAction;
 use App\Enums\RegistrationStatus;
 use App\Models\Certificate;
 use App\Models\ProgramAttendance;
+use App\Models\ProgramAttendanceMark;
 use App\Models\ProgramBroadcast;
 use App\Models\ProgramRegistration;
 use App\Models\SurveyCompletion;
@@ -107,6 +108,25 @@ final class ProgramActivityRecorder
                 $registration,
                 self::userName($registration->user_id),
                 array_filter(['date' => $date]),
+            );
+        });
+
+        ProgramAttendanceMark::created(static function (ProgramAttendanceMark $mark): void {
+            $link = $mark->link()->first(['id', 'training_program_id', 'name']);
+            $registration = $mark->registration()->first(['id', 'user_id']);
+            if ($link === null) {
+                return;
+            }
+
+            self::log()->record(
+                (int) $link->training_program_id,
+                ProgramActivityAction::AttendanceMarked,
+                $registration,
+                $registration ? self::userName($registration->user_id) : null,
+                array_filter([
+                    'link' => (string) $link->name,
+                    'source' => $mark->source instanceof \BackedEnum ? $mark->source->value : (string) $mark->source,
+                ]),
             );
         });
 

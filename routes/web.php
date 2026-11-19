@@ -42,6 +42,7 @@ use App\Http\Controllers\Portal\PortalSupportController;
 use App\Http\Controllers\Portal\PortalSupportWidgetController;
 use App\Http\Controllers\Portal\PortalVolunteerController;
 use App\Http\Controllers\Public\AttendanceDeskController;
+use App\Http\Controllers\Public\AttendanceLinkScanController;
 use App\Http\Controllers\Public\CertificateVerificationController;
 use App\Http\Controllers\Public\ExperienceHouseRequestController;
 use App\Http\Controllers\Public\HomeController;
@@ -60,6 +61,8 @@ use App\Http\Controllers\StaffUi\StaffBeneficiaryController;
 use App\Http\Controllers\StaffUi\StaffDirectoryController;
 use App\Http\Controllers\StaffUi\StaffInboxController;
 use App\Http\Controllers\StaffUi\StaffProfileController;
+use App\Http\Controllers\StaffUi\StaffProgramAttendanceController;
+use App\Http\Controllers\StaffUi\StaffProgramCertificateController;
 use App\Http\Controllers\StaffUi\StaffProgramController;
 use App\Http\Controllers\StaffUi\StaffProgramPageController;
 use App\Http\Controllers\StaffUi\StaffProgramRegistrationController;
@@ -182,6 +185,11 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.St
             ->whereIn('section', array_keys(StaffProgramSettings::SECTIONS))
             ->name('programs.settings.update');
         Route::post('/programs/{program}/status', [StaffProgramPageController::class, 'updateStatus'])->name('programs.status');
+        Route::post('/programs/{program}/certificates/issue', [StaffProgramCertificateController::class, 'issue'])->name('programs.certificates.issue');
+        Route::post('/programs/{program}/attendance', [StaffProgramAttendanceController::class, 'store'])->name('programs.attendance.store');
+        Route::post('/programs/{program}/attendance/{link}', [StaffProgramAttendanceController::class, 'update'])->name('programs.attendance.update');
+        Route::post('/programs/{program}/attendance/{link}/action', [StaffProgramAttendanceController::class, 'action'])->name('programs.attendance.action');
+        Route::post('/programs/{program}/attendance/{link}/manual/{registration}', [StaffProgramAttendanceController::class, 'manual'])->name('programs.attendance.manual');
         Route::post('/programs/{program}/registrations/bulk', [StaffProgramRegistrationController::class, 'bulk'])->name('programs.registrations.bulk');
         Route::get('/programs/{program}/registrations/export', [StaffProgramRegistrationController::class, 'exportAll'])->name('programs.registrations.export');
         Route::get('/programs/{program}/registrations/email-preview', [StaffProgramRegistrationController::class, 'preview'])->name('programs.registrations.preview');
@@ -254,6 +262,15 @@ Route::prefix('gate/{program:slug}')->name('gate.')->group(function () {
         Route::post('/logout', [GateAttendanceController::class, 'logout'])->name('logout');
     });
 });
+
+// QR attendance day: the prep officer's scan page. Named under gate.* so the camera is allowed.
+Route::get('/q/{token}', [AttendanceLinkScanController::class, 'show'])
+    ->where('token', '[A-Za-z0-9]{32,80}')
+    ->name('gate.link-scan.show');
+Route::post('/q/{token}', [AttendanceLinkScanController::class, 'store'])
+    ->where('token', '[A-Za-z0-9]{32,80}')
+    ->middleware('throttle:120,1')
+    ->name('gate.link-scan.store');
 
 Route::get('/a/{token}', [AttendanceDeskController::class, 'show'])
     ->where('token', '[A-Za-z0-9]{32,80}')

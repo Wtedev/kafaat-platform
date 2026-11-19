@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Enums\AttendanceLinkMode;
 use App\Http\Controllers\Controller;
 use App\Models\ProgramAttendanceLink;
 use App\Services\Attendance\ProgramAttendanceLinkService;
@@ -137,7 +138,12 @@ class PublicAttendanceController extends Controller
 
     private function find(string $token): ProgramAttendanceLink
     {
-        return ProgramAttendanceLink::query()->with('program')->where('token', $token)->firstOrFail();
+        // QR days are checked in by scanning at the door, never by identity number.
+        return ProgramAttendanceLink::query()
+            ->with('program')
+            ->where('token', $token)
+            ->where('mode', '!=', AttendanceLinkMode::Qr->value)
+            ->firstOrFail();
     }
 
     private function unavailable(ProgramAttendanceLink $link): View
