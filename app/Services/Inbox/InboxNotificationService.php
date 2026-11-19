@@ -14,7 +14,6 @@ use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
-use App\Models\VolunteerRegistration;
 use App\Notifications\InboxNotificationEmail;
 use App\Services\EmailLogService;
 use App\Services\Rbac\RbacCatalog;
@@ -338,39 +337,6 @@ class InboxNotificationService
         $this->dispatch($msg, [$recipient->id]);
     }
 
-    public function registrationApprovedVolunteer(User $recipient, VolunteerOpportunity $opportunity, ?User $approver = null): void
-    {
-        $msg = new NotificationMessage(
-            type: InboxNotificationType::RegistrationApproved,
-            title: 'تم قبول تسجيلك',
-            message: 'تم قبول طلبك في الفرصة التطوعية «'.$opportunity->title.'».',
-            senderId: $approver?->id,
-            targetType: NotificationTargetType::SingleUser,
-            context: self::inboxContext('volunteer_opportunity', (int) $opportunity->getKey()),
-            emailable: false,
-        );
-        $this->dispatch($msg, [$recipient->id]);
-    }
-
-    public function registrationRejectedVolunteer(User $recipient, VolunteerOpportunity $opportunity, ?string $reason = null, ?User $rejector = null): void
-    {
-        $body = 'لم يتم قبول طلبك في الفرصة التطوعية «'.$opportunity->title.'».';
-        if ($reason !== null && $reason !== '') {
-            $body .= "\nالسبب: ".$reason;
-        }
-
-        $msg = new NotificationMessage(
-            type: InboxNotificationType::RegistrationRejected,
-            title: 'تحديث طلب التسجيل',
-            message: $body,
-            senderId: $rejector?->id,
-            targetType: NotificationTargetType::SingleUser,
-            context: self::inboxContext('volunteer_opportunity', (int) $opportunity->getKey()),
-            emailable: false,
-        );
-        $this->dispatch($msg, [$recipient->id]);
-    }
-
     public function certificateIssued(User $recipient, Certificate $certificate, ?User $issuedBy = null): void
     {
         $certificate->loadMissing('certificateable');
@@ -391,36 +357,6 @@ class InboxNotificationService
             emailable: ! $certificateable instanceof TrainingProgram,
         );
         $this->dispatch($msg, [$recipient->id]);
-    }
-
-    public function volunteerOpportunityUpdated(VolunteerOpportunity $opportunity, ?User $editor = null): void
-    {
-        $registrantIds = $opportunity->registrations()
-            ->whereNotIn('status', [
-                RegistrationStatus::Rejected->value,
-                RegistrationStatus::Cancelled->value,
-            ])
-            ->pluck('user_id');
-
-        $volunteerIds = User::query()
-            ->role('volunteer')
-            ->pluck('id');
-
-        $ids = $registrantIds->merge($volunteerIds)->unique()->values()->all();
-
-        if ($ids === []) {
-            return;
-        }
-
-        $msg = new NotificationMessage(
-            type: InboxNotificationType::VolunteerOpportunityUpdated,
-            title: 'تحديث فرصة تطوعية: '.$opportunity->title,
-            message: 'تم تحديث تفاصيل الفرصة التطوعية. يُرجى مراجعة الصفحة للاطلاع على آخر المعلومات.',
-            senderId: $editor?->id,
-            targetType: NotificationTargetType::DirectRecipients,
-            context: self::inboxContext('volunteer_opportunity', (int) $opportunity->getKey()),
-        );
-        $this->dispatch($msg, $ids);
     }
 
     public function generalMessage(User $sender, NotificationTargetType $audience, string $title, string $body): void
@@ -578,19 +514,6 @@ class InboxNotificationService
         }
     }
 
-    public function notifyStaffOfNewVolunteerRegistration(VolunteerRegistration $registration): void
-    {
-        $registration->loadMissing('opportunity', 'user');
-        $opportunity = $registration->opportunity;
-        $user = $registration->user;
-        if ($opportunity === null || $user === null) {
-            return;
-        }
-
-        // Pending requests reach staff as one live alert per opportunity (StaffAlerts).
-        app(StaffAlerts::class)->refreshIfStale();
-    }
-
     public function registrationWindowOpenedForProgram(TrainingProgram $program): void
     {
         // جمهور فتح التسجيل: متدربون ومستفيدون فقط (لا متطوعون ولا بثّ لكل مستخدمي البوابة).
@@ -708,20 +631,6 @@ class InboxNotificationService
                 $q->where('role_type', 'admin')
                     ->orWhereHas('roles', fn ($r) => $r->whereIn('name', RbacCatalog::trainingDomainStaffRoleNames()));
             })
-            ->pluck('id')
-            ->unique()
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @return list<int>
-     */
-    public function resolveStaffForVolunteerDomain(): array
-    {
-        return User::query()
-            ->where('is_active', true)
-            ->whereHas('roles', fn ($r) => $r->whereIn('name', RbacCatalog::volunteerDomainStaffRoleNames()))
             ->pluck('id')
             ->unique()
             ->values()

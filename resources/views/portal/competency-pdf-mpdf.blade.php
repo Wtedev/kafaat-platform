@@ -31,7 +31,7 @@
     $hasCourses = $vis('external_courses') && count($coursesMerged) > 0;
     $hasLinks = $vis('links') && count($pdfLinks) > 0;
     $hasPaths = $vis('platform') && ($completedPrograms?->isNotEmpty() ?? false);
-    $hasPlatformHours = $vis('platform') && ($approvedVolunteerHours ?? 0) > 0;
+    $hasPlatformHours = false;
     $hasPlatform = $vis('platform') && ($hasPaths || $hasPlatformHours);
     $hasRecs = $vis('recommendations') && ($recommendations?->isNotEmpty() ?? false);
 @endphp

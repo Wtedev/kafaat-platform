@@ -2,14 +2,12 @@
 
 namespace Tests\Feature\PrivacyBaseline;
 
-use App\Enums\OpportunityStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Models\Profile;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
-use App\Models\VolunteerOpportunity;
 use App\Services\ProgramRegistrationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\ActsAsOtpVerifiedUser;
@@ -104,26 +102,6 @@ class ProgramRegistrationBaselineTest extends TestCase
         $this->assertDatabaseHas('program_registrations', [
             'training_program_id' => $program->id,
             'user_id' => $staff->id,
-        ]);
-    }
-
-    public function test_portal_user_can_register_for_volunteer_opportunity(): void
-    {
-        $user = $this->makePortalUser();
-        $opportunity = VolunteerOpportunity::query()->create([
-            'title' => 'فرصة تطوع',
-            'slug' => 'baseline-volunteer',
-            'status' => OpportunityStatus::Published,
-            'published_at' => now(),
-        ]);
-
-        $this->actingAsOtpVerified($user)
-            ->post(route('public.volunteering.register', $opportunity))
-            ->assertRedirect();
-
-        $this->assertDatabaseHas('volunteer_registrations', [
-            'opportunity_id' => $opportunity->id,
-            'user_id' => $user->id,
         ]);
     }
 

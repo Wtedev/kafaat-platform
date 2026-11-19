@@ -6,7 +6,6 @@ use App\Enums\ProgramBroadcastStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Filament\Resources\TrainingProgramResource;
-use App\Filament\Resources\VolunteerOpportunityResource;
 use App\Models\EmailLog;
 use App\Models\ProgramAttendanceLink;
 use App\Models\ProgramBroadcast;
@@ -15,8 +14,6 @@ use App\Models\ProgramSurvey;
 use App\Models\StaffAlert;
 use App\Models\TrainingProgram;
 use App\Models\User;
-use App\Models\VolunteerOpportunity;
-use App\Models\VolunteerRegistration;
 use App\Services\Surveys\ProgramSurveyService;
 use App\Support\StaffUi\StaffUiAccess;
 use Illuminate\Support\Carbon;
@@ -62,7 +59,6 @@ final class StaffAlerts
         $now ??= now();
         $wanted = collect()
             ->merge($this->pendingProgramRegistrations())
-            ->merge($this->pendingVolunteerRegistrations())
             ->merge($this->failedBroadcasts($now))
             ->merge($this->failedProgramEmails($now))
             ->merge($this->openAttendance($now))
@@ -191,7 +187,6 @@ final class StaffAlerts
 
         return match ($alert->kind) {
             'registrations.program' => $programTab('registrations', ['status' => 'pending']),
-            'registrations.volunteer' => VolunteerOpportunityResource::getUrl('view', ['record' => (int) ($p['opportunity'] ?? 0)]),
             'delivery.broadcast', 'delivery.email' => $programTab('broadcasts'),
             'program.attendance' => $programTab('attendance'),
             'program.survey' => $programTab('surveys'),
@@ -218,8 +213,6 @@ final class StaffAlerts
         $groups = [];
         if ($user->can('viewAny', TrainingProgram::class)) {
             array_push($groups, 'registrations', 'delivery', 'program');
-        } elseif ($user->isAdmin() || $user->checkPermissionTo('volunteering.view')) {
-            $groups[] = 'registrations';
         }
 
         return $groups;
@@ -248,32 +241,6 @@ final class StaffAlerts
                     'body' => $program->title,
                     'count' => $c,
                     'payload' => ['program' => $program->id],
-                ];
-            })->all();
-    }
-
-    /** @return list<array<string, mixed>> */
-    private function pendingVolunteerRegistrations(): array
-    {
-        $counts = VolunteerRegistration::query()
-            ->where('status', RegistrationStatus::Pending->value)
-            ->selectRaw('opportunity_id, count(*) as c')
-            ->groupBy('opportunity_id')
-            ->pluck('c', 'opportunity_id');
-
-        return VolunteerOpportunity::query()
-            ->whereIn('id', $counts->keys()->all())
-            ->get(['id', 'title'])
-            ->map(function (VolunteerOpportunity $opportunity) use ($counts): array {
-                $c = (int) $counts[$opportunity->id];
-
-                return [
-                    'key' => 'registrations.volunteer:'.$opportunity->id,
-                    'kind' => 'registrations.volunteer',
-                    'title' => en_num($c).' '.($c === 1 ? 'طلب تطوع' : ($c <= 10 ? 'طلبات تطوع' : 'طلب تطوع')).' بانتظار القبول',
-                    'body' => $opportunity->title,
-                    'count' => $c,
-                    'payload' => ['opportunity' => $opportunity->id],
                 ];
             })->all();
     }

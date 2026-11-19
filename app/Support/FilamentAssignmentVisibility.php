@@ -5,7 +5,6 @@ namespace App\Support;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
-use App\Models\VolunteerTeam;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -86,35 +85,6 @@ final class FilamentAssignmentVisibility
         }
     }
 
-    public static function userManagesVolunteerTeam(User $user, VolunteerTeam $team): bool
-    {
-        if (self::bypasses($user)) {
-            return true;
-        }
-
-        if (StaffFilamentRoles::isProgramsActivitiesManager($user)) {
-            return true;
-        }
-
-        return $user->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR)
-            && (int) $team->assigned_to === $user->id;
-    }
-
-    public static function constrainVolunteerTeams(Builder $query, ?User $viewer): void
-    {
-        if ($viewer === null || self::bypasses($viewer)) {
-            return;
-        }
-
-        if (StaffFilamentRoles::isProgramsActivitiesManager($viewer)) {
-            return;
-        }
-
-        if ($viewer->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR)) {
-            $query->where($query->getModel()->getTable().'.assigned_to', $viewer->id);
-        }
-    }
-
     public static function constrainProgramRegistrations(Builder $query, ?User $viewer): void
     {
         if ($viewer === null || self::bypasses($viewer)) {
@@ -128,27 +98,5 @@ final class FilamentAssignmentVisibility
                     TrainingEntityAuthorization::constrainQueryToOperationalProgramsForViewer($programQuery, $viewer);
                 });
         });
-    }
-
-    public static function constrainVolunteerRegistrations(Builder $query, ?User $viewer): void
-    {
-        if ($viewer === null || self::bypasses($viewer)) {
-            return;
-        }
-
-        if (StaffFilamentRoles::isProgramsActivitiesManager($viewer)) {
-            return;
-        }
-
-        if ($viewer->hasAnyRole(StaffFilamentRoles::VOLUNTEERING_COORDINATOR)) {
-            $query->whereHas('opportunity', function (Builder $q) use ($viewer): void {
-                $q->where('assigned_to', $viewer->id);
-            });
-
-            return;
-        }
-
-        // رفض افتراضي: من لا ينطبق عليه دور مُحدّد لا يرى إلا سجلاته الخاصة.
-        $query->where($query->getModel()->getTable().'.user_id', $viewer->id);
     }
 }

@@ -4,13 +4,9 @@ namespace Database\Seeders;
 
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
-use App\Enums\VolunteerHoursStatus;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
-use App\Models\VolunteerHour;
-use App\Models\VolunteerOpportunity;
-use App\Models\VolunteerRegistration;
 use App\Services\ProgramRegistrationService;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
@@ -61,7 +57,6 @@ class ProgramRegistrationSeeder extends Seeder
         }
 
         $this->seedProgramRegistrations($beneficiaries, $programs, $admin);
-        $this->seedVolunteerDomain($beneficiaries, $admin);
 
         $this->command?->info('  ProgramRegistrationSeeder: program and volunteer rows updated.');
     }
@@ -196,78 +191,5 @@ class ProgramRegistrationSeeder extends Seeder
                 'score' => $score,
             ]
         );
-    }
-
-    /**
-     * @param  Collection<int, User>  $beneficiaries
-     */
-    private function seedVolunteerDomain($beneficiaries, User $admin): void
-    {
-        $opportunities = VolunteerOpportunity::query()->orderBy('id')->get();
-        if ($opportunities->isEmpty()) {
-            return;
-        }
-
-        $volunteers = $beneficiaries->filter(fn (User $u) => $u->hasRole('volunteer'))->values();
-        if ($volunteers->isEmpty()) {
-            return;
-        }
-
-        VolunteerRegistration::withoutEvents(function () use ($volunteers, $opportunities, $admin): void {
-            foreach ($volunteers as $i => $user) {
-                $opp = $opportunities[$i % $opportunities->count()];
-                $roll = ($i * 9) % 100;
-                $status = match (true) {
-                    $roll < 15 => RegistrationStatus::Pending,
-                    $roll < 25 => RegistrationStatus::Rejected,
-                    $roll < 40 => RegistrationStatus::Approved,
-                    default => RegistrationStatus::Completed,
-                };
-
-                $approved = in_array($status, [RegistrationStatus::Approved, RegistrationStatus::Completed, RegistrationStatus::Rejected], true);
-
-                VolunteerRegistration::updateOrCreate(
-                    ['opportunity_id' => $opp->id, 'user_id' => $user->id],
-                    [
-                        'status' => $status,
-                        'rejected_reason' => $status === RegistrationStatus::Rejected ? 'عدم توفر المدة المطلوبة.' : null,
-                        'approved_by' => $approved ? $admin->id : null,
-                        'approved_at' => in_array($status, [RegistrationStatus::Approved, RegistrationStatus::Completed], true)
-                            ? Carbon::now()->subDays(6 + ($i % 18))
-                            : null,
-                    ]
-                );
-            }
-        });
-
-        VolunteerHour::withoutEvents(function () use ($volunteers, $opportunities, $admin): void {
-            foreach ($volunteers as $i => $user) {
-                if ($i % 3 !== 0) {
-                    continue;
-                }
-                $opp = $opportunities[$i % $opportunities->count()];
-                $reg = VolunteerRegistration::query()
-                    ->where('opportunity_id', $opp->id)
-                    ->where('user_id', $user->id)
-                    ->first();
-                if ($reg === null || $reg->status !== RegistrationStatus::Completed) {
-                    continue;
-                }
-
-                VolunteerHour::updateOrCreate(
-                    [
-                        'user_id' => $user->id,
-                        'opportunity_id' => $opp->id,
-                    ],
-                    [
-                        'hours' => (float) (4 + ($i % 12)),
-                        'status' => VolunteerHoursStatus::Approved,
-                        'approved_by' => $admin->id,
-                        'approved_at' => Carbon::now()->subDays(3 + ($i % 10)),
-                        'notes' => 'ساعات تطوع مسجّلة تلقائياً ضمن بيانات الاختبار.',
-                    ]
-                );
-            }
-        });
     }
 }

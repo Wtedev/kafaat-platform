@@ -40,7 +40,6 @@ use App\Http\Controllers\Portal\PortalProgramDetailController;
 use App\Http\Controllers\Portal\PortalSettingsController;
 use App\Http\Controllers\Portal\PortalSupportController;
 use App\Http\Controllers\Portal\PortalSupportWidgetController;
-use App\Http\Controllers\Portal\PortalVolunteerController;
 use App\Http\Controllers\Public\AttendanceDeskController;
 use App\Http\Controllers\Public\AttendanceLinkScanController;
 use App\Http\Controllers\Public\CertificateVerificationController;
@@ -72,6 +71,7 @@ use App\Http\Controllers\StaffUi\StaffProgramRegistrationController;
 use App\Http\Controllers\StaffUi\StaffProgramSurveyController;
 use App\Http\Controllers\StaffUi\StaffProgramWizardController;
 use App\Http\Controllers\StaffUi\StaffUiDemoController;
+use App\Http\Controllers\StaffUi\StaffVolunteerOpportunityController;
 use App\Http\Middleware\EnsureExperienceHouseManager;
 use App\Services\StaffUi\StaffProgramSettings;
 use App\Support\StaffUi\StaffUiModule;
@@ -176,6 +176,19 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.St
         Route::post('/users/{user}/identity', [StaffBeneficiaryController::class, 'updateIdentity'])->name('users.identity.update');
         Route::post('/users/{user}/activation', [StaffBeneficiaryController::class, 'activation'])->name('users.activation');
         Route::post('/users/{user}/notes', [StaffBeneficiaryController::class, 'storeNote'])->name('users.notes.store');
+    });
+
+Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.StaffUiModule::VOLUNTEERING, 'staff-ui.maintenance:'.StaffUiModule::VOLUNTEERING])
+    ->prefix('staff-ui')
+    ->name('staff-ui.')
+    ->group(function () {
+        Route::get('/volunteering', [StaffVolunteerOpportunityController::class, 'index'])->name('volunteering.index');
+        Route::get('/volunteering/create', [StaffVolunteerOpportunityController::class, 'create'])->name('volunteering.create');
+        Route::post('/volunteering', [StaffVolunteerOpportunityController::class, 'store'])->name('volunteering.store');
+        Route::get('/volunteering/{opportunity}', [StaffVolunteerOpportunityController::class, 'edit'])->whereNumber('opportunity')->name('volunteering.edit');
+        Route::post('/volunteering/{opportunity}', [StaffVolunteerOpportunityController::class, 'update'])->whereNumber('opportunity')->name('volunteering.update');
+        Route::post('/volunteering/{opportunity}/status', [StaffVolunteerOpportunityController::class, 'status'])->whereNumber('opportunity')->name('volunteering.status');
+        Route::post('/volunteering/{opportunity}/delete', [StaffVolunteerOpportunityController::class, 'destroy'])->whereNumber('opportunity')->name('volunteering.delete');
     });
 
 Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.StaffUiModule::TRAINING, 'staff-ui.maintenance:'.StaffUiModule::TRAINING])
@@ -385,7 +398,6 @@ Route::prefix('programs')->name('public.programs.')->group(function () {
 Route::prefix('volunteering')->name('public.volunteering.')->group(function () {
     Route::get('/', [PublicVolunteerOpportunityController::class, 'index'])->name('index');
     Route::get('/{volunteerOpportunity:slug}', [PublicVolunteerOpportunityController::class, 'show'])->name('show');
-    Route::post('/{volunteerOpportunity:slug}/register', [PublicVolunteerOpportunityController::class, 'register'])->middleware('auth')->name('register');
 });
 
 Route::prefix('news')->name('public.news.')->group(function () {
@@ -427,7 +439,6 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'beneficiary', 'privac
             ->name('programs.attendance.check-in');
         Route::get('/programs/{trainingProgram}/attendance/session', [PortalAttendanceSessionController::class, 'program'])
             ->name('programs.attendance.session');
-        Route::get('/volunteering', PortalVolunteerController::class)->name('volunteering');
         Route::get('/certificates', PortalCertificateController::class)->name('certificates');
 
         Route::get('/support', [PortalSupportController::class, 'index'])->name('support.index');

@@ -21,15 +21,10 @@ class PortalDashboardController extends Controller
             ->whereHas('trainingProgram', fn ($query) => $query->published())
             ->where('status', RegistrationStatus::Completed)
             ->count();
-        $approvedHours = $user->totalApprovedVolunteerHours();
         $certificatesCount = $user->certificates()->count();
 
         $composed = PortalDashboardComposer::compose($user);
         $activities = $composed['activities'];
-        $volunteerRows = $composed['volunteerRows'];
-        $showVolunteerTeamDashboard = $composed['showVolunteerTeamDashboard'];
-        $volunteerTeamMemberRows = $composed['volunteerTeamMemberRows'];
-        $volunteerTeamNotifications = $composed['volunteerTeamNotifications'];
 
         $inbox = app(InboxNotificationService::class);
         $inboxPreview = $inbox->latestForUser($user, 6);
@@ -39,13 +34,8 @@ class PortalDashboardController extends Controller
             'user',
             'programsRegistered',
             'programsCompleted',
-            'approvedHours',
             'certificatesCount',
             'activities',
-            'volunteerRows',
-            'showVolunteerTeamDashboard',
-            'volunteerTeamMemberRows',
-            'volunteerTeamNotifications',
             'inboxPreview',
             'inboxUnreadCount',
         ));

@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\UserResource\Concerns;
 
 use App\Models\User;
-use App\Models\VolunteerTeam;
 use App\Support\UserAccountRoleForm;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
@@ -139,10 +138,6 @@ trait ManagesUserAccountForm
             if ($actor instanceof User) {
                 UserAccountRoleForm::syncAssignedRole($actor, $record, $this->pendingPlatformRole, request());
             }
-        }
-
-        if ($record->hasRole(UserAccountRoleForm::TYPE_VOLUNTEER)) {
-            VolunteerTeam::ensureMember($record);
         }
     }
 }

@@ -57,13 +57,6 @@
                     @endforelse
                 </ul>
             </div>
-            <div class="rounded-xl border border-gray-50 bg-[#F8FAFC] p-4">
-                <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ $cvL['volunteer_hours'] ?? 'ساعات التطوع' }}</p>
-                <p class="mt-2 text-2xl font-bold tabular-nums" style="color:#335483">{{ en_num($approvedVolunteerHours, 1) }}</p>
-                @if ($approvedVolunteerHours <= 0)
-                <p class="mt-2 text-sm text-gray-500">{{ $cvLocale === 'en' ? 'No approved volunteer hours yet.' : 'لا ساعات تطوع معتمدة بعد.' }}</p>
-                @endif
-            </div>
         </div>
         @if ($platformCertificates->isNotEmpty())
         <div class="mt-4 border-t border-gray-100 pt-4">

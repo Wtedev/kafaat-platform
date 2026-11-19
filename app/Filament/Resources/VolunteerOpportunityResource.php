@@ -7,8 +7,6 @@ use App\Filament\Concerns\BelongsToStaffUiModule;
 use App\Filament\Concerns\ConfiguresViewFirstResourceTable;
 use App\Filament\Concerns\RegistersNavigationByPermission;
 use App\Filament\Resources\VolunteerOpportunityResource\Pages;
-use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\RegistrationsRelationManager;
-use App\Filament\Resources\VolunteerOpportunityResource\RelationManagers\VolunteerHoursRelationManager;
 use App\Filament\Support\EntityTwoColumnFormLayout;
 use App\Filament\Support\TrainingEntityFormSupport;
 use App\Models\VolunteerOpportunity;
@@ -162,7 +160,7 @@ class VolunteerOpportunityResource extends Resource
     public static function table(Table $table): Table
     {
         return static::applyViewFirstTable($table)
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['assignee', 'creator'])->withCount('registrations'))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['assignee', 'creator']))
             ->columns([
                 ImageColumn::make('image')
                     ->label('صورة')
@@ -207,14 +205,7 @@ class VolunteerOpportunityResource extends Resource
                 TextColumn::make('capacity')
                     ->label('الطاقة')
                     ->default('غير محدودة')
-                    ->formatStateUsing(fn (?int $state): string => $state === null ? 'غير محدودة' : (string) $state)
-                    ->toggleable(),
-
-                TextColumn::make('registrations_count')
-                    ->counts('registrations')
-                    ->label('عدد المتطوعين')
-                    ->badge()
-                    ->color('info')
+                    ->formatStateUsing(fn (mixed $state): string => is_numeric($state) ? (string) (int) $state : 'غير محدودة')
                     ->toggleable(),
 
                 TextColumn::make('created_at')
@@ -243,8 +234,6 @@ class VolunteerOpportunityResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RegistrationsRelationManager::class,
-            VolunteerHoursRelationManager::class,
         ];
     }
 
@@ -297,7 +286,7 @@ class VolunteerOpportunityResource extends Resource
 
                 TextEntry::make('capacity')
                     ->label('الطاقة الاستيعابية')
-                    ->formatStateUsing(fn (?int $state): string => $state === null ? 'غير محدودة' : (string) $state)
+                    ->formatStateUsing(fn (mixed $state): string => is_numeric($state) ? (string) (int) $state : 'غير محدودة')
                     ->placeholder('غير محدودة'),
 
                 TextEntry::make('hours_expected')

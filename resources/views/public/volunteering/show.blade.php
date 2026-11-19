@@ -1,22 +1,5 @@
 @php
-use App\Enums\RegistrationStatus;
-
-$statusLabels = [
-    RegistrationStatus::Pending->value => 'قيد المراجعة',
-    RegistrationStatus::Approved->value => 'مقبول',
-    RegistrationStatus::Rejected->value => 'مرفوض',
-    RegistrationStatus::Cancelled->value => 'ملغي',
-    RegistrationStatus::Completed->value => 'مكتمل',
-];
-$statusColors = RegistrationStatus::badgeClasses();
-
-$canRegister = auth()->check()
-    && auth()->user()->canRegisterForPublicOfferings()
-    && $userRegistration === null;
-
-$alreadyRegistered = $userRegistration !== null;
-
-// إذا وُجد رابط للمنصة الوطنية للتطوع يذهب الزر إليه مباشرة في تبويب جديد
+// التسجيل في الفرص التطوعية يتم عبر المنصة الوطنية للتطوع.
 $externalUrl = $volunteerOpportunity->hasExternalUrl() ? $volunteerOpportunity->external_url : null;
 @endphp
 
@@ -41,29 +24,10 @@ $externalUrl = $volunteerOpportunity->hasExternalUrl() ? $volunteerOpportunity->
     <x-slot:action>
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             @if ($externalUrl)
-                <p class="text-sm leading-relaxed text-gray-500 sm:max-w-md">التسجيل في هذه الفرصة يتم عبر المنصة الوطنية للتطوع.</p>
+                <p class="text-sm leading-relaxed text-gray-500 sm:max-w-md">يتم التسجيل في هذه الفرصة عبر المنصة الوطنية للعمل التطوعي.</p>
                 <x-public.register-cta-button :href="$externalUrl" target="_blank" rel="noopener noreferrer" class="hidden md:inline-flex">سجّل في الفرصة</x-public.register-cta-button>
-            @elseif ($alreadyRegistered)
-                @php $sv = $userRegistration->status->value; @endphp
-                <div class="flex flex-wrap items-center gap-3">
-                    <span class="rounded-full px-3 py-1 text-sm font-medium {{ $statusColors[$sv] ?? 'bg-gray-100 text-gray-600' }}">
-                        {{ $statusLabels[$sv] ?? $sv }}
-                    </span>
-                    <span class="text-sm text-gray-500">لقد سجّلت في هذه الفرصة التطوعية بالفعل.</span>
-                </div>
-            @elseif ($canRegister)
-                <p class="text-sm leading-relaxed text-gray-500 sm:max-w-md">سجّل طلبك الآن للمشاركة في هذه الفرصة التطوعية.</p>
-                <form method="POST" action="{{ route('public.volunteering.register', $volunteerOpportunity->slug) }}" id="volunteer-register-form" class="shrink-0">
-                    @csrf
-                    <x-public.register-cta-button type="submit" class="hidden md:inline-flex">قدّم طلبك</x-public.register-cta-button>
-                </form>
-            @elseif (! auth()->check())
-                <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-                    <p class="text-sm leading-relaxed text-gray-500">يجب تسجيل الدخول كمستفيد لتقديم طلب التطوع.</p>
-                    <x-public.register-cta-button :href="route('login')" class="hidden md:inline-flex">سجّل الدخول للتسجيل</x-public.register-cta-button>
-                </div>
             @else
-                <p class="text-sm text-gray-400">التسجيل متاح للمستفيدين فقط.</p>
+                <p class="text-sm text-gray-500">سيُتاح رابط التسجيل في هذه الفرصة قريباً.</p>
             @endif
         </div>
     </x-slot:action>
@@ -71,10 +35,6 @@ $externalUrl = $volunteerOpportunity->hasExternalUrl() ? $volunteerOpportunity->
     <x-slot:mobileStickyAction>
         @if ($externalUrl)
             <x-public.register-cta-button :href="$externalUrl" target="_blank" rel="noopener noreferrer" class="w-full">سجّل في الفرصة</x-public.register-cta-button>
-        @elseif ($canRegister)
-            <x-public.register-cta-button type="submit" form="volunteer-register-form" class="w-full">قدّم طلبك</x-public.register-cta-button>
-        @elseif (! auth()->check())
-            <x-public.register-cta-button :href="route('login')" class="w-full">سجّل الدخول للتسجيل</x-public.register-cta-button>
         @endif
     </x-slot:mobileStickyAction>
 </x-public.entity-show-layout>

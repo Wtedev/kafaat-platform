@@ -68,16 +68,6 @@ final class PermissionMatrixCatalog
                 ],
             ],
             [
-                'key' => 'volunteer_hours',
-                'label' => 'ساعات التطوع',
-                'actions' => [
-                    'view' => ['volunteer_hours.view'],
-                    'create' => ['volunteer_hours.create'],
-                    'update' => ['volunteer_hours.approve', 'volunteer_hours.reject'],
-                    'delete' => null,
-                ],
-            ],
-            [
                 'key' => 'certificates',
                 'label' => 'الشهادات',
                 'actions' => [
@@ -263,8 +253,8 @@ final class PermissionMatrixCatalog
             [
                 'key' => 'volunteer',
                 'label' => 'التطوع',
-                'description' => 'الفرص وساعات التطوع',
-                'group_keys' => ['volunteering', 'volunteer_hours'],
+                'description' => 'الفرص التطوعية',
+                'group_keys' => ['volunteering'],
             ],
             [
                 'key' => 'content',

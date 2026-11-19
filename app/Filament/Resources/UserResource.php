@@ -10,7 +10,6 @@ use App\Filament\Resources\Concerns\EntityNotesRelationManager;
 use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers\UserTechnicalLogRelationManager;
 use App\Filament\Resources\UserResource\RelationManagers\UserTrainingRegistrationsRelationManager;
-use App\Filament\Resources\UserResource\RelationManagers\UserVolunteerRegistrationsRelationManager;
 use App\Models\User;
 use App\Support\Privacy\SensitiveContactMasker;
 use App\Support\StaffUi\StaffUiModule;
@@ -331,7 +330,6 @@ class UserResource extends Resource
     {
         return [
             UserTrainingRegistrationsRelationManager::class,
-            UserVolunteerRegistrationsRelationManager::class,
             UserTechnicalLogRelationManager::class,
             EntityNotesRelationManager::class,
         ];

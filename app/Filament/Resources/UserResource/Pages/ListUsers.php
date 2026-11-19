@@ -4,10 +4,7 @@ namespace App\Filament\Resources\UserResource\Pages;
 
 use App\Filament\Resources\Pages\BaseListRecords;
 use App\Filament\Resources\UserResource;
-use App\Filament\Resources\VolunteerTeamResource;
-use App\Models\VolunteerTeam;
 use App\Support\UserDirectoryTabs;
-use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
@@ -57,18 +54,6 @@ class ListUsers extends BaseListRecords
 
                     return UserResource::getUrl('create', $params);
                 });
-        }
-
-        if ($this->activeTab === UserDirectoryTabs::TAB_VOLUNTEERS
-            && auth()->user()?->can('volunteering.view')) {
-            $team = VolunteerTeam::canonical();
-            if ($team !== null) {
-                $actions[] = Action::make('manage_volunteer_team')
-                    ->label('إدارة عضوية الفريق')
-                    ->icon('heroicon-o-user-group')
-                    ->color('gray')
-                    ->url(VolunteerTeamResource::getUrl('view', ['record' => $team]));
-            }
         }
 
         return $actions;

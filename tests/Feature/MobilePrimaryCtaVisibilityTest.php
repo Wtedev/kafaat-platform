@@ -53,14 +53,16 @@ class MobilePrimaryCtaVisibilityTest extends TestCase
             'slug' => 'mobile-volunteer-'.uniqid(),
             'status' => OpportunityStatus::Published,
             'published_at' => now(),
+            'external_url' => 'https://nvg.gov.sa/opportunity/123',
         ]);
 
+        // Registration happens on the national volunteering platform.
         $this->actingAsOtpVerified($user)
             ->get(route('public.volunteering.show', $opportunity))
             ->assertOk()
-            ->assertSee('volunteer-register-form', false)
-            ->assertSee('form="volunteer-register-form"', false)
-            ->assertSee('قدّم طلبك', false);
+            ->assertSee('https://nvg.gov.sa/opportunity/123', false)
+            ->assertSee('سجّل في الفرصة', false)
+            ->assertDontSee('volunteer-register-form', false);
     }
 
     public function test_portal_profile_edit_renders_mobile_save_bar(): void

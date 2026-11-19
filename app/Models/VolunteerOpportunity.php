@@ -3,21 +3,18 @@
 namespace App\Models;
 
 use App\Enums\OpportunityStatus;
-use App\Enums\RegistrationStatus;
-use App\Enums\VolunteerHoursStatus;
 use App\Services\Inbox\InboxNotificationService;
 use App\Services\Media\PublicMediaLifecycleService;
 use App\Support\CurrentPublishMoment;
 use App\Support\FilamentAssignmentVisibility;
 use App\Support\PublicDiskPath;
 use App\Support\StaffFilamentRoles;
+use App\Support\UniqueModelSlug;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 class VolunteerOpportunity extends Model
 {
@@ -34,7 +31,6 @@ class VolunteerOpportunity extends Model
         'status',
         'published_at',
         'notify_on_publish',
-        'notify_registrants_on_update',
         'created_by',
         'updated_by',
         'assigned_to',
@@ -46,7 +42,6 @@ class VolunteerOpportunity extends Model
             'status' => OpportunityStatus::class,
             'published_at' => 'datetime',
             'notify_on_publish' => 'boolean',
-            'notify_registrants_on_update' => 'boolean',
             'start_date' => 'date',
             'end_date' => 'date',
             'capacity' => 'integer',
@@ -58,7 +53,11 @@ class VolunteerOpportunity extends Model
     {
         static::creating(function (self $opportunity) {
             if (empty($opportunity->slug)) {
-                $opportunity->slug = Str::slug($opportunity->title);
+                $opportunity->slug = UniqueModelSlug::fromTitle(
+                    self::class,
+                    (string) $opportunity->title,
+                    fallbackPrefix: 'opportunity',
+                );
             }
 
             if ($opportunity->assigned_to === null && Auth::check()) {
@@ -86,36 +85,17 @@ class VolunteerOpportunity extends Model
         });
 
         static::updated(function (self $opportunity): void {
-            $editor = Auth::user();
-
-            if ($opportunity->wasChanged('status') && $opportunity->status === OpportunityStatus::Published) {
-                if ($opportunity->notify_on_publish && CurrentPublishMoment::includes($opportunity->published_at)) {
-                    app(InboxNotificationService::class)->volunteerOpportunityFirstPublished(
-                        $opportunity,
-                        $editor instanceof User ? $editor : null,
-                    );
-                }
-
+            if (! $opportunity->wasChanged('status') || $opportunity->status !== OpportunityStatus::Published) {
                 return;
             }
 
-            if ($opportunity->status !== OpportunityStatus::Published || ! $opportunity->notify_registrants_on_update) {
-                return;
+            if ($opportunity->notify_on_publish && CurrentPublishMoment::includes($opportunity->published_at)) {
+                $editor = Auth::user();
+                app(InboxNotificationService::class)->volunteerOpportunityFirstPublished(
+                    $opportunity,
+                    $editor instanceof User ? $editor : null,
+                );
             }
-
-            $watched = [
-                'title', 'slug', 'description', 'image', 'external_url', 'capacity', 'hours_expected',
-                'start_date', 'end_date', 'status', 'published_at',
-            ];
-
-            if (! $opportunity->wasChanged($watched)) {
-                return;
-            }
-
-            app(InboxNotificationService::class)->volunteerOpportunityUpdated(
-                $opportunity,
-                $editor instanceof User ? $editor : null,
-            );
         });
 
         static::deleting(function (self $opportunity): void {
@@ -147,50 +127,7 @@ class VolunteerOpportunity extends Model
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
-    /**
-     * Seats taken: approved volunteers plus those who already completed their
-     * hours (a completed volunteer still counts toward the required number).
-     */
-    public function approvedRegistrationsCount(): int
-    {
-        return $this->registrations()
-            ->whereIn('status', [
-                RegistrationStatus::Approved->value,
-                RegistrationStatus::Completed->value,
-            ])
-            ->count();
-    }
-
-    public function hasCapacity(): bool
-    {
-        if ($this->capacity === null) {
-            return true;
-        }
-
-        return $this->approvedRegistrationsCount() < $this->capacity;
-    }
-
-    /**
-     * Total approved volunteer hours logged against this opportunity.
-     */
-    public function totalApprovedHours(): float
-    {
-        return (float) $this->volunteerHours()
-            ->where('status', VolunteerHoursStatus::Approved->value)
-            ->sum('hours');
-    }
-
     // ─── Relationships ────────────────────────────────────────────────────────
-
-    public function registrations(): HasMany
-    {
-        return $this->hasMany(VolunteerRegistration::class, 'opportunity_id');
-    }
-
-    public function volunteerHours(): HasMany
-    {
-        return $this->hasMany(VolunteerHour::class, 'opportunity_id');
-    }
 
     public function creator(): BelongsTo
     {
@@ -202,6 +139,7 @@ class VolunteerOpportunity extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
+    /** Certificates issued before volunteering moved to the national platform stay verifiable. */
     public function certificates(): MorphMany
     {
         return $this->morphMany(Certificate::class, 'certificateable');

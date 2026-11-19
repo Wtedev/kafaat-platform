@@ -20,7 +20,6 @@ final class NotificationPreferenceCatalog
         return [
             InboxNotificationType::NewsStaffCopy,
             InboxNotificationType::StaffNewProgramRegistration,
-            InboxNotificationType::StaffNewVolunteerRegistration,
             InboxNotificationType::StaffTrainingEntityCreated,
             InboxNotificationType::StaffVolunteerOpportunityCreated,
         ];

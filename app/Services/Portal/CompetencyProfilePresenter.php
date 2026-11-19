@@ -32,18 +32,10 @@ final class CompetencyProfilePresenter
             ->latest('updated_at')
             ->get();
 
-        $completedVolunteering = $user->volunteerRegistrations()
-            ->where('status', RegistrationStatus::Completed)
-            ->with('opportunity')
-            ->latest('updated_at')
-            ->get();
-
         $platformCertificates = $user->certificates()
             ->with('certificateable')
             ->latest('issued_at')
             ->get();
-
-        $approvedVolunteerHours = $user->totalApprovedVolunteerHours();
 
         /** @var MembershipType $membership */
         $membership = BeneficiaryMembershipResolver::resolve($user);
@@ -58,7 +50,6 @@ final class CompetencyProfilePresenter
         $mergedExperience = CompetencyCvPdfData::mergedExperience(
             $user,
             $userExperience,
-            $completedVolunteering,
             $cvLocale,
         );
         $mergedCourses = CompetencyCvPdfData::mergedCourses(
@@ -73,9 +64,7 @@ final class CompetencyProfilePresenter
             'membership' => $membership,
             'pdfJobTitle' => $profile?->pdfHeadlineForExport($membership, $cvLocale),
             'completedPrograms' => $completedPrograms,
-            'completedVolunteering' => $completedVolunteering,
             'platformCertificates' => $platformCertificates,
-            'approvedVolunteerHours' => $approvedVolunteerHours,
             'competencyCards' => $competencyCards,
             'recommendations' => $recommendations,
             'cvLocale' => $cvLocale,

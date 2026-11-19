@@ -5,10 +5,7 @@ namespace App\Services\Portal;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Models\ProgramRegistration;
-use App\Models\TeamMember;
-use App\Models\TeamNotification;
 use App\Models\User;
-use App\Models\VolunteerOpportunity;
 use Illuminate\Support\Collection;
 
 final class PortalDashboardComposer
@@ -16,128 +13,18 @@ final class PortalDashboardComposer
     /**
      * @return array{
      *     activities: Collection<int, array<string, mixed>>,
-     *     volunteerRows: Collection<int, array<string, mixed>>,
-     *     showVolunteerTeamDashboard: bool,
-     *     volunteerTeamMemberRows: Collection<int, array<string, mixed>>,
-     *     volunteerTeamNotifications: Collection<int, array<string, mixed>>,
      * }
      */
     public static function compose(User $user): array
     {
-        $activities = self::composeActivities($user);
-        $volunteerRows = self::composeRegisteredVolunteerRows($user);
-        $teamDash = self::composeVolunteerTeamDashboard($user);
-
         return [
-            'activities' => $activities,
-            'volunteerRows' => $volunteerRows,
-            'showVolunteerTeamDashboard' => $teamDash['show'],
-            'volunteerTeamMemberRows' => $teamDash['memberRows'],
-            'volunteerTeamNotifications' => $teamDash['notificationRows'],
+            'activities' => self::composeActivities($user),
         ];
     }
 
     /**
      * @return Collection<int, array<string, mixed>>
      */
-    private static function composeRegisteredVolunteerRows(User $user): Collection
-    {
-        $activeStatuses = [
-            RegistrationStatus::Pending->value,
-            RegistrationStatus::Approved->value,
-            RegistrationStatus::Completed->value,
-        ];
-
-        $claimedIds = $user->volunteerRegistrations()
-            ->whereIn('status', $activeStatuses)
-            ->pluck('opportunity_id')
-            ->unique()
-            ->filter()
-            ->values();
-
-        if ($claimedIds->isEmpty()) {
-            return collect();
-        }
-
-        return VolunteerOpportunity::query()
-            ->whereIn('id', $claimedIds)
-            ->with([
-                'registrations' => fn ($q) => $q->where('user_id', $user->id),
-            ])
-            ->latest('published_at')
-            ->limit(12)
-            ->get()
-            ->map(fn (VolunteerOpportunity $opp): array => self::volunteerRow($opp));
-    }
-
-    /**
-     * @return array{show: bool, memberRows: Collection<int, array<string, mixed>>, notificationRows: Collection<int, array<string, mixed>>}
-     */
-    private static function composeVolunteerTeamDashboard(User $user): array
-    {
-        if (! self::shouldShowVolunteerTeamDashboard($user)) {
-            return [
-                'show' => false,
-                'memberRows' => collect(),
-                'notificationRows' => collect(),
-            ];
-        }
-
-        $teamIds = $user->volunteerTeams()
-            ->where('volunteer_teams.is_active', true)
-            ->pluck('volunteer_teams.id');
-
-        if ($teamIds->isEmpty()) {
-            return [
-                'show' => true,
-                'memberRows' => collect(),
-                'notificationRows' => collect(),
-            ];
-        }
-
-        $memberRows = TeamMember::query()
-            ->whereIn('volunteer_team_id', $teamIds)
-            ->with(['user', 'volunteerTeam'])
-            ->get()
-            ->unique('user_id')
-            ->values()
-            ->map(fn (TeamMember $m): array => [
-                'name' => $m->user?->name ?? '—',
-                'email' => $m->user?->email,
-                'team_name' => $m->volunteerTeam?->name ?? '—',
-            ]);
-
-        $notificationRows = TeamNotification::query()
-            ->whereIn('volunteer_team_id', $teamIds)
-            ->whereNotNull('published_at')
-            ->where('published_at', '<=', now())
-            ->with('volunteerTeam')
-            ->latest('published_at')
-            ->limit(15)
-            ->get()
-            ->map(fn (TeamNotification $n): array => [
-                'title' => $n->title,
-                'body' => $n->body,
-                'team_name' => $n->volunteerTeam?->name ?? '—',
-                'published_at' => $n->published_at,
-            ]);
-
-        return [
-            'show' => true,
-            'memberRows' => $memberRows,
-            'notificationRows' => $notificationRows,
-        ];
-    }
-
-    private static function shouldShowVolunteerTeamDashboard(User $user): bool
-    {
-        if ($user->volunteerTeams()->exists()) {
-            return true;
-        }
-
-        return $user->hasRole('volunteer') || $user->role_type === 'volunteer';
-    }
-
     private static function composeActivities(User $user): Collection
     {
         $user->loadMissing([
@@ -215,38 +102,5 @@ final class PortalDashboardComposer
         }
 
         return route('portal.programs');
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private static function volunteerRow(VolunteerOpportunity $opp): array
-    {
-        $reg = $opp->registrations->first();
-
-        if (! $reg) {
-            $stateLabel = 'غير مسجل';
-            $stateTone = 'slate';
-            $ctaLabel = 'تسجيل';
-            $ctaUrl = route('public.volunteering.show', $opp->slug);
-        } else {
-            [$stateLabel, $stateTone] = match ($reg->status) {
-                RegistrationStatus::Completed => ['مكتمل', 'secondary'],
-                RegistrationStatus::Pending, RegistrationStatus::Approved => ['مسجل', 'primary'],
-                default => ['غير مسجل', 'muted'],
-            };
-            $ctaLabel = $reg->status === RegistrationStatus::Completed ? 'عرض' : 'متابعة';
-            $ctaUrl = route('public.volunteering.show', $opp->slug);
-        }
-
-        return [
-            'title' => $opp->title,
-            'image_url' => $opp->imagePublicUrl(),
-            'hours' => $opp->hours_expected,
-            'state_label' => $stateLabel,
-            'state_tone' => $stateTone,
-            'cta_label' => $ctaLabel,
-            'cta_url' => $ctaUrl,
-        ];
     }
 }

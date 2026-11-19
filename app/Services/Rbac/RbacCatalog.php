@@ -74,7 +74,6 @@ final class RbacCatalog
             'volunteering.view', 'volunteering.create', 'volunteering.update', 'volunteering.delete', 'volunteering.publish', 'volunteering.archive',
             'registrations.view', 'registrations.approve', 'registrations.reject',
             'progress.view', 'progress.update',
-            'volunteer_hours.view', 'volunteer_hours.create', 'volunteer_hours.approve', 'volunteer_hours.reject',
             'certificates.view', 'certificates.issue', 'certificates.download',
             'emails.send', 'statistics.view',
         ];
@@ -193,8 +192,6 @@ final class RbacCatalog
             'volunteering.delete' => 'حذف التطوع', 'volunteering.publish' => 'نشر التطوع', 'volunteering.archive' => 'أرشفة التطوع',
             'registrations.view' => 'عرض التسجيلات', 'registrations.approve' => 'اعتماد التسجيلات', 'registrations.reject' => 'رفض التسجيلات',
             'progress.view' => 'عرض التقدم', 'progress.update' => 'تحديث التقدم',
-            'volunteer_hours.view' => 'عرض ساعات التطوع', 'volunteer_hours.create' => 'تسجيل ساعات تطوع',
-            'volunteer_hours.approve' => 'اعتماد ساعات التطوع', 'volunteer_hours.reject' => 'رفض ساعات التطوع',
             'certificates.view' => 'عرض الشهادات', 'certificates.issue' => 'إصدار الشهادات', 'certificates.download' => 'تحميل الشهادات',
             'emails.send' => 'إرسال البريد', 'statistics.view' => 'عرض الإحصاءات',
         ];
@@ -229,19 +226,12 @@ final class RbacCatalog
         return [self::ROLE_ADMIN, self::ROLE_STAFF];
     }
 
-    /** @return list<string> */
-    public static function volunteerDomainStaffRoleNames(): array
-    {
-        return [self::ROLE_ADMIN, self::ROLE_STAFF];
-    }
-
     /** @return array<string, list<string>> */
     public static function rolePermissionMatrix(): array
     {
         $portalRead = [
             'courses.view', 'programs.view', 'volunteering.view',
             'registrations.view', 'progress.view',
-            'volunteer_hours.view', 'volunteer_hours.create',
             'certificates.view', 'certificates.download',
             'view_notifications',
         ];

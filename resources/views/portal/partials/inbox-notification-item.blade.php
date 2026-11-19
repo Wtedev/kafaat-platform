@@ -10,8 +10,6 @@ $inboxOpenUrl = \App\Filament\Support\InboxNotificationRecordActions::inboxOpenU
 $inboxOpenLabel = \App\Filament\Support\InboxNotificationRecordActions::inboxOpenLabel(auth()->user(), $n);
 $canApproveProgram = \App\Filament\Support\InboxNotificationRecordActions::canApproveProgramRegistration($n);
 $canRejectProgram = \App\Filament\Support\InboxNotificationRecordActions::canRejectProgramRegistration($n);
-$canApproveVolunteer = \App\Filament\Support\InboxNotificationRecordActions::canApproveVolunteerRegistration($n);
-$canRejectVolunteer = \App\Filament\Support\InboxNotificationRecordActions::canRejectVolunteerRegistration($n);
 $isUnread = $n->read_at === null;
 $compact = $compact ?? false;
 @endphp
@@ -70,8 +68,7 @@ $compact = $compact ?? false;
 
             @php
                 $hasIconActions = $whatsappUrl || $inboxOpenUrl || $isUnread;
-                $hasStaffActions = $canApproveProgram || $canRejectProgram
-                    || $canApproveVolunteer || $canRejectVolunteer;
+                $hasStaffActions = $canApproveProgram || $canRejectProgram;
             @endphp
 
             @if ($hasIconActions)
@@ -152,21 +149,6 @@ $compact = $compact ?? false;
                 @endif
 
 
-                @if ($canApproveVolunteer)
-                    <form method="POST" action="{{ route('portal.notifications.registration-action', $n) }}" onsubmit="return confirm('تأكيد قبول التسجيل التطوعي؟');">
-                        @csrf
-                        <input type="hidden" name="intent" value="approve_volunteer">
-                        <button type="submit" class="rounded-lg bg-brand-secondary px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm transition hover:opacity-95">قبول (تطوع)</button>
-                    </form>
-                @endif
-                @if ($canRejectVolunteer)
-                    <form method="POST" action="{{ route('portal.notifications.registration-action', $n) }}" class="w-full space-y-1.5 sm:w-auto">
-                        @csrf
-                        <input type="hidden" name="intent" value="reject_volunteer">
-                        <textarea name="rejected_reason" rows="2" placeholder="سبب الرفض (اختياري)" class="w-full rounded-xl border border-gray-200 px-2.5 py-1.5 text-xs text-gray-800 placeholder:text-gray-400"></textarea>
-                        <button type="submit" class="rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-brand-danger ring-1 ring-[#f5c4c0] transition hover:bg-[#fdeeed]">رفض (تطوع)</button>
-                    </form>
-                @endif
             </div>
             @endif
         </div>

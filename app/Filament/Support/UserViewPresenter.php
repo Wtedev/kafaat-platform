@@ -45,11 +45,6 @@ final class UserViewPresenter
                 'icon' => 'heroicon-o-academic-cap',
             ],
             [
-                'label' => 'ساعات تطوع معتمدة',
-                'value' => number_format((float) $payload['approvedVolunteerHours'], 1),
-                'icon' => 'heroicon-o-heart',
-            ],
-            [
                 'label' => 'الشهادات',
                 'value' => (string) $payload['platformCertificates']->count(),
                 'icon' => 'heroicon-o-document-check',
