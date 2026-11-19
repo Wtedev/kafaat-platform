@@ -8,6 +8,7 @@ use App\Models\Certificate;
 use App\Models\ProgramAttendanceLink;
 use App\Models\ProgramAttendanceMark;
 use App\Models\ProgramRegistration;
+use App\Models\StaffAlert;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\StaffAlerts\StaffAlerts;
@@ -42,6 +43,8 @@ final class StaffDashboard
             'monthLabel' => en_digits(ar_date($local, 'MMMM y')),
             'stats' => $canPrograms ? $this->monthStats($local) : [],
             'running' => $canPrograms ? $this->running($local, $now) : collect(),
+            'upcoming' => $canPrograms ? $this->upcoming($local) : collect(),
+            'alertSummary' => $this->summarize($this->alerts->visibleFor($user)),
         ];
     }
 
@@ -122,5 +125,79 @@ final class StaffDashboard
             ->groupBy('training_program_id');
 
         return $programs->each(fn (TrainingProgram $p) => $p->setRelation('todayLinks', $links->get($p->id, collect())));
+    }
+
+    /**
+     * Published programs starting within the next 30 days.
+     *
+     * @return Collection<int, TrainingProgram>
+     */
+    private function upcoming(Carbon $local): Collection
+    {
+        return TrainingProgram::query()
+            ->where('status', ProgramStatus::Published->value)
+            ->whereDate('start_date', '>', $local->toDateString())
+            ->whereDate('start_date', '<=', $local->copy()->addDays(30)->toDateString())
+            ->withCount([
+                'registrations as accepted_count' => fn ($q) => $q->whereIn('status', [RegistrationStatus::Approved->value, RegistrationStatus::Completed->value]),
+                'registrations as pending_count' => fn ($q) => $q->where('status', RegistrationStatus::Pending->value),
+            ])
+            ->orderBy('start_date')
+            ->get();
+    }
+
+    /**
+     * One line per kind of alert, with the total behind it, like the bell but grouped.
+     *
+     * @param  Collection<int, StaffAlert>  $alerts
+     * @return list<array{kind: string, group: string, title: string, detail: ?string, unread: bool, items: Collection<int, StaffAlert>}>
+     */
+    private function summarize(Collection $alerts): array
+    {
+        $kinds = [
+            'registrations.program' => fn (int $total, int $n) => [en_num($total).' '.$this->requests($total).' بانتظار القبول', $this->across($n, 'برنامج واحد', 'برنامجين', 'برامج')],
+            'registrations.volunteer' => fn (int $total, int $n) => [en_num($total).' '.$this->requests($total, 'طلب تطوع', 'طلبات تطوع', 'طلب تطوع').' بانتظار القبول', $this->across($n, 'فرصة واحدة', 'فرصتين', 'فرص')],
+            'delivery.broadcast' => fn (int $total, int $n) => ['رسائل جماعية لم تصل إلى '.en_num($total).' '.($total === 1 ? 'شخص' : 'أشخاص'), $this->across($n, 'رسالة واحدة', 'رسالتين', 'رسائل')],
+            'delivery.email' => fn (int $total, int $n) => [en_num($total).' '.($total === 1 ? 'رسالة بريد' : 'رسائل بريد').' إلى المسجلين لم تصل', $this->across($n, 'برنامج واحد', 'برنامجين', 'برامج')],
+            'program.attendance' => fn (int $total, int $n) => ['التحضير مفتوح الآن', $this->across($n, 'يوم تحضير واحد', 'يوما تحضير', 'أيام تحضير', in: false)],
+            'program.survey' => fn (int $total, int $n) => ['استبيانات تُغلق قريباً بنسبة تعبئة منخفضة', $this->across($n, 'استبيان واحد', 'استبيانان', 'استبيانات', in: false)],
+            'program.certificates' => fn (int $total, int $n) => ['برامج انتهت ولم تُصدر شهاداتها', $this->across($n, 'برنامج واحد', 'برنامجان', 'برامج', in: false)],
+            'support.waiting' => fn (int $total, int $n) => [en_num($total).' '.($total === 1 ? 'تذكرة دعم تنتظر الرد' : ($total <= 10 ? 'تذاكر دعم تنتظر الرد' : 'تذكرة دعم تنتظر الرد')), null],
+        ];
+
+        $out = [];
+        foreach ($kinds as $kind => $describe) {
+            $items = $alerts->where('kind', $kind)->values();
+            if ($items->isEmpty()) {
+                continue;
+            }
+            [$title, $detail] = $describe((int) $items->sum('count'), $items->count());
+            $out[] = [
+                'kind' => $kind,
+                'group' => explode('.', $kind)[0],
+                'title' => $title,
+                'detail' => $detail,
+                'unread' => $items->contains('unread', true),
+                'items' => $items,
+            ];
+        }
+
+        return $out;
+    }
+
+    private function requests(int $n, string $one = 'طلب', string $few = 'طلبات', string $many = 'طلباً'): string
+    {
+        return $n === 1 ? $one : ($n <= 10 ? $few : $many);
+    }
+
+    private function across(int $n, string $one, string $two, string $few, bool $in = true): string
+    {
+        $phrase = match (true) {
+            $n === 1 => $one,
+            $n === 2 => $two,
+            default => en_num($n).' '.$few,
+        };
+
+        return ($in ? 'في ' : '').$phrase;
     }
 }
