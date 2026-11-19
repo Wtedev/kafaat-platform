@@ -23,6 +23,8 @@ enum ProgramActivityAction: string
     case AttendanceMarked = 'attendance_marked';
     case AttendanceCleared = 'attendance_cleared';
     case SurveyCompleted = 'survey_completed';
+    case SurveysCreated = 'surveys_created';
+    case SurveyUpdated = 'survey_updated';
     case CertificateIssued = 'certificate_issued';
     case BroadcastCreated = 'broadcast_created';
 
@@ -45,6 +47,8 @@ enum ProgramActivityAction: string
             self::AttendanceMarked => 'تحضير',
             self::AttendanceCleared => 'إلغاء تحضير',
             self::SurveyCompleted => 'تعبئة استبيان',
+            self::SurveysCreated => 'إنشاء الاستبيانات',
+            self::SurveyUpdated => 'تعديل استبيان',
             self::CertificateIssued => 'إصدار شهادة',
             self::BroadcastCreated => 'رسالة جماعية',
         };
@@ -57,7 +61,7 @@ enum ProgramActivityAction: string
             self::RegistrationWindowClosed, self::RegistrationWindowReopened => 'program',
             self::RegistrationCreated, self::RegistrationApproved, self::RegistrationRejected, self::RegistrationCancelled, self::RegistrationReopened => 'registrations',
             self::AttendanceMarked, self::AttendanceCleared => 'attendance',
-            self::SurveyCompleted => 'surveys',
+            self::SurveyCompleted, self::SurveysCreated, self::SurveyUpdated => 'surveys',
             self::CertificateIssued => 'certificates',
             self::BroadcastCreated => 'broadcasts',
         };

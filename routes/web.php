@@ -66,6 +66,7 @@ use App\Http\Controllers\StaffUi\StaffProgramCertificateController;
 use App\Http\Controllers\StaffUi\StaffProgramController;
 use App\Http\Controllers\StaffUi\StaffProgramPageController;
 use App\Http\Controllers\StaffUi\StaffProgramRegistrationController;
+use App\Http\Controllers\StaffUi\StaffProgramSurveyController;
 use App\Http\Controllers\StaffUi\StaffProgramWizardController;
 use App\Http\Controllers\StaffUi\StaffUiDemoController;
 use App\Http\Middleware\EnsureExperienceHouseManager;
@@ -185,6 +186,10 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.St
             ->whereIn('section', array_keys(StaffProgramSettings::SECTIONS))
             ->name('programs.settings.update');
         Route::post('/programs/{program}/status', [StaffProgramPageController::class, 'updateStatus'])->name('programs.status');
+        Route::post('/programs/{program}/surveys', [StaffProgramSurveyController::class, 'provision'])->name('programs.surveys.provision');
+        Route::post('/programs/{program}/surveys/{survey}', [StaffProgramSurveyController::class, 'update'])->name('programs.surveys.update');
+        Route::post('/programs/{program}/surveys/{survey}/window', [StaffProgramSurveyController::class, 'window'])->name('programs.surveys.window');
+        Route::get('/programs/{program}/surveys/{survey}/export', [StaffProgramSurveyController::class, 'export'])->name('programs.surveys.export');
         Route::post('/programs/{program}/certificates/issue', [StaffProgramCertificateController::class, 'issue'])->name('programs.certificates.issue');
         Route::post('/programs/{program}/attendance', [StaffProgramAttendanceController::class, 'store'])->name('programs.attendance.store');
         Route::post('/programs/{program}/attendance/{link}', [StaffProgramAttendanceController::class, 'update'])->name('programs.attendance.update');
