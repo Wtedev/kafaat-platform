@@ -104,8 +104,8 @@ class StaffAlertsTest extends TestCase
 
         $page = $this->actingAsOtpVerified($admin)->get(route('staff-ui.programs.index'))->assertOk();
         $page->assertSee('التحضير مفتوح الآن: اليوم الأول')
-            ->assertSee('انتهى البرنامج وما انصدرت شهاداته')
-            ->assertSee('الاستبيان بعدي يقفل قريب وما عبّاه إلا 0 من 2');
+            ->assertSee('انتهى البرنامج ولم تُصدر شهاداته')
+            ->assertSee('يُغلق الاستبيان البعدي قريبًا ولم يُعبّئه سوى 0 من 2');
 
         // Dismissing hides it for everyone until it grows.
         $survey = StaffAlert::query()->where('kind', 'program.survey')->sole();
