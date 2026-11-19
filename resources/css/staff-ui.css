@@ -3710,3 +3710,100 @@ a.sui-menu-item {
 .sui-settings-danger h2 {
     color: var(--sui-danger);
 }
+
+/* Staff alerts in the bell */
+
+.sui-inbox .sui-dropdown__menu {
+    width: 360px;
+    max-height: 480px;
+}
+
+.sui-inbox__section {
+    margin: 0;
+    padding: 8px 12px 4px;
+    color: var(--sui-text-muted);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.sui-alert-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 6px 8px 6px 4px;
+    border-bottom: 1px solid var(--sui-border);
+}
+
+.sui-alert-item.is-unread {
+    background: var(--sui-primary-tint);
+}
+
+.sui-alert-item__link {
+    display: flex;
+    flex: 1;
+    gap: 10px;
+    min-width: 0;
+    padding: 4px;
+    border-radius: var(--sui-radius-xs);
+    color: inherit;
+    text-decoration: none;
+}
+
+.sui-alert-item__link:hover {
+    background: rgb(0 0 0 / 0.03);
+}
+
+.sui-alert-item__icon {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: var(--sui-info-bg);
+    color: var(--sui-info);
+}
+
+.sui-alert-item__icon.is-registrations {
+    background: var(--sui-primary-tint);
+    color: var(--sui-primary-dark);
+}
+
+.sui-alert-item__icon.is-delivery {
+    background: var(--sui-danger-bg);
+    color: var(--sui-danger);
+}
+
+.sui-alert-item__icon.is-program {
+    background: var(--sui-warning-bg);
+    color: var(--sui-warning);
+}
+
+.sui-alert-item__text {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.sui-alert-item__title {
+    color: var(--sui-heading);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.sui-alert-item__body {
+    overflow: hidden;
+    color: var(--sui-text-secondary);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sui-alert-item__dismiss {
+    margin: 0;
+}
+
+.sui-alert-item__dismiss .sui-icon-btn {
+    width: 26px;
+    height: 26px;
+}

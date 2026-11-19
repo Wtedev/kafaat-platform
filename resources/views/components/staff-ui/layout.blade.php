@@ -141,16 +141,45 @@
                                 @endif
                             </button>
                         </x-slot:trigger>
+                        @php
+                            $alertGroups = \App\Services\StaffAlerts\StaffAlerts::GROUPS;
+                            $alertService = app(\App\Services\StaffAlerts\StaffAlerts::class);
+                        @endphp
                         <div class="sui-inbox__head">
-                            <strong>الإشعارات</strong>
+                            <strong>التنبيهات</strong>
                             @if (($staffInboxUnreadCount ?? 0) > 0)
-                                <form method="POST" action="{{ route('staff-ui.notifications.read-all') }}">
+                                <form method="POST" action="{{ route('staff-alerts.read-all') }}">
                                     @csrf
                                     <button type="submit" class="sui-inbox__mark">تعليم الكل كمقروء</button>
                                 </form>
                             @endif
                         </div>
-                        @forelse (($staffInboxNotifications ?? collect()) as $notification)
+                        @if (($staffAlerts ?? collect())->isNotEmpty())
+                            <p class="sui-inbox__section">مطلوب</p>
+                            @foreach ($staffAlerts as $alert)
+                                <div @class(['sui-alert-item', 'is-unread' => $alert->unread])>
+                                    <a class="sui-alert-item__link" href="{{ route('staff-alerts.open', $alert) }}">
+                                        <span @class(['sui-alert-item__icon', 'is-'.$alert->group()])><i data-lucide="{{ $alertGroups[$alert->group()]['icon'] ?? 'bell' }}" class="sui-icon sui-icon--sm"></i></span>
+                                        <span class="sui-alert-item__text">
+                                            <span class="sui-alert-item__title">{{ $alert->title }}</span>
+                                            @if (filled($alert->body))
+                                                <span class="sui-alert-item__body">{{ \Illuminate\Support\Str::limit($alert->body, 70) }}</span>
+                                            @endif
+                                        </span>
+                                    </a>
+                                    @if ($alertService->isDismissible($alert))
+                                        <form method="POST" action="{{ route('staff-alerts.dismiss', $alert) }}" class="sui-alert-item__dismiss">
+                                            @csrf
+                                            <button type="submit" class="sui-icon-btn" aria-label="إخفاء" title="إخفاء للجميع حتى يتغيّر"><i data-lucide="x" class="sui-icon sui-icon--sm"></i></button>
+                                        </form>
+                                    @endif
+                                </div>
+                            @endforeach
+                        @endif
+                        @if (($staffInboxNotifications ?? collect())->isNotEmpty())
+                            <p class="sui-inbox__section">لك</p>
+                        @endif
+                        @foreach (($staffInboxNotifications ?? collect()) as $notification)
                             <div @class(['sui-inbox__item', 'is-unread' => $notification->read_at === null])>
                                 <p class="sui-inbox__title">{{ \App\Support\InboxNotificationDisplay::heading($notification) }}</p>
                                 @if (filled($notification->message))
@@ -175,9 +204,10 @@
                                     @endif
                                 </div>
                             </div>
-                        @empty
-                            <p class="sui-inbox__empty">لا توجد إشعارات.</p>
-                        @endforelse
+                        @endforeach
+                        @if (($staffAlerts ?? collect())->isEmpty() && ($staffInboxNotifications ?? collect())->isEmpty())
+                            <p class="sui-inbox__empty">ما فيه شي مطلوب منك الحين.</p>
+                        @endif
                     </x-staff-ui.dropdown>
                     @if (config('staff_ui.topbar.settings'))
                         <button type="button" class="sui-icon-btn" data-sui-toast data-tone="info" data-title="الإعدادات" data-body="صفحة الإعدادات لم تُبنَ بعد." aria-label="الإعدادات">

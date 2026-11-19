@@ -31,3 +31,9 @@ Schedule::command('error-pages:prune --days=90')
 Schedule::command('auth:purge-expired-pending-registrations')
     ->hourly()
     ->withoutOverlapping();
+
+// Staff alerts follow the data; this keeps time-based ones (open attendance,
+// surveys about to close, programs that ended) current even when nobody is browsing.
+Schedule::command('staff-alerts:refresh')
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
