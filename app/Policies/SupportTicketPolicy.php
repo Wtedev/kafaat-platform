@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\SupportTicket;
 use App\Models\User;
+use App\Support\SupportDeskAccess;
 
 class SupportTicketPolicy
 {
@@ -39,28 +40,26 @@ class SupportTicketPolicy
 
     public function assign(User $user, SupportTicket $ticket): bool
     {
-        return $user->isAdmin() || $user->can('support_tickets.assign');
+        return SupportDeskAccess::isAgent($user);
     }
 
     public function updateStatus(User $user, SupportTicket $ticket): bool
     {
-        return $user->isAdmin() || $user->can('support_tickets.manage_status');
+        return SupportDeskAccess::isAgent($user);
     }
 
     public function manageInternalNotes(User $user, SupportTicket $ticket): bool
     {
-        return $user->isAdmin() || $user->can('support_tickets.internal_notes');
+        return SupportDeskAccess::isAgent($user);
     }
 
     public function delete(User $user, SupportTicket $ticket): bool
     {
-        return $user->isAdmin();
+        return SupportDeskAccess::isAgent($user);
     }
 
     private function canManage(User $user): bool
     {
-        return $user->isAdmin()
-            || $user->can('support_tickets.view')
-            || $user->can('support_tickets.reply');
+        return SupportDeskAccess::isAgent($user);
     }
 }

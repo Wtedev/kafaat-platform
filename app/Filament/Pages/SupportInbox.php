@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\Support\SupportTicketService;
 use App\Services\Support\SupportUnreadService;
 use App\Support\StaffUi\StaffUiModule;
+use App\Support\SupportDeskAccess;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Enums\Width;
@@ -75,11 +76,7 @@ class SupportInbox extends Page
     {
         $user = auth()->user();
 
-        return $user instanceof User && (
-            $user->isAdmin()
-            || $user->can('support_tickets.view')
-            || $user->can('support_tickets.reply')
-        );
+        return SupportDeskAccess::isAgent($user instanceof User ? $user : null);
     }
 
     public static function shouldRegisterNavigation(): bool
@@ -417,21 +414,21 @@ class SupportInbox extends Page
     {
         $user = auth()->user();
 
-        return $user instanceof User && ($user->isAdmin() || $user->can('support_tickets.reply'));
+        return SupportDeskAccess::isAgent($user instanceof User ? $user : null);
     }
 
     public function canManageStatus(): bool
     {
         $user = auth()->user();
 
-        return $user instanceof User && ($user->isAdmin() || $user->can('support_tickets.manage_status'));
+        return SupportDeskAccess::isAgent($user instanceof User ? $user : null);
     }
 
     public function canInternalNotes(): bool
     {
         $user = auth()->user();
 
-        return $user instanceof User && ($user->isAdmin() || $user->can('support_tickets.internal_notes'));
+        return SupportDeskAccess::isAgent($user instanceof User ? $user : null);
     }
 
     /**

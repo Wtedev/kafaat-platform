@@ -73,6 +73,8 @@ class SupportConversationHubTest extends TestCase
             'is_active' => true,
         ]);
         $user->assignRole('admin');
+        // Only listed accounts work the support desk.
+        config(['support_desk.agents' => [...(array) config('support_desk.agents'), strtolower($user->email)]]);
 
         return $user;
     }
@@ -859,8 +861,30 @@ class SupportConversationHubTest extends TestCase
         $staff->assignRole('staff');
         $staff->givePermissionTo('support_tickets.view');
 
+        // A permission alone no longer opens the desk; only the listed accounts do.
         $this->actingAs($staff);
+        $this->assertFalse(SupportTicketResource::canAccess());
+
+        config(['support_desk.agents' => [strtolower($staff->email)]]);
         $this->assertTrue(SupportTicketResource::canAccess());
         $this->assertTrue($staff->can('support_tickets.view'));
+    }
+
+    public function test_admins_who_are_not_listed_cannot_open_the_support_desk(): void
+    {
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        config(['support_desk.agents' => ['lamaalmushyqih@gmail.com']]);
+        $admin = User::factory()->create(['role_type' => 'admin', 'email' => 'other-admin@example.com', 'email_verified_at' => now(), 'is_active' => true]);
+        $admin->assignRole('admin');
+        $ticket = app(SupportTicketService::class)->createAndNotify([
+            'subject' => 'استفسار',
+            'category' => 'general',
+            'body' => 'أحتاج مساعدة بخصوص الحساب من فضلكم.',
+        ], $this->beneficiary());
+
+        $this->actingAs($admin);
+        $this->assertFalse(SupportTicketResource::canAccess());
+        $this->assertFalse($admin->can('view', $ticket));
+        $this->assertFalse($admin->can('reply', $ticket));
     }
 }

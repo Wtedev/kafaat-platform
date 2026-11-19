@@ -296,6 +296,13 @@ class AppServiceProvider extends ServiceProvider
             }
 
             $target = $arguments[0] ?? null;
+
+            // The support desk belongs to the accounts in config/support_desk.php, not to admins.
+            if (str_starts_with($ability, 'support_tickets.')
+                || $target instanceof SupportTicket
+                || $target === SupportTicket::class) {
+                return null;
+            }
             if ($ability === 'delete' && $target instanceof User && $target->isProtectedAdminUser()) {
                 return false;
             }
