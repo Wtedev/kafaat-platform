@@ -130,14 +130,12 @@ class CertificateResource extends Resource
                     ->label('نوع الشهادة')
                     ->formatStateUsing(fn (?string $state): string => match (class_basename((string) $state)) {
                         'TrainingProgram' => 'برنامج تدريبي',
-                        'LearningPath' => 'مسار تعليمي',
                         'VolunteerOpportunity' => 'فرصة تطوعية',
                         default => $state ? class_basename($state) : '—',
                     })
                     ->badge()
                     ->color(fn (?string $state): string => match (class_basename((string) $state)) {
                         'TrainingProgram' => 'success',
-                        'LearningPath' => 'info',
                         'VolunteerOpportunity' => 'warning',
                         default => 'gray',
                     }),

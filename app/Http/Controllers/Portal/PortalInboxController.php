@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Exceptions\OpportunityCapacityExceededException;
-use App\Exceptions\PathCapacityExceededException;
 use App\Exceptions\ProgramCapacityExceededException;
 use App\Filament\Support\InboxNotificationRecordActions;
 use App\Http\Controllers\Controller;
@@ -11,7 +10,6 @@ use App\Models\InboxNotification;
 use App\Models\User;
 use App\Services\Inbox\InboxNotificationService;
 use App\Services\Inbox\UserNotificationPreferences;
-use App\Services\PathRegistrationService;
 use App\Services\ProgramRegistrationService;
 use App\Services\UserActivityLogger;
 use App\Services\VolunteerRegistrationService;
@@ -94,14 +92,13 @@ class PortalInboxController extends Controller
         Request $request,
         InboxNotification $notification,
         ProgramRegistrationService $programRegistrationService,
-        PathRegistrationService $pathRegistrationService,
         VolunteerRegistrationService $volunteerRegistrationService,
     ): RedirectResponse {
         Gate::authorize('update', $notification);
         abort_unless((int) $notification->user_id === (int) $request->user()->id, 403);
 
         $validated = $request->validate([
-            'intent' => ['required', 'string', 'in:approve_program,reject_program,approve_path,reject_path,approve_volunteer,reject_volunteer'],
+            'intent' => ['required', 'string', 'in:approve_program,reject_program,approve_volunteer,reject_volunteer'],
             'rejected_reason' => ['nullable', 'string', 'max:2000'],
         ]);
 
@@ -113,15 +110,11 @@ class PortalInboxController extends Controller
             return match ($validated['intent']) {
                 'approve_program' => $this->portalApproveProgramRegistration($notification, $actor, $programRegistrationService),
                 'reject_program' => $this->portalRejectProgramRegistration($notification, $programRegistrationService, $reason),
-                'approve_path' => $this->portalApprovePathRegistration($notification, $actor, $pathRegistrationService),
-                'reject_path' => $this->portalRejectPathRegistration($notification, $pathRegistrationService, $reason),
                 'approve_volunteer' => $this->portalApproveVolunteerRegistration($notification, $actor, $volunteerRegistrationService),
                 'reject_volunteer' => $this->portalRejectVolunteerRegistration($notification, $actor, $volunteerRegistrationService, $reason),
             };
         } catch (ProgramCapacityExceededException) {
             return back()->with('error', 'البرنامج بلغ طاقته القصوى.');
-        } catch (PathCapacityExceededException) {
-            return back()->with('error', 'المسار بلغ طاقته القصوى.');
         } catch (OpportunityCapacityExceededException) {
             return back()->with('error', 'الفرصة التطوعية بلغت طاقتها القصوى.');
         }
@@ -159,40 +152,6 @@ class PortalInboxController extends Controller
         $notification->markAsRead();
 
         return back()->with('success', 'تم رفض التسجيل في البرنامج.');
-    }
-
-    private function portalApprovePathRegistration(
-        InboxNotification $notification,
-        User $actor,
-        PathRegistrationService $pathRegistrationService,
-    ): RedirectResponse {
-        abort_unless(InboxNotificationRecordActions::canApprovePathRegistration($notification), 403);
-        $reg = InboxNotificationRecordActions::pathRegistration($notification);
-        if ($reg === null) {
-            abort(404);
-        }
-        Gate::authorize('approve', $reg);
-        $pathRegistrationService->approve($reg, $actor);
-        $notification->markAsRead();
-
-        return back()->with('success', 'تم قبول التسجيل في المسار.');
-    }
-
-    private function portalRejectPathRegistration(
-        InboxNotification $notification,
-        PathRegistrationService $pathRegistrationService,
-        ?string $reason,
-    ): RedirectResponse {
-        abort_unless(InboxNotificationRecordActions::canRejectPathRegistration($notification), 403);
-        $reg = InboxNotificationRecordActions::pathRegistration($notification);
-        if ($reg === null) {
-            abort(404);
-        }
-        Gate::authorize('reject', $reg);
-        $pathRegistrationService->reject($reg, $reason);
-        $notification->markAsRead();
-
-        return back()->with('success', 'تم رفض التسجيل في المسار.');
     }
 
     private function portalApproveVolunteerRegistration(

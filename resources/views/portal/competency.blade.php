@@ -46,13 +46,13 @@
         @php $platEmpty = 'rounded-lg border border-dashed border-gray-200 bg-slate-50/70 px-4 py-4 text-sm text-gray-500'; @endphp
         <div class="grid gap-4 sm:grid-cols-2">
             <div class="rounded-xl border border-gray-50 bg-[#F8FAFC] p-4">
-                <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ $cvL['learning_paths'] ?? 'المسارات' }}</p>
+                <p class="text-xs font-bold uppercase tracking-wide text-slate-500">{{ $cvL['completed_programs'] ?? 'البرامج المكتملة' }}</p>
                 <ul class="mt-2 space-y-1 text-sm text-gray-800">
-                    @forelse ($completedPaths as $reg)
-                    <li>{{ $reg->learningPath?->title ?? '—' }}</li>
+                    @forelse ($completedPrograms as $reg)
+                    <li>{{ $reg->trainingProgram?->title ?? '—' }}</li>
                     @empty
                     <li class="list-none ps-0">
-                        <p class="{{ $platEmpty }} mb-0 {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No completed learning paths yet.' : 'لا مسارات تعليمية مكتملة بعد.' }}</p>
+                        <p class="{{ $platEmpty }} mb-0 {{ $cvLocale === 'en' ? 'text-left' : 'text-right' }}">{{ $cvLocale === 'en' ? 'No completed programs yet.' : 'لا برامج مكتملة بعد.' }}</p>
                     </li>
                     @endforelse
                 </ul>

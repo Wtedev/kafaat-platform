@@ -5,7 +5,6 @@ namespace Tests\Feature\Certificates;
 use App\Enums\AttendanceMarkSource;
 use App\Enums\InboxNotificationType;
 use App\Enums\OpportunityStatus;
-use App\Enums\PathStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\SurveyType;
@@ -17,7 +16,6 @@ use App\Models\Certificate;
 use App\Models\CertificateTemplate;
 use App\Models\EmailLog;
 use App\Models\InboxNotification;
-use App\Models\LearningPath;
 use App\Models\ProgramAttendanceLink;
 use App\Models\ProgramAttendanceMark;
 use App\Models\ProgramRegistration;
@@ -755,13 +753,6 @@ class ProgramCertificateIssuanceTest extends TestCase
         $this->assertSame(1, InboxNotification::query()->where('type', InboxNotificationType::CertificateIssued)->count());
         $this->assertSame(0, EmailLog::query()->where('template_key', 'inbox.certificate_issued')->count());
 
-        $path = LearningPath::query()->create([
-            'title' => 'مسار ما زال يرسل بريد التنبيه',
-            'slug' => 'path-still-emails-'.uniqid(),
-            'status' => PathStatus::Draft,
-        ]);
-        app(CertificateService::class)->issue($beneficiary, $path, $issuer);
-
         $opportunity = VolunteerOpportunity::query()->create([
             'title' => 'تطوع ما زال يرسل بريد التنبيه',
             'slug' => 'volunteer-still-emails-'.uniqid(),
@@ -770,7 +761,7 @@ class ProgramCertificateIssuanceTest extends TestCase
         ]);
         app(CertificateService::class)->issue($beneficiary, $opportunity, $issuer);
 
-        Notification::assertSentToTimes($beneficiary, InboxNotificationEmail::class, 2);
+        Notification::assertSentToTimes($beneficiary, InboxNotificationEmail::class, 1);
         Notification::assertSentToTimes($beneficiary, CertificateReadyEmail::class, 1);
     }
 

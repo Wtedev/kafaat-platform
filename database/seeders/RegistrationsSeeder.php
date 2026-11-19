@@ -3,8 +3,6 @@
 namespace Database\Seeders;
 
 use App\Enums\RegistrationStatus;
-use App\Models\LearningPath;
-use App\Models\PathRegistration;
 use App\Models\Profile;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
@@ -20,14 +18,6 @@ use Illuminate\Support\Facades\Hash;
  */
 class RegistrationsSeeder extends Seeder
 {
-    /** @var list<string> */
-    private const REQUIRED_PATH_SLUGS = [
-        'masar-altasim-algrafiki-101',
-        'masar-altahil-almehnawi',
-        'masar-allugha-alengliziyya',
-        'masar-muhalil-albayanat',
-    ];
-
     /** @var list<string> */
     private const REQUIRED_PROGRAM_SLUGS = [
         'qadah',
@@ -78,23 +68,16 @@ class RegistrationsSeeder extends Seeder
             $usersByEmail[$def['email']] = $user;
         }
 
-        $this->seedPathRegistrations($usersByEmail, $approver);
         $this->seedProgramRegistrations($usersByEmail, $approver);
         $this->seedVolunteerRegistrations($usersByEmail, $approver);
     }
 
     /**
-     * Requires LearningPathSeeder, TrainiپgProgramSeeder, and VolunteerOpportunitySeeder to have run first.
+     * Requires TrainingProgramSeeder and VolunteerOpportunitySeeder to have run first.
      */
     private function dependenciesMet(): bool
     {
         $issues = [];
-
-        foreach (self::REQUIRED_PATH_SLUGS as $slug) {
-            if (! LearningPath::query()->where('slug', $slug)->exists()) {
-                $issues[] = "learning path slug `{$slug}`";
-            }
-        }
 
         foreach (self::REQUIRED_PROGRAM_SLUGS as $slug) {
             if (! TrainingProgram::query()->where('slug', $slug)->exists()) {
@@ -147,54 +130,6 @@ class RegistrationsSeeder extends Seeder
             ['name' => 'فيصل الشهري', 'email' => 'portal.user24@kafaat.org.sa', 'role_type' => 'volunteer', 'spatie_role' => 'volunteer'],
             ['name' => 'غادة العنزي', 'email' => 'portal.user25@kafaat.org.sa', 'role_type' => 'volunteer', 'spatie_role' => 'volunteer'],
         ];
-    }
-
-    /**
-     * @param  array<string, User>  $usersByEmail
-     */
-    private function seedPathRegistrations(array $usersByEmail, User $approver): void
-    {
-        $path = fn (string $slug) => LearningPath::query()->where('slug', $slug)->first();
-
-        $rows = [
-            ['email' => 'portal.user01@kafaat.org.sa', 'path' => 'masar-altasim-algrafiki-101', 'status' => RegistrationStatus::Approved],
-            ['email' => 'portal.user02@kafaat.org.sa', 'path' => 'masar-altahil-almehnawi', 'status' => RegistrationStatus::Pending],
-            ['email' => 'portal.user03@kafaat.org.sa', 'path' => 'masar-allugha-alengliziyya', 'status' => RegistrationStatus::Rejected, 'reason' => 'عدم استيفاء شرط المستوى المبدئي.'],
-            ['email' => 'portal.user04@kafaat.org.sa', 'path' => 'masar-muhalil-albayanat', 'status' => RegistrationStatus::Completed, 'completed' => true],
-            ['email' => 'portal.user05@kafaat.org.sa', 'path' => 'masar-altahil-almehnawi', 'status' => RegistrationStatus::Approved],
-            ['email' => 'portal.user06@kafaat.org.sa', 'path' => 'masar-muhalil-albayanat', 'status' => RegistrationStatus::Pending],
-            ['email' => 'portal.user11@kafaat.org.sa', 'path' => 'masar-altasim-algrafiki-101', 'status' => RegistrationStatus::Approved],
-            ['email' => 'portal.user12@kafaat.org.sa', 'path' => 'masar-allugha-alengliziyya', 'status' => RegistrationStatus::Approved],
-            ['email' => 'portal.user13@kafaat.org.sa', 'path' => 'masar-muhalil-albayanat', 'status' => RegistrationStatus::Rejected, 'reason' => 'اكتمال الطاقة الاستيعابية.'],
-            ['email' => 'portal.user14@kafaat.org.sa', 'path' => 'masar-altahil-almehnawi', 'status' => RegistrationStatus::Completed, 'completed' => true],
-        ];
-
-        foreach ($rows as $row) {
-            $p = $path($row['path']);
-            $u = $usersByEmail[$row['email']] ?? null;
-            if ($p === null || $u === null) {
-                continue;
-            }
-
-            $data = [
-                'status' => $row['status'],
-                'rejected_reason' => $row['reason'] ?? null,
-                'approved_by' => in_array($row['status'], [RegistrationStatus::Approved, RegistrationStatus::Completed, RegistrationStatus::Rejected], true)
-                    ? $approver->id
-                    : null,
-                'approved_at' => in_array($row['status'], [RegistrationStatus::Approved, RegistrationStatus::Completed], true)
-                    ? Carbon::now()->subDays(rand(5, 40))
-                    : null,
-                'completed_at' => ($row['completed'] ?? false)
-                    ? Carbon::now()->subDays(rand(2, 15))
-                    : null,
-            ];
-
-            PathRegistration::updateOrCreate(
-                ['learning_path_id' => $p->id, 'user_id' => $u->id],
-                $data
-            );
-        }
     }
 
     /**

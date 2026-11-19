@@ -2,11 +2,9 @@
 
 namespace Tests\Feature\Certificates;
 
-use App\Enums\PathStatus;
 use App\Enums\ProgramStatus;
 use App\Models\Certificate;
 use App\Models\CertificateTemplate;
-use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\CertificatePdfService;
@@ -68,35 +66,6 @@ class CertificateDesignPdfTest extends TestCase
         $this->assertReadablePdf($sample);
         $this->assertStringContainsString('FFShamelFamily', $sample);
         $this->assertSame(0, Certificate::query()->count());
-    }
-
-    public function test_a_learning_path_certificate_still_uses_the_original_template(): void
-    {
-        $user = User::factory()->create([
-            'name' => 'سارة المسار',
-            'role_type' => 'beneficiary',
-            'is_active' => true,
-        ]);
-        $path = LearningPath::query()->create([
-            'title' => 'مسار الشهادة القديمة',
-            'slug' => 'legacy-path-'.uniqid(),
-            'status' => PathStatus::Draft,
-        ]);
-        $certificate = Certificate::query()->create([
-            'user_id' => $user->id,
-            'certificateable_type' => LearningPath::class,
-            'certificateable_id' => $path->id,
-            'certificate_number' => 'CERT-PATH-LEGACY',
-            'verification_code' => bin2hex(random_bytes(16)),
-            'issued_at' => now(),
-        ]);
-
-        $stored = app(CertificatePdfService::class)->generate($certificate);
-        $bytes = Storage::disk('public')->get($stored);
-
-        $this->assertReadablePdf($bytes);
-        $this->assertStringContainsString('IBMPlexSansArabic', $bytes);
-        $this->assertStringNotContainsString('FFShamelFamily', $bytes);
     }
 
     public function test_a_program_without_a_background_keeps_the_original_template(): void

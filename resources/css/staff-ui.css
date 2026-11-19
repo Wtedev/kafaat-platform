@@ -2218,11 +2218,6 @@ a.sui-menu-item {
     gap: 8px;
 }
 
-.sui-program-card__path {
-    color: var(--sui-text-secondary);
-    font-size: 12px;
-}
-
 .sui-program-card__counts {
     display: grid;
     grid-template-columns: 1fr 1fr;

@@ -40,7 +40,7 @@ class ViewTrainingProgram extends BaseViewRecord
     {
         parent::mount($record);
 
-        $this->getRecord()->loadMissing(['learningPath', 'owner', 'creator', 'assignee', 'editors']);
+        $this->getRecord()->loadMissing(['owner', 'creator', 'assignee', 'editors']);
         $this->initializeTrainingEntitySettingsTab();
     }
 
@@ -65,7 +65,6 @@ class ViewTrainingProgram extends BaseViewRecord
         /** @var TrainingProgram $record */
         $record = $this->getRecord();
         $data = EntityPublicationFormData::mergePublicationUiState($data, $record, ProgramStatus::Published);
-        $data = array_merge($data, TrainingEntityFormSupport::programPathLinkFormState($record));
         $data['capacity_mode'] = ($record->capacity_male !== null || $record->capacity_female !== null)
             ? 'per_gender'
             : ($record->capacity !== null ? 'shared' : 'unlimited');
@@ -114,11 +113,7 @@ class ViewTrainingProgram extends BaseViewRecord
 
         $data = TrainingEntityFormSupport::mergeNonDehydratedFormFlags($data, $this->data ?? []);
 
-        $linked = (bool) ($data['is_linked_to_path'] ?? false);
-
-        $data = TrainingEntityFormSupport::applyProgramPathLinkSettings($data);
-
-        TrainingEntityFormSupport::assertValidProgramScheduleOrFail($data, showRegistration: ! $linked);
+        TrainingEntityFormSupport::assertValidProgramScheduleOrFail($data);
 
         $data['status'] = $this->resolveProgramPublicationStatus($program, $wantPublished)->value;
 
@@ -131,13 +126,11 @@ class ViewTrainingProgram extends BaseViewRecord
         $data = TrainingEntityFormSupport::applyAcceptanceConditions($data);
         $data = TrainingProgramExtrasSupport::applyFormData($data);
 
-        if (! $linked) {
-            $ownerId = isset($data['owner_id']) ? (int) $data['owner_id'] : (int) $program->owner_id;
-            $data['editors'] = TrainingEntityFormSupport::normalizeProgramEditorIds(
-                is_array($data['editors'] ?? null) ? $data['editors'] : [],
-                $ownerId > 0 ? $ownerId : null,
-            );
-        }
+        $ownerId = isset($data['owner_id']) ? (int) $data['owner_id'] : (int) $program->owner_id;
+        $data['editors'] = TrainingEntityFormSupport::normalizeProgramEditorIds(
+            is_array($data['editors'] ?? null) ? $data['editors'] : [],
+            $ownerId > 0 ? $ownerId : null,
+        );
 
         return $this->dropEmptyTrainingSlug(
             $this->stampTrainingEntityAuditFields($data),
@@ -203,17 +196,6 @@ class ViewTrainingProgram extends BaseViewRecord
     }
 
     /**
-     * @return array<string, mixed>
-     */
-    protected function resolveInlineEditFormStateOverrides(): array
-    {
-        /** @var TrainingProgram $program */
-        $program = $this->getRecord();
-
-        return TrainingEntityFormSupport::programPathLinkFormState($program);
-    }
-
-    /**
      * @return array<string, mixed>|null
      */
     protected function resolveInlineEditFormStateForFieldFromRecord(string $field): ?array
@@ -247,8 +229,6 @@ class ViewTrainingProgram extends BaseViewRecord
             'delivery_mode' => 'أسلوب التنفيذ',
             'venue' => 'موقع البرنامج',
             'description' => 'الوصف',
-            'is_linked_to_path' => 'تابع لمسار تدريبي',
-            'learning_path_id' => 'المسار التدريبي',
             'capacity' => 'الحد الأقصى للمسجّلين',
             'capacity_unlimited' => 'تسجيل غير محدود',
             'auto_accept_registrations' => 'قبول تلقائي',
@@ -288,15 +268,13 @@ class ViewTrainingProgram extends BaseViewRecord
 
     protected function afterTrainingEntitySettingsSaved(): void
     {
-        $this->getRecord()->unsetRelation('learningPath');
-        $this->getRecord()->loadMissing(['learningPath', 'owner', 'creator', 'assignee', 'editors']);
+        $this->getRecord()->loadMissing(['owner', 'creator', 'assignee', 'editors']);
     }
 
     protected function afterInlineEntityFieldEdited(string $field): void
     {
         $this->getRecord()->refresh();
-        $this->getRecord()->unsetRelation('learningPath');
-        $this->getRecord()->loadMissing(['learningPath', 'owner', 'creator', 'assignee', 'editors']);
+        $this->getRecord()->loadMissing(['owner', 'creator', 'assignee', 'editors']);
     }
 
     protected function getProgramViewPanel(): Html
@@ -304,7 +282,7 @@ class ViewTrainingProgram extends BaseViewRecord
         return $this->renderEntityViewPanel(function (): array {
             /** @var TrainingProgram $program */
             $program = $this->getRecord()->fresh();
-            $program->loadMissing(['learningPath', 'owner', 'creator', 'assignee', 'editors']);
+            $program->loadMissing(['owner', 'creator', 'assignee', 'editors']);
 
             return TrainingProgramViewPresenter::present($program);
         });

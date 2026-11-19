@@ -16,15 +16,11 @@ class PortalDashboardController extends Controller
 
         $programsRegistered = $user->programRegistrations()
             ->whereHas('trainingProgram', fn ($query) => $query->published())
-            ->count()
-            + $user->learningPathRegistrations()->count();
+            ->count();
         $programsCompleted = $user->programRegistrations()
             ->whereHas('trainingProgram', fn ($query) => $query->published())
             ->where('status', RegistrationStatus::Completed)
-            ->count()
-            + $user->learningPathRegistrations()
-                ->where('status', RegistrationStatus::Completed)
-                ->count();
+            ->count();
         $approvedHours = $user->totalApprovedVolunteerHours();
         $certificatesCount = $user->certificates()->count();
 

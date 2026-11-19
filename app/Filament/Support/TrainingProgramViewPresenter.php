@@ -14,16 +14,14 @@ final class TrainingProgramViewPresenter
      */
     public static function present(TrainingProgram $program): array
     {
-        $standalone = $program->learning_path_id === null;
-
         return [
             'cover' => self::cover($program),
             'stats' => self::stats($program),
             'sections' => array_values(array_filter([
                 self::overviewSection($program),
-                $standalone ? self::scheduleSection($program) : null,
-                $standalone ? self::enrollmentSection($program) : null,
-                self::teamSection($program, $standalone),
+                self::scheduleSection($program),
+                self::enrollmentSection($program),
+                self::teamSection($program),
                 self::descriptionSection($program),
             ])),
         ];
@@ -103,13 +101,6 @@ final class TrainingProgramViewPresenter
                     'heroicon-o-map-pin',
                 ),
                 EntityViewPresenterSupport::row(
-                    'التبعية للمسار',
-                    $program->learning_path_id === null
-                        ? 'برنامج مستقل'
-                        : ($program->learningPath?->title ?? '—'),
-                    'heroicon-o-map',
-                ),
-                EntityViewPresenterSupport::row(
                     'حالة النشر',
                     self::publicationStatusLabel($program),
                     'heroicon-o-signal',
@@ -138,13 +129,11 @@ final class TrainingProgramViewPresenter
             ),
         ];
 
-        if ($program->learning_path_id === null) {
-            $rows[] = EntityViewPresenterSupport::row(
-                'فترة التسجيل',
-                self::formatRegistrationWindow($program),
-                'heroicon-o-clock',
-            );
-        }
+        $rows[] = EntityViewPresenterSupport::row(
+            'فترة التسجيل',
+            self::formatRegistrationWindow($program),
+            'heroicon-o-clock',
+        );
 
         $weekdaysLabel = self::formatProgramWeekdays($program);
         if ($weekdaysLabel !== null) {
@@ -220,24 +209,22 @@ final class TrainingProgramViewPresenter
     /**
      * @return array{title: string, icon: string, rows: array<int, array<string, mixed>>}
      */
-    private static function teamSection(TrainingProgram $program, bool $standalone): array
+    private static function teamSection(TrainingProgram $program): array
     {
         $responsible = self::resolveResponsibleName($program);
         $rows = [
             EntityViewPresenterSupport::row('المسؤول', $responsible, 'heroicon-o-user-circle'),
         ];
 
-        if ($standalone) {
-            $editors = $program->editors->pluck('name')->filter()->values()->all();
+        $editors = $program->editors->pluck('name')->filter()->values()->all();
 
-            if ($editors !== []) {
-                $editorLabel = count($editors) === 1 && $editors[0] === $responsible
-                    ? null
-                    : implode('، ', $editors);
+        if ($editors !== []) {
+            $editorLabel = count($editors) === 1 && $editors[0] === $responsible
+                ? null
+                : implode('، ', $editors);
 
-                if ($editorLabel !== null) {
-                    $rows[] = EntityViewPresenterSupport::row('فريق العمل', $editorLabel, 'heroicon-o-users');
-                }
+            if ($editorLabel !== null) {
+                $rows[] = EntityViewPresenterSupport::row('فريق العمل', $editorLabel, 'heroicon-o-users');
             }
         }
 

@@ -234,7 +234,6 @@ class IdentityLockAndNationalityTest extends TestCase
             'slug' => 'saudi-prefix-'.uniqid(),
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
             'acceptance_conditions' => ['require_saudi_national' => true],
         ]);
         $approver = User::factory()->create(['role_type' => 'staff']);
@@ -268,7 +267,6 @@ class IdentityLockAndNationalityTest extends TestCase
             'slug' => 'saudi-prefix-ok-'.uniqid(),
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
             'acceptance_conditions' => ['require_saudi_national' => true],
         ]);
         $prefixOne = IdentityNumberService::prepareStoragePayload('1091111111');

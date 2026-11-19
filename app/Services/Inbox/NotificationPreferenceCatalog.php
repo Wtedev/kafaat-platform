@@ -20,7 +20,6 @@ final class NotificationPreferenceCatalog
         return [
             InboxNotificationType::NewsStaffCopy,
             InboxNotificationType::StaffNewProgramRegistration,
-            InboxNotificationType::StaffNewPathRegistration,
             InboxNotificationType::StaffNewVolunteerRegistration,
             InboxNotificationType::StaffTrainingEntityCreated,
             InboxNotificationType::StaffVolunteerOpportunityCreated,
@@ -39,8 +38,7 @@ final class NotificationPreferenceCatalog
             InboxNotificationType::RegistrationRejected,
             InboxNotificationType::CertificateIssued => NotificationPreferenceCategory::Account,
 
-            InboxNotificationType::ProgramLaunched,
-            InboxNotificationType::LearningPathLaunched => NotificationPreferenceCategory::ProgramsNew,
+            InboxNotificationType::ProgramLaunched => NotificationPreferenceCategory::ProgramsNew,
 
             InboxNotificationType::ProgramUpdated,
             InboxNotificationType::VolunteerOpportunityUpdated => NotificationPreferenceCategory::ProgramsUpdates,
@@ -72,7 +70,6 @@ final class NotificationPreferenceCatalog
         return match ($type) {
             InboxNotificationType::CertificateIssued,
             InboxNotificationType::ProgramLaunched,
-            InboxNotificationType::LearningPathLaunched,
             InboxNotificationType::NewsPublished,
             InboxNotificationType::VolunteerOpportunityPublished => true,
             // SupportReply primary email is SendSupportReplyEmailJob (always), not InboxNotificationEmail.

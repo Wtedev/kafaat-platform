@@ -15,7 +15,6 @@ enum UserActivityAction: string
     case CompetencyUpdated = 'competency_updated';
     case AdminUserUpdated = 'admin_user_updated';
     case ProgramRegistration = 'program_registration';
-    case PathRegistration = 'path_registration';
     case VolunteerRegistration = 'volunteer_registration';
     case AttendanceCheckIn = 'attendance_check_in';
     case CertificateDownloaded = 'certificate_downloaded';
@@ -50,7 +49,7 @@ enum UserActivityAction: string
             self::ProfileUpdated => 'الملف الشخصي',
             self::CompetencyUpdated => 'صفحة الكفاءات',
             self::AdminUserUpdated => 'من الإدارة',
-            self::ProgramRegistration, self::PathRegistration, self::VolunteerRegistration => 'التسجيل',
+            self::ProgramRegistration, self::VolunteerRegistration => 'التسجيل',
             self::AttendanceCheckIn => 'الحضور',
             self::CertificateDownloaded => 'الشهادات',
             self::CvUploaded, self::CvReplaced, self::CvDeleted => 'السيرة الذاتية',
@@ -77,7 +76,6 @@ enum UserActivityAction: string
             self::CompetencyUpdated => 'تحديث صفحة الكفاءات',
             self::AdminUserUpdated => 'تعديل من الإدارة',
             self::ProgramRegistration => 'تسجيل في برنامج',
-            self::PathRegistration => 'تسجيل في مسار',
             self::VolunteerRegistration => 'تسجيل في فرصة تطوعية',
             self::AttendanceCheckIn => 'تسجيل حضور',
             self::CertificateDownloaded => 'تحميل شهادة',

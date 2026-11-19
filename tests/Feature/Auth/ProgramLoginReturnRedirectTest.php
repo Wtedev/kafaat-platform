@@ -253,7 +253,6 @@ class ProgramLoginReturnRedirectTest extends TestCase
             'slug' => 'vl-registration-closed',
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
             'registration_start' => now()->subDays(10)->toDateString(),
             'registration_end' => now()->subDay()->toDateString(),
         ]);
@@ -278,7 +277,6 @@ class ProgramLoginReturnRedirectTest extends TestCase
             'slug' => 'upcoming-registration-copy',
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
             'registration_start' => now()->addDays(2)->toDateString(),
             'registration_end' => now()->addDays(12)->toDateString(),
         ]);
@@ -374,7 +372,6 @@ class ProgramLoginReturnRedirectTest extends TestCase
             'slug' => $slug,
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
         ]);
     }
 

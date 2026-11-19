@@ -46,7 +46,6 @@ class PortalDashboardLayoutTest extends TestCase
             'slug' => 'registered-prog-'.uniqid(),
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
         ]);
 
         TrainingProgram::query()->create([
@@ -54,7 +53,6 @@ class PortalDashboardLayoutTest extends TestCase
             'slug' => 'other-prog-'.uniqid(),
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
         ]);
 
         ProgramRegistration::query()->create([
@@ -108,7 +106,7 @@ class PortalDashboardLayoutTest extends TestCase
             ->assertOk()
             ->assertSee('نشاطي الحالي', false)
             ->assertSee('التنبيهات', false)
-            ->assertSee('مسارات وبرامج مسجّلة', false)
+            ->assertSee('برامج مسجّلة', false)
             ->assertDontSee('صفحة الكفاءة', false)
             ->assertDontSee('برامج كفاءات مقترحة لك', false);
     }

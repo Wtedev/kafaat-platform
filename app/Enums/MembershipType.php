@@ -23,7 +23,7 @@ enum MembershipType: string
     public function description(): string
     {
         return match ($this) {
-            self::Trainee => 'مسجّل في مسارات أو برامج تدريبية',
+            self::Trainee => 'مسجّل في برامج تدريبية',
             self::Volunteer => 'يشارك في فرص تطوعية',
             self::Beneficiary => 'عضو في منصة كفاءات',
         };

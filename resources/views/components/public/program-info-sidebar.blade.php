@@ -5,8 +5,6 @@ use App\Support\ProgramAcceptanceConditions;
 use App\Support\TrainingProgramExtrasSupport;
 use App\Support\VolunteerLeadersProgramPeriod;
 
-$viaPathOnly = $trainingProgram->learning_path_id !== null;
-
 $isVolunteerLeaders = VolunteerLeadersProgramPeriod::applies($trainingProgram);
 $startDateOnly = str_starts_with((string) $trainingProgram->slug, 'tatawaa-waei');
 $programDateRange = null;
@@ -108,14 +106,6 @@ if (is_array($acceptance) && ($acceptance['min_age'] !== null || $acceptance['ma
         <x-public.info-sidebar-item dense label="حالة التسجيل" :value="$trainingProgram->registrationWindowStatusLabel()">
             <x-slot:icon>
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            </x-slot:icon>
-        </x-public.info-sidebar-item>
-        @endif
-
-        @if ($viaPathOnly && $trainingProgram->learningPath)
-        <x-public.info-sidebar-item dense label="المسار التدريبي" :value="$trainingProgram->learningPath->title">
-            <x-slot:icon>
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#335483"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
             </x-slot:icon>
         </x-public.info-sidebar-item>
         @endif

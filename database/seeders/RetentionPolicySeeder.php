@@ -33,15 +33,6 @@ class RetentionPolicySeeder extends Seeder
                 'reason' => 'Registration evidence retained under restricted access pending administrative decision.',
             ],
             [
-                'resource_type' => 'path_registrations',
-                'name' => 'Path registration retention',
-                'trigger_type' => RetentionTriggerEvent::AccountDeletedAt,
-                'retention_period_days' => null,
-                'action' => RetentionPolicyAction::RetainRestricted,
-                'status' => RetentionPolicyStatus::Active,
-                'reason' => 'Registration evidence retained under restricted access pending administrative decision.',
-            ],
-            [
                 'resource_type' => 'volunteer_registrations',
                 'name' => 'Volunteer registration retention',
                 'trigger_type' => RetentionTriggerEvent::AccountDeletedAt,

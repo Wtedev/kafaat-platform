@@ -25,7 +25,6 @@ class DatabaseSeeder extends Seeder
         $this->call(AdminUserSeeder::class);
         $this->call(EmployeeSeeder::class);
         $this->call(BeneficiaryUserSeeder::class);
-        $this->call(LearningPathSeeder::class);
         $this->call(TrainingProgramSeeder::class);
         // Idempotent VL prep-day backfill (safe if program created later / re-run).
         $this->call(VolunteerLeadersProgramPrepDaysSeeder::class);

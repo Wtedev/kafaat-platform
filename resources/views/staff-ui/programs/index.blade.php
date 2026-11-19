@@ -1,6 +1,4 @@
 @php
-    use App\Enums\StaffUi\StaffRegistrationAvailability;
-
     $clearUrl = route('staff-ui.programs.index');
 @endphp
 
@@ -68,24 +66,19 @@
                             </div>
                             <div class="sui-program-card__meta">
                                 <x-staff-ui.status :tone="$availability->tone()">{{ $availability->label() }}</x-staff-ui.status>
-                                @if ($availability === StaffRegistrationAvailability::Path && $program->learningPath)
-                                    <span class="sui-program-card__path">{{ $program->learningPath->title }}</span>
-                                @endif
                             </div>
-                            @if ($availability !== StaffRegistrationAvailability::Path)
-                                <div class="sui-program-card__counts">
-                                    <div @class(['sui-program-stat', 'sui-program-stat--pending' => $pending > 0])>
-                                        <span class="sui-program-stat__value">{{ en_num($pending) }}</span>
-                                        <span class="sui-program-stat__label">معلّق</span>
-                                    </div>
-                                    <div class="sui-program-stat">
-                                        <span class="sui-program-stat__value">
-                                            {{ en_num($approved) }}@if ($capacity !== null)<span class="sui-program-stat__cap"> / {{ en_num($capacity) }}</span>@endif
-                                        </span>
-                                        <span class="sui-program-stat__label">مقبول</span>
-                                    </div>
+                            <div class="sui-program-card__counts">
+                                <div @class(['sui-program-stat', 'sui-program-stat--pending' => $pending > 0])>
+                                    <span class="sui-program-stat__value">{{ en_num($pending) }}</span>
+                                    <span class="sui-program-stat__label">معلّق</span>
                                 </div>
-                            @endif
+                                <div class="sui-program-stat">
+                                    <span class="sui-program-stat__value">
+                                        {{ en_num($approved) }}@if ($capacity !== null)<span class="sui-program-stat__cap"> / {{ en_num($capacity) }}</span>@endif
+                                    </span>
+                                    <span class="sui-program-stat__label">مقبول</span>
+                                </div>
+                            </div>
                             @if ($publication !== '')
                                 <p class="sui-program-card__published">{{ $publication }}</p>
                             @endif
@@ -122,9 +115,6 @@
                                             <x-staff-ui.program-cover :program="$program" :index="$index" variant="thumb" />
                                             <div>
                                                 <strong>{{ $program->title }}</strong>
-                                                @if ($availability === StaffRegistrationAvailability::Path && $program->learningPath)
-                                                    <div class="sui-program-card__path">{{ $program->learningPath->title }}</div>
-                                                @endif
                                             </div>
                                         </div>
                                     </td>
@@ -137,16 +127,10 @@
                                         <x-staff-ui.status :tone="$availability->tone()">{{ $availability->label() }}</x-staff-ui.status>
                                     </td>
                                     <td data-label="معلّق">
-                                        @if ($availability === StaffRegistrationAvailability::Path)
-                                            —
-                                        @else
-                                            <span @class(['sui-program-stat__value', 'sui-program-stat__value--inline', 'is-hot' => $pending > 0])>{{ en_num($pending) }}</span>
-                                        @endif
+                                        <span @class(['sui-program-stat__value', 'sui-program-stat__value--inline', 'is-hot' => $pending > 0])>{{ en_num($pending) }}</span>
                                     </td>
                                     <td data-label="مقبول">
-                                        @if ($availability === StaffRegistrationAvailability::Path)
-                                            —
-                                        @elseif ($capacity !== null)
+                                        @if ($capacity !== null)
                                             {{ en_num($approved) }} / {{ en_num($capacity) }}
                                         @else
                                             {{ en_num($approved) }}

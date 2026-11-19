@@ -19,7 +19,6 @@ final class InboxNotificationIcon
 
         return match ($type) {
             InboxNotificationType::StaffNewProgramRegistration,
-            InboxNotificationType::StaffNewPathRegistration,
             InboxNotificationType::StaffNewVolunteerRegistration => 'heroicon-o-user-plus',
 
             InboxNotificationType::RegistrationApproved,
@@ -35,7 +34,6 @@ final class InboxNotificationIcon
 
             InboxNotificationType::ProgramLaunched,
             InboxNotificationType::ProgramUpdated,
-            InboxNotificationType::LearningPathLaunched,
             InboxNotificationType::StaffTrainingEntityCreated => 'heroicon-o-book-open',
 
             InboxNotificationType::TrainingRunStarted => 'heroicon-o-play-circle',

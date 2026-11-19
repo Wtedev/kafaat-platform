@@ -138,7 +138,6 @@ class StaffUiProgramWizardTest extends TestCase
         $this->assertNotNull($program->image);
         $this->assertSame($staff->id, $program->created_by);
         $this->assertSame($staff->id, $program->owner_id);
-        $this->assertNull($program->learning_path_id);
         $this->assertTrue(AuditLog::query()->where('action', 'training_program.created')->where('resource_id', $program->id)->exists());
 
         $this->actingAsOtpVerified($staff)

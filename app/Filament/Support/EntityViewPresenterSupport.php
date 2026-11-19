@@ -3,7 +3,6 @@
 namespace App\Filament\Support;
 
 use App\Enums\OpportunityStatus;
-use App\Enums\PathStatus;
 use App\Enums\ProgramStatus;
 use App\Support\Format\LocaleFormat;
 use Illuminate\Support\Carbon;
@@ -106,15 +105,6 @@ final class EntityViewPresenterSupport
         };
     }
 
-    public static function pathStatusBadge(?PathStatus $status): ?string
-    {
-        return match ($status) {
-            PathStatus::Published => 'success',
-            PathStatus::Archived => 'warning',
-            default => 'gray',
-        };
-    }
-
     public static function opportunityStatusBadge(?OpportunityStatus $status): ?string
     {
         return match ($status) {
@@ -129,7 +119,6 @@ final class EntityViewPresenterSupport
         return match ($label) {
             'مفتوح' => 'success',
             'لم يبدأ' => 'warning',
-            'التسجيل عبر المسار' => 'info',
             'ممتلئ', 'منتهي', 'مغلق' => 'gray',
             default => 'gray',
         };

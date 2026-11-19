@@ -7,7 +7,6 @@ use App\Filament\Resources\Concerns\PreparesTrainingEntityFormData;
 use App\Filament\Resources\Pages\BaseCreateRecord;
 use App\Filament\Resources\TrainingProgramResource;
 use App\Filament\Support\TrainingEntityFormSupport;
-use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Support\TrainingProgramExtrasSupport;
 use Filament\Notifications\Notification;
@@ -19,62 +18,13 @@ class CreateTrainingProgram extends BaseCreateRecord
 
     protected static string $resource = TrainingProgramResource::class;
 
-    public function mount(): void
-    {
-        parent::mount();
-
-        $pathId = $this->resolvePathContextLearningPathId();
-        if ($pathId === null) {
-            return;
-        }
-
-        $path = LearningPath::query()->find($pathId);
-        if ($path === null) {
-            return;
-        }
-
-        $fill = [
-            ...($this->form->getState() ?? []),
-            'is_linked_to_path' => true,
-            'learning_path_id' => $pathId,
-        ];
-
-        if ($path->competency_track !== null) {
-            $fill['competency_track'] = $path->competency_track->value;
-        }
-
-        $this->form->fill($fill);
-    }
-
     public function form(Schema $schema): Schema
     {
-        return TrainingProgramResource::createForm($schema, $this->resolvePathContextLearningPathId());
-    }
-
-    public function getTitle(): string
-    {
-        $pathId = $this->resolvePathContextLearningPathId();
-        if ($pathId === null) {
-            return parent::getTitle();
-        }
-
-        $pathTitle = LearningPath::query()->whereKey($pathId)->value('title');
-        if (filled($pathTitle)) {
-            return 'إنشاء برنامج في مسار: '.$pathTitle;
-        }
-
-        return 'إنشاء برنامج في المسار';
+        return TrainingProgramResource::createForm($schema);
     }
 
     protected function getRedirectUrl(): string
     {
-        $pathId = $this->resolvePathContextLearningPathId()
-            ?? (int) ($this->getRecord()->learning_path_id ?? 0);
-
-        if ($pathId > 0) {
-            return TrainingProgramResource::learningPathProgramsViewUrl($pathId);
-        }
-
         return $this->getResource()::getUrl('view', ['record' => $this->getRecord()]);
     }
 
@@ -84,19 +34,9 @@ class CreateTrainingProgram extends BaseCreateRecord
      */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $pathId = $this->resolvePathContextLearningPathId();
-        if ($pathId !== null) {
-            $data['is_linked_to_path'] = true;
-            $data['learning_path_id'] = $pathId;
-        }
-
         $data = TrainingEntityFormSupport::mergeNonDehydratedFormFlags($data, $this->data ?? []);
 
-        $linked = (bool) ($data['is_linked_to_path'] ?? false);
-
-        $data = TrainingEntityFormSupport::applyProgramPathLinkSettings($data);
-
-        TrainingEntityFormSupport::assertValidProgramScheduleOrFail($data, showRegistration: ! $linked);
+        TrainingEntityFormSupport::assertValidProgramScheduleOrFail($data);
 
         $wantPublished = TrainingEntityFormSupport::wantsPublishedStatus($data);
         $data['status'] = $wantPublished && $this->canPublishNewTrainingProgram()
@@ -156,16 +96,5 @@ class CreateTrainingProgram extends BaseCreateRecord
         }
 
         return parent::getCreatedNotification();
-    }
-
-    protected function resolvePathContextLearningPathId(): ?int
-    {
-        $pathId = (int) request()->query('learning_path_id');
-
-        if ($pathId <= 0) {
-            return null;
-        }
-
-        return LearningPath::query()->whereKey($pathId)->exists() ? $pathId : null;
     }
 }

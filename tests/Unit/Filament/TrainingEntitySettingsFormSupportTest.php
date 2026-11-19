@@ -14,19 +14,15 @@ class TrainingEntitySettingsFormSupportTest extends TestCase
     {
         $data = [
             'title' => 'برنامج',
-            'learning_path_id' => 5,
         ];
 
         $raw = [
             'title' => 'برنامج',
-            'learning_path_id' => 5,
-            'is_linked_to_path' => true,
             'capacity_unlimited' => true,
         ];
 
         $merged = TrainingEntityFormSupport::mergeNonDehydratedFormFlags($data, $raw);
 
-        $this->assertTrue($merged['is_linked_to_path']);
         $this->assertTrue($merged['capacity_unlimited']);
     }
 

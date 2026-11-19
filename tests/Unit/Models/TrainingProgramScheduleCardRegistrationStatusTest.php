@@ -23,7 +23,6 @@ class TrainingProgramScheduleCardRegistrationStatusTest extends TestCase
             'registration_end' => Carbon::parse('2026-08-03'),
             'start_date' => Carbon::parse('2026-08-03'),
             'end_date' => Carbon::parse('2026-09-01'),
-            'learning_path_id' => null,
         ]);
 
         $this->assertSame('متاح التسجيل', $program->scheduleCardRegistrationStatusLabel());
@@ -38,7 +37,6 @@ class TrainingProgramScheduleCardRegistrationStatusTest extends TestCase
         $program = new TrainingProgram([
             'registration_start' => Carbon::parse('2026-07-27'),
             'registration_end' => Carbon::parse('2026-08-03'),
-            'learning_path_id' => null,
         ]);
 
         $this->assertSame('لم يبدأ التسجيل', $program->scheduleCardRegistrationStatusLabel());
@@ -58,7 +56,6 @@ class TrainingProgramScheduleCardRegistrationStatusTest extends TestCase
             'registration_end' => Carbon::parse('2026-08-03'),
             'start_date' => Carbon::parse('2026-08-03'),
             'end_date' => Carbon::parse('2026-09-01'),
-            'learning_path_id' => null,
         ]);
 
         $this->assertSame('انتهى التسجيل', $program->scheduleCardRegistrationStatusLabel());
@@ -67,18 +64,5 @@ class TrainingProgramScheduleCardRegistrationStatusTest extends TestCase
         $this->assertSame('باب التسجيل مغلق حالياً ولا يمكن تقديم طلبات جديدة.', $program->publicRegistrationUnavailableBody());
         $this->assertSame('ended', $program->publicRegistrationUxState());
         $this->assertSame('انتهى التسجيل', $program->publicRegistrationUxLabel());
-    }
-
-    public function test_path_only_keeps_via_path_label(): void
-    {
-        $program = new TrainingProgram([
-            'learning_path_id' => 1,
-            'registration_start' => Carbon::parse('2026-07-22'),
-            'registration_end' => Carbon::parse('2026-08-03'),
-        ]);
-
-        $this->assertSame('التسجيل عبر المسار', $program->scheduleCardRegistrationStatusLabel());
-        $this->assertSame('path', $program->publicRegistrationUxState());
-        $this->assertSame('التسجيل عبر المسار', $program->publicRegistrationUxLabel());
     }
 }

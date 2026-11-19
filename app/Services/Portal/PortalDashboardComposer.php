@@ -4,13 +4,11 @@ namespace App\Services\Portal;
 
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
-use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
 use App\Models\TeamMember;
 use App\Models\TeamNotification;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
-use App\Services\ProgressService;
 use Illuminate\Support\Collection;
 
 final class PortalDashboardComposer
@@ -143,20 +141,14 @@ final class PortalDashboardComposer
     private static function composeActivities(User $user): Collection
     {
         $user->loadMissing([
-            'learningPathRegistrations.learningPath.programs',
             'programRegistrations.trainingProgram',
         ]);
 
         $rows = collect();
 
-        foreach ($user->learningPathRegistrations->sortByDesc('updated_at') as $reg) {
-            $rows->push(self::pathActivity($user, $reg));
-        }
-
         foreach ($user->programRegistrations->sortByDesc('updated_at') as $reg) {
             $program = $reg->trainingProgram;
             if ($program === null
-                || $program->learning_path_id !== null
                 || $program->status !== ProgramStatus::Published) {
                 continue;
             }
@@ -165,33 +157,6 @@ final class PortalDashboardComposer
         }
 
         return $rows->values();
-    }
-
-    private static function pathActivity(User $user, PathRegistration $reg): array
-    {
-        $path = $reg->learningPath;
-        $title = $path?->title ?? 'مسار تعليمي';
-        $progress = null;
-
-        if ($path && $reg->canAccessPathPrograms()) {
-            $progress = app(ProgressService::class)->calculatePathProgress($user, $path);
-        }
-
-        [$statusLabel, $statusTone] = self::registrationUxMeta($reg->status);
-
-        return [
-            'kind' => 'path',
-            'discover' => false,
-            'sort_at' => $reg->updated_at,
-            'title' => $title,
-            'image_url' => $path?->imagePublicUrl(),
-            'type_label' => 'مسار',
-            'status_label' => $statusLabel,
-            'status_tone' => $statusTone,
-            'progress' => $progress !== null ? min(100, max(0, $progress)) : null,
-            'cta_label' => self::pathCtaLabel($reg),
-            'cta_url' => self::pathCtaUrl($reg),
-        ];
     }
 
     private static function programActivity(ProgramRegistration $reg): array
@@ -230,29 +195,6 @@ final class PortalDashboardComposer
             RegistrationStatus::Completed => ['مكتمل', 'secondary'],
             RegistrationStatus::Rejected, RegistrationStatus::Cancelled => ['غير مسجل', 'muted'],
         };
-    }
-
-    private static function pathCtaLabel(PathRegistration $reg): string
-    {
-        return match ($reg->status) {
-            RegistrationStatus::Pending => 'عرض',
-            RegistrationStatus::Approved, RegistrationStatus::Completed => 'متابعة',
-            default => 'عرض',
-        };
-    }
-
-    private static function pathCtaUrl(PathRegistration $reg): string
-    {
-        $path = $reg->learningPath;
-        if (! $path) {
-            return route('portal.paths');
-        }
-
-        if ($reg->canAccessPathPrograms()) {
-            return route('portal.paths.show', $path);
-        }
-
-        return route('portal.paths');
     }
 
     private static function programCtaLabel(ProgramRegistration $reg): string

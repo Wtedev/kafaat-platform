@@ -5,7 +5,6 @@ namespace App\Services\Portal;
 use App\Enums\MembershipType;
 use App\Enums\RegistrationStatus;
 use App\Models\Certificate;
-use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
@@ -25,12 +24,6 @@ final class CompetencyProfilePresenter
             'profileRecommendations',
             'candidatePoolPreference',
         ]);
-
-        $completedPaths = $user->learningPathRegistrations()
-            ->where('status', RegistrationStatus::Completed)
-            ->with('learningPath')
-            ->latest('updated_at')
-            ->get();
 
         $completedPrograms = $user->programRegistrations()
             ->where('status', RegistrationStatus::Completed)
@@ -79,7 +72,6 @@ final class CompetencyProfilePresenter
             'profile' => $profile,
             'membership' => $membership,
             'pdfJobTitle' => $profile?->pdfHeadlineForExport($membership, $cvLocale),
-            'completedPaths' => $completedPaths,
             'completedPrograms' => $completedPrograms,
             'completedVolunteering' => $completedVolunteering,
             'platformCertificates' => $platformCertificates,
@@ -100,7 +92,7 @@ final class CompetencyProfilePresenter
     public static function certificateTitle(Certificate $certificate): string
     {
         $m = $certificate->certificateable;
-        if ($m instanceof LearningPath || $m instanceof TrainingProgram || $m instanceof VolunteerOpportunity) {
+        if ($m instanceof TrainingProgram || $m instanceof VolunteerOpportunity) {
             return $m->title;
         }
 

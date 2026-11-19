@@ -429,7 +429,6 @@ trait HasTrainingEntitySettingsTab
                     array_merge($raw, $this->pendingInlineEditOverrides ?? []),
                     $raw,
                     [
-                        'is_linked_to_path',
                         'capacity_unlimited',
                         'capacity_mode',
                         'notify_audience',
@@ -446,7 +445,6 @@ trait HasTrainingEntitySettingsTab
                     $data,
                     $this->form->getRawState(),
                     [
-                        'is_linked_to_path',
                         'capacity_unlimited',
                         'capacity_mode',
                         'notify_audience',
@@ -519,7 +517,6 @@ trait HasTrainingEntitySettingsTab
             $data['editors'],
             $data['schedule_calendar'],
             $data['registration_status_display'],
-            $data['is_linked_to_path'],
             $data['capacity_unlimited'],
             $data['capacity_mode'],
             $data['notify_audience'],

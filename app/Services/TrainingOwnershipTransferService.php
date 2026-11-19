@@ -2,14 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Admin-only ownership transfer for training programs and learning paths.
+ * Admin-only ownership transfer for training programs.
  *
  * TODO: When a centralized audit log exists, record owner_id changes (actor, old owner, new owner, entity).
  */
@@ -22,18 +21,6 @@ final class TrainingOwnershipTransferService
         $this->assertValidNewOwnerId($newOwnerId, $program->owner_id);
 
         $program->forceFill([
-            'owner_id' => $newOwnerId,
-            'updated_by' => $actor->getKey(),
-        ])->save();
-    }
-
-    public function transferPathOwnership(LearningPath $path, int $newOwnerId, User $actor): void
-    {
-        Gate::forUser($actor)->authorize('transferOwnership', $path);
-
-        $this->assertValidNewOwnerId($newOwnerId, $path->owner_id);
-
-        $path->forceFill([
             'owner_id' => $newOwnerId,
             'updated_by' => $actor->getKey(),
         ])->save();

@@ -264,7 +264,7 @@ class UserResource extends Resource
                     })
                     ->sortable()
                     ->tooltip(fn (User $record): string => $record->wantsEmailNotifications()
-                        ? 'يستقبل نسخة بريدية عند نشر البرامج/المسارات (إذا اختار المنشئ إرسال تنبيه).'
+                        ? 'يستقبل نسخة بريدية عند نشر البرامج (إذا اختار المنشئ إرسال تنبيه).'
                         : 'لا يستقبل بريداً للتنبيهات العامة؛ التنبيهات داخل المنصة حسب إعداداته.'),
 
                 TextColumn::make('last_login_at')

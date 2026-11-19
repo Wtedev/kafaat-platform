@@ -3,7 +3,6 @@
 namespace App\Filament\Actions;
 
 use App\Filament\Resources\Pages\BaseViewRecord;
-use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\TrainingOwnershipTransferService;
@@ -54,8 +53,6 @@ final class TransferTrainingEntityOwnershipAction
 
                 if ($record instanceof TrainingProgram) {
                     $service->transferProgramOwnership($record, (int) $data['new_owner_id'], $actor);
-                } elseif ($record instanceof LearningPath) {
-                    $service->transferPathOwnership($record, (int) $data['new_owner_id'], $actor);
                 } else {
                     throw new \InvalidArgumentException('Unsupported record for ownership transfer.');
                 }

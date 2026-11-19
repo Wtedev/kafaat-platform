@@ -5,8 +5,6 @@ namespace Database\Seeders;
 use App\Enums\InboxNotificationType;
 use App\Models\Certificate;
 use App\Models\InboxNotification;
-use App\Models\LearningPath;
-use App\Models\PathRegistration;
 use App\Models\ProgramAttendance;
 use App\Models\ProgramRegistration;
 use App\Models\TeamMember;
@@ -36,8 +34,8 @@ class CleanDemoDataSeeder extends Seeder
             $this->purgeDomainInAppNotifications();
             $this->purgeVolunteerTeams();
             $this->purgeVolunteerDomain();
-            $this->purgeProgramAndPathRegistrations();
-            $this->purgeTrainingProgramsAndPaths();
+            $this->purgeProgramRegistrations();
+            $this->purgeTrainingPrograms();
             $this->purgeCertificatesForDemoUsers();
             $this->purgeNotificationsForDemoUsers();
             $this->deleteDemoUsers();
@@ -53,14 +51,13 @@ class CleanDemoDataSeeder extends Seeder
     }
 
     /**
-     * Certificates polymorph to programs, paths, volunteer opportunities.
+     * Certificates polymorph to programs and volunteer opportunities.
      * Remove before deleting those parent rows.
      */
     private function purgeCertificatesForDomainEntities(): void
     {
         $types = [
             TrainingProgram::class,
-            LearningPath::class,
             VolunteerOpportunity::class,
         ];
 
@@ -108,21 +105,19 @@ class CleanDemoDataSeeder extends Seeder
     }
 
     /**
-     * Program and path registrations reference programs/paths and users.
+     * Program registrations reference programs and users.
      */
-    private function purgeProgramAndPathRegistrations(): void
+    private function purgeProgramRegistrations(): void
     {
         ProgramRegistration::query()->delete();
-        PathRegistration::query()->delete();
     }
 
     /**
-     * Editors pivots cascade when parents are deleted; order: programs then paths.
+     * Editors pivots cascade when programs are deleted.
      */
-    private function purgeTrainingProgramsAndPaths(): void
+    private function purgeTrainingPrograms(): void
     {
         TrainingProgram::query()->delete();
-        LearningPath::query()->delete();
     }
 
     /**

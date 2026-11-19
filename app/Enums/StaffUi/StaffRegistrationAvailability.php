@@ -6,11 +6,10 @@ namespace App\Enums\StaffUi;
  * Staff-UI registration-window availability for a training program.
  *
  * Ordered evaluation (first match wins):
- * path → manual_closed (reserved) → not_started → closed → full → open
+ * manual_closed (reserved) → not_started → closed → full → open
  */
 enum StaffRegistrationAvailability: string
 {
-    case Path = 'path';
     case ManualClosed = 'manual_closed';
     case NotStarted = 'not_started';
     case Closed = 'closed';
@@ -20,7 +19,6 @@ enum StaffRegistrationAvailability: string
     public function label(): string
     {
         return match ($this) {
-            self::Path => 'التسجيل عبر المسار',
             self::ManualClosed => 'أُغلق يدوياً',
             self::NotStarted => 'لم يبدأ',
             self::Closed => 'مغلق',
@@ -35,7 +33,6 @@ enum StaffRegistrationAvailability: string
     public function tone(): string
     {
         return match ($this) {
-            self::Path => 'muted',
             self::ManualClosed => 'danger',
             self::NotStarted => 'warning',
             self::Closed => 'muted',

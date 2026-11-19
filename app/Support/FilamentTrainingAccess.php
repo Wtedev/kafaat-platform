@@ -2,7 +2,6 @@
 
 namespace App\Support;
 
-use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
@@ -41,41 +40,6 @@ final class FilamentTrainingAccess
         }
 
         if ($user->can('view', $program)) {
-            return 'عارض';
-        }
-
-        return '—';
-    }
-
-    public static function pathAccessLabel(?User $user, LearningPath $path): string
-    {
-        if ($user === null) {
-            return '—';
-        }
-
-        if (TrainingEntityAuthorization::adminBypass($user)) {
-            return 'مسؤول النظام';
-        }
-
-        if (! TrainingEntityAuthorization::isActive($user)) {
-            return 'غير نشط';
-        }
-
-        if ($user->can('update', $path)) {
-            if (TrainingEntityAuthorization::isOwnerOfPath($user, $path)) {
-                return 'المالك';
-            }
-            if (TrainingEntityAuthorization::isCreatorOfPath($user, $path)) {
-                return 'المنشئ';
-            }
-            if (TrainingEntityAuthorization::isEditorOfPath($user, $path)) {
-                return 'محرر';
-            }
-
-            return 'محرر';
-        }
-
-        if ($user->can('view', $path)) {
             return 'عارض';
         }
 
@@ -135,52 +99,6 @@ final class FilamentTrainingAccess
     {
         $program->loadMissing('editors');
         $match = $program->editors->firstWhere('id', $subject->id);
-        if ($match?->pivot?->created_at !== null) {
-            return $match->pivot->created_at->translatedFormat('j F Y');
-        }
-
-        return '—';
-    }
-
-    public static function pathTeamMemberPermissionLabel(User $subject, LearningPath $path): string
-    {
-        if (Gate::forUser($subject)->allows('manageEditors', $path)) {
-            return 'إدارة الصلاحيات';
-        }
-
-        if (Gate::forUser($subject)->allows('update', $path)) {
-            return 'تعديل';
-        }
-
-        if (Gate::forUser($subject)->allows('view', $path)) {
-            return 'عرض فقط';
-        }
-
-        return '—';
-    }
-
-    public static function pathTeamMemberRoleLabels(User $subject, LearningPath $path): string
-    {
-        $path->loadMissing('editors');
-
-        $bits = [];
-        if ($path->created_by !== null && (int) $subject->id === (int) $path->created_by) {
-            $bits[] = 'منشئ';
-        }
-        if ($path->owner_id !== null && (int) $subject->id === (int) $path->owner_id) {
-            $bits[] = 'مسؤول';
-        }
-        if ($path->editors->contains(fn (User $u): bool => (int) $u->id === (int) $subject->id)) {
-            $bits[] = 'محرر';
-        }
-
-        return $bits === [] ? '—' : implode('، ', array_unique($bits));
-    }
-
-    public static function pathTeamMemberAttachedAtLabel(User $subject, LearningPath $path): string
-    {
-        $path->loadMissing('editors');
-        $match = $path->editors->firstWhere('id', $subject->id);
         if ($match?->pivot?->created_at !== null) {
             return $match->pivot->created_at->translatedFormat('j F Y');
         }

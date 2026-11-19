@@ -73,11 +73,6 @@ return [
             'default_action' => 'retain_restricted',
             'handler' => 'registrations_retention',
         ],
-        'path_registrations' => [
-            'label' => 'تسجيلات المسارات',
-            'default_action' => 'retain_restricted',
-            'handler' => 'registrations_retention',
-        ],
         'volunteer_registrations' => [
             'label' => 'تسجيلات التطوع',
             'default_action' => 'retain_restricted',

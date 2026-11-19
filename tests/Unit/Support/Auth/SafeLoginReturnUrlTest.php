@@ -55,7 +55,6 @@ class SafeLoginReturnUrlTest extends TestCase
             'slug' => 'draft-prog',
             'status' => ProgramStatus::Draft,
             'published_at' => null,
-            'learning_path_id' => null,
         ]);
 
         $this->assertNull(SafeLoginReturnUrl::sanitize('/programs/draft-prog'));
@@ -69,7 +68,6 @@ class SafeLoginReturnUrlTest extends TestCase
             'slug' => $slug,
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
         ]);
     }
 }

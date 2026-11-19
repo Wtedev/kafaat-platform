@@ -2,11 +2,8 @@
 
 namespace App\Filament\Support;
 
-use App\Enums\LearningPathKind;
-use App\Enums\PathStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
-use App\Models\LearningPath;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\HtmlString;
@@ -186,7 +183,6 @@ class TrainingEntityFormChangeSummarizer
             'description' => 'الوصف',
             'image' => 'صورة الغلاف',
             'program_kind' => 'نوع البرنامج',
-            'path_kind' => 'نوع المسار',
             'capacity' => 'الحد الأقصى للمسجّلين',
             'capacity_unlimited' => 'تسجيل غير محدود',
             'auto_accept_registrations' => 'قبول تلقائي',
@@ -211,8 +207,6 @@ class TrainingEntityFormChangeSummarizer
             'notify_on_publish' => 'إشعارات المستفيدين',
             'notify_milestones' => 'إشعارات المحطات',
             'notify_registrants_on_update' => 'تنبيه المسجّلين',
-            'is_linked_to_path' => 'تابع لمسار تدريبي',
-            'learning_path_id' => 'المسار التدريبي',
             'owner_id' => 'مالك البرنامج',
             'assigned_to' => 'المسؤول',
             'editors' => 'أعضاء فريق العمل',
@@ -228,10 +222,8 @@ class TrainingEntityFormChangeSummarizer
 
         return match ($key) {
             'program_kind' => static::programKindLabel($value),
-            'path_kind' => static::pathKindLabel($value),
             'status' => static::statusLabel($value),
-            'publish_immediately', 'capacity_unlimited', 'auto_accept_registrations', 'acceptance_manual_review', 'acceptance_require_saudi_national', 'acceptance_require_complete_profile', 'notify_audience', 'is_linked_to_path', 'notify_on_publish', 'notify_milestones', 'notify_registrants_on_update' => static::boolLabel($value),
-            'learning_path_id' => LearningPath::query()->whereKey($value)->value('title') ?? (string) $value,
+            'publish_immediately', 'capacity_unlimited', 'auto_accept_registrations', 'acceptance_manual_review', 'acceptance_require_saudi_national', 'acceptance_require_complete_profile', 'notify_audience', 'notify_on_publish', 'notify_milestones', 'notify_registrants_on_update' => static::boolLabel($value),
             'owner_id', 'assigned_to' => User::query()->whereKey($value)->value('name') ?? (string) $value,
             'editors' => static::formatUserIds($value),
             'weekdays' => static::formatWeekdays($value),
@@ -250,24 +242,13 @@ class TrainingEntityFormChangeSummarizer
         return TrainingProgramKind::tryFrom((string) $value)?->label() ?? (string) $value;
     }
 
-    private static function pathKindLabel(mixed $value): string
-    {
-        if ($value instanceof LearningPathKind) {
-            return $value->label();
-        }
-
-        return LearningPathKind::tryFrom((string) $value)?->label() ?? (string) $value;
-    }
-
     private static function statusLabel(mixed $value): string
     {
-        if ($value instanceof ProgramStatus || $value instanceof PathStatus) {
+        if ($value instanceof ProgramStatus) {
             return $value->label();
         }
 
-        return ProgramStatus::tryFrom((string) $value)?->label()
-            ?? PathStatus::tryFrom((string) $value)?->label()
-            ?? (string) $value;
+        return ProgramStatus::tryFrom((string) $value)?->label() ?? (string) $value;
     }
 
     private static function boolLabel(mixed $value): string

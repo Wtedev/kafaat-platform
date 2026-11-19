@@ -5,8 +5,6 @@ namespace App\Services;
 use App\Enums\RegistrationStatus;
 use App\Jobs\IssueProgramCertificateJob;
 use App\Models\Certificate;
-use App\Models\LearningPath;
-use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
@@ -27,7 +25,7 @@ class CertificateService
 
     /**
      * Issue a certificate for a user against a given certificateable entity
-     * (e.g. a TrainingProgram or LearningPath).
+     * (e.g. a TrainingProgram or VolunteerOpportunity).
      * Idempotent: returns the existing certificate if one already exists.
      */
     public function issue(User $user, Model $certificateable, ?User $issuedBy = null): Certificate
@@ -93,7 +91,6 @@ class CertificateService
 
     /**
      * @deprecated Program certificates are issued manually from the certificates tab.
-     *             Learning paths still use {@see issueForPathRegistration()}.
      */
     public function issueForProgramRegistration(ProgramRegistration $registration, ?User $issuedBy = null): ?Certificate
     {
@@ -109,25 +106,6 @@ class CertificateService
         }
 
         return $this->issue($registration->user, $registration->trainingProgram, $issuedBy);
-    }
-
-    public function issueForPathRegistration(PathRegistration $registration, ?User $issuedBy = null): ?Certificate
-    {
-        $registration->loadMissing(['user', 'learningPath']);
-
-        if (! $registration->isEligibleForCertificate()) {
-            return null;
-        }
-
-        if ($registration->isApproved()) {
-            $registration->update([
-                'status' => RegistrationStatus::Completed,
-                'completed_at' => now(),
-            ]);
-            $registration->refresh();
-        }
-
-        return $this->issue($registration->user, $registration->learningPath, $issuedBy);
     }
 
     /**
@@ -153,25 +131,6 @@ class CertificateService
         return $count;
     }
 
-    public function issueEligiblePathRegistrations(LearningPath $path, ?User $issuedBy = null): int
-    {
-        $count = 0;
-
-        $path->registrations()
-            ->whereIn('status', [
-                RegistrationStatus::Approved->value,
-                RegistrationStatus::Completed->value,
-            ])
-            ->with(['user', 'learningPath'])
-            ->each(function (PathRegistration $registration) use ($issuedBy, &$count): void {
-                if ($this->issueForPathRegistration($registration, $issuedBy) !== null) {
-                    $count++;
-                }
-            });
-
-        return $count;
-    }
-
     public function emailCertificate(Certificate $certificate, ?User $sentBy = null): bool
     {
         $certificate->loadMissing(['user', 'certificateable']);
@@ -182,7 +141,6 @@ class CertificateService
 
         $label = match (true) {
             $certificate->certificateable instanceof TrainingProgram => $certificate->certificateable->title,
-            $certificate->certificateable instanceof LearningPath => $certificate->certificateable->title,
             default => 'نشاطك',
         };
 
@@ -199,7 +157,6 @@ class CertificateService
 
     /**
      * @deprecated Program certificate email is sent by {@see IssueProgramCertificateJob}.
-     *             Learning paths still use {@see emailEligiblePathCertificates()}.
      */
     public function emailEligibleProgramCertificates(TrainingProgram $program, ?User $sentBy = null): int
     {
@@ -218,32 +175,6 @@ class CertificateService
 
                 $certificate = $registration->certificateForEntity()
                     ?? $this->issueForProgramRegistration($registration, $sentBy);
-
-                if ($certificate !== null && $this->emailCertificate($certificate, $sentBy)) {
-                    $count++;
-                }
-            });
-
-        return $count;
-    }
-
-    public function emailEligiblePathCertificates(LearningPath $path, ?User $sentBy = null): int
-    {
-        $count = 0;
-
-        $path->registrations()
-            ->whereIn('status', [
-                RegistrationStatus::Approved->value,
-                RegistrationStatus::Completed->value,
-            ])
-            ->with('user')
-            ->each(function (PathRegistration $registration) use ($sentBy, &$count): void {
-                if (! $registration->isEligibleForCertificate()) {
-                    return;
-                }
-
-                $certificate = $registration->certificateForEntity()
-                    ?? $this->issueForPathRegistration($registration, $sentBy);
 
                 if ($certificate !== null && $this->emailCertificate($certificate, $sentBy)) {
                     $count++;

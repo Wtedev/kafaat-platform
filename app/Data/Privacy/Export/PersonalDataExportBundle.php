@@ -32,7 +32,6 @@ final readonly class PersonalDataExportBundle
             'privacy_policy_acknowledgements' => PolicyAcknowledgementExportData::forUser($user),
             'candidate_pool_consent_history' => CandidateConsentExportData::forUser($user),
             'program_registrations' => ProgramRegistrationExportData::forUser($user),
-            'path_registrations' => PathRegistrationExportData::forUser($user),
             'volunteer_registrations' => VolunteerRegistrationExportData::forUser($user),
             'attendance' => AttendanceExportData::forUser($user),
             'certificates' => CertificateExportData::forUser($user),

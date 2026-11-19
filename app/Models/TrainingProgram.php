@@ -81,8 +81,6 @@ class TrainingProgram extends Model
         'created_by',
         'owner_id',
         'updated_by',
-        'learning_path_id',
-        'path_sort_order',
         'assigned_to',
         'registration_questions',
     ];
@@ -148,10 +146,6 @@ class TrainingProgram extends Model
                 $program->owner_id = $program->created_by;
             }
 
-            if ($program->learning_path_id !== null) {
-                $program->clearStandaloneEnrollmentFields();
-            }
-
             if ($program->status === ProgramStatus::Published && $program->published_at === null) {
                 $program->published_at = now();
             }
@@ -180,10 +174,6 @@ class TrainingProgram extends Model
                     fallbackPrefix: 'program',
                     ignoreId: $program->getKey(),
                 );
-            }
-
-            if ($program->isDirty('learning_path_id') && $program->learning_path_id !== null) {
-                $program->clearStandaloneEnrollmentFields();
             }
         });
 
@@ -221,17 +211,6 @@ class TrainingProgram extends Model
                 'exception' => $e->getMessage(),
             ]);
         }
-    }
-
-    /**
-     * برامج المسار لا تملك تسجيلاً مستقلاً — تُدار عبر المسار.
-     */
-    public function clearStandaloneEnrollmentFields(): void
-    {
-        $this->capacity = null;
-        $this->registration_start = null;
-        $this->registration_end = null;
-        $this->weekdays = null;
     }
 
     /** Public URL for catalog image (or placeholder). */
@@ -273,14 +252,6 @@ class TrainingProgram extends Model
             });
     }
 
-    /**
-     * Programs not embedded in a learning path (public training catalog).
-     */
-    public function scopeStandaloneCatalog(Builder $query): void
-    {
-        $query->whereNull('learning_path_id');
-    }
-
     public function scopeForCompetencyTrack(Builder $query, ?CompetencyTrack $track): void
     {
         if ($track === null) {
@@ -304,14 +275,13 @@ class TrainingProgram extends Model
     {
         $today = Carbon::today();
 
-        $query->whereNull('learning_path_id')
-            ->where(function (Builder $q) use ($today) {
-                $q->whereNull('registration_start')
-                    ->orWhere('registration_start', '<=', $today);
-            })->where(function (Builder $q) use ($today) {
-                $q->whereNull('registration_end')
-                    ->orWhere('registration_end', '>=', $today);
-            });
+        $query->where(function (Builder $q) use ($today) {
+            $q->whereNull('registration_start')
+                ->orWhere('registration_start', '<=', $today);
+        })->where(function (Builder $q) use ($today) {
+            $q->whereNull('registration_end')
+                ->orWhere('registration_end', '>=', $today);
+        });
     }
 
     /**
@@ -327,14 +297,9 @@ class TrainingProgram extends Model
 
     /**
      * Whether the public standalone registration window is open.
-     * Programs linked to a learning path are never open for direct public registration.
      */
     public function isRegistrationOpen(): bool
     {
-        if ($this->learning_path_id !== null) {
-            return false;
-        }
-
         $today = Carbon::today();
 
         $afterStart = $this->registration_start === null
@@ -370,10 +335,6 @@ class TrainingProgram extends Model
      */
     public function registrationWindowStatusLabel(): string
     {
-        if ($this->learning_path_id !== null) {
-            return 'التسجيل عبر المسار';
-        }
-
         $today = Carbon::today();
 
         if ($this->end_date !== null && $this->end_date->lt($today)) {
@@ -405,7 +366,6 @@ class TrainingProgram extends Model
     public function scheduleCardRegistrationStatusLabel(): string
     {
         return match ($this->registrationWindowStatusLabel()) {
-            'التسجيل عبر المسار' => 'التسجيل عبر المسار',
             'لم يبدأ' => 'لم يبدأ التسجيل',
             'مفتوح' => 'متاح التسجيل',
             default => 'انتهى التسجيل',
@@ -418,12 +378,11 @@ class TrainingProgram extends Model
     }
 
     /**
-     * Public catalog/detail UX: open | upcoming | ended | path.
+     * Public catalog/detail UX: open | upcoming | ended.
      */
     public function publicRegistrationUxState(): string
     {
         return match ($this->registrationWindowStatusLabel()) {
-            'التسجيل عبر المسار' => 'path',
             'لم يبدأ' => 'upcoming',
             'مفتوح' => 'open',
             default => 'ended',
@@ -433,7 +392,6 @@ class TrainingProgram extends Model
     public function publicRegistrationUxLabel(): string
     {
         return match ($this->publicRegistrationUxState()) {
-            'path' => 'التسجيل عبر المسار',
             'upcoming' => 'التسجيل قريباً',
             'open' => 'التسجيل مفتوح',
             default => 'انتهى التسجيل',
@@ -650,11 +608,6 @@ class TrainingProgram extends Model
     public function certificateTemplate(): HasOne
     {
         return $this->hasOne(CertificateTemplate::class);
-    }
-
-    public function learningPath(): BelongsTo
-    {
-        return $this->belongsTo(LearningPath::class);
     }
 
     public function assignee(): BelongsTo

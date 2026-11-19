@@ -73,7 +73,6 @@ class VolunteerLeadersProgramPeriodTest extends TestCase
             'published_at' => now(),
             'start_date' => Carbon::parse('2026-08-03'),
             'end_date' => Carbon::parse('2026-09-01'),
-            'learning_path_id' => null,
         ]);
 
         $this->assertTrue(VolunteerLeadersProgramPeriod::applies($program));
@@ -89,7 +88,6 @@ class VolunteerLeadersProgramPeriodTest extends TestCase
             'published_at' => now(),
             'start_date' => Carbon::parse('2026-08-03'),
             'end_date' => Carbon::parse('2026-09-01'),
-            'learning_path_id' => null,
         ]);
 
         $this->assertTrue(VolunteerLeadersProgramPeriod::applies($program));
@@ -105,7 +103,6 @@ class VolunteerLeadersProgramPeriodTest extends TestCase
             'published_at' => now(),
             'start_date' => Carbon::parse('2026-08-03'),
             'end_date' => Carbon::parse('2026-09-01'),
-            'learning_path_id' => null,
         ]);
 
         $this->assertFalse(VolunteerLeadersProgramPeriod::applies($program));

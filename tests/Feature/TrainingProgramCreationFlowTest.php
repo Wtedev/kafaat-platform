@@ -3,14 +3,12 @@
 namespace Tests\Feature;
 
 use App\Enums\CompetencyTrack;
-use App\Enums\PathStatus;
 use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
 use App\Filament\Resources\TrainingProgramResource\Pages\CreateTrainingProgram;
 use App\Filament\Resources\TrainingProgramResource\Pages\ViewTrainingProgram;
 use App\Filament\Support\TrainingEntityFormSupport;
-use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Support\RichContentSupport;
@@ -18,7 +16,6 @@ use Database\Seeders\RolesAndPermissionsSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
 use Tests\Concerns\SeedsRbacRoles;
@@ -489,29 +486,6 @@ class TrainingProgramCreationFlowTest extends TestCase
         $this->assertNull($result['venue']);
     }
 
-    public function test_path_linked_program_inherits_competency_track_from_learning_path(): void
-    {
-        $path = LearningPath::query()->create([
-            'title' => 'مسار تجريبي',
-            'slug' => 'test-learning-path',
-            'competency_track' => CompetencyTrack::Community,
-            'status' => PathStatus::Draft,
-        ]);
-
-        $result = TrainingEntityFormSupport::applyProgramPathLinkSettings([
-            'is_linked_to_path' => true,
-            'learning_path_id' => $path->id,
-            'competency_track' => null,
-            'capacity' => 20,
-            'registration_start' => '2026-06-01',
-            'registration_end' => '2026-06-10',
-            'weekdays' => [0, 1],
-        ]);
-
-        $this->assertSame(CompetencyTrack::Community->value, $result['competency_track']);
-        $this->assertNull($result['capacity']);
-    }
-
     public function test_staff_with_program_permission_can_open_program_create_page(): void
     {
         $staff = $this->staffWithProgramPermission();
@@ -594,27 +568,6 @@ class TrainingProgramCreationFlowTest extends TestCase
             'competency_track' => CompetencyTrack::Professional->value,
             'delivery_mode' => ProgramDeliveryMode::Remote->value,
         ]);
-    }
-
-    public function test_create_page_handles_learning_path_with_invalid_competency_track_value(): void
-    {
-        $path = LearningPath::query()->create([
-            'title' => 'مسار بقيمة غير صالحة',
-            'slug' => 'invalid-competency-track-path',
-            'status' => PathStatus::Draft,
-        ]);
-
-        DB::table('learning_paths')
-            ->where('id', $path->id)
-            ->update(['competency_track' => 'legacy-invalid']);
-
-        $staff = $this->staffWithProgramPermission();
-
-        $this->withoutExceptionHandling()
-            ->actingAs($staff)
-            ->withSession(['otp_verified' => true])
-            ->get('/admin/training-programs/create')
-            ->assertOk();
     }
 
     public function test_admin_with_notification_modal_can_open_program_create_page(): void

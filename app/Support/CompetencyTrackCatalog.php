@@ -3,7 +3,6 @@
 namespace App\Support;
 
 use App\Enums\CompetencyTrack;
-use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use Illuminate\Support\Collection;
 
@@ -49,22 +48,6 @@ class CompetencyTrackCatalog
     }
 
     /**
-     * @return Collection<string, int>
-     */
-    public static function publishedPathCounts(): Collection
-    {
-        $counts = LearningPath::published()
-            ->whereNotNull('competency_track')
-            ->selectRaw('competency_track, COUNT(*) as aggregate')
-            ->groupBy('competency_track')
-            ->pluck('aggregate', 'competency_track');
-
-        return collect(self::order())->mapWithKeys(
-            fn (string $key): array => [$key => (int) ($counts[$key] ?? 0)],
-        );
-    }
-
-    /**
      * @return Collection<string, Collection<int, TrainingProgram>>
      */
     public static function featuredProgramsByTrack(int $limitPerTrack = 5): Collection
@@ -73,7 +56,6 @@ class CompetencyTrackCatalog
             $track = CompetencyTrack::from($key);
 
             $programs = TrainingProgram::published()
-                ->standaloneCatalog()
                 ->forCompetencyTrack($track)
                 ->latest('published_at')
                 ->limit($limitPerTrack)

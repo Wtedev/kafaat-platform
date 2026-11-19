@@ -30,7 +30,7 @@
     $hasExp = $vis('experience') && count($expMerged) > 0;
     $hasCourses = $vis('external_courses') && count($coursesMerged) > 0;
     $hasLinks = $vis('links') && count($pdfLinks) > 0;
-    $hasPaths = $vis('platform') && $completedPaths->isNotEmpty();
+    $hasPaths = $vis('platform') && ($completedPrograms?->isNotEmpty() ?? false);
     $hasPlatformHours = $vis('platform') && ($approvedVolunteerHours ?? 0) > 0;
     $hasPlatform = $vis('platform') && ($hasPaths || $hasPlatformHours);
     $hasRecs = $vis('recommendations') && ($recommendations?->isNotEmpty() ?? false);
@@ -315,9 +315,9 @@
     <div class="section">
         <p class="section-title">{{ $loc === 'en' ? 'Achievements' : $L['platform'] }}</p>
         @if ($hasPaths)
-        <p class="text" style="font-weight:700;margin-bottom:4px;">{{ $L['learning_paths'] ?? '' }}</p>
-        @foreach ($completedPaths as $reg)
-        <p class="list-line text"><span class="bullet">•</span> {{ $reg->learningPath?->title ?? '—' }}</p>
+        <p class="text" style="font-weight:700;margin-bottom:4px;">{{ $L['completed_programs'] ?? '' }}</p>
+        @foreach ($completedPrograms as $reg)
+        <p class="list-line text"><span class="bullet">•</span> {{ $reg->trainingProgram?->title ?? '—' }}</p>
         @endforeach
         @endif
         @if ($hasPlatformHours)

@@ -20,7 +20,7 @@ enum NotificationPreferenceCategory: string
     {
         return match ($this) {
             self::Account => 'تسجيلاتي وشهاداتي',
-            self::ProgramsNew => 'برامج ومسارات جديدة',
+            self::ProgramsNew => 'برامج جديدة',
             self::ProgramsUpdates => 'تحديثات البرامج والتطوع',
             self::Reminders => 'تذكيرات المواعيد',
             self::Volunteering => 'فرص تطوعية جديدة',
@@ -34,7 +34,7 @@ enum NotificationPreferenceCategory: string
     {
         return match ($this) {
             self::Account => 'قبول أو رفض تسجيلك، وصدور شهاداتك.',
-            self::ProgramsNew => 'عند نشر برنامج تدريبي أو مسار تعليمي جديد.',
+            self::ProgramsNew => 'عند نشر برنامج تدريبي جديد.',
             self::ProgramsUpdates => 'عند تعديل برنامج سجّلت فيه أو تحديث فرصة تطوعية.',
             self::Reminders => 'بدء التسجيل في البرامج المفتوحة، وانتهاء التسجيل للبرامج التي سجّلت فيها، وبدء البرامج التي أنت مقبول فيها.',
             self::Volunteering => 'عند نشر فرصة تطوعية جديدة.',

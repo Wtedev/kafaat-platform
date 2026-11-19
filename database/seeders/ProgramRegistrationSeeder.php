@@ -5,8 +5,6 @@ namespace Database\Seeders;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\VolunteerHoursStatus;
-use App\Models\LearningPath;
-use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
@@ -62,58 +60,10 @@ class ProgramRegistrationSeeder extends Seeder
             return;
         }
 
-        $paths = LearningPath::query()->orderBy('id')->get();
-
-        $this->seedPathRegistrations($beneficiaries, $paths, $admin);
         $this->seedProgramRegistrations($beneficiaries, $programs, $admin);
         $this->seedVolunteerDomain($beneficiaries, $admin);
 
-        $this->command?->info('  ProgramRegistrationSeeder: path, program, and volunteer rows updated.');
-    }
-
-    /**
-     * @param  Collection<int, User>  $beneficiaries
-     * @param  Collection<int, LearningPath>  $paths
-     */
-    private function seedPathRegistrations($beneficiaries, $paths, User $admin): void
-    {
-        if ($paths->isEmpty()) {
-            return;
-        }
-
-        PathRegistration::withoutEvents(function () use ($beneficiaries, $paths, $admin): void {
-            foreach ($beneficiaries->values() as $idx => $user) {
-                if ($idx % 2 !== 0) {
-                    continue;
-                }
-                $path = $paths[$idx % $paths->count()];
-                $statusRoll = ($idx * 5) % 100;
-
-                $status = match (true) {
-                    $statusRoll < 12 => RegistrationStatus::Pending,
-                    $statusRoll < 22 => RegistrationStatus::Rejected,
-                    $statusRoll < 78 => RegistrationStatus::Approved,
-                    default => RegistrationStatus::Completed,
-                };
-
-                $approved = in_array($status, [RegistrationStatus::Approved, RegistrationStatus::Completed, RegistrationStatus::Rejected], true);
-
-                PathRegistration::updateOrCreate(
-                    ['learning_path_id' => $path->id, 'user_id' => $user->id],
-                    [
-                        'status' => $status,
-                        'rejected_reason' => $status === RegistrationStatus::Rejected ? 'عدم استيفاء شرط المسار.' : null,
-                        'approved_by' => $approved ? $admin->id : null,
-                        'approved_at' => in_array($status, [RegistrationStatus::Approved, RegistrationStatus::Completed], true)
-                            ? Carbon::now()->subDays(10 + ($idx % 20))
-                            : null,
-                        'completed_at' => $status === RegistrationStatus::Completed
-                            ? Carbon::now()->subDays(2 + ($idx % 8))
-                            : null,
-                    ]
-                );
-            }
-        });
+        $this->command?->info('  ProgramRegistrationSeeder: program and volunteer rows updated.');
     }
 
     /**

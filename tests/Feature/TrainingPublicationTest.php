@@ -3,17 +3,13 @@
 namespace Tests\Feature;
 
 use App\Console\Commands\PublishScheduledTrainingCommand;
-use App\Enums\LearningPathKind;
 use App\Enums\OpportunityStatus;
-use App\Enums\PathStatus;
 use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
-use App\Filament\Resources\LearningPathResource\Pages\CreateLearningPath;
 use App\Filament\Resources\TrainingProgramResource\Pages\CreateTrainingProgram;
 use App\Filament\Resources\VolunteerOpportunityResource\Pages\CreateVolunteerOpportunity;
 use App\Filament\Support\TrainingEntityFormSupport;
-use App\Models\LearningPath;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
@@ -124,22 +120,6 @@ class TrainingPublicationTest extends TestCase
         $this->assertNotNull($draftProgram);
         $this->assertSame(ProgramStatus::Draft, $draftProgram->status);
         $this->assertNull($draftProgram->published_at);
-
-        Livewire::actingAs($staff)
-            ->test(CreateLearningPath::class)
-            ->fillForm([
-                'title' => 'مسار بلا جدولة',
-                'path_kind' => LearningPathKind::TrainingPath->value,
-                'publish_immediately' => false,
-                'published_at' => $future,
-            ])
-            ->call('create')
-            ->assertHasNoFormErrors();
-
-        $path = LearningPath::query()->where('title', 'مسار بلا جدولة')->first();
-        $this->assertNotNull($path);
-        $this->assertSame(PathStatus::Draft, $path->status);
-        $this->assertNull($path->published_at);
 
         $coordinator = User::factory()->create([
             'role_type' => 'staff',

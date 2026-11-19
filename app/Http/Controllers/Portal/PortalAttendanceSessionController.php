@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Models\AttendanceLiveSession;
-use App\Models\LearningPath;
-use App\Models\PathRegistration;
 use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Services\AttendanceLiveSessionService;
@@ -27,23 +25,6 @@ class PortalAttendanceSessionController extends Controller
             $this->sessionPayload(
                 $registration->isApproved() || $registration->isCompleted(),
                 app(AttendanceLiveSessionService::class)->activeSessionFor($trainingProgram),
-            ),
-        );
-    }
-
-    public function path(Request $request, LearningPath $learningPath): JsonResponse
-    {
-        $registration = PathRegistration::query()
-            ->where('user_id', $request->user()->id)
-            ->where('learning_path_id', $learningPath->id)
-            ->first();
-
-        abort_if($registration === null, 404);
-
-        return response()->json(
-            $this->sessionPayload(
-                $registration->canAccessPathPrograms(),
-                app(AttendanceLiveSessionService::class)->activeSessionFor($learningPath),
             ),
         );
     }

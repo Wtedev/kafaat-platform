@@ -40,11 +40,6 @@ final class UserViewPresenter
     {
         return [
             [
-                'label' => 'مسارات مكتملة',
-                'value' => (string) $payload['completedPaths']->count(),
-                'icon' => 'heroicon-o-map',
-            ],
-            [
                 'label' => 'برامج مكتملة',
                 'value' => (string) $payload['completedPrograms']->count(),
                 'icon' => 'heroicon-o-academic-cap',

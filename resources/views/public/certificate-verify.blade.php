@@ -23,7 +23,6 @@
 @php
 $certTypeLabel = match(class_basename($certificate->certificateable_type ?? '')) {
 'TrainingProgram' => 'البرنامج التدريبي',
-'LearningPath' => 'المسار التعليمي',
 'VolunteerOpportunity' => 'الفرصة التطوعية',
 default => 'الموضوع',
 };

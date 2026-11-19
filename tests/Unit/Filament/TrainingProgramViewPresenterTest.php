@@ -61,10 +61,7 @@ class TrainingProgramViewPresenterTest extends TestCase
             'حضوري — قاعة التدريب',
             collect($overviewRows)->firstWhere('label', 'أسلوب التنفيذ')['value'],
         );
-        $this->assertSame(
-            'برنامج مستقل',
-            collect($overviewRows)->firstWhere('label', 'التبعية للمسار')['value'],
-        );
+        $this->assertNull(collect($overviewRows)->firstWhere('label', 'التبعية للمسار'));
         $this->assertStringStartsWith(
             'منشور',
             collect($overviewRows)->firstWhere('label', 'حالة النشر')['value'],

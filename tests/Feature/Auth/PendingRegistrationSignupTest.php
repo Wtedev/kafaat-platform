@@ -383,7 +383,6 @@ class PendingRegistrationSignupTest extends TestCase
             'slug' => 'signup-return-program',
             'status' => ProgramStatus::Published,
             'published_at' => now(),
-            'learning_path_id' => null,
         ]);
 
         $this->get(route('register', ['return' => '/programs/signup-return-program']))
