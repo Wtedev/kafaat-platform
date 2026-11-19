@@ -66,20 +66,36 @@ class ProgramBroadcastMessagingTest extends TestCase
         );
     }
 
-    public function test_relation_manager_hidden_without_operational_access(): void
+    public function test_any_staff_member_with_permission_sees_broadcasts_of_any_program(): void
     {
-        $outsider = User::factory()->create([
+        $otherStaff = User::factory()->create([
             'role_type' => 'staff',
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
-        $outsider->assignRole('staff');
-        $outsider->givePermissionTo(['programs.view', 'emails.send']);
+        $otherStaff->assignRole('staff');
+        $otherStaff->givePermissionTo(['programs.view', 'emails.send']);
 
         $owner = $this->adminUser();
         $program = $this->createProgram(['owner_id' => $owner->id, 'created_by' => $owner->id]);
 
-        $this->actingAs($outsider);
+        $this->actingAs($otherStaff);
+
+        $this->assertTrue(
+            ProgramBroadcastsRelationManager::canViewForRecord($program, ViewTrainingProgram::class)
+        );
+    }
+
+    public function test_beneficiary_never_sees_program_broadcasts(): void
+    {
+        $beneficiary = User::factory()->create([
+            'role_type' => 'beneficiary',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $program = $this->createProgram();
+
+        $this->actingAs($beneficiary);
 
         $this->assertFalse(
             ProgramBroadcastsRelationManager::canViewForRecord($program, ViewTrainingProgram::class)

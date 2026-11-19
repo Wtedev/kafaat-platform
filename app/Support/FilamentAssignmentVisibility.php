@@ -32,7 +32,7 @@ final class FilamentAssignmentVisibility
             return true;
         }
 
-        if (TrainingEntityAuthorization::hasActiveProgramStakeholderRole($user, $program)) {
+        if (TrainingEntityAuthorization::isActiveProgramStaff($user)) {
             return true;
         }
 

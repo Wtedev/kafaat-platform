@@ -107,6 +107,6 @@ class TrainingProgramPolicy
             return false;
         }
 
-        return TrainingEntityAuthorization::hasActiveProgramStakeholderRole($user, $program);
+        return TrainingEntityAuthorization::isActiveProgramStaff($user);
     }
 }
