@@ -12,10 +12,13 @@ use App\Models\ProgramActivity;
 use App\Models\SurveyCompletion;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Services\Exports\ProgramRegistrationExportAuthorization;
 use App\Services\StaffUi\StaffProgramCalendar;
+use App\Services\StaffUi\StaffProgramRegistrations;
 use App\Services\StaffUi\StaffProgramSettings;
 use App\Services\StaffUi\StaffProgramStatus;
 use App\Services\StaffUi\StaffProgramWizard;
+use App\Support\Exports\ProgramRegistrationExportColumns;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,7 +42,7 @@ class StaffProgramPageController extends Controller
     ];
 
     /** Tabs that are built in the new UI; the rest still live in the current admin panel. */
-    private const BUILT_TABS = ['about', 'activity', 'settings'];
+    private const BUILT_TABS = ['about', 'registrations', 'activity', 'settings'];
 
     public function __construct(
         private readonly StaffProgramWizard $wizard,
@@ -55,6 +58,10 @@ class StaffProgramPageController extends Controller
 
         if ($tab === 'settings') {
             abort_unless($actor->can('update', $program), 403);
+        }
+
+        if ($tab === 'registrations') {
+            abort_unless($actor->can('viewOperational', $program), 403);
         }
 
         $program->loadCount([
@@ -85,6 +92,7 @@ class StaffProgramPageController extends Controller
         return view('staff-ui.programs.show', $data + match ($tab) {
             'about' => $this->aboutData($program),
             'activity' => $this->activityData($request, $program),
+            'registrations' => $this->registrationsData($request, $actor, $program),
             'settings' => $this->settingsData($actor, $program),
             default => [],
         });
@@ -187,6 +195,33 @@ class StaffProgramPageController extends Controller
                 ->count(),
             'calendar' => app(StaffProgramCalendar::class)->build($program),
             'recentActivity' => $program->activities()->with('actor:id,name')->limit(5)->get(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function registrationsData(Request $request, User $actor, TrainingProgram $program): array
+    {
+        $service = app(StaffProgramRegistrations::class);
+        $filters = $service->filters($request->query());
+
+        return [
+            'filters' => $filters,
+            'statusCounts' => $service->statusCounts($program),
+            'registrationRows' => $service->query($program, $filters)
+                ->with(['user:id,name,email,phone,identity_category', 'user.profile:id,user_id,gender,birth_date'])
+                ->latest('created_at')
+                ->latest('id')
+                ->paginate(25)
+                ->withQueryString(),
+            'canApprove' => $actor->hasPermissionTo('registrations.approve'),
+            'canReject' => $actor->hasPermissionTo('registrations.reject'),
+            'canExport' => ProgramRegistrationExportAuthorization::canExport($actor, $program),
+            'exportColumns' => ProgramRegistrationExportColumns::groupedOptionLabels($actor, $program),
+            'exportGroupTitles' => ProgramRegistrationExportColumns::groupTitles(),
+            'exportDefaults' => ProgramRegistrationExportAuthorization::defaultColumnKeysFor($actor, $program),
+            'previewTarget' => $service->query($program, $filters)->where('status', RegistrationStatus::Pending->value)->value('id'),
         ];
     }
 

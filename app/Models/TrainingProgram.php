@@ -83,6 +83,7 @@ class TrainingProgram extends Model
         'updated_by',
         'assigned_to',
         'registration_questions',
+        'registration_closed_at',
     ];
 
     protected function casts(): array
@@ -93,6 +94,7 @@ class TrainingProgram extends Model
             'competency_track' => LenientEnumCast::class.':'.CompetencyTrack::class,
             'delivery_mode' => LenientEnumCast::class.':'.ProgramDeliveryMode::class,
             'published_at' => 'datetime',
+            'registration_closed_at' => 'datetime',
             'notify_on_publish' => 'boolean',
             'notify_milestones' => 'boolean',
             'notify_registrants_on_update' => 'boolean',
@@ -275,13 +277,14 @@ class TrainingProgram extends Model
     {
         $today = Carbon::today();
 
-        $query->where(function (Builder $q) use ($today) {
-            $q->whereNull('registration_start')
-                ->orWhere('registration_start', '<=', $today);
-        })->where(function (Builder $q) use ($today) {
-            $q->whereNull('registration_end')
-                ->orWhere('registration_end', '>=', $today);
-        });
+        $query->whereNull('registration_closed_at')
+            ->where(function (Builder $q) use ($today) {
+                $q->whereNull('registration_start')
+                    ->orWhere('registration_start', '<=', $today);
+            })->where(function (Builder $q) use ($today) {
+                $q->whereNull('registration_end')
+                    ->orWhere('registration_end', '>=', $today);
+            });
     }
 
     /**
@@ -300,6 +303,10 @@ class TrainingProgram extends Model
      */
     public function isRegistrationOpen(): bool
     {
+        if ($this->isRegistrationManuallyClosed()) {
+            return false;
+        }
+
         $today = Carbon::today();
 
         $afterStart = $this->registration_start === null
@@ -309,6 +316,14 @@ class TrainingProgram extends Model
             || $this->registration_end->gte($today);
 
         return $afterStart && $beforeEnd;
+    }
+
+    /**
+     * Staff closed registration by hand, whatever the registration dates say.
+     */
+    public function isRegistrationManuallyClosed(): bool
+    {
+        return $this->registration_closed_at !== null;
     }
 
     public function approvedRegistrationsCount(): int
@@ -335,6 +350,10 @@ class TrainingProgram extends Model
      */
     public function registrationWindowStatusLabel(): string
     {
+        if ($this->isRegistrationManuallyClosed()) {
+            return 'مغلق';
+        }
+
         $today = Carbon::today();
 
         if ($this->end_date !== null && $this->end_date->lt($today)) {

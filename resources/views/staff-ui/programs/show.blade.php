@@ -38,6 +38,9 @@
             @case ('about')
                 @include('staff-ui.programs.tabs.about')
                 @break
+            @case ('registrations')
+                @include('staff-ui.programs.tabs.registrations')
+                @break
             @case ('activity')
                 @include('staff-ui.programs.tabs.activity')
                 @break

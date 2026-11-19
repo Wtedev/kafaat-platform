@@ -40,21 +40,16 @@ final class TrainingEntityAuthorization
     }
 
     /**
-     * Active user who is owner, creator, or listed editor (pivot).
+     * Every active staff member works on every program; owner, creator and editors no longer
+     * limit access. What a staff member may do is decided by their permissions alone.
      */
-    public static function hasActiveProgramStakeholderRole(User $user, TrainingProgram $program): bool
+    public static function isActiveProgramStaff(User $user): bool
     {
-        if (! self::isActive($user)) {
-            return false;
-        }
-
-        return self::isOwnerOfProgram($user, $program)
-            || self::isCreatorOfProgram($user, $program)
-            || self::isEditorOfProgram($user, $program);
+        return self::isActive($user) && $user->isAdminOrStaff();
     }
 
     /**
-     * For viewOperational: admin bypass, or any active stakeholder (owner / creator / editor).
+     * For viewOperational: admin bypass, or any active staff member.
      */
     public static function canViewOperationalProgram(User $user, TrainingProgram $program): bool
     {
@@ -62,11 +57,11 @@ final class TrainingEntityAuthorization
             return true;
         }
 
-        return self::hasActiveProgramStakeholderRole($user, $program);
+        return self::isActiveProgramStaff($user);
     }
 
     /**
-     * update on program: admin bypass, or programs.update + active stakeholder.
+     * update on program: admin bypass, or programs.update for any active staff member.
      */
     public static function canUpdateProgram(User $user, TrainingProgram $program): bool
     {
@@ -78,7 +73,7 @@ final class TrainingEntityAuthorization
             return false;
         }
 
-        return self::hasActiveProgramStakeholderRole($user, $program);
+        return self::isActiveProgramStaff($user);
     }
 
     /**
@@ -99,22 +94,13 @@ final class TrainingEntityAuthorization
     }
 
     /**
-     * Restrict a TrainingProgram query to programs where the viewer is an active operational stakeholder.
+     * Restrict a TrainingProgram query to what the viewer may operate on: every program for active staff, nothing otherwise.
      * Do not use when adminBypass applies — callers should skip the constraint entirely in that case.
      */
     public static function constrainQueryToOperationalProgramsForViewer(Builder $query, User $viewer): void
     {
-        if (! self::isActive($viewer)) {
+        if (! self::isActiveProgramStaff($viewer)) {
             $query->whereRaw('1 = 0');
-
-            return;
         }
-
-        $table = $query->getModel()->getTable();
-        $query->where(function (Builder $q) use ($viewer, $table): void {
-            $q->where($table.'.owner_id', $viewer->id)
-                ->orWhere($table.'.created_by', $viewer->id)
-                ->orWhereHas('editors', fn ($eq) => $eq->whereKey($viewer->id));
-        });
     }
 }

@@ -13,6 +13,8 @@ enum ProgramActivityAction: string
     case Unpublished = 'unpublished';
     case Archived = 'archived';
     case Restored = 'restored';
+    case RegistrationWindowClosed = 'registration_window_closed';
+    case RegistrationWindowReopened = 'registration_window_reopened';
     case RegistrationCreated = 'registration_created';
     case RegistrationApproved = 'registration_approved';
     case RegistrationRejected = 'registration_rejected';
@@ -33,6 +35,8 @@ enum ProgramActivityAction: string
             self::Unpublished => 'إرجاع إلى مسودة',
             self::Archived => 'أرشفة البرنامج',
             self::Restored => 'استعادة من الأرشيف',
+            self::RegistrationWindowClosed => 'إغلاق التسجيل',
+            self::RegistrationWindowReopened => 'إعادة فتح التسجيل',
             self::RegistrationCreated => 'تسجيل جديد',
             self::RegistrationApproved => 'قبول تسجيل',
             self::RegistrationRejected => 'رفض تسجيل',
@@ -49,7 +53,8 @@ enum ProgramActivityAction: string
     public function group(): string
     {
         return match ($this) {
-            self::Created, self::SettingsUpdated, self::Published, self::Unpublished, self::Archived, self::Restored => 'program',
+            self::Created, self::SettingsUpdated, self::Published, self::Unpublished, self::Archived, self::Restored,
+            self::RegistrationWindowClosed, self::RegistrationWindowReopened => 'program',
             self::RegistrationCreated, self::RegistrationApproved, self::RegistrationRejected, self::RegistrationCancelled, self::RegistrationReopened => 'registrations',
             self::AttendanceMarked, self::AttendanceCleared => 'attendance',
             self::SurveyCompleted => 'surveys',

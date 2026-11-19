@@ -6,7 +6,7 @@ namespace App\Enums\StaffUi;
  * Staff-UI registration-window availability for a training program.
  *
  * Ordered evaluation (first match wins):
- * manual_closed (reserved) → not_started → closed → full → open
+ * manual_closed → not_started → closed → full → open
  */
 enum StaffRegistrationAvailability: string
 {

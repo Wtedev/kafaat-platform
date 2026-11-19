@@ -60,15 +60,22 @@ class ProgramDailyAttendanceFilamentTest extends TestCase
         );
         $this->assertSame('أيام البرنامج', (new \ReflectionClass(ProgramPrepDaysRelationManager::class))->getStaticPropertyValue('title'));
 
-        $outsider = User::factory()->create([
+        // Every active staff member works on every program, not only its owner or editors.
+        $otherStaff = User::factory()->create([
             'role_type' => 'staff',
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
-        $outsider->assignRole('staff');
-        $outsider->givePermissionTo(['programs.view']);
+        $otherStaff->assignRole('staff');
+        $otherStaff->givePermissionTo(['programs.view']);
 
-        $this->actingAs($outsider);
+        $this->actingAs($otherStaff);
+        $this->assertTrue(
+            ProgramAttendanceRegistrationsRelationManager::canViewForRecord($program, ViewTrainingProgram::class),
+        );
+
+        $otherStaff->forceFill(['is_active' => false])->save();
+        $this->actingAs($otherStaff->fresh());
         $this->assertFalse(
             ProgramAttendanceRegistrationsRelationManager::canViewForRecord($program, ViewTrainingProgram::class),
         );
