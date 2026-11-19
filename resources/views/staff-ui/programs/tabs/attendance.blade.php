@@ -31,7 +31,7 @@
     </div>
 
     @if ($attendanceLinks->isEmpty())
-        <p class="sui-program-muted">لا توجد أيام تحضير بعد. اضغطي «إضافة» واختاري النوع.</p>
+        <p class="sui-program-muted">لا توجد أيام تحضير بعد. اضغط «إضافة» واختر النوع.</p>
     @else
         <div class="sui-table-wrap">
             <table class="sui-table sui-att-table">
@@ -103,7 +103,7 @@
         <input type="hidden" name="mode" value="" data-att-mode>
         <p class="sui-att-form__type" data-att-mode-label></p>
         <x-staff-ui.input name="name" label="اسم يوم التحضير" placeholder="مثلاً: اليوم الأول" required />
-        <x-staff-ui.input type="number" name="open_minutes" label="مدة الرابط (دقيقة)" value="10" min="1" max="720" required hint="تقدرين تعدّلينها بعد الإنشاء." />
+        <x-staff-ui.input type="number" name="open_minutes" label="مدة الرابط (دقيقة)" value="10" min="1" max="720" required hint="يمكن تعديلها بعد الإنشاء." />
         <x-staff-ui.checkbox name="open_now" value="1" label="افتح التحضير الآن" checked />
     </form>
     <x-slot:actions>
@@ -151,7 +151,7 @@
             await navigator.clipboard.writeText(button.dataset.copy);
             label.textContent = 'نُسخ ✓';
         } catch (e) {
-            window.prompt('انسخي الرابط:', button.dataset.copy);
+            window.prompt('انسخ الرابط:', button.dataset.copy);
         }
         setTimeout(() => { label.textContent = original; }, 1500);
     }));

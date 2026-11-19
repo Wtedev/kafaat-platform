@@ -30,7 +30,7 @@
             <x-staff-ui.button type="button" variant="secondary" size="sm" icon="download" data-sui-open-modal="reg-export" data-export-scope="all">تصدير</x-staff-ui.button>
         @endif
         @if ($canUpdate)
-            <form method="POST" action="{{ route('staff-ui.programs.registrations.window', $program) }}" @unless ($closed) onsubmit="return confirm('لن يستطيع أحد التسجيل حتى تعيدي فتحه. إغلاق التسجيل الآن؟');" @endunless>
+            <form method="POST" action="{{ route('staff-ui.programs.registrations.window', $program) }}" @unless ($closed) onsubmit="return confirm('لن يتمكن أحد من التسجيل حتى يُعاد فتحه. هل تريد إغلاق التسجيل الآن؟');" @endunless>
                 @csrf
                 <input type="hidden" name="action" value="{{ $closed ? 'reopen' : 'close' }}">
                 <x-staff-ui.button type="submit" :variant="$closed ? 'primary' : 'secondary'" size="sm" :icon="$closed ? 'lock-open' : 'lock'">{{ $closed ? 'إعادة فتح التسجيل' : 'إغلاق التسجيل' }}</x-staff-ui.button>
@@ -188,10 +188,10 @@
         <h3 class="sui-modal__title" id="reg-bulk-title" data-reg-modal-title></h3>
         <p class="sui-modal__text" data-reg-modal-summary></p>
         <div data-reg-reason-box hidden>
-            <x-staff-ui.textarea name="modal_reason" label="سبب الرفض (اختياري، يظهر في الإيميل)" rows="3" data-reg-reason-input></x-staff-ui.textarea>
+            <x-staff-ui.textarea name="modal_reason" label="سبب الرفض (اختياري، يظهر في الرسالة)" rows="3" data-reg-reason-input></x-staff-ui.textarea>
         </div>
-        <p class="sui-reg-preview__label">الإيميل اللي بيوصل <span data-reg-preview-who></span>:</p>
-        <iframe class="sui-reg-preview" title="معاينة الإيميل" data-reg-preview sandbox></iframe>
+        <p class="sui-reg-preview__label">الرسالة التي ستصل إلى <span data-reg-preview-who></span>:</p>
+        <iframe class="sui-reg-preview" title="معاينة الرسالة" data-reg-preview sandbox></iframe>
         <div class="sui-modal__actions">
             <button type="button" class="sui-btn sui-btn--secondary sui-btn--md" data-sui-modal-close>إلغاء</button>
             <button type="button" class="sui-btn sui-btn--primary sui-btn--md" data-reg-modal-confirm>تأكيد وإرسال</button>
@@ -289,10 +289,10 @@
         const n = single ? 1 : count();
         modal.querySelector('[data-reg-modal-title]').textContent = kind === 'approve' ? 'قبول التسجيلات' : (single ? `رفض ${opts.name}` : 'رفض التسجيلات');
         modal.querySelector('[data-reg-modal-summary]').textContent = single
-            ? 'سيُرسل له إيميل الاعتذار مباشرة بعد التأكيد.'
+            ? 'سيُرسل له رسالة الاعتذار مباشرة بعد التأكيد.'
             : (kind === 'approve'
-                ? `سيُقبل الطلبات المعلّقة ضمن ${n} محدداً، ويُرسل لكل مقبول إيميل القبول. يُحترم حد السعة وشروط القبول.`
-                : `سيُرفض الطلبات المعلّقة ضمن ${n} محدداً، ويُرسل لكل واحد إيميل الاعتذار.`);
+                ? `ستُقبل الطلبات المعلّقة ضمن ${n} محدداً، ويُرسل لكل مقبول رسالة القبول. يُحترم حد السعة وشروط القبول.`
+                : `ستُرفض الطلبات المعلّقة ضمن ${n} محدداً، ويُرسل لكل واحد رسالة الاعتذار.`);
         modal.querySelector('[data-reg-preview-who]').textContent = single ? `إلى ${opts.name}` : 'لكل واحد (مثال من أول طلب)';
         reasonBox.hidden = kind !== 'reject';
         reasonInput.value = '';

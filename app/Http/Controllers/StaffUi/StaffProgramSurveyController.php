@@ -45,8 +45,8 @@ class StaffProgramSurveyController extends Controller
             'pre_template_id' => ['required_if:source,template', 'nullable', 'integer', Rule::exists('survey_templates', 'id')],
             'satisfaction_template_id' => ['required_if:source,template', 'nullable', 'integer', Rule::exists('survey_templates', 'id')],
         ], [
-            'pre_template_id.required_if' => 'اختاري قالب الاستبيان القبلي.',
-            'satisfaction_template_id.required_if' => 'اختاري قالب استبيان الرضا.',
+            'pre_template_id.required_if' => 'يُرجى اختيار قالب الاستبيان القبلي.',
+            'satisfaction_template_id.required_if' => 'يُرجى اختيار قالب استبيان الرضا.',
         ]);
 
         if ($data['source'] === 'blank') {

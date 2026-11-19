@@ -18,13 +18,13 @@
     <div class="sui-card__head sui-card__head--row">
         <div>
             <h2>الشهادات</h2>
-            <p>كل متدرب مقبول: وقت تحضيره في كل يوم، واستبياناته، وشهادته. اختاري من تصدر لهم الشهادة.</p>
+            <p>كل متدرب مقبول: وقت تحضيره في كل يوم، واستبياناته، وشهادته. حدّد من تُصدر لهم الشهادات.</p>
         </div>
         <x-staff-ui.button variant="secondary" size="sm" icon="pen-tool" :href="$certDesignerUrl">تصميم الشهادة</x-staff-ui.button>
     </div>
 
     @unless ($certBackgroundReady)
-        <p class="sui-alert sui-alert--warning" role="status">ما فيه خلفية للشهادة بعد. صمّميها أولاً عشان يتفعّل الإصدار.</p>
+        <p class="sui-alert sui-alert--warning" role="status">لم تُرفع خلفية للشهادة بعد. صمّم الشهادة أولاً ليتفعّل الإصدار.</p>
     @endunless
 
     <form method="GET" action="{{ $tabUrl }}" class="sui-cert-search">
@@ -168,7 +168,7 @@
             form.addEventListener('submit', (e) => {
                 if (e.submitter?.matches('[data-cert-manual]')) return;
                 const n = e.submitter?.matches('[data-cert-one]') ? 1 : checks().filter((c) => c.checked).length;
-                if (!confirm(`إصدار ${n} شهادة وإرسالها للمتدربين بالإيميل؟`)) e.preventDefault();
+                if (!confirm(`إصدار ${n} شهادة وإرسالها إلى المتدربين بالبريد الإلكتروني؟`)) e.preventDefault();
             });
         })();
     </script>

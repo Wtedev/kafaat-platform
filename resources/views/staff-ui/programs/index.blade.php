@@ -60,11 +60,11 @@
                     <p>لا توجد نتائج مطابقة للفلاتر.</p>
                     <a class="sui-staff-clear" href="{{ $clearUrl }}">مسح الفلاتر</a>
                 @else
-                    <p>{{ ['active' => 'لا توجد برامج بعد.', 'archive' => 'لا توجد برامج مؤرشفة.', 'trash' => 'المحذوفات فاضية.'][$view] }}</p>
+                    <p>{{ ['active' => 'لا توجد برامج بعد.', 'archive' => 'لا توجد برامج مؤرشفة.', 'trash' => 'لا توجد برامج محذوفة.'][$view] }}</p>
                 @endif
             </div>
         @elseif ($view === 'trash')
-            <p class="sui-programs-trash-note">البرامج المحذوفة تبقى هنا بكل بياناتها، وتقدرين تستعيدينها في أي وقت.</p>
+            <p class="sui-programs-trash-note">تبقى البرامج المحذوفة هنا بجميع بياناتها، ويمكن استعادتها في أي وقت.</p>
             <div class="sui-table-wrap">
                 <table class="sui-table">
                     <thead>

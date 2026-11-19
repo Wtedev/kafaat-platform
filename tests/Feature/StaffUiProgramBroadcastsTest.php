@@ -95,7 +95,7 @@ class StaffUiProgramBroadcastsTest extends TestCase
 
         $this->actingAsOtpVerified($admin)
             ->get(route('staff-ui.programs.tab', [$program, 'broadcasts']).'?compose=1')
-            ->assertSee('المقبولون اللي ما عبّوا الاستبيان بعدي (1)')
+            ->assertSee('المقبولون الذين لم يعبّئوا الاستبيان بعدي (1)')
             ->assertSee('المقبولون الغائبون عن «اليوم الأول» (1)');
 
         $this->actingAsOtpVerified($admin)
@@ -112,7 +112,7 @@ class StaffUiProgramBroadcastsTest extends TestCase
 
         $this->actingAsOtpVerified($admin)
             ->get(route('staff-ui.programs.tab', [$program, 'broadcasts']))
-            ->assertSee('المقبولون اللي ما عبّوا الاستبيان بعدي')
+            ->assertSee('المقبولون الذين لم يعبّئوا الاستبيان بعدي')
             ->assertSee('في الانتظار');
 
         $this->actingAsOtpVerified($admin)

@@ -46,7 +46,7 @@ class StaffProgramRegistrationController extends Controller
             return $this->back($request, $program)->withErrors(['registrations' => $e->userMessage()]);
         }
 
-        return $this->back($request, $program)->with('status', 'تم قبول '.$registration->user?->name.' وإرسال إيميل القبول.');
+        return $this->back($request, $program)->with('status', 'تم قبول '.$registration->user?->name.' وإرسال رسالة القبول.');
     }
 
     public function reject(Request $request, TrainingProgram $program, ProgramRegistration $registration): RedirectResponse
@@ -58,7 +58,7 @@ class StaffProgramRegistrationController extends Controller
 
         $this->service->reject($registration, $reason);
 
-        return $this->back($request, $program)->with('status', 'تم رفض '.$registration->user?->name.' وإرسال إيميل الاعتذار.');
+        return $this->back($request, $program)->with('status', 'تم رفض '.$registration->user?->name.' وإرسال رسالة الاعتذار.');
     }
 
     public function bulk(Request $request, TrainingProgram $program): RedirectResponse|BinaryFileResponse
@@ -94,13 +94,13 @@ class StaffProgramRegistrationController extends Controller
 
         if ($action === 'approve') {
             $summary = $this->bulk->approve($records, $actor, $program, $filters);
-            $message = 'قُبل '.en_num($summary['approved']).' وأُرسل لهم إيميل القبول';
-            $message .= $summary['skipped'] > 0 ? '، وتُخطّي '.en_num($summary['skipped']).' (ليس بانتظار القبول أو لا يستوفي الشروط)' : '';
-            $message .= $summary['capacity_blocked'] > 0 ? '، وتوقف '.en_num($summary['capacity_blocked']).' بسبب السعة' : '';
+            $message = 'قُبل '.en_num($summary['approved']).' وأُرسلت إليهم رسالة القبول';
+            $message .= $summary['skipped'] > 0 ? '، ولم يُعالَج '.en_num($summary['skipped']).' (ليس بانتظار القبول أو لا يستوفي الشروط)' : '';
+            $message .= $summary['capacity_blocked'] > 0 ? '، وتعذّر قبول '.en_num($summary['capacity_blocked']).' بسبب السعة' : '';
         } else {
             $summary = $this->bulk->reject($records, $actor, $program, $reason, $filters);
-            $message = 'رُفض '.en_num($summary['rejected']).' وأُرسل لهم إيميل الاعتذار';
-            $message .= $summary['skipped'] > 0 ? '، وتُخطّي '.en_num($summary['skipped']) : '';
+            $message = 'رُفض '.en_num($summary['rejected']).' وأُرسلت إليهم رسالة الاعتذار';
+            $message .= $summary['skipped'] > 0 ? '، ولم يُعالَج '.en_num($summary['skipped']) : '';
         }
 
         return $this->back($request, $program)->with('status', $message.'.');
@@ -140,7 +140,7 @@ class StaffProgramRegistrationController extends Controller
 
         $this->registrations->closeRegistration($actor, $program);
 
-        return $this->back($request, $program)->with('status', 'أُغلق التسجيل، ولن تُقبل طلبات جديدة حتى تعيدي فتحه.');
+        return $this->back($request, $program)->with('status', 'أُغلق التسجيل، ولن تُقبل طلبات جديدة حتى يُعاد فتحه.');
     }
 
     public function exportAll(Request $request, TrainingProgram $program): RedirectResponse|BinaryFileResponse

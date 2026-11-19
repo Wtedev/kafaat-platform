@@ -109,7 +109,7 @@
     <section id="delete" class="sui-card sui-settings-section sui-settings-danger">
         <div class="sui-card__head">
             <h2>حذف البرنامج</h2>
-            <p>ينتقل البرنامج إلى «المحذوفات» بكل بياناته (المسجلين، التحضير، الاستبيانات، الشهادات)، ويختفي من الموقع ومن حسابات المتدربين. تقدرين تستعيدينه من قائمة البرامج في أي وقت.</p>
+            <p>ينتقل البرنامج إلى «المحذوفات» بكل بياناته (المسجلين، التحضير، الاستبيانات، الشهادات)، ويختفي من الموقع ومن حسابات المتدربين. ويمكن استعادته من قائمة البرامج في أي وقت.</p>
         </div>
         <form method="POST" action="{{ route('staff-ui.programs.delete', $program) }}" onsubmit="return confirm('نقل «{{ $program->title }}» إلى المحذوفات؟');">
             @csrf

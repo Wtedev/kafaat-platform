@@ -32,7 +32,7 @@ class StaffProgramCertificateController extends Controller
         $back = redirect()->to(route('staff-ui.programs.tab', [$program, 'certificates']).$this->query($request));
 
         if (! $this->certificates->backgroundReady($program)) {
-            return $back->withErrors(['certificates' => 'صمّمي الشهادة وارفعي خلفيتها أولاً.']);
+            return $back->withErrors(['certificates' => 'يجب تصميم الشهادة ورفع خلفيتها أولاً.']);
         }
 
         $requested = array_map('intval', array_filter((array) $request->input('ids', []), 'is_numeric'));
@@ -59,7 +59,7 @@ class StaffProgramCertificateController extends Controller
             metadata: ['count' => $pending->count(), 'selected' => true, 'source' => 'staff-ui', 'registration_ids' => $pending->modelKeys()],
         );
 
-        return $back->with('status', 'بدأ إصدار '.en_num($pending->count()).' شهادة، وتوصل للمتدربين بالإيميل عند اكتمالها.');
+        return $back->with('status', 'بدأ إصدار '.en_num($pending->count()).' شهادة، وتصل إلى المتدربين بالبريد الإلكتروني عند اكتمالها.');
     }
 
     private function query(Request $request): string
