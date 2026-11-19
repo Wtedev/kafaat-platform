@@ -62,6 +62,7 @@ use App\Http\Controllers\StaffUi\StaffInboxController;
 use App\Http\Controllers\StaffUi\StaffProfileController;
 use App\Http\Controllers\StaffUi\StaffProgramController;
 use App\Http\Controllers\StaffUi\StaffProgramPageController;
+use App\Http\Controllers\StaffUi\StaffProgramRegistrationController;
 use App\Http\Controllers\StaffUi\StaffProgramWizardController;
 use App\Http\Controllers\StaffUi\StaffUiDemoController;
 use App\Http\Middleware\EnsureExperienceHouseManager;
@@ -181,6 +182,12 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.St
             ->whereIn('section', array_keys(StaffProgramSettings::SECTIONS))
             ->name('programs.settings.update');
         Route::post('/programs/{program}/status', [StaffProgramPageController::class, 'updateStatus'])->name('programs.status');
+        Route::post('/programs/{program}/registrations/bulk', [StaffProgramRegistrationController::class, 'bulk'])->name('programs.registrations.bulk');
+        Route::get('/programs/{program}/registrations/export', [StaffProgramRegistrationController::class, 'exportAll'])->name('programs.registrations.export');
+        Route::get('/programs/{program}/registrations/email-preview', [StaffProgramRegistrationController::class, 'preview'])->name('programs.registrations.preview');
+        Route::post('/programs/{program}/registrations/window', [StaffProgramRegistrationController::class, 'window'])->name('programs.registrations.window');
+        Route::post('/programs/{program}/registrations/{registration}/approve', [StaffProgramRegistrationController::class, 'approve'])->name('programs.registrations.approve');
+        Route::post('/programs/{program}/registrations/{registration}/reject', [StaffProgramRegistrationController::class, 'reject'])->name('programs.registrations.reject');
         Route::post('/programs/{program}/settings-preview-mail', [StaffProgramPageController::class, 'previewMail'])->name('programs.settings.preview-mail');
         Route::post('/programs/{program}/settings-acceptance-preview', [StaffProgramPageController::class, 'acceptancePreview'])->name('programs.settings.acceptance-preview');
     });

@@ -11,8 +11,7 @@ use Illuminate\Support\Carbon;
  * Single source of truth for staff-UI program / registration status labels.
  *
  * Registration availability rules (first match wins):
- * 1. Manually closed (reserved for function 5) → ManualClosed.
- *    Hook: {@see self::isManuallyClosed()} — always false until a real column exists.
+ * 1. Manually closed (registration_closed_at set) → ManualClosed.
  * 2. registration_start is a future date → NotStarted («لم يبدأ»).
  *    Null registration_start means the window has already started (open from publish /
  *    whenever the program is otherwise eligible) — same as TrainingProgram::isRegistrationOpen().
@@ -111,13 +110,11 @@ final class StaffProgramStatus
     }
 
     /**
-     * Reserved for function 5 (manual registration close).
-     * Always false until a dedicated column/flag is approved and wired here.
-     * Do not invent a column in this service.
+     * Registration closed by hand from the registrations tab.
      */
     public function isManuallyClosed(TrainingProgram $program): bool
     {
-        return false;
+        return $program->isRegistrationManuallyClosed();
     }
 
     /**

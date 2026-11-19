@@ -81,9 +81,17 @@ final class StaffProgramIndex
     private function applyRegistrationFilter(Builder $query, string $registration): void
     {
         $availability = StaffRegistrationAvailability::tryFrom($registration);
-        if ($availability === null || $availability === StaffRegistrationAvailability::ManualClosed) {
+        if ($availability === null) {
             return;
         }
+
+        if ($availability === StaffRegistrationAvailability::ManualClosed) {
+            $query->whereNotNull('registration_closed_at');
+
+            return;
+        }
+
+        $query->whereNull('registration_closed_at');
 
         $today = Carbon::today()->toDateString();
         $approvedSub = '(select count(*) from program_registrations'
