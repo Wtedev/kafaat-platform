@@ -24,12 +24,17 @@ class StaffProgramController extends Controller
         $kind = (string) $request->query('kind', '');
         $programStatus = (string) $request->query('status', '');
         $registration = (string) $request->query('registration', '');
+        $view = (string) $request->query('view', 'active');
+        $canSeeTrash = $actor->can('viewTrash', TrainingProgram::class);
+        if (! in_array($view, ['active', 'archive', 'trash'], true) || ($view === 'trash' && ! $canSeeTrash)) {
+            $view = 'active';
+        }
 
         if (TrainingProgramKind::tryFrom($kind) === null) {
             $kind = '';
         }
 
-        if (ProgramStatus::tryFrom($programStatus) === null) {
+        if (ProgramStatus::tryFrom($programStatus) === null || $view !== 'active' || $programStatus === ProgramStatus::Archived->value) {
             $programStatus = '';
         }
 
@@ -50,6 +55,7 @@ class StaffProgramController extends Controller
             $programStatus,
             $registration,
             (int) $request->query('page', 1),
+            view: $view,
         );
 
         $filtersActive = $search !== '' || $kind !== '' || $programStatus !== '' || $registration !== '';
@@ -68,8 +74,10 @@ class StaffProgramController extends Controller
                 '' => 'الكل',
                 ProgramStatus::Draft->value => ProgramStatus::Draft->label(),
                 ProgramStatus::Published->value => ProgramStatus::Published->label(),
-                ProgramStatus::Archived->value => ProgramStatus::Archived->label(),
             ],
+            'view' => $view,
+            'viewCounts' => $index->viewCounts(),
+            'canSeeTrash' => $canSeeTrash,
             'registrationOptions' => [
                 '' => 'الكل',
                 StaffRegistrationAvailability::NotStarted->value => StaffRegistrationAvailability::NotStarted->label(),

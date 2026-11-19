@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 final class UniqueModelSlug
@@ -45,6 +46,11 @@ final class UniqueModelSlug
         $query = is_string($model)
             ? $model::query()
             : $model->newQuery();
+
+        // A trashed row still holds its slug in the unique index.
+        if (in_array(SoftDeletes::class, class_uses_recursive($query->getModel()), true)) {
+            $query->withTrashed();
+        }
 
         if ($ignoreId !== null) {
             $query->whereKeyNot($ignoreId);

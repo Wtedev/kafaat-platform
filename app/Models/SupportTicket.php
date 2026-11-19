@@ -58,7 +58,7 @@ class SupportTicket extends Model
 
     public function relatedProgram(): BelongsTo
     {
-        return $this->belongsTo(TrainingProgram::class, 'related_program_id');
+        return $this->belongsTo(TrainingProgram::class, 'related_program_id')->withTrashed();
     }
 
     public function messages(): HasMany

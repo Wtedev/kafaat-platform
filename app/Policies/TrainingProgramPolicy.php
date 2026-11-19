@@ -87,6 +87,33 @@ class TrainingProgramPolicy
         return $this->canPerformWithProgramPermission($user, $program, 'programs.delete');
     }
 
+    /** Deleted programs can be brought back by whoever may delete them. */
+    public function restore(User $user, TrainingProgram $program): bool
+    {
+        return $this->delete($user, $program);
+    }
+
+    /** Programs are never removed for good from the app. */
+    public function forceDelete(User $user, TrainingProgram $program): bool
+    {
+        return false;
+    }
+
+    public function viewTrash(User $user): bool
+    {
+        if (TrainingEntityAuthorization::adminBypass($user)) {
+            return true;
+        }
+
+        return $user->checkPermissionTo('programs.delete') && TrainingEntityAuthorization::isActiveProgramStaff($user);
+    }
+
+    /** Copying makes a new draft, so it follows the right to create programs. */
+    public function duplicate(User $user, TrainingProgram $program): bool
+    {
+        return $user->can('create', TrainingProgram::class) && $user->can('view', $program);
+    }
+
     public function publish(User $user, TrainingProgram $program): bool
     {
         return $this->canPerformWithProgramPermission($user, $program, 'programs.publish');

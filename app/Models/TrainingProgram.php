@@ -25,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -32,6 +33,7 @@ use Illuminate\Support\Facades\Log;
 class TrainingProgram extends Model
 {
     use HasEntityNotes;
+    use SoftDeletes;
 
     /**
      * When true, {@see $fillable} updates to `image` are allowed.
@@ -83,6 +85,7 @@ class TrainingProgram extends Model
         'assigned_to',
         'registration_questions',
         'registration_closed_at',
+        'deleted_by',
     ];
 
     protected function casts(): array
@@ -191,7 +194,19 @@ class TrainingProgram extends Model
             }
         });
 
+        // Deleting only moves a program to the trash; its cover stays until a permanent delete.
         static::deleting(function (self $program): void {
+            if (! $program->isForceDeleting() && Auth::check()) {
+                $program->deleted_by = Auth::id();
+                $program->saveQuietly();
+            }
+        });
+
+        static::restoring(function (self $program): void {
+            $program->deleted_by = null;
+        });
+
+        static::forceDeleting(function (self $program): void {
             app(PublicMediaLifecycleService::class)->deleteOwnedPath($program->image);
         });
     }
@@ -604,6 +619,11 @@ class TrainingProgram extends Model
     public function certificateTemplate(): HasOne
     {
         return $this->hasOne(CertificateTemplate::class);
+    }
+
+    public function deletedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 
     public function activities(): HasMany

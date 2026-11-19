@@ -13,6 +13,8 @@ enum ProgramActivityAction: string
     case Unpublished = 'unpublished';
     case Archived = 'archived';
     case Restored = 'restored';
+    case Deleted = 'deleted';
+    case Undeleted = 'undeleted';
     case RegistrationWindowClosed = 'registration_window_closed';
     case RegistrationWindowReopened = 'registration_window_reopened';
     case RegistrationCreated = 'registration_created';
@@ -37,6 +39,8 @@ enum ProgramActivityAction: string
             self::Unpublished => 'إرجاع إلى مسودة',
             self::Archived => 'أرشفة البرنامج',
             self::Restored => 'استعادة من الأرشيف',
+            self::Deleted => 'نقل إلى المحذوفات',
+            self::Undeleted => 'استعادة من المحذوفات',
             self::RegistrationWindowClosed => 'إغلاق التسجيل',
             self::RegistrationWindowReopened => 'إعادة فتح التسجيل',
             self::RegistrationCreated => 'تسجيل جديد',
@@ -57,7 +61,7 @@ enum ProgramActivityAction: string
     public function group(): string
     {
         return match ($this) {
-            self::Created, self::SettingsUpdated, self::Published, self::Unpublished, self::Archived, self::Restored,
+            self::Created, self::SettingsUpdated, self::Published, self::Unpublished, self::Archived, self::Restored, self::Deleted, self::Undeleted,
             self::RegistrationWindowClosed, self::RegistrationWindowReopened => 'program',
             self::RegistrationCreated, self::RegistrationApproved, self::RegistrationRejected, self::RegistrationCancelled, self::RegistrationReopened => 'registrations',
             self::AttendanceMarked, self::AttendanceCleared => 'attendance',

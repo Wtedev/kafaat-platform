@@ -315,9 +315,11 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->hasMany(CandidatePoolConsentEvent::class);
     }
 
+    /** Registrations of programs that are not in the trash. */
     public function programRegistrations(): HasMany
     {
-        return $this->hasMany(ProgramRegistration::class);
+        return $this->hasMany(ProgramRegistration::class)
+            ->whereHas('trainingProgram', fn ($program) => $program->withoutTrashed());
     }
 
     public function assignedTrainingPrograms(): HasMany

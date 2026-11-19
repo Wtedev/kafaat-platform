@@ -324,6 +324,10 @@ class ViewTrainingProgram extends BaseViewRecord
             ),
             TransferTrainingEntityOwnershipAction::make($this),
             DeleteAction::make()
+                ->label('نقل إلى المحذوفات')
+                ->modalHeading('نقل البرنامج إلى المحذوفات')
+                ->modalDescription('يختفي البرنامج من الموقع ويبقى بكل بياناته في المحذوفات، ويمكن استعادته من واجهة الموظفين.')
+                ->successNotificationTitle('نُقل البرنامج إلى المحذوفات')
                 ->visible(fn (): bool => auth()->user()?->can('delete', $this->getRecord()) ?? false),
         ];
     }

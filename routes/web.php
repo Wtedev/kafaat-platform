@@ -65,6 +65,7 @@ use App\Http\Controllers\StaffUi\StaffProgramAttendanceController;
 use App\Http\Controllers\StaffUi\StaffProgramBroadcastController;
 use App\Http\Controllers\StaffUi\StaffProgramCertificateController;
 use App\Http\Controllers\StaffUi\StaffProgramController;
+use App\Http\Controllers\StaffUi\StaffProgramLifecycleController;
 use App\Http\Controllers\StaffUi\StaffProgramPageController;
 use App\Http\Controllers\StaffUi\StaffProgramRegistrationController;
 use App\Http\Controllers\StaffUi\StaffProgramSurveyController;
@@ -179,6 +180,9 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.St
         Route::post('/programs/{program}/wizard-acceptance-preview', [StaffProgramWizardController::class, 'acceptancePreview'])->name('programs.wizard.acceptance-preview');
         Route::get('/programs/{program}/preview', [StaffProgramWizardController::class, 'preview'])->name('programs.wizard.preview');
         Route::get('/programs', [StaffProgramController::class, 'index'])->name('programs.index');
+        Route::post('/programs/trash/{program}/restore', [StaffProgramLifecycleController::class, 'restore'])->whereNumber('program')->name('programs.restore');
+        Route::post('/programs/{program}/copy', [StaffProgramLifecycleController::class, 'copy'])->name('programs.copy');
+        Route::post('/programs/{program}/delete', [StaffProgramLifecycleController::class, 'destroy'])->name('programs.delete');
         Route::get('/programs/{program}', [StaffProgramPageController::class, 'show'])->name('programs.show');
         Route::get('/programs/{program}/{tab}', [StaffProgramPageController::class, 'show'])
             ->whereIn('tab', array_keys(StaffProgramPageController::TABS))

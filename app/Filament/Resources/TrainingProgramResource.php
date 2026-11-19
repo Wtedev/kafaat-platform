@@ -431,6 +431,10 @@ class TrainingProgramResource extends Resource
             ])
             ->actions([
                 DeleteAction::make()
+                    ->label('نقل إلى المحذوفات')
+                    ->modalHeading('نقل البرنامج إلى المحذوفات')
+                    ->modalDescription('يختفي البرنامج من الموقع ويبقى بكل بياناته في المحذوفات، ويمكن استعادته من واجهة الموظفين.')
+                    ->successNotificationTitle('نُقل البرنامج إلى المحذوفات')
                     ->color('danger')
                     ->visible(fn (TrainingProgram $record): bool => auth()->user()?->can('delete', $record) ?? false),
             ])

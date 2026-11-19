@@ -36,7 +36,7 @@ class ProgramActivity extends Model
 
     public function program(): BelongsTo
     {
-        return $this->belongsTo(TrainingProgram::class, 'training_program_id');
+        return $this->belongsTo(TrainingProgram::class, 'training_program_id')->withTrashed();
     }
 
     public function actor(): BelongsTo

@@ -1,5 +1,6 @@
 @php
-    $clearUrl = route('staff-ui.programs.index');
+    $clearUrl = route('staff-ui.programs.index', $view !== 'active' ? ['view' => $view] : []);
+    $tz = config('app.timezone');
 @endphp
 
 <x-staff-ui.layout :name="$staffName" :email="$staffEmail" crumb="البرامج" :dashboard-active="false" active-nav="programs">
@@ -10,14 +11,31 @@
         @endif
     </header>
 
+    @if (session('status'))
+        <p class="sui-alert sui-program-alert" role="status">{{ session('status') }}</p>
+    @endif
+
+    <nav class="sui-reg-chips sui-programs-views" aria-label="القائمة">
+        @foreach (array_filter(['active' => 'البرامج', 'archive' => 'الأرشيف', 'trash' => $canSeeTrash ? 'المحذوفات' : null]) as $key => $label)
+            <a href="{{ route('staff-ui.programs.index', $key === 'active' ? [] : ['view' => $key]) }}" @class(['sui-reg-chip', 'is-active' => $view === $key])>
+                {{ $label }} <span class="sui-reg-chip__count">{{ en_num($viewCounts[$key]) }}</span>
+            </a>
+        @endforeach
+    </nav>
+
     <section class="sui-card sui-programs-panel" data-sui-programs-panel data-view="table">
         <form class="sui-table__filters sui-staff-filters sui-programs-filters" method="GET" action="{{ route('staff-ui.programs.index') }}" data-sui-staff-filters>
+            @if ($view !== 'active')
+                <input type="hidden" name="view" value="{{ $view }}">
+            @endif
             <label class="sui-search sui-staff-search">
                 <i data-lucide="search" class="sui-icon"></i>
                 <input type="search" name="q" value="{{ $search }}" placeholder="اسم البرنامج" aria-label="بحث بالاسم" data-sui-staff-search autocomplete="off">
             </label>
             <x-staff-ui.select name="kind" label="نوع البرنامج" :selected="$kind" :options="$kindOptions" />
-            <x-staff-ui.select name="status" label="حالة البرنامج" :selected="$status" :options="$statusOptions" />
+            @if ($view === 'active')
+                <x-staff-ui.select name="status" label="حالة البرنامج" :selected="$status" :options="$statusOptions" />
+            @endif
             <x-staff-ui.select name="registration" label="حالة التسجيل" :selected="$registration" :options="$registrationOptions" />
             @if ($filtersActive)
                 <a class="sui-staff-clear" href="{{ $clearUrl }}">مسح الفلاتر</a>
@@ -42,9 +60,49 @@
                     <p>لا توجد نتائج مطابقة للفلاتر.</p>
                     <a class="sui-staff-clear" href="{{ $clearUrl }}">مسح الفلاتر</a>
                 @else
-                    <p>لا توجد برامج بعد.</p>
+                    <p>{{ ['active' => 'لا توجد برامج بعد.', 'archive' => 'لا توجد برامج مؤرشفة.', 'trash' => 'المحذوفات فاضية.'][$view] }}</p>
                 @endif
             </div>
+        @elseif ($view === 'trash')
+            <p class="sui-programs-trash-note">البرامج المحذوفة تبقى هنا بكل بياناتها، وتقدرين تستعيدينها في أي وقت.</p>
+            <div class="sui-table-wrap">
+                <table class="sui-table">
+                    <thead>
+                        <tr>
+                            <th>البرنامج</th>
+                            <th>المسجلون</th>
+                            <th>حُذف في</th>
+                            <th>بواسطة</th>
+                            <th aria-label="إجراءات"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($programs as $index => $program)
+                            @php $deletedAt = $program->deleted_at?->copy()->timezone($tz); @endphp
+                            <tr>
+                                <td data-label="البرنامج">
+                                    <div class="sui-program-row__program">
+                                        <x-staff-ui.program-cover :program="$program" :index="$index" variant="thumb" />
+                                        <strong>{{ $program->title }}</strong>
+                                    </div>
+                                </td>
+                                <td data-label="المسجلون">{{ en_num((int) $program->pending_registrations_count + (int) $program->approved_registrations_count) }}</td>
+                                <td data-label="حُذف في" class="sui-reg-table__time">{{ $deletedAt ? en_digits(ar_date($deletedAt, 'd MMM y')).' — '.$deletedAt->format('H:i') : '—' }}</td>
+                                <td data-label="بواسطة">{{ $program->deletedBy?->name ?? '—' }}</td>
+                                <td class="sui-reg-table__actions">
+                                    @can('restore', $program)
+                                        <form method="POST" action="{{ route('staff-ui.programs.restore', $program->id) }}" class="sui-inline-form">
+                                            @csrf
+                                            <x-staff-ui.button type="submit" variant="secondary" size="sm" icon="undo-2">استعادة</x-staff-ui.button>
+                                        </form>
+                                    @endcan
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @include('staff-ui.programs.partials.index-pager')
         @else
             <div class="sui-programs-cards" data-sui-programs-cards hidden>
                 @foreach ($programs as $index => $program)
@@ -144,21 +202,7 @@
                 </div>
             </div>
 
-            <div class="sui-pager sui-programs-pager">
-                <span class="sui-pager__label">{{ en_num($programs->firstItem() ?? 0) }}–{{ en_num($programs->lastItem() ?? 0) }} من {{ en_num($programs->total()) }}</span>
-                @foreach ([
-                    ['url' => $programs->url(1), 'enabled' => ! $programs->onFirstPage(), 'icon' => 'chevrons-right', 'label' => 'الصفحة الأولى'],
-                    ['url' => $programs->previousPageUrl(), 'enabled' => ! $programs->onFirstPage(), 'icon' => 'chevron-right', 'label' => 'السابق'],
-                    ['url' => $programs->nextPageUrl(), 'enabled' => $programs->hasMorePages(), 'icon' => 'chevron-left', 'label' => 'التالي'],
-                    ['url' => $programs->url($programs->lastPage()), 'enabled' => $programs->hasMorePages(), 'icon' => 'chevrons-left', 'label' => 'الصفحة الأخيرة'],
-                ] as $pager)
-                    @if ($pager['enabled'])
-                        <a class="sui-icon-btn" href="{{ $pager['url'] }}" aria-label="{{ $pager['label'] }}"><i data-lucide="{{ $pager['icon'] }}" class="sui-icon"></i></a>
-                    @else
-                        <span class="sui-icon-btn" aria-disabled="true" aria-label="{{ $pager['label'] }}"><i data-lucide="{{ $pager['icon'] }}" class="sui-icon"></i></span>
-                    @endif
-                @endforeach
-            </div>
+            @include('staff-ui.programs.partials.index-pager')
         @endif
     </section>
 </x-staff-ui.layout>

@@ -159,8 +159,11 @@ class PublicMediaManagementTest extends TestCase
             'image' => 'programs/covers/del.jpg',
         ]);
 
+        // Moving to the trash keeps the cover so the program can be restored whole.
         $program->delete();
+        Storage::disk('public')->assertExists('programs/covers/del.jpg');
 
+        $program->forceDelete();
         Storage::disk('public')->assertMissing('programs/covers/del.jpg');
     }
 
