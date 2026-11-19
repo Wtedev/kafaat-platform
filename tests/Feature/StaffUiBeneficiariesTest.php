@@ -186,7 +186,7 @@ class StaffUiBeneficiariesTest extends TestCase
             ->get('/admin')
             ->assertOk()
             ->assertDontSee(route('staff-ui.users.index'), false)
-            ->assertDontSee('لوحة التحكم الجديدة قيد البناء');
+            ->assertDontSee('id="dash-todo-title"', false);
     }
 
     public function test_pagination_keeps_the_search(): void

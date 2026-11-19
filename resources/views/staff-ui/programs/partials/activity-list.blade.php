@@ -62,6 +62,9 @@
                     <p class="sui-activity__meta">
                         <time datetime="{{ $item->created_at?->toIso8601String() }}">{{ $at ? en_digits(ar_date($at, 'd MMM y')).' — '.$at->format('H:i') : '' }}</time>
                         <span>{{ $item->actor?->name ?? 'تلقائي / المستفيد' }}</span>
+                        @if (! empty($showProgram) && $item->program)
+                            <a class="sui-activity__program" href="{{ route('staff-ui.programs.show', $item->program) }}">{{ $item->program->title }}</a>
+                        @endif
                     </p>
                 </div>
             </li>

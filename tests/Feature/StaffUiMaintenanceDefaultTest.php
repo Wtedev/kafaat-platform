@@ -46,7 +46,7 @@ class StaffUiMaintenanceDefaultTest extends TestCase
                 ->get('/admin')
                 ->assertOk()
                 ->assertDontSee('واجهة الموظفين قيد العمل حالياً')
-                ->assertDontSee('لوحة التحكم الجديدة قيد البناء')
+                ->assertDontSee('id="dash-todo-title"', false)
                 ->assertSee('PlatformStatsWidget', false)
                 ->assertSee('fi-sidebar', false);
 

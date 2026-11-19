@@ -254,7 +254,7 @@ final class StaffAlerts
                 return [
                     'key' => 'registrations.program:'.$program->id,
                     'kind' => 'registrations.program',
-                    'title' => en_num($c).' '.($c === 1 ? 'طلب' : 'طلبات').' بانتظار القبول',
+                    'title' => en_num($c).' '.($c === 1 ? 'طلب' : ($c <= 10 ? 'طلبات' : 'طلباً')).' بانتظار القبول',
                     'body' => $program->title,
                     'count' => $c,
                     'payload' => ['program' => $program->id],
@@ -280,7 +280,7 @@ final class StaffAlerts
                 return [
                     'key' => 'registrations.volunteer:'.$opportunity->id,
                     'kind' => 'registrations.volunteer',
-                    'title' => en_num($c).' '.($c === 1 ? 'طلب تطوع' : 'طلبات تطوع').' بانتظار القبول',
+                    'title' => en_num($c).' '.($c === 1 ? 'طلب تطوع' : ($c <= 10 ? 'طلبات تطوع' : 'طلب تطوع')).' بانتظار القبول',
                     'body' => $opportunity->title,
                     'count' => $c,
                     'payload' => ['opportunity' => $opportunity->id],
