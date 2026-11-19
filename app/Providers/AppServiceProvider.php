@@ -58,6 +58,7 @@ use App\Services\Privacy\Retention\RetentionResourceCatalog;
 use App\Services\ProgramActivity\ProgramActivityRecorder;
 use App\Services\Rbac\RbacService;
 use App\Services\Security\SecurityLogService;
+use App\Services\StaffAlerts\StaffAlerts;
 use App\Services\Support\SupportUnreadService;
 use App\Services\UserActivityLogger;
 use App\Support\Auth\EmailNormalizer;
@@ -143,13 +144,18 @@ class AppServiceProvider extends ServiceProvider
             if (! $user instanceof User || ! $user->canAccessFilamentAdmin()) {
                 $view->with('staffInboxNotifications', collect());
                 $view->with('staffInboxUnreadCount', 0);
+                $view->with('staffAlerts', collect());
 
                 return;
             }
 
             $inbox = app(InboxNotificationService::class);
-            $view->with('staffInboxNotifications', $inbox->latestForUser($user, 10));
-            $view->with('staffInboxUnreadCount', $inbox->unreadCount($user));
+            $alerts = app(StaffAlerts::class);
+            $alerts->refreshIfStale();
+            $visible = $alerts->visibleFor($user);
+            $view->with('staffAlerts', $visible);
+            $view->with('staffInboxNotifications', $inbox->latestForUser($user, 5));
+            $view->with('staffInboxUnreadCount', $inbox->unreadCount($user) + $visible->where('unread', true)->count());
         });
 
         View::composer('layouts.portal', function ($view): void {

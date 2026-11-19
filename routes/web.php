@@ -57,6 +57,7 @@ use App\Http\Controllers\Public\PublicTrainingProgramController;
 use App\Http\Controllers\Public\PublicVolunteerOpportunityController;
 use App\Http\Controllers\Public\SupportTicketController;
 use App\Http\Controllers\PublicPrivacyPolicyController;
+use App\Http\Controllers\StaffAlerts\StaffAlertController;
 use App\Http\Controllers\StaffUi\StaffBeneficiaryController;
 use App\Http\Controllers\StaffUi\StaffDirectoryController;
 use App\Http\Controllers\StaffUi\StaffInboxController;
@@ -132,6 +133,15 @@ Route::middleware(['auth', 'otp.verified', 'operational'])->group(function () {
     Route::post('/notification-prefs/ack', [NotificationPreferenceController::class, 'acknowledge'])
         ->name('notification-prefs.ack');
 });
+
+Route::middleware(['auth', 'otp.verified', 'operational'])
+    ->prefix('staff-alerts')
+    ->name('staff-alerts.')
+    ->group(function () {
+        Route::get('/{alert}', [StaffAlertController::class, 'open'])->whereNumber('alert')->name('open');
+        Route::post('/read-all', [StaffAlertController::class, 'readAll'])->name('read-all');
+        Route::post('/{alert}/dismiss', [StaffAlertController::class, 'dismiss'])->whereNumber('alert')->name('dismiss');
+    });
 
 Route::middleware(['auth', 'otp.verified', 'operational'])
     ->prefix('admin-tools/programs/{program}')

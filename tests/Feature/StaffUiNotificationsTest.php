@@ -32,12 +32,12 @@ class StaffUiNotificationsTest extends TestCase
         $this->actingAsOtpVerified($admin)
             ->get('/admin')
             ->assertOk()
-            ->assertSee('لا توجد إشعارات.')
+            ->assertSee('ما فيه شي مطلوب منك الحين.')
             ->assertDontSee('sui-badge', false)
             ->assertDontSee('تعليم الكل كمقروء');
     }
 
-    public function test_bell_lists_the_latest_ten_and_the_unread_count(): void
+    public function test_bell_lists_the_latest_five_personal_notices_and_the_unread_count(): void
     {
         $admin = $this->admin();
         $other = $this->admin();
@@ -52,9 +52,9 @@ class StaffUiNotificationsTest extends TestCase
             ->assertOk()
             ->assertSee('class="sui-badge">3', false)
             ->assertSee('عنوان-12')
-            ->assertSee('عنوان-03')
+            ->assertSee('عنوان-08')
+            ->assertDontSee('عنوان-07')
             ->assertDontSee('عنوان-01')
-            ->assertDontSee('عنوان-02')
             ->assertDontSee('تنبيه شخص آخر')
             ->assertSee('تعليم الكل كمقروء')
             ->assertSee('تعليم كمقروء');
