@@ -109,6 +109,7 @@ class ProgramRegistrationService
             templateKey: 'program_registration.approved',
             subject: ProgramApprovalMail::subjectFor($program),
             sentBy: $approvedBy,
+            registration: $registration,
         );
 
         $this->inboxNotifications->registrationApprovedProgram($registration->user, $program, $approvedBy);
@@ -127,6 +128,7 @@ class ProgramRegistrationService
             notification: new ProgramRegistrationReceived($registration),
             templateKey: 'program_registration.received',
             subject: 'تم استلام طلب مشاركتك — '.$program->title,
+            registration: $registration,
         );
     }
 
@@ -186,6 +188,7 @@ class ProgramRegistrationService
             notification: new ProgramRegistrationRejected($registration),
             templateKey: 'program_registration.rejected',
             subject: 'Registration Update — '.$registration->trainingProgram->title,
+            registration: $registration,
         );
 
         $rejector = auth()->user();

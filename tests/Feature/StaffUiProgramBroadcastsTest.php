@@ -14,6 +14,7 @@ use App\Models\ProgramRegistration;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Attendance\ProgramAttendanceLinkService;
+use App\Services\ProgramRegistrationService;
 use App\Services\Rbac\RbacCatalog;
 use App\Services\Surveys\ProgramSurveyService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -150,6 +151,41 @@ class StaffUiProgramBroadcastsTest extends TestCase
         $this->actingAsOtpVerified($admin)
             ->post(route('staff-ui.programs.broadcasts.store', $program), ['segment' => 'nope', 'subject' => 'x', 'content' => 'y'])
             ->assertSessionHasErrors('segment');
+    }
+
+    public function test_acceptance_emails_show_in_the_log_as_they_are_sent(): void
+    {
+        $admin = $this->admin();
+        $program = $this->program();
+        $one = $this->registration($program, RegistrationStatus::Pending);
+        $two = $this->registration($program, RegistrationStatus::Pending);
+        $three = $this->registration($program, RegistrationStatus::Pending);
+        $one->user->update(['name' => 'سارة الحربي']);
+        $service = app(ProgramRegistrationService::class);
+
+        $service->approve($one, $admin);
+        $this->assertDatabaseHas('email_logs', [
+            'training_program_id' => $program->id,
+            'program_registration_id' => $one->id,
+            'template_key' => 'program_registration.approved',
+        ]);
+
+        $this->actingAsOtpVerified($admin)
+            ->get(route('staff-ui.programs.tab', [$program, 'broadcasts']))
+            ->assertSee('سجل الرسائل')
+            ->assertSee('رسالة القبول')
+            ->assertSee('سارة الحربي')
+            ->assertSee('1 / 1');
+
+        // Approvals a few minutes later by the same person join into one row.
+        $this->travel(2)->minutes();
+        $service->approve($two, $admin);
+        $service->approve($three, $admin);
+
+        $this->actingAsOtpVerified($admin)
+            ->get(route('staff-ui.programs.tab', [$program, 'broadcasts']))
+            ->assertSee('3 متدرب')
+            ->assertSee('3 / 3');
     }
 
     public function test_sending_needs_the_email_permission(): void

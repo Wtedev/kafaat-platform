@@ -79,17 +79,18 @@
 
 <section class="sui-card">
     <div class="sui-card__head">
-        <h2>الرسائل المرسلة والمسودات</h2>
+        <h2>سجل الرسائل</h2>
+        <p>الرسائل الجماعية ومسوداتها، ورسائل القبول لحظة إرسالها.</p>
     </div>
 
-    @if ($broadcasts->isEmpty())
+    @if ($messageLog->isEmpty())
         <p class="sui-program-muted">ما أُرسلت رسائل لهذا البرنامج بعد.</p>
     @else
         <div class="sui-table-wrap">
             <table class="sui-table sui-bc-table">
                 <thead>
                     <tr>
-                        <th>العنوان</th>
+                        <th>الرسالة</th>
                         <th>إلى</th>
                         <th>الحالة</th>
                         <th>الوصول</th>
@@ -99,64 +100,96 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($broadcasts as $broadcast)
-                        @php
-                            $status = $broadcast->status;
-                            $at = ($broadcast->sending_started_at ?? $broadcast->created_at)?->copy()->timezone($tz);
-                        @endphp
-                        <tr>
-                            <td data-label="العنوان"><strong>{{ $broadcast->subject }}</strong></td>
-                            <td data-label="إلى" class="sui-bc-audience">{{ $broadcast->audienceLabel() }}</td>
-                            <td data-label="الحالة"><x-staff-ui.status :tone="$tone[$status->value] ?? 'muted'">{{ $status->label() }}</x-staff-ui.status></td>
-                            <td data-label="الوصول" class="sui-att-count">
-                                @if ($status === ProgramBroadcastStatus::Draft)
-                                    —
-                                @else
-                                    {{ en_num((int) $broadcast->sent_count) }} / {{ en_num((int) $broadcast->recipients_count) }}
-                                    @if ($broadcast->failed_count > 0)
-                                        <span class="sui-bc-failed">· تعذّر {{ en_num((int) $broadcast->failed_count) }}</span>
-                                    @endif
-                                @endif
-                            </td>
-                            <td data-label="الوقت" class="sui-reg-table__time">{{ $at ? en_digits(ar_date($at, 'd MMM')).' — '.$at->format('H:i') : '—' }}</td>
-                            <td data-label="بواسطة">{{ $broadcast->creator?->name ?? '—' }}</td>
-                            <td class="sui-reg-table__actions">
-                                @if ($canSendBroadcasts)
-                                    @if ($status === ProgramBroadcastStatus::Draft)
-                                        <x-staff-ui.button variant="secondary" size="sm" :href="$tabUrl.'?edit='.$broadcast->id">تعديل</x-staff-ui.button>
-                                        <form method="POST" action="{{ route('staff-ui.programs.broadcasts.action', [$program, $broadcast]) }}" class="sui-inline-form" onsubmit="return confirm('حذف المسودة؟');">
-                                            @csrf
-                                            <input type="hidden" name="action" value="delete">
-                                            <button type="submit" class="sui-btn sui-btn--ghost sui-btn--sm" aria-label="حذف {{ $broadcast->subject }}"><i data-lucide="trash-2" class="sui-icon sui-icon--sm"></i></button>
-                                        </form>
+                    @foreach ($messageLog as $entry)
+                        @php $at = $entry['at']?->copy()->timezone($tz); @endphp
+                        @if ($entry['kind'] === 'acceptance')
+                            @php
+                                $items = collect($entry['items']);
+                                $failed = $items->where('status', 'failed')->count();
+                                $names = $items->map(fn ($log) => $log->registration?->user?->name ?? $log->recipient_email);
+                            @endphp
+                            <tr>
+                                <td data-label="الرسالة"><span class="sui-bc-kind"><i data-lucide="mail-check" class="sui-icon sui-icon--sm"></i>رسالة القبول</span></td>
+                                <td data-label="إلى" class="sui-bc-audience">
+                                    @if ($items->count() === 1)
+                                        {{ $names->first() }}
                                     @else
-                                        @if ($broadcast->canRetryFailed())
+                                        <details class="sui-bc-names">
+                                            <summary>{{ en_num($items->count()) }} متدرب</summary>
+                                            <p>{{ $names->implode('، ') }}</p>
+                                        </details>
+                                    @endif
+                                </td>
+                                <td data-label="الحالة"><x-staff-ui.status :tone="$failed > 0 ? 'warning' : 'success'">{{ $failed > 0 ? 'أُرسلت مع أخطاء' : 'أُرسلت' }}</x-staff-ui.status></td>
+                                <td data-label="الوصول" class="sui-att-count">
+                                    {{ en_num($items->count() - $failed) }} / {{ en_num($items->count()) }}
+                                    @if ($failed > 0)
+                                        <span class="sui-bc-failed">· تعذّر {{ en_num($failed) }}</span>
+                                    @endif
+                                </td>
+                                <td data-label="الوقت" class="sui-reg-table__time">{{ $at ? en_digits(ar_date($at, 'd MMM')).' — '.$at->format('H:i') : '—' }}</td>
+                                <td data-label="بواسطة">{{ $entry['sender'] ?? 'تلقائي' }}</td>
+                                <td></td>
+                            </tr>
+                        @else
+                            @php
+                                $broadcast = $entry['broadcast'];
+                                $status = $broadcast->status;
+                            @endphp
+                            <tr>
+                                <td data-label="الرسالة"><strong>{{ $broadcast->subject }}</strong></td>
+                                <td data-label="إلى" class="sui-bc-audience">{{ $broadcast->audienceLabel() }}</td>
+                                <td data-label="الحالة"><x-staff-ui.status :tone="$tone[$status->value] ?? 'muted'">{{ $status->label() }}</x-staff-ui.status></td>
+                                <td data-label="الوصول" class="sui-att-count">
+                                    @if ($status === ProgramBroadcastStatus::Draft)
+                                        —
+                                    @else
+                                        {{ en_num((int) $broadcast->sent_count) }} / {{ en_num((int) $broadcast->recipients_count) }}
+                                        @if ($broadcast->failed_count > 0)
+                                            <span class="sui-bc-failed">· تعذّر {{ en_num((int) $broadcast->failed_count) }}</span>
+                                        @endif
+                                    @endif
+                                </td>
+                                <td data-label="الوقت" class="sui-reg-table__time">{{ $at ? en_digits(ar_date($at, 'd MMM')).' — '.$at->format('H:i') : '—' }}</td>
+                                <td data-label="بواسطة">{{ $broadcast->creator?->name ?? '—' }}</td>
+                                <td class="sui-reg-table__actions">
+                                    @if ($canSendBroadcasts)
+                                        @if ($status === ProgramBroadcastStatus::Draft)
+                                            <x-staff-ui.button variant="secondary" size="sm" :href="$tabUrl.'?edit='.$broadcast->id">تعديل</x-staff-ui.button>
+                                            <form method="POST" action="{{ route('staff-ui.programs.broadcasts.action', [$program, $broadcast]) }}" class="sui-inline-form" onsubmit="return confirm('حذف المسودة؟');">
+                                                @csrf
+                                                <input type="hidden" name="action" value="delete">
+                                                <button type="submit" class="sui-btn sui-btn--ghost sui-btn--sm" aria-label="حذف {{ $broadcast->subject }}"><i data-lucide="trash-2" class="sui-icon sui-icon--sm"></i></button>
+                                            </form>
+                                        @else
+                                            @if ($broadcast->canRetryFailed())
+                                                <form method="POST" action="{{ route('staff-ui.programs.broadcasts.action', [$program, $broadcast]) }}" class="sui-inline-form">
+                                                    @csrf
+                                                    <input type="hidden" name="action" value="retry">
+                                                    <button type="submit" class="sui-btn sui-btn--secondary sui-btn--sm">إعادة الإرسال للي ما وصلتهم</button>
+                                                </form>
+                                            @endif
                                             <form method="POST" action="{{ route('staff-ui.programs.broadcasts.action', [$program, $broadcast]) }}" class="sui-inline-form">
                                                 @csrf
-                                                <input type="hidden" name="action" value="retry">
-                                                <button type="submit" class="sui-btn sui-btn--secondary sui-btn--sm">إعادة الإرسال للي ما وصلتهم</button>
+                                                <input type="hidden" name="action" value="copy">
+                                                <button type="submit" class="sui-btn sui-btn--ghost sui-btn--sm">نسخ</button>
                                             </form>
                                         @endif
-                                        <form method="POST" action="{{ route('staff-ui.programs.broadcasts.action', [$program, $broadcast]) }}" class="sui-inline-form">
-                                            @csrf
-                                            <input type="hidden" name="action" value="copy">
-                                            <button type="submit" class="sui-btn sui-btn--ghost sui-btn--sm">نسخ</button>
-                                        </form>
                                     @endif
-                                @endif
-                            </td>
-                        </tr>
+                                </td>
+                            </tr>
+                        @endif
                     @endforeach
                 </tbody>
             </table>
         </div>
 
-        @if ($broadcasts->hasPages())
+        @if ($messageLog->hasPages())
             <div class="sui-pager">
-                <span class="sui-pager__label">{{ en_num($broadcasts->firstItem() ?? 0) }}–{{ en_num($broadcasts->lastItem() ?? 0) }} من {{ en_num($broadcasts->total()) }}</span>
+                <span class="sui-pager__label">{{ en_num($messageLog->firstItem() ?? 0) }}–{{ en_num($messageLog->lastItem() ?? 0) }} من {{ en_num($messageLog->total()) }}</span>
                 @foreach ([
-                    ['url' => $broadcasts->previousPageUrl(), 'enabled' => ! $broadcasts->onFirstPage(), 'icon' => 'chevron-right', 'label' => 'السابق'],
-                    ['url' => $broadcasts->nextPageUrl(), 'enabled' => $broadcasts->hasMorePages(), 'icon' => 'chevron-left', 'label' => 'التالي'],
+                    ['url' => $messageLog->previousPageUrl(), 'enabled' => ! $messageLog->onFirstPage(), 'icon' => 'chevron-right', 'label' => 'السابق'],
+                    ['url' => $messageLog->nextPageUrl(), 'enabled' => $messageLog->hasMorePages(), 'icon' => 'chevron-left', 'label' => 'التالي'],
                 ] as $pager)
                     @if ($pager['enabled'])
                         <a class="sui-icon-btn" href="{{ $pager['url'] }}" aria-label="{{ $pager['label'] }}"><i data-lucide="{{ $pager['icon'] }}" class="sui-icon"></i></a>

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\EmailLog;
+use App\Models\ProgramRegistration;
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
@@ -24,7 +25,13 @@ class EmailLogService
         string $templateKey,
         string $subject,
         ?User $sentBy = null,
+        ?ProgramRegistration $registration = null,
     ): void {
+        $context = $registration === null ? [] : [
+            'training_program_id' => $registration->training_program_id,
+            'program_registration_id' => $registration->getKey(),
+        ];
+
         try {
             if ($notification instanceof ShouldQueue) {
                 $recipient->notifyNow($notification);
@@ -39,6 +46,7 @@ class EmailLogService
                 'status' => 'sent',
                 'sent_by' => $sentBy?->id,
                 'sent_at' => now(),
+                ...$context,
             ]);
         } catch (Throwable $e) {
             Log::error('Failed to send notification email', [
@@ -54,6 +62,7 @@ class EmailLogService
                 'status' => 'failed',
                 'sent_by' => $sentBy?->id,
                 'sent_at' => now(),
+                ...$context,
             ]);
         }
     }

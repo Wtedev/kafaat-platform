@@ -293,7 +293,7 @@ class StaffProgramPageController extends Controller
         }
 
         return [
-            'broadcasts' => $program->broadcasts()->with('creator:id,name')->latest('id')->paginate(20)->withQueryString(),
+            'messageLog' => $segments->log($program, max(1, (int) $request->query('page', 1)), route('staff-ui.programs.tab', [$program, 'broadcasts'])),
             'broadcastSegments' => $canSend ? $segments->segments($program) : [],
             'canSendBroadcasts' => $canSend,
             'editingBroadcast' => $editing,
