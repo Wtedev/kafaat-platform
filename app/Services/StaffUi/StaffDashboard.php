@@ -162,7 +162,6 @@ final class StaffDashboard
             'program.attendance' => fn (int $total, int $n) => ['التحضير مفتوح الآن', $this->across($n, 'يوم تحضير واحد', 'يوما تحضير', 'أيام تحضير', in: false)],
             'program.survey' => fn (int $total, int $n) => ['استبيانات تُغلق قريباً بنسبة تعبئة منخفضة', $this->across($n, 'استبيان واحد', 'استبيانان', 'استبيانات', in: false)],
             'program.certificates' => fn (int $total, int $n) => ['برامج انتهت ولم تُصدر شهاداتها', $this->across($n, 'برنامج واحد', 'برنامجان', 'برامج', in: false)],
-            'support.waiting' => fn (int $total, int $n) => [en_num($total).' '.($total === 1 ? 'تذكرة دعم تنتظر الرد' : ($total <= 10 ? 'تذاكر دعم تنتظر الرد' : 'تذكرة دعم تنتظر الرد')), null],
         ];
 
         $out = [];

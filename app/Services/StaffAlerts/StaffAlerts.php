@@ -5,9 +5,6 @@ namespace App\Services\StaffAlerts;
 use App\Enums\ProgramBroadcastStatus;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
-use App\Enums\SupportMessageSenderType;
-use App\Enums\SupportTicketStatus;
-use App\Filament\Pages\SupportInbox;
 use App\Filament\Resources\TrainingProgramResource;
 use App\Filament\Resources\VolunteerOpportunityResource;
 use App\Models\EmailLog;
@@ -16,14 +13,12 @@ use App\Models\ProgramBroadcast;
 use App\Models\ProgramRegistration;
 use App\Models\ProgramSurvey;
 use App\Models\StaffAlert;
-use App\Models\SupportTicket;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Models\VolunteerOpportunity;
 use App\Models\VolunteerRegistration;
 use App\Services\Surveys\ProgramSurveyService;
 use App\Support\StaffUi\StaffUiAccess;
-use App\Support\SupportDeskAccess;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -37,6 +32,7 @@ use Throwable;
  * it goes away by itself once the work is done.
  *
  * Every active staff member sees the alerts their permissions cover.
+ * Support tickets are not part of these alerts.
  * Experience houses are a separate system and are never part of these alerts.
  */
 final class StaffAlerts
@@ -45,7 +41,6 @@ final class StaffAlerts
         'registrations' => ['label' => 'طلبات التسجيل', 'icon' => 'user-plus'],
         'delivery' => ['label' => 'مشاكل الإرسال', 'icon' => 'mail-warning'],
         'program' => ['label' => 'تذكيرات البرامج', 'icon' => 'calendar-clock'],
-        'support' => ['label' => 'الدعم الفني', 'icon' => 'life-buoy'],
     ];
 
     private const REFRESH_SECONDS = 60;
@@ -73,7 +68,6 @@ final class StaffAlerts
             ->merge($this->openAttendance($now))
             ->merge($this->surveysClosingLow($now))
             ->merge($this->endedWithoutCertificates($now))
-            ->merge($this->supportWaiting())
             ->keyBy('key');
 
         DB::transaction(function () use ($wanted, $now): void {
@@ -202,7 +196,6 @@ final class StaffAlerts
             'program.attendance' => $programTab('attendance'),
             'program.survey' => $programTab('surveys'),
             'program.certificates' => $programTab('certificates'),
-            'support.waiting' => SupportInbox::getUrl(),
             default => url('/admin'),
         };
     }
@@ -227,9 +220,6 @@ final class StaffAlerts
             array_push($groups, 'registrations', 'delivery', 'program');
         } elseif ($user->isAdmin() || $user->checkPermissionTo('volunteering.view')) {
             $groups[] = 'registrations';
-        }
-        if (SupportDeskAccess::isAgent($user)) {
-            $groups[] = 'support';
         }
 
         return $groups;
@@ -413,23 +403,5 @@ final class StaffAlerts
                 'count' => 1,
                 'payload' => ['program' => $program->id],
             ])->all();
-    }
-
-    /** @return list<array<string, mixed>> */
-    private function supportWaiting(): array
-    {
-        $count = SupportTicket::query()
-            ->whereIn('status', [SupportTicketStatus::Open->value, SupportTicketStatus::InProgress->value])
-            ->where('last_message_sender_type', SupportMessageSenderType::Beneficiary->value)
-            ->count();
-
-        return $count === 0 ? [] : [[
-            'key' => 'support.waiting',
-            'kind' => 'support.waiting',
-            'title' => en_num($count).' '.($count === 1 ? 'تذكرة دعم تنتظر الرد' : 'تذاكر دعم تنتظر الرد'),
-            'body' => null,
-            'count' => $count,
-            'payload' => [],
-        ]];
     }
 }
