@@ -4,6 +4,7 @@ namespace App\Services\StaffUi;
 
 use App\Enums\CompetencyTrack;
 use App\Enums\ProfileGender;
+use App\Enums\ProgramActivityAction;
 use App\Enums\ProgramDeliveryMode;
 use App\Enums\ProgramStatus;
 use App\Enums\TrainingProgramKind;
@@ -12,8 +13,10 @@ use App\Mail\ProgramAcceptancePreviewMail;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
+use App\Services\ProgramActivity\ProgramActivityLog;
 use App\Support\ProgramAcceptanceConditions;
 use App\Support\ProgramApprovalMail;
+use App\Support\RichContentSupport;
 use App\Support\TrainingProgramExtrasSupport;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
@@ -27,7 +30,32 @@ final class StaffProgramWizard
 
     public function __construct(
         private readonly AuditLogger $auditLogger,
+        private readonly ProgramActivityLog $activity,
     ) {}
+
+    /**
+     * Option lists shared by the creation wizard and the settings tab.
+     *
+     * @return array{kindOptions: array<string, string>, trackOptions: array<string, string>, deliveryOptions: array<string, string>, genderOptions: array<string, string>, weekdayOptions: array<int, string>}
+     */
+    public static function formOptions(): array
+    {
+        return [
+            'kindOptions' => TrainingProgramKind::options(),
+            'trackOptions' => CompetencyTrack::shortOptions(),
+            'deliveryOptions' => ProgramDeliveryMode::options(),
+            'genderOptions' => ProfileGender::options(),
+            'weekdayOptions' => [
+                0 => 'الأحد',
+                1 => 'الإثنين',
+                2 => 'الثلاثاء',
+                3 => 'الأربعاء',
+                4 => 'الخميس',
+                5 => 'الجمعة',
+                6 => 'السبت',
+            ],
+        ];
+    }
 
     public function canContinue(User $user, TrainingProgram $program): bool
     {
@@ -70,6 +98,7 @@ final class StaffProgramWizard
             resource: $program,
             metadata: ['source' => 'staff-ui-wizard'],
         );
+        $this->activity->record($program, ProgramActivityAction::Created, actor: $actor);
 
         return $program;
     }
@@ -126,6 +155,7 @@ final class StaffProgramWizard
                 resource: $program,
                 metadata: ['source' => 'staff-ui-wizard'],
             );
+            $this->activity->record($program, ProgramActivityAction::Published, actor: $actor);
         }
 
         return $program;
@@ -337,6 +367,9 @@ final class StaffProgramWizard
     private function saveBasics(TrainingProgram $program, array $input, ?UploadedFile $cover): void
     {
         $data = $this->validatedBasics($input, $program);
+        if ($this->isUntouchedRichDescription($program, $data['description'] ?? null)) {
+            unset($data['description']);
+        }
         if (($data['program_kind'] ?? null) === TrainingProgramKind::Session->value) {
             $data['end_date'] = null;
             $data['weekdays'] = null;
@@ -552,6 +585,21 @@ final class StaffProgramWizard
         if ($step === 1 && blank($program->title)) {
             throw ValidationException::withMessages(['title' => 'العنوان مطلوب.']);
         }
+    }
+
+    /**
+     * The textarea shows formatted descriptions as text; saving that text unchanged keeps the original formatting.
+     */
+    private function isUntouchedRichDescription(TrainingProgram $program, ?string $submitted): bool
+    {
+        $current = $program->getOriginal('description');
+        if (blank($current) || ! RichContentSupport::isRichContent($current)) {
+            return false;
+        }
+
+        $normalize = static fn (?string $text): string => trim(preg_replace('/\s+/u', ' ', (string) $text) ?? '');
+
+        return $normalize($submitted) === $normalize(RichContentSupport::toEditableText($current));
     }
 
     private function storeCover(TrainingProgram $program, ?UploadedFile $cover): void

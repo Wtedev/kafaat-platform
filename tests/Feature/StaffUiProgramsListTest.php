@@ -301,7 +301,7 @@ class StaffUiProgramsListTest extends TestCase
             ->assertSee('لا توجد برامج بعد.');
     }
 
-    public function test_placeholder_show_page_and_query_count_stays_flat(): void
+    public function test_show_page_and_query_count_stays_flat(): void
     {
         $viewer = $this->staff(['programs.view']);
         $program = $this->makeProgram(['title' => 'برنامج للتفاصيل']);
@@ -309,7 +309,7 @@ class StaffUiProgramsListTest extends TestCase
         $this->actingAsOtpVerified($viewer)
             ->get(route('staff-ui.programs.show', $program))
             ->assertOk()
-            ->assertSee('صفحة البرنامج قيد البناء')
+            ->assertSee('عن البرنامج')
             ->assertSee('برنامج للتفاصيل');
 
         TrainingProgram::query()->delete();

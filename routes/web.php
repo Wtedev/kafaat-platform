@@ -61,9 +61,11 @@ use App\Http\Controllers\StaffUi\StaffDirectoryController;
 use App\Http\Controllers\StaffUi\StaffInboxController;
 use App\Http\Controllers\StaffUi\StaffProfileController;
 use App\Http\Controllers\StaffUi\StaffProgramController;
+use App\Http\Controllers\StaffUi\StaffProgramPageController;
 use App\Http\Controllers\StaffUi\StaffProgramWizardController;
 use App\Http\Controllers\StaffUi\StaffUiDemoController;
 use App\Http\Middleware\EnsureExperienceHouseManager;
+use App\Services\StaffUi\StaffProgramSettings;
 use App\Support\StaffUi\StaffUiModule;
 use Illuminate\Support\Facades\Route;
 
@@ -171,7 +173,16 @@ Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.St
         Route::post('/programs/{program}/wizard-acceptance-preview', [StaffProgramWizardController::class, 'acceptancePreview'])->name('programs.wizard.acceptance-preview');
         Route::get('/programs/{program}/preview', [StaffProgramWizardController::class, 'preview'])->name('programs.wizard.preview');
         Route::get('/programs', [StaffProgramController::class, 'index'])->name('programs.index');
-        Route::get('/programs/{program}', [StaffProgramController::class, 'show'])->name('programs.show');
+        Route::get('/programs/{program}', [StaffProgramPageController::class, 'show'])->name('programs.show');
+        Route::get('/programs/{program}/{tab}', [StaffProgramPageController::class, 'show'])
+            ->whereIn('tab', array_keys(StaffProgramPageController::TABS))
+            ->name('programs.tab');
+        Route::post('/programs/{program}/settings/{section}', [StaffProgramPageController::class, 'updateSettings'])
+            ->whereIn('section', array_keys(StaffProgramSettings::SECTIONS))
+            ->name('programs.settings.update');
+        Route::post('/programs/{program}/status', [StaffProgramPageController::class, 'updateStatus'])->name('programs.status');
+        Route::post('/programs/{program}/settings-preview-mail', [StaffProgramPageController::class, 'previewMail'])->name('programs.settings.preview-mail');
+        Route::post('/programs/{program}/settings-acceptance-preview', [StaffProgramPageController::class, 'acceptancePreview'])->name('programs.settings.acceptance-preview');
     });
 
 Route::middleware(['auth', 'otp.verified', 'operational', 'staff-ui.preview:'.StaffUiModule::SHELL, 'staff-ui.maintenance:'.StaffUiModule::SHELL])

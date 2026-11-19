@@ -610,6 +610,11 @@ class TrainingProgram extends Model
         return $this->hasOne(CertificateTemplate::class);
     }
 
+    public function activities(): HasMany
+    {
+        return $this->hasMany(ProgramActivity::class)->latest('created_at')->latest('id');
+    }
+
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');

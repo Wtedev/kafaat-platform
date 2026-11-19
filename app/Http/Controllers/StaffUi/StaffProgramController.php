@@ -10,7 +10,6 @@ use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\StaffUi\StaffProgramIndex;
 use App\Services\StaffUi\StaffProgramStatus;
-use App\Services\StaffUi\StaffProgramWizard;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -79,20 +78,6 @@ class StaffProgramController extends Controller
             ],
             'programStatus' => $status,
             'canCreate' => $actor->can('create', TrainingProgram::class),
-        ]);
-    }
-
-    public function show(Request $request, TrainingProgram $program): View
-    {
-        $actor = $this->actor($request);
-        abort_unless($actor->can('view', $program), 403);
-
-        return view('staff-ui.programs.show', [
-            'staffName' => $actor->name,
-            'staffEmail' => $actor->email,
-            'program' => $program,
-            'canResumeWizard' => $program->status === ProgramStatus::Draft
-                && app(StaffProgramWizard::class)->canContinue($actor, $program),
         ]);
     }
 

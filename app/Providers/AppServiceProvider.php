@@ -55,6 +55,7 @@ use App\Services\Operations\ProductionEnvironmentValidator;
 use App\Services\Privacy\Retention\RetentionHandlerRegistry;
 use App\Services\Privacy\Retention\RetentionPolicyEngine;
 use App\Services\Privacy\Retention\RetentionResourceCatalog;
+use App\Services\ProgramActivity\ProgramActivityRecorder;
 use App\Services\Rbac\RbacService;
 use App\Services\Security\SecurityLogService;
 use App\Services\Support\SupportUnreadService;
@@ -95,6 +96,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         app(ProductionEnvironmentValidator::class)->reportUndeliverableMailer();
+
+        ProgramActivityRecorder::register();
 
         $this->configureAuthUserProvider();
         $this->configureRateLimiting();
