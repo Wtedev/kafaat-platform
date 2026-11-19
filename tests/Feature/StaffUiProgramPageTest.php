@@ -6,6 +6,7 @@ use App\Enums\AttendanceStatus;
 use App\Enums\CompetencyTrack;
 use App\Enums\ProgramActivityAction;
 use App\Enums\ProgramDeliveryMode;
+use App\Enums\ProgramPrepDayType;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
@@ -53,6 +54,27 @@ class StaffUiProgramPageTest extends TestCase
             ->assertSee('قاعة كفاءات')
             ->assertSee('بانتظار القبول')
             ->assertDontSee('href="'.route('staff-ui.programs.tab', [$program, 'settings']).'"', false);
+    }
+
+    public function test_about_tab_lists_dates_and_attendance_days(): void
+    {
+        $program = $this->program();
+        $program->prepDays()->create(['prep_date' => '2026-12-02', 'delivery_type' => ProgramPrepDayType::InPerson, 'requires_attendance' => true]);
+        $program->prepDays()->create(['prep_date' => '2026-12-03', 'delivery_type' => ProgramPrepDayType::Remote, 'requires_attendance' => true]);
+        $program->attendanceLinks()->create(['name' => 'رابط المحاضرة الأولى', 'open_minutes' => 10]);
+
+        $this->actingAsOtpVerified($this->staff(['programs.view']))
+            ->get(route('staff-ui.programs.show', $program))
+            ->assertOk()
+            ->assertSeeInOrder(['المواعيد', 'التسجيل', 'البرنامج', 'أيام التحضير', 'النبذة'])
+            ->assertSee('QR')
+            ->assertSee('يوم حضوري')
+            ->assertSee('يوم عن بُعد')
+            ->assertSee('رابط المحاضرة الأولى')
+            ->assertSee('لم يُفتح بعد')
+            ->assertSee('data-sui-cal', false)
+            ->assertSee('title="يوم البرنامج · تحضير QR"', false)
+            ->assertSee('أيام البرنامج');
     }
 
     public function test_settings_tab_needs_update_permission(): void

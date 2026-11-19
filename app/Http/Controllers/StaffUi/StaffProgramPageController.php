@@ -3,21 +3,27 @@
 namespace App\Http\Controllers\StaffUi;
 
 use App\Enums\ProgramActivityAction;
+use App\Enums\ProgramPrepDayType;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Filament\Resources\TrainingProgramResource;
 use App\Http\Controllers\Controller;
 use App\Models\Certificate;
 use App\Models\ProgramActivity;
+use App\Models\ProgramAttendanceLink;
+use App\Models\ProgramPrepDay;
 use App\Models\SurveyCompletion;
 use App\Models\TrainingProgram;
 use App\Models\User;
+use App\Services\StaffUi\StaffProgramCalendar;
 use App\Services\StaffUi\StaffProgramSettings;
 use App\Services\StaffUi\StaffProgramStatus;
 use App\Services\StaffUi\StaffProgramWizard;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 /**
@@ -185,8 +191,47 @@ class StaffProgramPageController extends Controller
                 ->whereHas('survey', fn ($q) => $q->where('training_program_id', $program->getKey()))
                 ->count(),
             'weekdayOptions' => StaffProgramWizard::formOptions()['weekdayOptions'],
+            'calendar' => app(StaffProgramCalendar::class)->build($program),
+            'attendanceDays' => $this->attendanceDays($program),
             'recentActivity' => $program->activities()->with('actor:id,name')->limit(5)->get(),
         ];
+    }
+
+    /**
+     * Days that have a way to take attendance: an in-person prep day (QR scanned at the door)
+     * or a remote prep day / an attendance link (trainees check in from a link). Oldest first.
+     *
+     * @return Collection<int, array{date: ?Carbon, kind: string, title: string, state: ?string, count: ?int}>
+     */
+    private function attendanceDays(TrainingProgram $program): Collection
+    {
+        $prepDays = $program->prepDays()->get()->map(fn (ProgramPrepDay $day): array => [
+            'date' => $day->prep_date,
+            'kind' => $day->delivery_type === ProgramPrepDayType::Remote ? 'link' : 'qr',
+            'title' => $day->delivery_type === ProgramPrepDayType::Remote ? 'يوم عن بُعد' : 'يوم حضوري',
+            'state' => null,
+            'count' => null,
+        ]);
+
+        $links = $program->attendanceLinks()
+            ->whereNull('cancelled_at')
+            ->withCount('marks')
+            ->get()
+            ->map(fn (ProgramAttendanceLink $link): array => [
+                'date' => ($link->opens_at ?? $link->created_at)?->timezone(config('app.timezone')),
+                'kind' => 'link',
+                'title' => filled($link->name) ? (string) $link->name : 'رابط تحضير',
+                'state' => match (true) {
+                    $link->isOpen() => 'مفتوح الآن',
+                    $link->opens_at === null => 'لم يُفتح بعد',
+                    default => 'أُغلق',
+                },
+                'count' => (int) $link->marks_count,
+            ]);
+
+        return $prepDays->concat($links)
+            ->sortBy(fn (array $row): string => $row['date']?->toDateString() ?? '9999-12-31')
+            ->values();
     }
 
     /**
