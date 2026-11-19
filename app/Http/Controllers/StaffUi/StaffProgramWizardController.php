@@ -2,10 +2,6 @@
 
 namespace App\Http\Controllers\StaffUi;
 
-use App\Enums\CompetencyTrack;
-use App\Enums\ProfileGender;
-use App\Enums\ProgramDeliveryMode;
-use App\Enums\TrainingProgramKind;
 use App\Http\Controllers\Controller;
 use App\Models\TrainingProgram;
 use App\Models\User;
@@ -145,19 +141,7 @@ class StaffProgramWizardController extends Controller
             'staffEmail' => $actor->email,
             'program' => $program,
             'step' => $step,
-            'kindOptions' => TrainingProgramKind::options(),
-            'trackOptions' => CompetencyTrack::shortOptions(),
-            'deliveryOptions' => ProgramDeliveryMode::options(),
-            'genderOptions' => ProfileGender::options(),
-            'weekdayOptions' => [
-                0 => 'الأحد',
-                1 => 'الإثنين',
-                2 => 'الثلاثاء',
-                3 => 'الأربعاء',
-                4 => 'الخميس',
-                5 => 'الجمعة',
-                6 => 'السبت',
-            ],
+            ...StaffProgramWizard::formOptions(),
             'publishIntent' => (bool) $intent['publish'],
             'notifyIntent' => (bool) $intent['notify'],
             'acceptancePreview' => $program instanceof TrainingProgram ? $this->wizard->acceptancePreview($program) : [],

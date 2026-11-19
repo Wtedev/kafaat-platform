@@ -118,6 +118,30 @@ final class RichContentSupport
     }
 
     /**
+     * Rich content as text for a plain textarea, keeping paragraph and line breaks.
+     */
+    public static function toEditableText(?string $value): string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '' || ! self::isRichContent($value)) {
+            return $value;
+        }
+
+        $html = self::isTipTapJson($value) ? self::renderer($value)->toHtml() : $value;
+        $html = preg_replace('~<br\s*/?>~i', "\n", $html) ?? $html;
+        $html = preg_replace('~</(p|div|li|h[1-6]|blockquote)>~i', "\n", $html) ?? $html;
+        $html = preg_replace('~<li[^>]*>~i', '• ', $html) ?? $html;
+        $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $lines = array_map(
+            static fn (string $line): string => trim(preg_replace('/[ \t\x{00A0}]+/u', ' ', $line) ?? $line),
+            explode("\n", $text),
+        );
+
+        return trim(preg_replace("/\n{3,}/", "\n\n", implode("\n", $lines)) ?? '');
+    }
+
+    /**
      * Plain-text preview for cards, listings, and admin snippets.
      */
     public static function excerpt(?string $value, int $limit = 140): string
