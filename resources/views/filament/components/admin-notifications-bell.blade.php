@@ -17,7 +17,6 @@
             'registrations' => ['#e8f5f5', '#127a7f'],
             'delivery' => ['#fef2f2', '#dc2626'],
             'program' => ['#fff7e6', '#d97706'],
-            'support' => ['#eff6ff', '#2563eb'],
         ];
     @endphp
     <div x-data="{ open: false }" x-on:click.outside="open = false" x-on:keydown.escape.window="open = false" style="position: relative;" class="me-1">
