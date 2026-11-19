@@ -16,7 +16,13 @@ class SurveyCompletion extends Model
     protected $fillable = [
         'program_survey_id',
         'registration_id',
+        'completed_at',
     ];
+
+    protected function casts(): array
+    {
+        return ['completed_at' => 'datetime'];
+    }
 
     public function survey(): BelongsTo
     {

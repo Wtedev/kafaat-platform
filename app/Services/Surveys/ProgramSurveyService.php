@@ -213,6 +213,7 @@ final class ProgramSurveyService
                 SurveyCompletion::query()->create([
                     'program_survey_id' => $survey->id,
                     'registration_id' => $registration->id,
+                    'completed_at' => now(),
                 ]);
             }
         });

@@ -99,7 +99,7 @@
                                     <td data-label="{{ $label }}" class="sui-cert-cell">
                                         @php $answer = $answers[$type] ?? null; @endphp
                                         @if ($answer === true)
-                                            <span class="sui-cert-done" title="استبيان مجهول: لا يُحفظ وقت الإجابة"><i data-lucide="check" class="sui-icon"></i>تمّ</span>
+                                            <span class="sui-cert-done" title="عُبّئ قبل حفظ وقت التعبئة"><i data-lucide="check" class="sui-icon"></i>تمّ</span>
                                         @elseif ($answer)
                                             <span class="sui-cert-done"><i data-lucide="check" class="sui-icon"></i>{{ $time($answer) }}</span>
                                         @else
@@ -110,7 +110,7 @@
                                 <td data-label="الشهادة" class="sui-cert-cell">
                                     @if ($issued)
                                         <span class="sui-cert-issued">
-                                            <x-staff-ui.status tone="success">صادرة</x-staff-ui.status>
+                                            <x-staff-ui.status tone="success">مُصدرة</x-staff-ui.status>
                                             <small>{{ $issued->certificate_number }} · {{ $time($issued->issued_at) }}</small>
                                         </span>
                                     @elseif ($canSelect)

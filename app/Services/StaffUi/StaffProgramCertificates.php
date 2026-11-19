@@ -105,7 +105,7 @@ final class StaffProgramCertificates
 
     /**
      * When each registration answered each survey: [registration_id][type] => Carbon|true.
-     * Anonymous surveys keep only that it was answered (true when no time is stored).
+     * Answers saved before completion times were kept show as true.
      *
      * @param  array<string, ProgramSurvey|null>  $surveys
      * @param  list<int>  $registrationIds
@@ -119,19 +119,19 @@ final class StaffProgramCertificates
         }
 
         $out = [];
-        // Named answers keep their time; anonymous surveys only record that it was answered.
-        foreach (['survey_responses' => ['created_at'], 'survey_completions' => []] as $table => $extra) {
+        // Named answers keep their time on the response; anonymous ones on the completion row.
+        foreach (['survey_responses' => 'created_at', 'survey_completions' => 'completed_at'] as $table => $column) {
             DB::table($table)
                 ->whereIn('program_survey_id', $byId->keys()->all())
                 ->whereIn('registration_id', $registrationIds)
-                ->get(['program_survey_id', 'registration_id', ...$extra])
+                ->get(['program_survey_id', 'registration_id', $column.' as answered_at'])
                 ->each(function (object $row) use (&$out, $byId): void {
                     $type = $byId[(int) $row->program_survey_id] ?? null;
                     if ($type === null) {
                         return;
                     }
-                    $out[(int) $row->registration_id][$type] ??= ($row->created_at ?? null) !== null
-                        ? Carbon::parse($row->created_at)
+                    $out[(int) $row->registration_id][$type] ??= $row->answered_at !== null
+                        ? Carbon::parse($row->answered_at)
                         : true;
                 });
         }

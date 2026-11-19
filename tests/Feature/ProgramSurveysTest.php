@@ -227,6 +227,7 @@ class ProgramSurveysTest extends TestCase
         $this->assertFalse(Schema::hasColumn('survey_completions', 'updated_at'));
         $completion = DB::table('survey_completions')->where('program_survey_id', $satisfaction->id)->first();
         $this->assertNotNull($completion);
+        $this->assertNotNull($completion->completed_at);
         $this->assertObjectNotHasProperty('id', $completion);
         $answer = SurveyAnswer::query()->where('survey_response_id', $response->id)->firstOrFail();
         $this->assertMatchesRegularExpression(
