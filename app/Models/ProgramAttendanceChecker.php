@@ -35,7 +35,7 @@ class ProgramAttendanceChecker extends Model
 
     public function trainingProgram(): BelongsTo
     {
-        return $this->belongsTo(TrainingProgram::class);
+        return $this->belongsTo(TrainingProgram::class)->withTrashed();
     }
 
     public function hasAccessLink(): bool

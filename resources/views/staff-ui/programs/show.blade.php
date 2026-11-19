@@ -17,6 +17,12 @@
                 @if ($canResumeWizard)
                     <x-staff-ui.button size="sm" :href="route('staff-ui.programs.wizard', [$program, 1])">متابعة الإنشاء</x-staff-ui.button>
                 @endif
+                @can('duplicate', $program)
+                    <form method="POST" action="{{ route('staff-ui.programs.copy', $program) }}" class="sui-inline-form" onsubmit="return confirm('نسخ البرنامج كمسودة جديدة؟ ينسخ المحتوى وإعدادات التسجيل وأسئلة الاستبيانات وتصميم الشهادة، بدون المسجلين والمواعيد.');">
+                        @csrf
+                        <x-staff-ui.button type="submit" variant="secondary" size="sm" icon="copy">نسخ البرنامج</x-staff-ui.button>
+                    </form>
+                @endcan
                 @if ($program->status === \App\Enums\ProgramStatus::Published)
                     <x-staff-ui.button variant="secondary" size="sm" icon="external-link" :href="route('public.programs.show', $program)" target="_blank">الصفحة العامة</x-staff-ui.button>
                 @endif

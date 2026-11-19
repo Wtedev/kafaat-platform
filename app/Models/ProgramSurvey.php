@@ -42,7 +42,7 @@ class ProgramSurvey extends Model
 
     public function program(): BelongsTo
     {
-        return $this->belongsTo(TrainingProgram::class, 'training_program_id');
+        return $this->belongsTo(TrainingProgram::class, 'training_program_id')->withTrashed();
     }
 
     public function sourceTemplate(): BelongsTo

@@ -24,14 +24,16 @@ final class StaffProgramIndex
         string $registration,
         int $page,
         int $perPage = 12,
+        string $view = 'active',
     ): LengthAwarePaginator {
-        return $this->query($search, $kind, $programStatus, $registration)
+        return $this->query($search, $kind, $programStatus, $registration, $view)
             ->withCount([
                 'registrations as pending_registrations_count' => fn (Builder $q) => $q
                     ->where('status', RegistrationStatus::Pending->value),
                 'registrations as approved_registrations_count' => fn (Builder $q) => $q
                     ->where('status', RegistrationStatus::Approved->value),
             ])
+            ->when($view === 'trash', fn (Builder $q) => $q->orderByDesc('deleted_at'))
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->paginate($perPage, ['*'], 'page', max(1, $page))
@@ -43,6 +45,18 @@ final class StaffProgramIndex
         return TrainingProgram::query()->count();
     }
 
+    /**
+     * @return array{active: int, archive: int, trash: int}
+     */
+    public function viewCounts(): array
+    {
+        return [
+            'active' => TrainingProgram::query()->where('status', '!=', ProgramStatus::Archived->value)->count(),
+            'archive' => TrainingProgram::query()->where('status', ProgramStatus::Archived->value)->count(),
+            'trash' => TrainingProgram::onlyTrashed()->count(),
+        ];
+    }
+
     public function status(): StaffProgramStatus
     {
         return $this->status;
@@ -51,9 +65,13 @@ final class StaffProgramIndex
     /**
      * @return Builder<TrainingProgram>
      */
-    private function query(string $search, string $kind, string $programStatus, string $registration): Builder
+    private function query(string $search, string $kind, string $programStatus, string $registration, string $view = 'active'): Builder
     {
-        $query = TrainingProgram::query();
+        $query = match ($view) {
+            'trash' => TrainingProgram::onlyTrashed()->with('deletedBy:id,name'),
+            'archive' => TrainingProgram::query()->where('status', ProgramStatus::Archived->value),
+            default => TrainingProgram::query()->where('status', '!=', ProgramStatus::Archived->value),
+        };
 
         $needle = trim($search);
         if ($needle !== '') {

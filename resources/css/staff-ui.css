@@ -3692,3 +3692,21 @@ a.sui-menu-item {
     font-size: 12px;
     line-height: 1.7;
 }
+
+/* Programs list views (programs / archive / trash) */
+
+.sui-programs-views {
+    margin-bottom: var(--sui-space-3);
+    padding: 0;
+}
+
+.sui-programs-trash-note {
+    margin: 0;
+    padding: var(--sui-space-3) var(--sui-space-4);
+    color: var(--sui-text-secondary);
+    font-size: 13px;
+}
+
+.sui-settings-danger h2 {
+    color: var(--sui-danger);
+}

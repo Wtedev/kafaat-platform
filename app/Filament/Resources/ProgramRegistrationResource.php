@@ -66,6 +66,12 @@ class ProgramRegistrationResource extends Resource
         return ['roles.view'];
     }
 
+    /** Registrations of trashed programs stay out of the list. */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->whereHas('trainingProgram', fn ($program) => $program->withoutTrashed());
+    }
+
     public static function shouldRegisterNavigation(): bool
     {
         return false;

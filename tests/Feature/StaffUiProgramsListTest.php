@@ -257,13 +257,22 @@ class StaffUiProgramsListTest extends TestCase
             ->assertSee('مسودة')
             ->assertDontSee('مجدول للنشر')
             ->assertSee('منشور منذ يومين')
-            ->assertSee('مؤرشف كان منشورا')
-            ->assertSee('مؤرشف بلا نشر');
+            ->assertDontSee('مؤرشف كان منشورا')
+            ->assertDontSee('مؤرشف بلا نشر');
 
         $html = $page->getContent();
         $this->assertMatchesRegularExpression('/<option value="draft"[^>]*>\s*مسودة\s*<\/option>/u', $html);
         $this->assertMatchesRegularExpression('/<option value="published"[^>]*>\s*منشور\s*<\/option>/u', $html);
-        $this->assertMatchesRegularExpression('/<option value="archived"[^>]*>\s*مؤرشف\s*<\/option>/u', $html);
+        $this->assertStringNotContainsString('<option value="archived"', $html);
+
+        // Archived programs live in their own list.
+        $html = $this->actingAsOtpVerified($viewer)
+            ->get(route('staff-ui.programs.index', ['view' => 'archive']))
+            ->assertOk()
+            ->assertSee('مؤرشف كان منشورا')
+            ->assertSee('مؤرشف بلا نشر')
+            ->assertDontSee('منشور منذ يومين')
+            ->getContent();
         $this->assertStringNotContainsString('<option value="scheduled"', $html);
         $this->assertDoesNotMatchRegularExpression('/<option[^>]*>\s*مجدول/u', $html);
 
