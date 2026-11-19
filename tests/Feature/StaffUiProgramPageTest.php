@@ -10,6 +10,7 @@ use App\Enums\ProgramPrepDayType;
 use App\Enums\ProgramStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\TrainingProgramKind;
+use App\Http\Controllers\StaffUi\StaffProgramPageController;
 use App\Models\ProgramActivity;
 use App\Models\ProgramAttendance;
 use App\Models\ProgramRegistration;
@@ -88,15 +89,21 @@ class StaffUiProgramPageTest extends TestCase
             ->assertSee('النشر والأرشفة');
     }
 
-    public function test_tabs_not_built_yet_point_to_the_current_admin_panel(): void
+    public function test_every_tab_is_built_and_unknown_tabs_are_not_found(): void
     {
         $program = $this->program();
+        $admin = $this->admin();
 
-        $this->actingAsOtpVerified($this->admin())
-            ->get(route('staff-ui.programs.tab', [$program, 'broadcasts']))
-            ->assertOk()
-            ->assertSee('قيد البناء')
-            ->assertSee('فتح في لوحة الإدارة');
+        foreach (array_keys(StaffProgramPageController::TABS) as $tab) {
+            $this->actingAsOtpVerified($admin)
+                ->get(route('staff-ui.programs.tab', [$program, $tab]))
+                ->assertOk()
+                ->assertDontSee('قيد البناء');
+        }
+
+        $this->actingAsOtpVerified($admin)
+            ->get(route('staff-ui.programs.tab', [$program, 'nope']))
+            ->assertNotFound();
     }
 
     public function test_saving_a_settings_section_updates_the_program_and_logs_the_change(): void

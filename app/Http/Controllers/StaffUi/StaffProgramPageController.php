@@ -12,12 +12,14 @@ use App\Filament\Resources\TrainingProgramResource;
 use App\Http\Controllers\Controller;
 use App\Models\Certificate;
 use App\Models\ProgramActivity;
+use App\Models\ProgramBroadcast;
 use App\Models\ProgramSurvey;
 use App\Models\SurveyCompletion;
 use App\Models\SurveyTemplate;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Exports\ProgramRegistrationExportAuthorization;
+use App\Services\StaffUi\StaffProgramBroadcasts;
 use App\Services\StaffUi\StaffProgramCalendar;
 use App\Services\StaffUi\StaffProgramCertificates;
 use App\Services\StaffUi\StaffProgramRegistrations;
@@ -50,7 +52,7 @@ class StaffProgramPageController extends Controller
     ];
 
     /** Tabs that are built in the new UI; the rest still live in the current admin panel. */
-    private const BUILT_TABS = ['about', 'registrations', 'attendance', 'surveys', 'certificates', 'activity', 'settings'];
+    private const BUILT_TABS = ['about', 'registrations', 'attendance', 'surveys', 'certificates', 'broadcasts', 'activity', 'settings'];
 
     public function __construct(
         private readonly StaffProgramWizard $wizard,
@@ -68,7 +70,7 @@ class StaffProgramPageController extends Controller
             abort_unless($actor->can('update', $program), 403);
         }
 
-        if (in_array($tab, ['registrations', 'attendance', 'surveys', 'certificates'], true)) {
+        if (in_array($tab, ['registrations', 'attendance', 'surveys', 'certificates', 'broadcasts'], true)) {
             abort_unless($actor->can('viewOperational', $program), 403);
         }
 
@@ -104,6 +106,7 @@ class StaffProgramPageController extends Controller
             'attendance' => $this->attendanceData($request, $program),
             'certificates' => $this->certificatesData($request, $actor, $program),
             'surveys' => $this->surveysData($request, $actor, $program),
+            'broadcasts' => $this->broadcastsData($request, $actor, $program),
             'settings' => $this->settingsData($actor, $program),
             default => [],
         });
@@ -274,6 +277,28 @@ class StaffProgramPageController extends Controller
             'certCanIssue' => CertificateAuthorization::canIssue($actor),
             'certBackgroundReady' => $service->backgroundReady($program),
             'certDesignerUrl' => route('certificate-designer.edit', $program),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function broadcastsData(Request $request, User $actor, TrainingProgram $program): array
+    {
+        $segments = app(StaffProgramBroadcasts::class);
+        $canSend = $actor->can('create', [ProgramBroadcast::class, $program]);
+        $editing = null;
+        if ($canSend && $request->filled('edit')) {
+            $editing = $program->broadcasts()->whereKey((int) $request->query('edit'))->where('status', 'draft')->first();
+        }
+
+        return [
+            'broadcasts' => $program->broadcasts()->with('creator:id,name')->latest('id')->paginate(20)->withQueryString(),
+            'broadcastSegments' => $canSend ? $segments->segments($program) : [],
+            'canSendBroadcasts' => $canSend,
+            'editingBroadcast' => $editing,
+            'editingSegment' => $editing ? $segments->keyFor($editing) : null,
+            'composeOpen' => $editing !== null || $request->boolean('compose') || session()->hasOldInput('subject'),
         ];
     }
 

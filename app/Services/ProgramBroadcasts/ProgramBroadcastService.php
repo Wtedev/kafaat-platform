@@ -8,6 +8,7 @@ use App\Enums\ProgramBroadcastAudienceMode;
 use App\Enums\ProgramBroadcastRecipientStatus;
 use App\Enums\ProgramBroadcastStatus;
 use App\Enums\RegistrationStatus;
+use App\Enums\SurveyType;
 use App\Exceptions\ProgramBroadcastException;
 use App\Jobs\DispatchProgramBroadcastChunksJob;
 use App\Mail\ProgramBroadcastMail;
@@ -51,7 +52,7 @@ class ProgramBroadcastService
     ) {}
 
     /**
-     * @param  array{subject: string, content: mixed, audience_mode?: string, audience_statuses?: list<string>|null}  $data
+     * @param  array{subject: string, content: mixed, audience_mode?: string, audience_statuses?: list<string>|null, audience_filter?: array<string, mixed>|null}  $data
      */
     public function createDraft(TrainingProgram $program, User $actor, array $data): ProgramBroadcast
     {
@@ -67,6 +68,7 @@ class ProgramBroadcastService
                 $data['audience_mode'] ?? null,
                 $data['audience_statuses'] ?? null,
             ),
+            'audience_filter' => $this->normalizeAudienceFilter($program, $data['audience_filter'] ?? null),
             'status' => ProgramBroadcastStatus::Draft,
         ]);
 
@@ -113,6 +115,10 @@ class ProgramBroadcastService
                 $mode,
                 $data['audience_statuses'] ?? $broadcast->audience_statuses,
             );
+        }
+
+        if (array_key_exists('audience_filter', $data)) {
+            $payload['audience_filter'] = $this->normalizeAudienceFilter($broadcast->trainingProgram, $data['audience_filter']);
         }
 
         if ($payload !== []) {
@@ -173,6 +179,7 @@ class ProgramBroadcastService
         TrainingProgram $program,
         ProgramBroadcastAudienceMode|string|null $audienceMode,
         ?array $audienceStatuses,
+        ?array $audienceFilter = null,
     ): int {
         $probe = new ProgramBroadcast([
             'audience_mode' => $this->normalizeAudienceMode($audienceMode)->value,
@@ -180,6 +187,7 @@ class ProgramBroadcastService
                 $audienceMode,
                 $audienceStatuses,
             ),
+            'audience_filter' => $this->normalizeAudienceFilter($program, $audienceFilter),
         ]);
 
         return $this->resolveEligibleRecipients($probe, $program)->count();
@@ -347,6 +355,7 @@ class ProgramBroadcastService
             'content' => $source->content,
             'audience_mode' => $source->audience_mode?->value,
             'audience_statuses' => $source->audience_statuses,
+            'audience_filter' => $source->audience_filter,
         ]);
     }
 
@@ -492,6 +501,7 @@ class ProgramBroadcastService
             $program,
             $broadcast->audience_mode,
             $broadcast->audience_statuses,
+            $broadcast->audience_filter,
         )
             ->with(['user:id,name,email,is_active,account_status,privacy_deleted_at,anonymized_at'])
             ->get();
@@ -539,6 +549,7 @@ class ProgramBroadcastService
         TrainingProgram $program,
         ProgramBroadcastAudienceMode|string|null $audienceMode,
         ?array $audienceStatuses,
+        ?array $audienceFilter = null,
     ): Builder {
         $mode = $this->normalizeAudienceMode($audienceMode);
         $statuses = $this->normalizeAudienceStatuses($mode->value, $audienceStatuses);
@@ -562,6 +573,8 @@ class ProgramBroadcastService
         if ($mode === ProgramBroadcastAudienceMode::Statuses) {
             $query->whereIn('status', $statuses ?? self::DEFAULT_AUDIENCE_STATUSES);
         }
+
+        $this->applyAudienceFilter($query, $program, $audienceFilter);
 
         return $query;
     }
@@ -797,6 +810,56 @@ class ProgramBroadcastService
      * @param  list<string>|null  $statuses
      * @return list<string>|null
      */
+    /**
+     * Keep only a filter that points at this program's own survey or attendance day.
+     *
+     * @return array{survey_missing?: string, absent_link?: int}|null
+     */
+    private function normalizeAudienceFilter(?TrainingProgram $program, mixed $filter): ?array
+    {
+        if ($program === null || ! is_array($filter)) {
+            return null;
+        }
+
+        $type = SurveyType::tryFrom((string) ($filter['survey_missing'] ?? ''));
+        if ($type !== null && $program->surveys()->where('type', $type->value)->exists()) {
+            return ['survey_missing' => $type->value];
+        }
+
+        $linkId = (int) ($filter['absent_link'] ?? 0);
+        if ($linkId > 0 && $program->attendanceLinks()->whereKey($linkId)->whereNull('cancelled_at')->exists()) {
+            return ['absent_link' => $linkId];
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  Builder<ProgramRegistration>  $query
+     */
+    private function applyAudienceFilter(Builder $query, TrainingProgram $program, ?array $filter): void
+    {
+        if (! is_array($filter)) {
+            return;
+        }
+
+        if (isset($filter['survey_missing'])) {
+            $survey = $program->surveys()->where('type', (string) $filter['survey_missing'])->first();
+            if ($survey !== null) {
+                $table = $survey->is_anonymous ? 'survey_completions' : 'survey_responses';
+                $query->whereNotExists(fn ($sub) => $sub->selectRaw('1')->from($table)
+                    ->whereColumn($table.'.registration_id', 'program_registrations.id')
+                    ->where($table.'.program_survey_id', $survey->getKey()));
+            }
+        }
+
+        if (isset($filter['absent_link'])) {
+            $query->whereNotExists(fn ($sub) => $sub->selectRaw('1')->from('program_attendance_marks')
+                ->whereColumn('program_attendance_marks.program_registration_id', 'program_registrations.id')
+                ->where('program_attendance_marks.program_attendance_link_id', (int) $filter['absent_link']));
+        }
+    }
+
     private function normalizeAudienceStatuses(ProgramBroadcastAudienceMode|string|null $mode, ?array $statuses): ?array
     {
         $resolvedMode = $this->normalizeAudienceMode($mode);

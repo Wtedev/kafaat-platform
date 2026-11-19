@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ProgramBroadcastAudienceMode;
 use App\Enums\ProgramBroadcastStatus;
 use App\Enums\RegistrationStatus;
+use App\Enums\SurveyType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -18,6 +19,7 @@ class ProgramBroadcast extends Model
         'content',
         'audience_mode',
         'audience_statuses',
+        'audience_filter',
         'status',
         'recipients_count',
         'sent_count',
@@ -32,6 +34,7 @@ class ProgramBroadcast extends Model
         return [
             'audience_mode' => ProgramBroadcastAudienceMode::class,
             'audience_statuses' => 'array',
+            'audience_filter' => 'array',
             'status' => ProgramBroadcastStatus::class,
             'recipients_count' => 'integer',
             'sent_count' => 'integer',
@@ -111,13 +114,31 @@ class ProgramBroadcast extends Model
 
     public function audienceLabel(): string
     {
+        $filter = is_array($this->audience_filter) ? $this->audience_filter : [];
+        if (isset($filter['survey_missing'])) {
+            $type = SurveyType::tryFrom((string) $filter['survey_missing']);
+
+            return 'المقبولون اللي ما عبّوا الاستبيان '.($type?->label() ?? '');
+        }
+        if (isset($filter['absent_link'])) {
+            $name = ProgramAttendanceLink::query()->whereKey((int) $filter['absent_link'])->value('name');
+
+            return 'المقبولون الغائبون عن «'.($name ?? 'يوم محذوف').'»';
+        }
+
         if ($this->audience_mode === ProgramBroadcastAudienceMode::All) {
             return ProgramBroadcastAudienceMode::All->label();
         }
 
+        $statuses = $this->resolvedAudienceStatuses();
+        $accepted = [RegistrationStatus::Approved, RegistrationStatus::Completed];
+        if (count($statuses) === 2 && array_diff(array_map(fn ($s) => $s->value, $accepted), array_map(fn ($s) => $s->value, $statuses)) === []) {
+            return 'المقبولون';
+        }
+
         $labels = array_map(
             static fn (RegistrationStatus $status): string => $status->label(),
-            $this->resolvedAudienceStatuses(),
+            $statuses,
         );
 
         return $labels === [] ? '—' : implode('، ', $labels);
