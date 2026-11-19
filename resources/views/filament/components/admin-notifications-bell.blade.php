@@ -65,17 +65,17 @@
                     @if ($alertService->isDismissible($alert))
                         <form method="POST" action="{{ route('staff-alerts.dismiss', $alert) }}" style="margin: 0;">
                             @csrf
-                            <button type="submit" title="إخفاء للجميع حتى يتغيّر" aria-label="إخفاء" style="border: 0; background: none; color: #9ca3af; cursor: pointer; font-size: 16px; line-height: 1; padding: 6px;">×</button>
+                            <button type="submit" title="إخفاء لدى الجميع حتى يتغيّر" aria-label="إخفاء" style="border: 0; background: none; color: #9ca3af; cursor: pointer; font-size: 16px; line-height: 1; padding: 6px;">×</button>
                         </form>
                     @endif
                 </div>
             @empty
-                <p style="margin: 0; padding: 16px 12px; font-size: 13px; color: #6b7280;">ما فيه شي مطلوب منك الحين.</p>
+                <p style="margin: 0; padding: 16px 12px; font-size: 13px; color: #6b7280;">لا يوجد ما يتطلب إجراءً منك الآن.</p>
             @endforelse
 
             @if ($canInbox)
                 <a href="{{ InAppNotificationCenter::getUrl() }}" style="display: block; padding: 10px 12px; font-size: 12px; color: #127a7f; text-decoration: none;">
-                    الإشعارات الشخصية @if ($inboxUnread > 0)({{ $inboxUnread }} جديد)@endif
+                    إشعاراتك الشخصية @if ($inboxUnread > 0)({{ $inboxUnread }} جديدة)@endif
                 </a>
             @endif
         </div>

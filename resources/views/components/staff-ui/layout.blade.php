@@ -155,7 +155,7 @@
                             @endif
                         </div>
                         @if (($staffAlerts ?? collect())->isNotEmpty())
-                            <p class="sui-inbox__section">مطلوب</p>
+                            <p class="sui-inbox__section">مطلوب منك</p>
                             @foreach ($staffAlerts as $alert)
                                 <div @class(['sui-alert-item', 'is-unread' => $alert->unread])>
                                     <a class="sui-alert-item__link" href="{{ route('staff-alerts.open', $alert) }}">
@@ -170,14 +170,14 @@
                                     @if ($alertService->isDismissible($alert))
                                         <form method="POST" action="{{ route('staff-alerts.dismiss', $alert) }}" class="sui-alert-item__dismiss">
                                             @csrf
-                                            <button type="submit" class="sui-icon-btn" aria-label="إخفاء" title="إخفاء للجميع حتى يتغيّر"><i data-lucide="x" class="sui-icon sui-icon--sm"></i></button>
+                                            <button type="submit" class="sui-icon-btn" aria-label="إخفاء" title="إخفاء لدى الجميع حتى يتغيّر"><i data-lucide="x" class="sui-icon sui-icon--sm"></i></button>
                                         </form>
                                     @endif
                                 </div>
                             @endforeach
                         @endif
                         @if (($staffInboxNotifications ?? collect())->isNotEmpty())
-                            <p class="sui-inbox__section">لك</p>
+                            <p class="sui-inbox__section">إشعاراتك</p>
                         @endif
                         @foreach (($staffInboxNotifications ?? collect()) as $notification)
                             <div @class(['sui-inbox__item', 'is-unread' => $notification->read_at === null])>
@@ -206,7 +206,7 @@
                             </div>
                         @endforeach
                         @if (($staffAlerts ?? collect())->isEmpty() && ($staffInboxNotifications ?? collect())->isEmpty())
-                            <p class="sui-inbox__empty">ما فيه شي مطلوب منك الحين.</p>
+                            <p class="sui-inbox__empty">لا يوجد ما يتطلب إجراءً منك الآن.</p>
                         @endif
                     </x-staff-ui.dropdown>
                     @if (config('staff_ui.topbar.settings'))

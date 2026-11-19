@@ -304,7 +304,7 @@ final class StaffAlerts
             ->map(fn (ProgramBroadcast $b): array => [
                 'key' => 'delivery.broadcast:'.$b->id,
                 'kind' => 'delivery.broadcast',
-                'title' => 'رسالة ما وصلت لـ'.en_num((int) $b->failed_count).' '.((int) $b->failed_count === 1 ? 'شخص' : 'أشخاص'),
+                'title' => 'رسالة لم تصل إلى '.en_num((int) $b->failed_count).' '.((int) $b->failed_count === 1 ? 'شخص' : 'أشخاص'),
                 'body' => '«'.$b->subject.'» — '.$b->trainingProgram?->title,
                 'count' => (int) $b->failed_count,
                 'payload' => ['program' => $b->training_program_id, 'broadcast' => $b->id],
@@ -331,7 +331,7 @@ final class StaffAlerts
                 return [
                     'key' => 'delivery.email:'.$program->id,
                     'kind' => 'delivery.email',
-                    'title' => en_num($c).' '.($c === 1 ? 'إيميل' : 'إيميلات').' للمسجلين ما وصلت',
+                    'title' => en_num($c).' '.($c === 1 ? 'رسالة بريد إلى المسجلين لم تصل' : 'رسائل بريد إلى المسجلين لم تصل'),
                     'body' => $program->title,
                     'count' => $c,
                     'payload' => ['program' => $program->id],
@@ -381,7 +381,7 @@ final class StaffAlerts
                 return [
                     'key' => 'program.survey:'.$survey->id,
                     'kind' => 'program.survey',
-                    'title' => 'الاستبيان '.$survey->type->label().' يقفل قريب وما عبّاه إلا '.en_num($answered).' من '.en_num($eligible),
+                    'title' => 'يُغلق الاستبيان ال'.$survey->type->label().' قريبًا ولم يُعبّئه سوى '.en_num($answered).' من '.en_num($eligible),
                     'body' => $survey->program?->title,
                     'count' => $eligible - $answered,
                     'payload' => ['program' => $survey->training_program_id, 'survey' => $survey->id],
@@ -407,7 +407,7 @@ final class StaffAlerts
             ->map(fn (TrainingProgram $program): array => [
                 'key' => 'program.certificates:'.$program->id,
                 'kind' => 'program.certificates',
-                'title' => 'انتهى البرنامج وما انصدرت شهاداته',
+                'title' => 'انتهى البرنامج ولم تُصدر شهاداته',
                 'body' => $program->title,
                 'count' => 1,
                 'payload' => ['program' => $program->id],
@@ -425,7 +425,7 @@ final class StaffAlerts
         return $count === 0 ? [] : [[
             'key' => 'support.waiting',
             'kind' => 'support.waiting',
-            'title' => en_num($count).' '.($count === 1 ? 'تذكرة دعم تنتظر رد' : 'تذاكر دعم تنتظر رد'),
+            'title' => en_num($count).' '.($count === 1 ? 'تذكرة دعم تنتظر الرد' : 'تذاكر دعم تنتظر الرد'),
             'body' => null,
             'count' => $count,
             'payload' => [],

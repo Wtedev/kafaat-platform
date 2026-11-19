@@ -32,7 +32,7 @@ class StaffUiNotificationsTest extends TestCase
         $this->actingAsOtpVerified($admin)
             ->get('/admin')
             ->assertOk()
-            ->assertSee('ما فيه شي مطلوب منك الحين.')
+            ->assertSee('لا يوجد ما يتطلب إجراءً منك الآن.')
             ->assertDontSee('sui-badge', false)
             ->assertDontSee('تعليم الكل كمقروء');
     }
