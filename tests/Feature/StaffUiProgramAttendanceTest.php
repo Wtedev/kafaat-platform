@@ -133,7 +133,9 @@ class StaffUiProgramAttendanceTest extends TestCase
         $named = DB::table('program_surveys')->insertGetId(['training_program_id' => $program->id, 'type' => 'pre', 'public_token' => Str::random(40), 'is_anonymous' => false, 'created_at' => now(), 'updated_at' => now()]);
         $anon = DB::table('program_surveys')->insertGetId(['training_program_id' => $program->id, 'type' => 'satisfaction', 'public_token' => Str::random(40), 'is_anonymous' => true, 'created_at' => now(), 'updated_at' => now()]);
         DB::table('survey_responses')->insert(['id' => (string) Str::uuid(), 'program_survey_id' => $named, 'registration_id' => $done->id, 'created_at' => now(), 'updated_at' => now()]);
-        DB::table('survey_completions')->insert(['program_survey_id' => $anon, 'registration_id' => $done->id]);
+        DB::table('survey_completions')->insert(['program_survey_id' => $anon, 'registration_id' => $done->id, 'completed_at' => '2026-11-18 21:47:00']);
+        $old = $this->registration($program, 'قديم');
+        DB::table('survey_completions')->insert(['program_survey_id' => $anon, 'registration_id' => $old->id]);
 
         $this->actingAsOtpVerified($admin)
             ->get(route('staff-ui.programs.tab', [$program, 'certificates']))
@@ -145,6 +147,7 @@ class StaffUiProgramAttendanceTest extends TestCase
             ->assertSee('استبيان قبلي')
             ->assertSee('استبيان بعدي')
             ->assertSee('استبيان الرضا')
+            ->assertSee('18 نوفمبر 21:47')
             ->assertSee('تمّ')
             ->assertSee('تحضير خالد العمر — اليوم الأول')
             ->assertDontSee('تحضير نورة السعيد — اليوم الأول')
@@ -191,6 +194,7 @@ class StaffUiProgramAttendanceTest extends TestCase
         $this->actingAsOtpVerified($admin)
             ->get(route('staff-ui.programs.tab', [$program, 'certificates']))
             ->assertSee('KF-0001')
+            ->assertSee('مُصدرة')
             ->assertSee('إصدار للمحدد');
 
         $this->actingAsOtpVerified($admin)
