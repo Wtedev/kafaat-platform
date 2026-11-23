@@ -37,3 +37,9 @@ Schedule::command('auth:purge-expired-pending-registrations')
 Schedule::command('staff-alerts:refresh')
     ->everyFiveMinutes()
     ->withoutOverlapping();
+
+// Safety net for automatic certificates: anything a model event missed
+// (a failed job, a mark added by hand) is picked up within the hour.
+Schedule::command('certificates:auto-issue')
+    ->hourly()
+    ->withoutOverlapping();
