@@ -14,6 +14,7 @@ use App\Models\ProgramSurvey;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
+use App\Services\Certificates\ProgramCertificateAutoIssuer;
 use App\Services\Certificates\ProgramCertificateEligibility;
 use App\Services\Certificates\ProgramCertificateIssuance;
 use App\Services\Surveys\ProgramSurveyService;
@@ -26,6 +27,7 @@ use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Utilities\Get;
@@ -146,6 +148,7 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
                     ->action(function (array $data): void {
                         $this->dispatchCertificates($data);
                     }),
+                $this->autoIssueAction(),
             ])
             ->toolbarActions([
                 $this->issueSelectedAction(),
@@ -783,6 +786,97 @@ class ProgramRegistrationCertificatesRelationManager extends RelationManager
         return filled($this->ownerProgram()->certificateTemplate?->background_path)
             ? 'ملف تصميم الشهادة مفقود، أعد رفعه'
             : 'احفظ تصميم الشهادة أولاً';
+    }
+
+    private function autoIssueAction(): Action
+    {
+        return Action::make('autoIssueCertificates')
+            ->label(fn (): string => $this->ownerProgram()->certificate_auto_issue ? 'الإصدار التلقائي: مفعّل' : 'الإصدار التلقائي')
+            ->icon('heroicon-o-bolt')
+            ->color(fn (): string => $this->ownerProgram()->certificate_auto_issue ? 'success' : 'gray')
+            ->authorize(fn (): bool => $this->canIssueCertificates())
+            ->modalHeading('الإصدار التلقائي للشهادات')
+            ->modalDescription('عند التفعيل تُصدر الشهادة ويُرسل البريد تلقائياً لكل من يستوفي الشروط المحددة، الآن ولاحقاً عند اكتمال حضوره أو استبياناته.')
+            ->modalSubmitActionLabel('حفظ')
+            ->fillForm(function (): array {
+                $program = $this->ownerProgram();
+                [$links, $surveys] = app(ProgramCertificateAutoIssuer::class)->criteria($program);
+                $types = array_map(fn (SurveyType $type): string => $type->value, $surveys);
+                $state = [
+                    'auto_enabled' => (bool) $program->certificate_auto_issue,
+                    'attendance_link_ids' => $links,
+                    'require_pre' => in_array(SurveyType::Pre->value, $types, true),
+                    'require_post' => in_array(SurveyType::Post->value, $types, true),
+                    'require_satisfaction' => in_array(SurveyType::Satisfaction->value, $types, true),
+                ];
+                $this->refreshCertificateIssuePreview($state);
+
+                return $state;
+            })
+            ->form([
+                Toggle::make('auto_enabled')
+                    ->label('تفعيل الإصدار التلقائي')
+                    ->helperText('يتطلب تصميم شهادة محفوظاً وشرطاً واحداً على الأقل.'),
+                ...$this->issueForm(),
+            ])
+            ->action(function (array $data): void {
+                $this->saveAutoIssue($data);
+            });
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function saveAutoIssue(array $data): void
+    {
+        $actor = auth()->user();
+        if (! $actor instanceof User || ! CertificateAuthorization::canIssue($actor)) {
+            abort(403);
+        }
+
+        $program = $this->ownerProgram();
+        $links = $this->attendanceIdsFromState($data);
+        $surveys = array_map(fn (SurveyType $type): string => $type->value, $this->surveysFromState($data));
+        $enabled = (bool) ($data['auto_enabled'] ?? false);
+
+        if ($enabled && $links === [] && $surveys === []) {
+            Notification::make()->title('اختر شرطاً واحداً على الأقل قبل التفعيل')->warning()->send();
+
+            return;
+        }
+
+        if ($enabled && ! $this->savedBackgroundExists()) {
+            Notification::make()->title('احفظ تصميم الشهادة أولاً')->warning()->send();
+
+            return;
+        }
+
+        $program->forceFill([
+            'certificate_auto_issue' => $enabled,
+            'certificate_auto_criteria' => ['attendance_link_ids' => $links, 'survey_types' => $surveys],
+            'certificate_auto_enabled_by' => $enabled ? $actor->getKey() : $program->certificate_auto_enabled_by,
+            'certificate_auto_enabled_at' => $enabled ? now() : $program->certificate_auto_enabled_at,
+        ])->save();
+
+        $queued = $enabled ? app(ProgramCertificateAutoIssuer::class)->sweep($program->refresh()) : 0;
+
+        app(AuditLogger::class)->record(
+            actor: $actor,
+            action: $enabled ? 'program_certificates.auto_enabled' : 'program_certificates.auto_disabled',
+            resource: $program,
+            metadata: [
+                'attendance_link_ids' => $links,
+                'survey_types' => $surveys,
+                'queued_now' => $queued,
+            ],
+        );
+
+        Notification::make()
+            ->title($enabled
+                ? 'تم تفعيل الإصدار التلقائي — بدأ إصدار '.$queued.' شهادة الآن'
+                : 'تم إيقاف الإصدار التلقائي')
+            ->success()
+            ->send();
     }
 
     private function canIssueCertificates(): bool

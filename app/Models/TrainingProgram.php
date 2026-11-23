@@ -61,6 +61,10 @@ class TrainingProgram extends Model
         'session_topics',
         'program_presenters',
         'whatsapp_groups_enabled',
+        'certificate_auto_issue',
+        'certificate_auto_criteria',
+        'certificate_auto_enabled_by',
+        'certificate_auto_enabled_at',
         'whatsapp_group_male',
         'whatsapp_group_female',
         'image',
@@ -114,6 +118,9 @@ class TrainingProgram extends Model
             'program_presenters' => 'array',
             'registration_questions' => 'array',
             'whatsapp_groups_enabled' => 'boolean',
+            'certificate_auto_issue' => 'boolean',
+            'certificate_auto_criteria' => 'array',
+            'certificate_auto_enabled_at' => 'datetime',
         ];
     }
 

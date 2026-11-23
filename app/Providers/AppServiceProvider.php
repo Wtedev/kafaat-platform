@@ -62,6 +62,7 @@ use App\Services\StaffAlerts\StaffAlerts;
 use App\Services\Support\SupportUnreadService;
 use App\Services\UserActivityLogger;
 use App\Support\Auth\EmailNormalizer;
+use App\Support\Certificates\ProgramCertificateAutoIssueHooks;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -99,6 +100,7 @@ class AppServiceProvider extends ServiceProvider
         app(ProductionEnvironmentValidator::class)->reportUndeliverableMailer();
 
         ProgramActivityRecorder::register();
+        ProgramCertificateAutoIssueHooks::register();
 
         $this->configureAuthUserProvider();
         $this->configureRateLimiting();
