@@ -1,6 +1,6 @@
 @extends('public.experience-houses._shell')
 
-@section('compact', 'نموذج طلب الدعم')
+@section('compact', 'نموذج الاستفادة من خبرات كفاءات')
 
 @section('styles')
     .intro { display: flex; gap: 18px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; margin-bottom: 8px; }
@@ -127,7 +127,7 @@
 <div class="panel">
     <div class="intro">
         <div>
-            <p style="margin-top:0">نتواصل معكم بعد دراسة الطلب.</p>
+            <p style="margin-top:0">نسعد بتعرّفنا على احتياج جمعيتكم، وسنتواصل معكم بعد مراجعة البيانات.</p>
         </div>
         <span class="time">حوالي دقيقة واحدة</span>
     </div>
@@ -153,7 +153,7 @@
         <fieldset class="section">
             <div class="section-head">
                 <span class="step">1</span>
-                <h3>بيانات الجمعية <small>الجهة المستفيدة من الدعم</small></h3>
+                <h3>بيانات الجمعية <small>الجمعية الراغبة في الاستفادة من خبرات كفاءات.</small></h3>
             </div>
             <div class="grid">
                 <div class="full @error('organization_name') has-error @enderror">
@@ -235,7 +235,7 @@
         <fieldset class="section">
             <div class="section-head">
                 <span class="step">3</span>
-                <h3>مجال الدعم المطلوب <small>يمكنكم اختيار أكثر من إدارة</small></h3>
+                <h3>مجالات الخبرة المطلوبة <small>يمكنكم اختيار أكثر من إدارة</small></h3>
             </div>
             <div class="grid">
                 <div class="full @error('departments') has-error @enderror">
@@ -283,7 +283,7 @@
                     @error('challenge')<div class="err">{{ $message }}</div>@enderror
                 </div>
                 <div class="full @error('expected_outcome') has-error @enderror">
-                    <label class="f" for="expected_outcome">ما النتائج التي تتوقعونها من الدعم؟ <span class="req">*</span></label>
+                    <label class="f" for="expected_outcome">ما النتائج التي تتطلعون إلى تحقيقها؟ <span class="req">*</span></label>
                     <textarea class="input" id="expected_outcome" name="expected_outcome" required maxlength="2000" style="min-height:100px" placeholder="مثال: خطة استراتيجية معتمدة من مجلس الإدارة مع مؤشرات أداء واضحة">{{ old('expected_outcome') }}</textarea>
                     @error('expected_outcome')<div class="err">{{ $message }}</div>@enderror
                 </div>

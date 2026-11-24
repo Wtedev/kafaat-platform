@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#177179">
-    <title>طلب دعم بيوت الخبرة | جمعية كفاءات الأهلية</title>
+    <title>استفد من خبرات كفاءات | جمعية كفاءات الأهلية</title>
     <link rel="icon" href="{{ asset('favicon.ico') }}">
     <style>
         @font-face { font-family: 'FF Shamel'; src: url('/fonts/shamel/FFShamelFamily-SansOneBook.ttf') format('truetype'); font-weight: 400; font-display: swap; }
@@ -47,7 +47,7 @@
         .logos .kf { height: clamp(40px, 6vh, 60px); width: auto; display: block; }
         .logos .mh { height: clamp(36px, 5.4vh, 54px); width: auto; display: block; }
         .logos .sep { width: 1px; align-self: stretch; background: rgba(255,255,255,.6); }
-        .kicker { margin: 0; color: rgba(255,255,255,.8); font-weight: 700; font-size: clamp(15px, 1.7vw, 22px); line-height: 1.4; }
+        .kicker { margin: 0; color: rgba(255,255,255,.8); font-weight: 700; font-size: clamp(13px, 1.25vw, 16.5px); line-height: 1.6; max-width: 34em; }
         h1 { margin: 2px 0 0; color: #fff; font-weight: 700; font-size: clamp(28px, 2.9vw, 42px); white-space: nowrap; line-height: 1.15; letter-spacing: -.5px; }
         .desc { margin: clamp(10px, 2vh, 18px) 0 0; font-size: clamp(16px, 1.7vw, 22px); line-height: 1.6; max-width: 520px; }
 
@@ -113,9 +113,9 @@
                     <span class="sep" aria-hidden="true"></span>
                     <img class="mh" src="{{ asset('images/experience-houses/mhrsd-white.png') }}" alt="وزارة الموارد البشرية والتنمية الاجتماعية">
                 </div>
-                <p class="kicker">جمعية كفاءات الأهلية · مركز تميز معتمد</p>
-                <h1>طلب دعم بيوت الخبرة</h1>
-                <p class="desc">منصة الجمعيات المستفيدة لطلب دعم كفاءات ضمن مشروع بيوت الخبرة.</p>
+                <p class="kicker">مركز تميّز معتمد وبيت خبرة من وزارة الموارد البشرية والتنمية الاجتماعية</p>
+                <h1>استفد من خبرات كفاءات</h1>
+                <p class="desc">منصة الجمعيات المستفيدة لطلب الاستفادة من خدمات كفاءات ضمن مشروع بيوت الخبرة.</p>
             </section>
 
             <figure class="preview">
@@ -126,7 +126,7 @@
             </figure>
 
             <div class="actions">
-                <a class="cta" href="{{ route('public.experience-houses.create') }}">تقديم طلب @include('experience-houses.manage._icon', ['name' => 'arrow-left', 'size' => 21, 'stroke' => 2.2])</a>
+                <a class="cta" href="{{ route('public.experience-houses.create') }}">ابدأ الآن @include('experience-houses.manage._icon', ['name' => 'arrow-left', 'size' => 21, 'stroke' => 2.2])</a>
                 <span class="note">@include('experience-houses.manage._icon', ['name' => 'clock', 'size' => 16]) حوالي دقيقة واحدة</span>
             </div>
         </main>
