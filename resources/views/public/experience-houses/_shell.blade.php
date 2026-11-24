@@ -151,7 +151,6 @@
         .bar-logo img { height: 52px; width: auto; display: block; }
         .bar-links { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
         .bar-links-label { font-size: 12.5px; font-weight: 500; opacity: .85; }
-        .bar-accredit { display: inline-block; margin: 18px 0 0; font-size: 13.5px; font-weight: 700; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); border-radius: 999px; padding: 5px 14px; }
         .bar-links a { display: inline-flex; align-items: center; gap: 7px; color: #fff; text-decoration: none; font-size: 14.5px; font-weight: 700;
             background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22); border-radius: 12px; padding: 8px 14px; transition: background .15s; }
         .bar-links a:hover { background: rgba(255,255,255,.26); }
@@ -176,7 +175,6 @@
                     <a href="{{ config('site.website_url', 'https://kafaat.org.sa') }}" target="_blank" rel="noopener">@include('experience-houses.manage._icon', ['name' => 'link', 'size' => 17]) توجّه</a>
                 </nav>
             </div>
-            <p class="bar-accredit">مركز تميّز معتمد وبيت خبرة من وزارة الموارد البشرية والتنمية الاجتماعية</p>
             <p class="bar-kicker">مشروع بيوت الخبرة</p>
             <h1 class="bar-title">@yield('compact')</h1>
         </div>
