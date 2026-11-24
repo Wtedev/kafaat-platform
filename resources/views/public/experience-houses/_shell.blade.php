@@ -149,14 +149,13 @@
         .bar-in { max-width: 980px; margin: 0 auto; }
         .bar-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .bar-logo img { height: 52px; width: auto; display: block; }
-        .bar-links { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-        .bar-links-label { font-size: 12.5px; font-weight: 500; opacity: .85; }
+        .bar-links { display: flex; gap: 8px; flex-wrap: wrap; }
         .bar-links a { display: inline-flex; align-items: center; gap: 7px; color: #fff; text-decoration: none; font-size: 14.5px; font-weight: 700;
             background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22); border-radius: 12px; padding: 8px 14px; transition: background .15s; }
         .bar-links a:hover { background: rgba(255,255,255,.26); }
         .bar-kicker { margin: clamp(26px, 5vw, 44px) 0 0; font-size: 16px; opacity: .85; }
         .bar-title { margin: 2px 0 0; font-size: clamp(30px, 5vw, 46px); line-height: 1.3; font-weight: 700; }
-        @media (max-width: 520px) { .bar-links a { padding: 8px 10px; font-size: 13.5px; } .bar-logo img { height: 42px; } }
+        @media (max-width: 520px) { .bar-links a { padding: 6px 9px; font-size: 11.5px; gap: 5px; border-radius: 10px; } .bar-logo img { height: 42px; } }
         .copyright { margin: 0; padding: 16px 16px 28px; text-align: center; color: #7f9599; font-size: 13.5px; border-top: 1px solid #e1eeef; max-width: 980px; margin-inline: auto; }
         .footer { padding-bottom: 22px; }
         @yield('styles')
@@ -171,8 +170,7 @@
                     <img src="{{ asset('images/brand/kafaat-logo-white.svg') }}" alt="كفاءات">
                 </a>
                 <nav class="bar-links">
-                    <span class="bar-links-label">الموقع الإلكتروني لجمعية كفاءات الأهلية</span>
-                    <a href="{{ config('site.website_url', 'https://kafaat.org.sa') }}" target="_blank" rel="noopener">@include('experience-houses.manage._icon', ['name' => 'link', 'size' => 17]) توجّه</a>
+                    <a href="{{ config('site.website_url', 'https://kafaat.org.sa') }}" target="_blank" rel="noopener">@include('experience-houses.manage._icon', ['name' => 'link', 'size' => 17]) توجّه للموقع الإلكتروني لجمعية كفاءات</a>
                 </nav>
             </div>
             <p class="bar-kicker">مشروع بيوت الخبرة</p>
