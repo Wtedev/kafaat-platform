@@ -144,34 +144,39 @@
             background:
                 radial-gradient(120% 120% at 0% 100%, var(--navy) 0%, rgba(12,53,85,0) 55%),
                 linear-gradient(165deg, var(--teal-700) 0%, var(--teal-600) 70%, #146a78 100%);
-            color: #fff; padding: 18px clamp(16px, 5vw, 48px) clamp(110px, 13vw, 140px);
+            color: #fff; padding: 18px 0 clamp(110px, 13vw, 140px);
         }
-        .bar-in { max-width: 980px; margin: 0 auto; }
-        .bar-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-        .bar-logo img { height: 52px; width: auto; display: block; }
-        .bar-links { display: flex; gap: 8px; flex-wrap: wrap; }
-        .bar-links a { display: inline-flex; align-items: center; gap: 7px; color: #fff; text-decoration: none; font-size: 14.5px; font-weight: 700;
-            background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22); border-radius: 12px; padding: 8px 14px; transition: background .15s; }
-        .bar-links a:hover { background: rgba(255,255,255,.26); }
+        .bar-in { max-width: 980px; margin: 0 auto; padding-inline: clamp(12px, 4vw, 24px); }
+        .bar-top { display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .bar-logo img { height: 60px; width: auto; display: block; }
+        .bar-logo { display: flex; align-items: center; gap: 14px; text-decoration: none; }
+        .bar-logo .bar-ec { height: 34px; }
+        .bar-sep { width: 1px; height: 28px; align-self: center; background: rgba(255,255,255,.5); }
         .bar-kicker { margin: clamp(26px, 5vw, 44px) 0 0; font-size: 16px; opacity: .85; }
-        .bar-title { margin: 2px 0 0; font-size: clamp(30px, 5vw, 46px); line-height: 1.3; font-weight: 700; }
-        @media (max-width: 520px) { .bar-links a { padding: 6px 9px; font-size: 11.5px; gap: 5px; border-radius: 10px; } .bar-logo img { height: 42px; } }
+        .bar-title { margin: 2px 0 0; font-size: clamp(24px, 3.4vw, 34px); line-height: 1.3; font-weight: 700; }
+        @media (max-width: 520px) { .bar-logo img { height: 48px; } .bar-logo .bar-ec { height: 24px; } .bar-sep { height: 22px; } .bar-logo { gap: 10px; } }
         .copyright { margin: 0; padding: 16px 16px 28px; text-align: center; color: #7f9599; font-size: 13.5px; border-top: 1px solid #e1eeef; max-width: 980px; margin-inline: auto; }
         .footer { padding-bottom: 22px; }
+        .site-strip { position: relative; z-index: 5; display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 30px; padding: 5px 12px;
+            background: #26a69a; color: #fff; text-decoration: none; font-size: 13px; font-weight: 700; text-align: center; line-height: 1.4;
+            box-shadow: 0 2px 8px rgba(5, 45, 50, .18); transition: background .15s; }
+        .site-strip:hover { background: #229a8f; }
+        @media (max-width: 520px) { .site-strip { font-size: 11.5px; min-height: 26px; padding: 4px 10px; } }
+        @media (max-width: 560px) { .main, .bar-in { padding-inline: 20px; } }
         @yield('styles')
     </style>
 </head>
 <body>
+    <a class="site-strip" href="{{ config('site.website_url', 'https://kafaat.org.sa') }}" target="_blank" rel="noopener">توجّه للموقع الإلكتروني لجمعية كفاءات @include('experience-houses.manage._icon', ['name' => 'arrow-left', 'size' => 13, 'stroke' => 2.4])</a>
     @hasSection('compact')
     <header class="bar-head">
         <div class="bar-in">
             <div class="bar-top">
                 <a href="{{ route('public.experience-houses.cover') }}" class="bar-logo" aria-label="مشروع بيوت الخبرة">
                     <img src="{{ asset('images/brand/kafaat-logo-white.svg') }}" alt="كفاءات">
+                    <span class="bar-sep" aria-hidden="true"></span>
+                    <img class="bar-ec" src="{{ asset('images/experience-houses/excellence-center-white.png') }}" alt="مركز تميّز معتمد وبيت خبرة من وزارة الموارد البشرية والتنمية الاجتماعية">
                 </a>
-                <nav class="bar-links">
-                    <a href="{{ config('site.website_url', 'https://kafaat.org.sa') }}" target="_blank" rel="noopener">@include('experience-houses.manage._icon', ['name' => 'link', 'size' => 17]) توجّه للموقع الإلكتروني لجمعية كفاءات</a>
-                </nav>
             </div>
             <p class="bar-kicker">مشروع بيوت الخبرة</p>
             <h1 class="bar-title">@yield('compact')</h1>
@@ -213,13 +218,6 @@
         @yield('content')
     </main>
 
-    <footer class="footer">
-        <img src="{{ asset('images/brand/kafaat-logo.svg') }}" alt="كفاءات">
-        <div class="names">
-            <b>جمعية كفاءات الأهلية لبناء قدرات الشباب</b>
-            <span>Kafaat Civil Association To Build Youth Capacity</span>
-        </div>
-    </footer>
     <p class="copyright">© {{ now()->year }} جمعية كفاءات الأهلية لبناء قدرات الشباب — جميع الحقوق محفوظة</p>
     @stack('scripts')
 </body>

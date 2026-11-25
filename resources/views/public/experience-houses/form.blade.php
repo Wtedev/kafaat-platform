@@ -3,9 +3,14 @@
 @section('compact', 'نموذج الاستفادة من خبرات كفاءات')
 
 @section('styles')
+    .input::placeholder, input::placeholder, textarea::placeholder { color: #5f7a7e; opacity: .45; font-size: 13.5px; }
+    select.input:invalid { color: rgba(95, 122, 126, .5); font-size: 13.5px; }
+    select.input option { color: #12393d; }
     .intro { display: flex; gap: 18px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; margin-bottom: 8px; }
     .intro h2 { margin: 0; color: var(--teal-600); font-size: clamp(24px, 3.4vw, 34px); line-height: 1.3; }
     .intro p { margin: 6px 0 0; color: var(--muted); font-size: 16px; max-width: 560px; }
+    .intro .meta { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .intro .req-note { color: var(--muted); font-size: 12.5px; }
     .intro .time { background: var(--teal-50); color: var(--teal-700); border-radius: 999px; padding: 6px 16px; font-size: 14px; font-weight: 700; white-space: nowrap; }
 
     .alert { border-radius: 14px; padding: 14px 18px; margin: 18px 0 0; background: #fdf0ef; color: var(--danger); border: 1px solid #f3cfcc; font-size: 15px; }
@@ -76,7 +81,7 @@
     .consent { display: flex; gap: 12px; align-items: flex-start; background: var(--teal-50); border-radius: 14px; padding: 16px 18px; cursor: pointer; }
     .consent input { width: 20px; height: 20px; margin-top: 4px; accent-color: var(--teal-600); flex: none; }
 
-    .actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 30px; }
+    .actions { display: flex; align-items: center; justify-content: flex-end; gap: 16px; flex-wrap: wrap; margin-top: 30px; }
     .btn {
         font: inherit; font-weight: 700; font-size: 18px; color: #fff; border: 0; cursor: pointer;
         background: linear-gradient(135deg, var(--teal-600), var(--teal-700));
@@ -89,12 +94,12 @@
     .hp { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     .hidden { display: none; }
     @media (max-width: 560px) {
-        .bar-head { padding: 12px 12px 92px; }
-        .bar-logo img { height: 36px; }
-        .bar-links a { font-size: 12.5px; padding: 6px 9px; gap: 5px; }
+        .bar-head { padding: 12px 0 92px; }
+        .bar-in { padding-inline: 20px; }
+        .bar-logo img { height: 44px; }
         .bar-kicker { margin-top: 18px; font-size: 13.5px; }
-        .bar-title { font-size: 25px; }
-        .main { padding: 0 10px 28px; margin-top: -78px; }
+        .bar-title { font-size: 19px; }
+        .main { padding: 0 20px 28px; margin-top: -78px; }
         .panel { padding: 18px 14px; border-radius: 18px; }
         .intro p { font-size: 14px; }
         .intro .time { font-size: 12.5px; padding: 4px 12px; }
@@ -129,7 +134,10 @@
         <div>
             <p style="margin-top:0">نسعد بتعرّفنا على احتياج جمعيتكم، وسنتواصل معكم بعد مراجعة البيانات.</p>
         </div>
-        <span class="time">حوالي دقيقة واحدة</span>
+        <div class="meta">
+            <span class="time">حوالي دقيقة واحدة</span>
+            <small class="req-note">الحقول المعلّمة بـ <span style="color:var(--teal-500)">*</span> إلزامية</small>
+        </div>
     </div>
 
     @if ($errors->any())
@@ -328,7 +336,6 @@
             @error('turnstile')<div class="err">{{ $message }}</div>@enderror
 
             <div class="actions">
-                <small>الحقول المعلّمة بـ <span style="color:var(--teal-500)">*</span> إلزامية</small>
                 <button type="submit" class="btn" id="eh-submit">إرسال الطلب</button>
             </div>
         </div>
