@@ -272,11 +272,16 @@ final class ProgramSurveyService
      */
     public function exportResponses(ProgramSurvey $survey): Collection
     {
-        $responses = $survey->responses()->with('answers')->get();
-
         if (! $survey->is_anonymous) {
-            return $responses->sortBy('created_at')->values();
+            // Name + gender come from the registration the national ID resolved to.
+            return $survey->responses()
+                ->with(['answers', 'registration.user.profile'])
+                ->get()
+                ->sortBy('created_at')
+                ->values();
         }
+
+        $responses = $survey->responses()->with('answers')->get();
 
         return $responses->sortBy(function (SurveyResponse $response): string {
             return $response->answers
