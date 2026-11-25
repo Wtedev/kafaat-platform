@@ -20,7 +20,8 @@
             background:
                 radial-gradient(75% 85% at 100% 100%, var(--navy) 0%, rgba(12,53,85,0) 62%),
                 linear-gradient(170deg, var(--outer-1) 0%, var(--outer-2) 55%, #1a7f88 100%);
-            padding: clamp(14px, 3vh, 36px) clamp(12px, 3.5vw, 40px) 0;
+            --pad-t: clamp(14px, 3vh, 36px); --pad-x: clamp(12px, 3.5vw, 40px);
+            padding: var(--pad-t) var(--pad-x) 0;
         }
         .wrap { position: relative; flex: 1; display: flex; width: 100%; max-width: 1240px; margin: 0 auto; }
 
@@ -44,10 +45,11 @@
 
         .copy { grid-area: copy; align-self: end; }
         .logos { display: flex; align-items: center; gap: clamp(14px, 2vw, 22px); margin-bottom: clamp(16px, 3vh, 30px); }
-        .logos .kf { height: clamp(40px, 6vh, 60px); width: auto; display: block; }
+        .logos .kf { height: clamp(46px, 7vh, 70px); width: auto; display: block; }
         .logos .mh { height: clamp(36px, 5.4vh, 54px); width: auto; display: block; }
-        .logos .sep { width: 1px; align-self: stretch; background: rgba(255,255,255,.6); }
-        .kicker { margin: 0; color: rgba(255,255,255,.8); font-weight: 700; font-size: clamp(13px, 1.25vw, 16.5px); line-height: 1.6; max-width: 34em; }
+        .logos .ec { height: clamp(28px, 4vh, 40px); width: auto; display: block; }
+        .logos .sep { width: 1px; height: clamp(22px, 3.4vh, 32px); align-self: center; background: rgba(255,255,255,.6); }
+        .kicker { margin: 0; color: rgba(255,255,255,.8); font-weight: 700; font-size: clamp(15px, 1.7vw, 22px); line-height: 1.4; }
         h1 { margin: 2px 0 0; color: #fff; font-weight: 700; font-size: clamp(28px, 2.9vw, 42px); white-space: nowrap; line-height: 1.15; letter-spacing: -.5px; }
         .desc { margin: clamp(10px, 2vh, 18px) 0 0; font-size: clamp(16px, 1.7vw, 22px); line-height: 1.6; max-width: 520px; }
 
@@ -86,12 +88,13 @@
             .actions { margin-top: clamp(14px, 2.6vh, 24px); }
         }
         @media (max-width: 560px) {
-            body { padding: 10px 10px 0; }
+            body { --pad-t: 10px; --pad-x: 10px; }
             .card { border-radius: 22px; clip-path: polygon(118px 0, 100% 0, 100% 100%, 0 100%, 0 96px); }
             .tab { width: 100px; height: 82px; border-radius: 22px 5px 5px 5px; }
             .tab::after { border-width: 8px; }
             .logos { gap: 11px; margin-bottom: 10px; }
-            .logos .kf { height: 34px; } .logos .mh { height: 30px; }
+            .logos .kf { height: 40px; } .logos .sep { height: 20px; } .logos .mh { height: 30px; }
+            .logos .ec { height: 24px; }
             .kicker { font-size: 13.5px; }
             h1 { font-size: clamp(24px, 8.2vw, 36px); white-space: normal; }
             .desc { font-size: 14.5px; margin-top: 8px; }
@@ -101,9 +104,15 @@
             .note { font-size: 12.5px; }
             .foot { font-size: 11px; padding: 8px 10px 10px; }
         }
+        .site-strip { margin: calc(-1 * var(--pad-t)) calc(-1 * var(--pad-x)) var(--pad-t); position: relative; z-index: 5; display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 30px; padding: 5px 12px;
+            background: #26a69a; color: #fff; text-decoration: none; font-size: 13px; font-weight: 700; text-align: center; line-height: 1.4;
+            box-shadow: 0 2px 8px rgba(5, 45, 50, .18); transition: background .15s; }
+        .site-strip:hover { background: #229a8f; }
+        @media (max-width: 520px) { .site-strip { font-size: 11.5px; min-height: 26px; padding: 4px 10px; } }
     </style>
 </head>
 <body>
+    <a class="site-strip" href="{{ config('site.website_url', 'https://kafaat.org.sa') }}" target="_blank" rel="noopener">توجّه للموقع الإلكتروني لجمعية كفاءات @include('experience-houses.manage._icon', ['name' => 'arrow-left', 'size' => 13, 'stroke' => 2.4])</a>
     <div class="wrap">
         <span class="tab" aria-hidden="true"></span>
         <main class="card">
@@ -111,9 +120,8 @@
                 <div class="logos">
                     <img class="kf" src="{{ asset('images/brand/kafaat-logo-white.svg') }}" alt="جمعية كفاءات الأهلية">
                     <span class="sep" aria-hidden="true"></span>
-                    <img class="mh" src="{{ asset('images/experience-houses/mhrsd-white.png') }}" alt="وزارة الموارد البشرية والتنمية الاجتماعية">
+                    <img class="ec" src="{{ asset('images/experience-houses/excellence-center-white.png') }}" alt="مركز تميّز معتمد وبيت خبرة من وزارة الموارد البشرية والتنمية الاجتماعية">
                 </div>
-                <p class="kicker">مركز تميّز معتمد وبيت خبرة من وزارة الموارد البشرية والتنمية الاجتماعية</p>
                 <h1>استفد من خبرات كفاءات</h1>
                 <p class="desc">منصة الجمعيات المستفيدة لطلب الاستفادة من خدمات كفاءات ضمن مشروع بيوت الخبرة.</p>
             </section>
