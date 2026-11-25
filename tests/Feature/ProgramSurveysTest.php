@@ -312,6 +312,26 @@ class ProgramSurveysTest extends TestCase
         $this->assertNotContains('رقم التسجيل', (new ProgramSurveyExport($survey))->headings());
     }
 
+    public function test_named_survey_export_includes_full_name_and_gender_from_the_linked_registration(): void
+    {
+        [$program, $survey, $identity] = $this->openPreSurvey();
+        $user = $this->beneficiary($identity, 'طيبة', 'سمير', 'عبدالمنعم', 'قاضي');
+        $user->profile()->create(['gender' => 'female']);
+        $registration = $this->register($program, $user, RegistrationStatus::Approved);
+
+        $question = $survey->questions()->firstOrFail();
+        $this->answer($survey, $identity, [$question->id => 4]);
+
+        $export = new ProgramSurveyExport($survey->fresh());
+        $headings = $export->headings();
+        $this->assertSame(['رقم التسجيل', 'الاسم الكامل', 'الجنس'], array_slice($headings, 0, 3));
+
+        $row = $export->collection()->first();
+        $this->assertSame($registration->id, $row[0]);
+        $this->assertSame($user->fresh()->fullName(), $row[1]);
+        $this->assertSame('أنثى', $row[2]);
+    }
+
     public function test_the_post_survey_copies_the_pre_questions_and_later_template_edits_do_not_change_them(): void
     {
         [$program, $pre, , , $preTemplate] = $this->openPreSurvey(withSatisfaction: true);

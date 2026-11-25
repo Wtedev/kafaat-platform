@@ -19,6 +19,8 @@ class ProgramSurveyExport implements FromCollection, WithHeadings
         $headings = [];
         if (! $this->survey->is_anonymous) {
             $headings[] = 'رقم التسجيل';
+            $headings[] = 'الاسم الكامل';
+            $headings[] = 'الجنس';
         }
 
         foreach ($this->questions() as $question) {
@@ -36,7 +38,10 @@ class ProgramSurveyExport implements FromCollection, WithHeadings
         return $responses->map(function (SurveyResponse $response) use ($questions): array {
             $row = [];
             if (! $this->survey->is_anonymous) {
+                $user = $response->registration?->user;
                 $row[] = $response->registration_id;
+                $row[] = $user?->fullName();
+                $row[] = $user?->profile?->gender?->label();
             }
 
             $byQuestion = $response->answers->keyBy('program_survey_question_id');
